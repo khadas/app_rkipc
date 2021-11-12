@@ -24,7 +24,7 @@ if(COMPILE_FOR_RV1126)
 endif()
 
 if(COMPILE_FOR_RV1126_BATTERY_IPC)
-  add_subdirectory(src/rv1106_battery_ipc)
+  add_subdirectory(src/rv1126_battery_ipc)
 endif()
 
 if(COMPILE_FOR_RV1126_SNAPSHOT)
