@@ -219,9 +219,13 @@ static void *rkipc_get_venc_1(void *arg) {
 			}
 			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
 			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
+				rk_storage_write_video_frame(1, data, stFrame.pstPack->u32Len,
+				                             stFrame.pstPack->u64PTS, 1);
 				rk_rtmp_write_video_frame(1, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
 				                          1);
 			} else {
+				rk_storage_write_video_frame(1, data, stFrame.pstPack->u32Len,
+				                             stFrame.pstPack->u64PTS, 0);
 				rk_rtmp_write_video_frame(1, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
 				                          0);
 			}
@@ -263,9 +267,13 @@ static void *rkipc_get_venc_2(void *arg) {
 			}
 			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
 			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
+				rk_storage_write_video_frame(2, data, stFrame.pstPack->u32Len,
+				                             stFrame.pstPack->u64PTS, 1);
 				rk_rtmp_write_video_frame(2, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
 				                          1);
 			} else {
+				rk_storage_write_video_frame(2, data, stFrame.pstPack->u32Len,
+				                             stFrame.pstPack->u64PTS, 0);
 				rk_rtmp_write_video_frame(2, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
 				                          0);
 			}
@@ -461,7 +469,7 @@ int rkipc_multi_vi_init() {
 	int video_height = rk_param_get_int("avs:source_height", -1);
 	const char *video_device_name;
 	char entry[128] = {'\0'};
-	int buf_cnt = 6;
+	int buf_cnt = 10;
 	int ret = 0;
 	VI_CHN_ATTR_S vi_chn_attr;
 

@@ -187,9 +187,13 @@ static void *rkipc_get_venc_1(void *arg) {
 			}
 			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
 			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
+				rk_storage_write_video_frame(1, data, stFrame.pstPack->u32Len,
+				                             stFrame.pstPack->u64PTS, 1);
 				rk_rtmp_write_video_frame(1, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
 				                          1);
 			} else {
+				rk_storage_write_video_frame(1, data, stFrame.pstPack->u32Len,
+				                             stFrame.pstPack->u64PTS, 0);
 				rk_rtmp_write_video_frame(1, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
 				                          0);
 			}
@@ -231,9 +235,13 @@ static void *rkipc_get_venc_2(void *arg) {
 			}
 			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
 			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
+				rk_storage_write_video_frame(2, data, stFrame.pstPack->u32Len,
+				                             stFrame.pstPack->u64PTS, 1);
 				rk_rtmp_write_video_frame(2, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
 				                          1);
 			} else {
+				rk_storage_write_video_frame(2, data, stFrame.pstPack->u32Len,
+				                             stFrame.pstPack->u64PTS, 0);
 				rk_rtmp_write_video_frame(2, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
 				                          0);
 			}
@@ -1183,7 +1191,7 @@ int rkipc_pipe_vpss_vo_init() {
 
 	ret = RK_MPI_VO_Enable(g_vo_dev_id);
 	if (ret != RK_SUCCESS) {
-		LOG_ERROR("RK_MPI_VO_Enable %x\n", ret);
+		LOG_ERROR("RK_MPI_VO_Enable err is %x\n", ret);
 		return ret;
 	}
 	LOG_INFO("RK_MPI_VO_Enable success\n");
@@ -1957,7 +1965,7 @@ int rk_video_init() {
 	ret |= rkipc_bind_init();
 	if (g_enable_vo)
 		ret |= rkipc_pipe_vpss_vo_init();
-	// ret |= rkipc_osd_init();
+	ret |= rkipc_osd_init();
 	LOG_INFO("over\n");
 
 	return ret;
@@ -1969,7 +1977,7 @@ int rk_video_deinit() {
 	pthread_join(venc_thread_0, NULL);
 	pthread_join(jpeg_venc_thread_id, NULL);
 	int ret = 0;
-	// ret |= rkipc_osd_deinit();
+	ret |= rkipc_osd_deinit();
 	if (g_enable_vo)
 		ret |= rkipc_pipe_vi_vo_deinit();
 	ret |= rkipc_bind_deinit();

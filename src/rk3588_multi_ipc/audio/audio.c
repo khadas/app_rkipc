@@ -49,6 +49,7 @@ void *save_ai_thread(void *ptr) {
 	return RK_NULL;
 }
 
+static RK_S64 fake_time = 0;
 void *save_aenc_thread(void *ptr) {
 	RK_S32 s32ret = 0;
 	FILE *file = RK_NULL;
@@ -63,7 +64,7 @@ void *save_aenc_thread(void *ptr) {
 	// }
 
 	while (g_audio_run_) {
-		s32ret = RK_MPI_AENC_GetStream(aenc_chn_id, &pstStream, 300);
+		s32ret = RK_MPI_AENC_GetStream(aenc_chn_id, &pstStream, 1000);
 		if (s32ret == RK_SUCCESS) {
 			MB_BLK bBlk = pstStream.pMbBlk;
 			void *buffer = RK_MPI_MB_Handle2VirAddr(bBlk);
@@ -71,8 +72,15 @@ void *save_aenc_thread(void *ptr) {
 			if (buffer) {
 				// LOG_INFO("get frame data = %p, size = %d, pts is %lld\n", buffer,
 				// pstStream.u32Len, pstStream.u64TimeStamp);
+				// fake 72ms
+				fake_time += 72000;
+				//LOG_INFO("fake pts is %lld\n", fake_time);
 				rkmuxer_write_audio_frame(0, buffer, pstStream.u32Len,
-				                          pstStream.u64TimeStamp * 1000);
+				                          fake_time);
+				rkmuxer_write_audio_frame(1, buffer, pstStream.u32Len,
+				                          fake_time);
+				rkmuxer_write_audio_frame(2, buffer, pstStream.u32Len,
+				                          fake_time);
 				// if (file) {
 				// 	fwrite(buffer, pstStream.u32Len, 1, file);
 				// 	fflush(file);
