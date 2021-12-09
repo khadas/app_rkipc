@@ -30,6 +30,7 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/common/osd SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/osd/freetype2 SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/network SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/storage SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/rockiva SRCS)
 
 include_directories(audio
 					${PROJECT_SOURCE_DIR}/common/isp2
@@ -44,6 +45,7 @@ include_directories(audio
 					${PROJECT_SOURCE_DIR}/common/osd/freetype2
 					${PROJECT_SOURCE_DIR}/common/network
 					${PROJECT_SOURCE_DIR}/common/storage
+					${PROJECT_SOURCE_DIR}/common/rockiva
 					)
 
 link_directories(${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1031-linux-gnu)
@@ -56,7 +58,7 @@ add_definitions(-g -ggdb)
 # link_libraries(asan)
 
 add_executable(${PROJECT_NAME} ${SRCS})
-target_link_libraries(${PROJECT_NAME} pthread rockit rkaiq rtsp freetype wpa_client rkmuxer)
+target_link_libraries(${PROJECT_NAME} pthread rockit rkaiq rtsp freetype wpa_client rkmuxer rockiva)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 install(FILES rkipc.ini DESTINATION share)
@@ -72,3 +74,6 @@ install(FILES ${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1031-linux-gnu/libpng16.
 install(FILES ${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1031-linux-gnu/libpng16.so.16 DESTINATION lib)
 install(FILES ${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1031-linux-gnu/librkmuxer.so DESTINATION lib)
 install(FILES ${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1031-linux-gnu/libwpa_client.so DESTINATION lib)
+install(FILES ${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1031-linux-gnu/librknnrt.so DESTINATION lib)
+install(FILES ${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1031-linux-gnu/librockiva.so DESTINATION lib)
+install(FILES ${PROJECT_SOURCE_DIR}/common/rockiva/object_detection_ipc_cls5.data DESTINATION lib)

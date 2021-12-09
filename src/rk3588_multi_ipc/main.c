@@ -6,6 +6,7 @@
 #include "log.h"
 #include "osd.h"
 #include "param.h"
+#include "rockiva.h"
 #include "server.h"
 #include "storage.h"
 #include "system.h"
@@ -103,11 +104,14 @@ int main(int argc, char **argv) {
 	rk_isp_init(5, rkipc_iq_file_path_);
 // rk_isp_init(6, rkipc_iq_file_path_);
 #endif
+	//rk_isp_group_set_frame_rate(0, rk_param_get_int("isp.0.adjustment:fps", 30));
 	rk_video_init();
 	if (rk_param_get_int("audio.0:enable", 0))
 		rkipc_audio_init();
 	rkipc_server_init();
 	rk_storage_init();
+	if (rk_param_get_int("avs:enable_npu", 0))
+		rkipc_rockiva_init();
 
 	while (g_main_run_) {
 		usleep(1000 * 1000);
@@ -122,6 +126,8 @@ int main(int argc, char **argv) {
 	rk_video_deinit(); // RK_MPI_SYS_Exit
 	rk_isp_greoup_deinit(0);
 	rk_param_deinit();
+	if (rk_param_get_int("avs:enable_npu", 0))
+		rkipc_rockiva_deinit();
 
 	return 0;
 }
