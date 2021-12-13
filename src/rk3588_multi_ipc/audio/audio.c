@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 #include "common.h"
 #include "log.h"
-#include "rkmuxer.h"
+#include "storage.h"
 #include <rk_debug.h>
 #include <rk_mpi_aenc.h>
 #include <rk_mpi_ai.h>
@@ -75,9 +75,9 @@ void *save_aenc_thread(void *ptr) {
 				// fake 72ms
 				fake_time += 72000;
 				// LOG_INFO("fake pts is %lld\n", fake_time);
-				rkmuxer_write_audio_frame(0, buffer, pstStream.u32Len, fake_time);
-				rkmuxer_write_audio_frame(1, buffer, pstStream.u32Len, fake_time);
-				rkmuxer_write_audio_frame(2, buffer, pstStream.u32Len, fake_time);
+				rk_storage_write_audio_frame(0, buffer, pstStream.u32Len, fake_time);
+				rk_storage_write_audio_frame(1, buffer, pstStream.u32Len, fake_time);
+				rk_storage_write_audio_frame(2, buffer, pstStream.u32Len, fake_time);
 				// if (file) {
 				// 	fwrite(buffer, pstStream.u32Len, 1, file);
 				// 	fflush(file);
