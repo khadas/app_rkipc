@@ -58,6 +58,7 @@ target_link_libraries(${PROJECT_NAME}
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 install(FILES rkipc.ini DESTINATION share)
+install(PROGRAMS RkLunch.sh DESTINATION bin)
 install(PROGRAMS RkLunch-stop.sh DESTINATION bin)
 install(FILES ${PROJECT_SOURCE_DIR}/common/osd/image.bmp DESTINATION share)
 install(FILES ${PROJECT_SOURCE_DIR}/common/osd/simsun_en.ttf DESTINATION share)
