@@ -64,6 +64,16 @@ int sample_common_isp_init(int cam_id, rk_aiq_working_mode_t WDRMode, bool Multi
 	LOG_INFO("ID: %d, sensor_name is %s, iqfiles is %s\n", cam_id,
 	         aiq_static_info.sensor_info.sensor_name, iq_file_dir);
 
+	int ret;
+	if (WDRMode == RK_AIQ_WORKING_MODE_NORMAL)
+		ret = rk_aiq_uapi2_sysctl_preInit_scene(aiq_static_info.sensor_info.sensor_name, "normal",
+		                                        "day");
+	else
+		ret = rk_aiq_uapi2_sysctl_preInit_scene(aiq_static_info.sensor_info.sensor_name, "hdr",
+		                                        "day");
+	if (ret < 0)
+		LOG_ERROR("%s: failed to set scene\n", aiq_static_info.sensor_info.sensor_name);
+
 #if 1
 	aiq_ctx =
 	    rk_aiq_uapi2_sysctl_init(aiq_static_info.sensor_info.sensor_name, iq_file_dir, NULL, NULL);
@@ -125,6 +135,14 @@ int isp_camera_group_init(int cam_group_id, rk_aiq_working_mode_t WDRMode, bool 
 		       strlen(aiq_static_info.sensor_info.sensor_name) + 1);
 		camgroup_cfg.sns_ent_nm_array[i] = sensor_name_array[i];
 		LOG_INFO("camgroup_cfg.sns_ent_nm_array[%d] is %s\n", i, camgroup_cfg.sns_ent_nm_array[i]);
+		if (WDRMode == RK_AIQ_WORKING_MODE_NORMAL)
+			ret = rk_aiq_uapi2_sysctl_preInit_scene(aiq_static_info.sensor_info.sensor_name,
+			                                        "normal", "day");
+		else
+			ret = rk_aiq_uapi2_sysctl_preInit_scene(aiq_static_info.sensor_info.sensor_name, "hdr",
+			                                        "day");
+		if (ret < 0)
+			LOG_ERROR("%s: failed to set scene\n", aiq_static_info.sensor_info.sensor_name);
 	}
 
 	camgroup_cfg.config_file_dir = iq_file_dir;
@@ -154,26 +172,29 @@ int isp_camera_group_stop(int cam_group_id) {
 	return 0;
 }
 
-int rk_isp_set_frame_rate(int cam_id, int uFps) {
+int rk_isp_set_frame_rate(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	int ret = 0;
-	LOG_INFO("start %d\n", uFps);
+	int ret;
+	char entry[128] = {'\0'};
+	Uapi_ExpSwAttrV2_t expSwAttr;
 
-	frameRateInfo_t info;
-	info.mode = OP_MANUAL;
-	info.fps = uFps;
-	// ret = rk_aiq_uapi2_setFrameRate(g_aiq_ctx[cam_id], info);
+	LOG_INFO("start %d\n", value);
+	ret = rk_aiq_user_api2_ae_getExpSwAttr(g_aiq_ctx[cam_id], &expSwAttr);
+	expSwAttr.stAuto.stFrmRate.isFpsFix = true;
+	expSwAttr.stAuto.stFrmRate.FpsValue = value;
+	ret = rk_aiq_user_api2_ae_setExpSwAttr(g_aiq_ctx[cam_id], expSwAttr);
+	LOG_INFO("end, %d\n", value);
 
-	LOG_INFO("end, %d\n", uFps);
-	return ret;
+	snprintf(entry, 127, "isp.%d.adjustment:fps", cam_id);
+	rk_param_set_int(entry, value);
+
+	return 0;
 }
 
 // image adjustment
 
 int rk_isp_get_contrast(int cam_id, int *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	// int ret = rk_aiq_uapi2_getContrast(g_aiq_ctx[cam_id], value);
-	// *value = (int)(*value / 2.55);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.adjustment:contrast", cam_id);
 	*value = rk_param_get_int(entry, -1);
@@ -183,19 +204,20 @@ int rk_isp_get_contrast(int cam_id, int *value) {
 
 int rk_isp_set_contrast(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	// int ret = rk_aiq_uapi2_setContrast(g_aiq_ctx[cam_id], (int)(value * 2.55)); // value[0,255]
+	int ret;
 	char entry[128] = {'\0'};
+	acp_attrib_t attrib;
+	ret = rk_aiq_user_api2_acp_GetAttrib(g_aiq_ctx[cam_id], &attrib);
+	attrib.contrast = value * 2.55; // value[0,255]
+	ret |= rk_aiq_user_api2_acp_SetAttrib(g_aiq_ctx[cam_id], attrib);
 	snprintf(entry, 127, "isp.%d.adjustment:contrast", cam_id);
 	rk_param_set_int(entry, value);
 
-	// return ret;
-	return 0;
+	return ret;
 }
 
 int rk_isp_get_brightness(int cam_id, int *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	// int ret = rk_aiq_uapi2_getBrightness(g_aiq_ctx[cam_id], value);
-	// *value = (int)(*value / 2.55);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.adjustment:brightness", cam_id);
 	*value = rk_param_get_int(entry, -1);
@@ -205,19 +227,20 @@ int rk_isp_get_brightness(int cam_id, int *value) {
 
 int rk_isp_set_brightness(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	// int ret = rk_aiq_uapi2_setBrightness(g_aiq_ctx[cam_id], (int)(value * 2.55)); // value[0,255]
+	int ret;
 	char entry[128] = {'\0'};
+	acp_attrib_t attrib;
+	ret = rk_aiq_user_api2_acp_GetAttrib(g_aiq_ctx[cam_id], &attrib);
+	attrib.brightness = value * 2.55; // value[0,255]
+	ret |= rk_aiq_user_api2_acp_SetAttrib(g_aiq_ctx[cam_id], attrib);
 	snprintf(entry, 127, "isp.%d.adjustment:brightness", cam_id);
 	rk_param_set_int(entry, value);
 
-	// return ret;
-	return 0;
+	return ret;
 }
 
 int rk_isp_get_saturation(int cam_id, int *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	// int ret = rk_aiq_uapi2_getSaturation(g_aiq_ctx[cam_id], value);
-	// *value = (int)(*value / 2.55);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.adjustment:saturation", cam_id);
 	*value = rk_param_get_int(entry, -1);
@@ -227,18 +250,20 @@ int rk_isp_get_saturation(int cam_id, int *value) {
 
 int rk_isp_set_saturation(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	// int ret = rk_aiq_uapi2_setSaturation(g_aiq_ctx[cam_id], (int)(value * 2.55)); // value[0,255]
+	int ret;
 	char entry[128] = {'\0'};
+	acp_attrib_t attrib;
+	ret = rk_aiq_user_api2_acp_GetAttrib(g_aiq_ctx[cam_id], &attrib);
+	attrib.saturation = value * 2.55; // value[0,255]
+	ret |= rk_aiq_user_api2_acp_SetAttrib(g_aiq_ctx[cam_id], attrib);
 	snprintf(entry, 127, "isp.%d.adjustment:saturation", cam_id);
 	rk_param_set_int(entry, value);
 
-	// return ret;
-	return 0;
+	return ret;
 }
 
 int rk_isp_get_sharpness(int cam_id, int *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	// int ret = rk_aiq_uapi2_getSharpness(g_aiq_ctx[cam_id], value);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.adjustment:sharpness", cam_id);
 	*value = rk_param_get_int(entry, -1);
@@ -258,8 +283,6 @@ int rk_isp_set_sharpness(int cam_id, int value) {
 
 int rk_isp_get_hue(int cam_id, int *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	// int ret = rk_aiq_uapi2_getHue(g_aiq_ctx[cam_id], value);
-	// *value = (int)(*value / 2.55);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.adjustment:hue", cam_id);
 	*value = rk_param_get_int(entry, -1);
@@ -269,13 +292,16 @@ int rk_isp_get_hue(int cam_id, int *value) {
 
 int rk_isp_set_hue(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	// int ret = rk_aiq_uapi2_setHue(g_aiq_ctx[cam_id], (int)(value * 2.55)); // value[0,255]
+	int ret;
 	char entry[128] = {'\0'};
+	acp_attrib_t attrib;
+	ret = rk_aiq_user_api2_acp_GetAttrib(g_aiq_ctx[cam_id], &attrib);
+	attrib.hue = value * 2.55; // value[0,255]
+	ret |= rk_aiq_user_api2_acp_SetAttrib(g_aiq_ctx[cam_id], attrib);
 	snprintf(entry, 127, "isp.%d.adjustment:hue", cam_id);
 	rk_param_set_int(entry, value);
 
-	// return ret;
-	return 0;
+	return ret;
 }
 
 // exposure
@@ -404,19 +430,7 @@ int rk_isp_get_hdr(int cam_id, const char **value) {
 int rk_isp_set_hdr(int cam_id, const char *value) {
 	int ret;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	if (!strcmp(value, "close")) {
-		// ret = rk_aiq_uapi2_sysctl_swWorkingModeDyn(g_aiq_ctx[cam_id],
-		// RK_AIQ_WORKING_MODE_NORMAL);
-		// rk_aiq_uapi2_sysctl_switch_scene(g_aiq_ctx[cam_id], "normal" , "day");
-	} else if (!strcmp(value, "HDR2")) {
-		// ret = rk_aiq_uapi2_sysctl_swWorkingModeDyn(g_aiq_ctx[cam_id],
-		// RK_AIQ_WORKING_MODE_ISP_HDR2);
-		// rk_aiq_uapi2_sysctl_switch_scene(g_aiq_ctx[cam_id], "hdr" , "day");
-	} else if (!strcmp(value, "HDR3")) {
-		// ret = rk_aiq_uapi2_sysctl_swWorkingModeDyn(g_aiq_ctx[cam_id],
-		// RK_AIQ_WORKING_MODE_ISP_HDR3);
-	}
-
+	// TODO: need restart stream
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.blc:hdr", cam_id);
 	rk_param_set_string(entry, value);
@@ -682,20 +696,16 @@ int rk_isp_set_noise_reduce_mode(int cam_id, const char *value) {
 	} else if (!strcmp(value, "2dnr")) {
 		rk_aiq_uapi2_sysctl_setModuleCtl(g_aiq_ctx[cam_id], RK_MODULE_NR, true);
 		rk_aiq_uapi2_sysctl_setModuleCtl(g_aiq_ctx[cam_id], RK_MODULE_TNR, false);
-		// rk_aiq_uapi2_setMSpaNRStrth(g_aiq_ctx[cam_id], true, spatial_level);
-		// //[0,100]
+		// rk_aiq_uapi2_setMSpaNRStrth(g_aiq_ctx[cam_id], true, spatial_level); //[0,100]
 	} else if (!strcmp(value, "3dnr")) {
 		rk_aiq_uapi2_sysctl_setModuleCtl(g_aiq_ctx[cam_id], RK_MODULE_NR, false);
 		rk_aiq_uapi2_sysctl_setModuleCtl(g_aiq_ctx[cam_id], RK_MODULE_TNR, true);
-		// rk_aiq_uapi2_setMTNRStrth(g_aiq_ctx[cam_id], true, temporal_level);
-		// //[0,100]
+		// rk_aiq_uapi2_setMTNRStrth(g_aiq_ctx[cam_id], true, temporal_level); //[0,100]
 	} else if (!strcmp(value, "mixnr")) {
 		rk_aiq_uapi2_sysctl_setModuleCtl(g_aiq_ctx[cam_id], RK_MODULE_NR, true);
 		rk_aiq_uapi2_sysctl_setModuleCtl(g_aiq_ctx[cam_id], RK_MODULE_TNR, true);
-		// rk_aiq_uapi2_setMSpaNRStrth(g_aiq_ctx[cam_id], true, spatial_level);
-		// //[0,100]
-		// rk_aiq_uapi2_setMTNRStrth(g_aiq_ctx[cam_id], true, temporal_level);
-		// //[0,100]
+		// rk_aiq_uapi2_setMSpaNRStrth(g_aiq_ctx[cam_id], true, spatial_level); //[0,100]
+		// rk_aiq_uapi2_setMTNRStrth(g_aiq_ctx[cam_id], true, temporal_level); //[0,100]
 	}
 
 	char entry[128] = {'\0'};
@@ -715,19 +725,20 @@ int rk_isp_get_dehaze(int cam_id, const char **value) {
 }
 
 int rk_isp_set_dehaze(int cam_id, const char *value) {
-	int ret;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	if (!strcmp(value, "close")) {
-		// rk_aiq_uapi2_disableDhz(g_aiq_ctx[cam_id]);
-	} else if (!strcmp(value, "open")) {
-		// rk_aiq_uapi2_enableDhz(g_aiq_ctx[cam_id]);
-		// ret = rk_aiq_uapi2_setDhzMode(g_aiq_ctx[cam_id], OP_MANUAL);
-	} else if (!strcmp(value, "auto")) {
-		// rk_aiq_uapi2_enableDhz(g_aiq_ctx[cam_id]);
-		// ret = rk_aiq_uapi2_setDhzMode(g_aiq_ctx[cam_id], OP_AUTO);
-	}
-
+	int ret;
 	char entry[128] = {'\0'};
+	adehaze_sw_V2_t attr;
+	memset(&attr, 0, sizeof(attr));
+	attr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
+	if (!strcmp(value, "close")) {
+		attr.mode = DEHAZE_API_BYPASS;
+	} else if (!strcmp(value, "open")) {
+		attr.mode = DEHAZE_API_MANUAL;
+	} else if (!strcmp(value, "auto")) {
+		attr.mode = DEHAZE_API_DEHAZE_AUTO;
+	}
+	ret = rk_aiq_user_api2_adehaze_setSwAttrib(g_aiq_ctx[cam_id], attr);
 	snprintf(entry, 127, "isp.%d.enhancement:dehaze", cam_id);
 	rk_param_set_string(entry, value);
 
@@ -1119,7 +1130,7 @@ int rk_isp_deinit(int cam_id) {
 	return 0;
 }
 
-int rk_isp_greoup_init(int cam_group_id, char *iqfile_path) {
+int rk_isp_group_init(int cam_group_id, char *iqfile_path) {
 	LOG_INFO("cam_group_id is %d\n", cam_group_id);
 	int ret;
 	if (iqfile_path)
@@ -1128,12 +1139,20 @@ int rk_isp_greoup_init(int cam_group_id, char *iqfile_path) {
 		memcpy(g_iq_file_dir_, "/etc/iqfiles", strlen("/etc/iqfiles"));
 	LOG_INFO("g_iq_file_dir_ is %s\n", g_iq_file_dir_);
 
-	ret = isp_camera_group_init(cam_group_id, RK_AIQ_WORKING_MODE_NORMAL, false, g_iq_file_dir_);
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "isp.%d.blc:hdr", cam_group_id);
+	const char *hdr_mode = rk_param_get_string(entry, "close");
+	LOG_INFO("cam_group_id is %d, hdr_mode is %s\n", cam_group_id, hdr_mode);
+	if (!strcmp(hdr_mode, "HDR2")) {
+		ret = isp_camera_group_init(cam_group_id, RK_AIQ_WORKING_MODE_ISP_HDR2, false, g_iq_file_dir_);
+	} else {
+		ret = isp_camera_group_init(cam_group_id, RK_AIQ_WORKING_MODE_NORMAL, false, g_iq_file_dir_);
+	}
 
 	return ret;
 }
 
-int rk_isp_greoup_deinit(int cam_group_id) {
+int rk_isp_group_deinit(int cam_group_id) {
 	LOG_INFO("cam_group_id is %d\n", cam_group_id);
 	return isp_camera_group_stop(cam_group_id);
 }
