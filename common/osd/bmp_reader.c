@@ -24,7 +24,7 @@ void bmp24_to_argb8888(BITMAPINFOHEADER bitInfoHead, RGBQUAD *argb_8888_data, ui
 			argb_8888_data[index].rgbReserved = bmp_data[k];
 			argb_8888_data[index].rgbRed = bmp_data[k + 1];
 			argb_8888_data[index].rgbGreen = bmp_data[k + 2];
-			argb_8888_data[index].rgbBlue = 0X00;
+			argb_8888_data[index].rgbBlue = 0Xff;
 			index++;
 		}
 	}

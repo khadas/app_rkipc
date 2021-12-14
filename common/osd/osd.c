@@ -272,6 +272,8 @@ int rk_osd_init() {
 
 		snprintf(entry, 127, "osd.%d:enabled", i);
 		osd_data.enable = rk_param_get_int(entry, 0);
+		if (osd_data.enable == 0)
+			continue;
 		snprintf(entry, 127, "osd.%d:position_x", i);
 		osd_data.origin_x = UPALIGNTO16((int)(rk_param_get_int(entry, -1) * g_x_rate));
 		snprintf(entry, 127, "osd.%d:position_y", i);
