@@ -42,6 +42,7 @@
 #define TEST_ARGB32_BLUE 0xFF003399
 #define TEST_ARGB32_TRANS 0x00000000
 
+static pthread_mutex_t g_rtsp_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int g_video_run_ = 1;
 static int pipe_id_ = 0;
 static int dev_id_ = 0;
@@ -138,9 +139,11 @@ static void *rkipc_get_venc_0(void *arg) {
 			continue;
 		} else {
 			if (g_rtsplive && g_rtsp_session_0) {
+				pthread_mutex_lock(&g_rtsp_mutex);
 				rtsp_tx_video(g_rtsp_session_0, RK_MPI_MB_GetPtr(mb), RK_MPI_MB_GetSize(mb),
 				              RK_MPI_MB_GetTimestamp(mb));
 				rtsp_do_event(g_rtsplive);
+				pthread_mutex_unlock(&g_rtsp_mutex);
 			}
 			if (g_rtmp_start) {
 				if (RK_MPI_MB_GetFlag(mb) == VENC_NALU_IDRSLICE ||
@@ -180,9 +183,11 @@ static void *rkipc_get_venc_1(void *arg) {
 			continue;
 		} else {
 			if (g_rtsplive && g_rtsp_session_1) {
+				pthread_mutex_lock(&g_rtsp_mutex);
 				rtsp_tx_video(g_rtsp_session_1, RK_MPI_MB_GetPtr(mb), RK_MPI_MB_GetSize(mb),
 				              RK_MPI_MB_GetTimestamp(mb));
 				rtsp_do_event(g_rtsplive);
+				pthread_mutex_unlock(&g_rtsp_mutex);
 			}
 			if (g_rtmp_start) {
 				if (RK_MPI_MB_GetFlag(mb) == VENC_NALU_IDRSLICE ||
@@ -220,9 +225,11 @@ static void *rkipc_get_venc_2(void *arg) {
 			continue;
 		} else {
 			if (g_rtsplive && g_rtsp_session_2) {
+				pthread_mutex_lock(&g_rtsp_mutex);
 				rtsp_tx_video(g_rtsp_session_2, RK_MPI_MB_GetPtr(mb), RK_MPI_MB_GetSize(mb),
 				              RK_MPI_MB_GetTimestamp(mb));
 				rtsp_do_event(g_rtsplive);
+				pthread_mutex_unlock(&g_rtsp_mutex);
 			}
 			if (g_rtmp_start) {
 				if (RK_MPI_MB_GetFlag(mb) == VENC_NALU_IDRSLICE ||

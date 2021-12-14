@@ -82,6 +82,7 @@
 #define RTMP_URL_1 "rtmp://127.0.0.1:1935/live/substream"
 #define RTMP_URL_2 "rtmp://127.0.0.1:1935/live/thirdstream"
 
+static pthread_mutex_t g_rtsp_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int g_sensor_num = 6;
 static int g_video_run_ = 1;
 static int g_format, g_enable_vo, g_vo_dev_id;
@@ -161,9 +162,11 @@ static void *rkipc_get_venc_0(void *arg) {
 			//          stFrame.pstPack->DataType.enH264EType);
 
 			if (g_rtsplive && g_rtsp_session_0) {
+				pthread_mutex_lock(&g_rtsp_mutex);
 				rtsp_tx_video(g_rtsp_session_0, data, stFrame.pstPack->u32Len,
 				              stFrame.pstPack->u64PTS);
 				rtsp_do_event(g_rtsplive);
+				pthread_mutex_unlock(&g_rtsp_mutex);
 			}
 			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
 			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
@@ -213,9 +216,11 @@ static void *rkipc_get_venc_1(void *arg) {
 			// stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
 			// stFrame.pstPack->DataType.enH264EType);
 			if (g_rtsplive && g_rtsp_session_1) {
+				pthread_mutex_lock(&g_rtsp_mutex);
 				rtsp_tx_video(g_rtsp_session_1, data, stFrame.pstPack->u32Len,
 				              stFrame.pstPack->u64PTS);
 				rtsp_do_event(g_rtsplive);
+				pthread_mutex_unlock(&g_rtsp_mutex);
 			}
 			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
 			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
@@ -261,9 +266,11 @@ static void *rkipc_get_venc_2(void *arg) {
 			// stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
 			// stFrame.pstPack->DataType.enH264EType);
 			if (g_rtsplive && g_rtsp_session_2) {
+				pthread_mutex_lock(&g_rtsp_mutex);
 				rtsp_tx_video(g_rtsp_session_2, data, stFrame.pstPack->u32Len,
 				              stFrame.pstPack->u64PTS);
 				rtsp_do_event(g_rtsplive);
+				pthread_mutex_unlock(&g_rtsp_mutex);
 			}
 			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
 			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
