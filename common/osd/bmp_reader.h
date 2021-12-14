@@ -32,10 +32,10 @@ typedef struct tagBITMAPINFOHEADER {
 } BITMAPINFOHEADER;
 
 typedef struct tagRGBQUAD {
-	uint8_t rgbBlue;
-	uint8_t rgbGreen;
-	uint8_t rgbRed;
 	uint8_t rgbReserved;
+	uint8_t rgbRed;
+	uint8_t rgbGreen;
+	uint8_t rgbBlue;
 } RGBQUAD;
 
 int load_bmp_form_file(osd_data_s *data);

@@ -5,6 +5,8 @@
 #include "rkmuxer.h"
 #include <sys/time.h>
 #include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #ifdef LOG_TAG
 #undef LOG_TAG

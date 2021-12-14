@@ -21,10 +21,15 @@ void bmp24_to_argb8888(BITMAPINFOHEADER bitInfoHead, RGBQUAD *argb_8888_data, ui
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
 			k = (height - i - 1) * pitch + j * 3;
-			argb_8888_data[index].rgbReserved = bmp_data[k];
-			argb_8888_data[index].rgbRed = bmp_data[k + 1];
-			argb_8888_data[index].rgbGreen = bmp_data[k + 2];
-			argb_8888_data[index].rgbBlue = 0Xff;
+			argb_8888_data[index].rgbBlue = bmp_data[k];
+			argb_8888_data[index].rgbGreen = bmp_data[k + 1];
+			argb_8888_data[index].rgbRed = bmp_data[k + 2];
+			if ((argb_8888_data[index].rgbBlue == 0x08)
+					&& (argb_8888_data[index].rgbGreen == 0x00)
+					&& (argb_8888_data[index].rgbRed == 0x00))
+				argb_8888_data[index].rgbReserved = 0X00;
+			else
+				argb_8888_data[index].rgbReserved = 0Xff;
 			index++;
 		}
 	}
@@ -41,10 +46,10 @@ void bmp32_to_argb8888(BITMAPINFOHEADER bitInfoHead, RGBQUAD *argb_8888_data, ui
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
 			k = (height - i - 1) * pitch + j * 4;
-			argb_8888_data[index].rgbReserved = bmp_data[k];
-			argb_8888_data[index].rgbRed = bmp_data[k + 1];
-			argb_8888_data[index].rgbGreen = bmp_data[k + 2];
-			argb_8888_data[index].rgbBlue = bmp_data[k + 3];
+			argb_8888_data[index].rgbBlue = bmp_data[k];
+			argb_8888_data[index].rgbGreen = bmp_data[k + 1];
+			argb_8888_data[index].rgbRed = bmp_data[k + 2];
+			argb_8888_data[index].rgbReserved = bmp_data[k + 3];
 			index++;
 		}
 	}
