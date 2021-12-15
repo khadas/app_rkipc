@@ -74,13 +74,10 @@ void *save_aenc_thread(void *ptr) {
 				// pstStream.u32Len, pstStream.u64TimeStamp);
 				// fake 72ms
 				fake_time += 72000;
-				//LOG_INFO("fake pts is %lld\n", fake_time);
-				rkmuxer_write_audio_frame(0, buffer, pstStream.u32Len,
-				                          fake_time);
-				rkmuxer_write_audio_frame(1, buffer, pstStream.u32Len,
-				                          fake_time);
-				rkmuxer_write_audio_frame(2, buffer, pstStream.u32Len,
-				                          fake_time);
+				// LOG_INFO("fake pts is %lld\n", fake_time);
+				rkmuxer_write_audio_frame(0, buffer, pstStream.u32Len, fake_time);
+				rkmuxer_write_audio_frame(1, buffer, pstStream.u32Len, fake_time);
+				rkmuxer_write_audio_frame(2, buffer, pstStream.u32Len, fake_time);
 				// if (file) {
 				// 	fwrite(buffer, pstStream.u32Len, 1, file);
 				// 	fflush(file);

@@ -155,12 +155,15 @@ int generate_date_time(const char *fmt, wchar_t *result, int r_size) {
 static void *osd_time_server(void *arg) {
 	printf("#Start %s thread, arg:%p\n", __func__, arg);
 	int ret = 0;
-	int osd_time_id;
+	int osd_time_id, last_time_sec, wchar_cnt;
 	const char *osd_type;
 	const char *date_style;
 	const char *time_style;
 	char entry[128] = {'\0'};
 	osd_data_s osd_data;
+	time_t rawtime;
+	struct tm *cur_time_info;
+
 	memset(&osd_data, 0, sizeof(osd_data));
 	for (int i = 0; i < MAX_OSD_NUM; i++) {
 		snprintf(entry, 127, "osd.%d:type", i);
@@ -214,7 +217,7 @@ static void *osd_time_server(void *arg) {
 	}
 	LOG_INFO("osd_data.text.format is %s\n", osd_data.text.format);
 
-	int wchar_cnt = generate_date_time(osd_data.text.format, osd_data.text.wch, 128);
+	wchar_cnt = generate_date_time(osd_data.text.format, osd_data.text.wch, 128);
 	osd_data.width = UPALIGNTO16(wchar_cnt * osd_data.text.font_size);
 	osd_data.height = UPALIGNTO16(osd_data.text.font_size);
 	osd_data.size = osd_data.width * osd_data.height * 4; // BGRA8888 4byte
@@ -224,10 +227,20 @@ static void *osd_time_server(void *arg) {
 	// rk_osd_bmp_destroy_(osd_time_id);
 	rk_osd_bmp_create_(osd_time_id, &osd_data);
 	free(osd_data.buffer);
+
+	time(&rawtime);
+	cur_time_info = localtime(&rawtime);
+	last_time_sec = cur_time_info->tm_sec;
 	while (g_osd_server_run_) {
 		// only update time bmp
-		rk_signal_wait(g_osd_signal, 1000); // TODO: in xx s 00 ms update
-		int wchar_cnt = generate_date_time(osd_data.text.format, osd_data.text.wch, 128);
+		rk_signal_wait(g_osd_signal, 100); // TODO: in xx s 00 ms update
+		time(&rawtime);
+		cur_time_info = localtime(&rawtime);
+		if (cur_time_info->tm_sec == last_time_sec)
+			continue;
+		else
+			last_time_sec = cur_time_info->tm_sec;
+		wchar_cnt = generate_date_time(osd_data.text.format, osd_data.text.wch, 128);
 		osd_data.width = UPALIGNTO16(wchar_cnt * osd_data.text.font_size);
 		osd_data.height = UPALIGNTO16(osd_data.text.font_size);
 		osd_data.size = osd_data.width * osd_data.height * 4; // BGRA8888 4byte
