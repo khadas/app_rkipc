@@ -141,7 +141,7 @@ typedef struct {
 
 	CHAR_T product_key[IPC_PRODUCT_KEY_LEN + 1]; /* one product key(PID) for one product  */
 	CHAR_T
-	    uuid[IPC_UUID_LEN + 1]; /* one uuid-authkey pair for one device, to register on TUYA coud */
+	uuid[IPC_UUID_LEN + 1]; /* one uuid-authkey pair for one device, to register on TUYA coud */
 	CHAR_T auth_key[IPC_AUTH_KEY_LEN + 1];
 	CHAR_T p2p_id[IPC_P2P_ID_LEN + 1]; /* this param is not used now */
 
@@ -150,15 +150,15 @@ typedef struct {
 	CHAR_T dev_serial_num[IPC_SERIAL_NUM_LEN + 1]; /* this param is not used in IPC now */
 
 	DEV_OBJ_DP_CMD_CB
-	    dev_obj_dp_cb; /* dp cmd callback function, which hanles cmd from TUYA cloud and APP */
+	dev_obj_dp_cb; /* dp cmd callback function, which hanles cmd from TUYA cloud and APP */
 	DEV_DP_QUERY_CB dev_dp_query_cb; /* dp query callback function */
 
 	GW_STATUS_CHANGED_CB status_changed_cb; /* status change callback function for developer, could
 	                                           be NULL if not needed */
 	GW_UG_INFORM_CB
-	    gw_ug_cb; /* OTA callback function, triggered by uprading from APP and TUYA cloud */
+	gw_ug_cb; /* OTA callback function, triggered by uprading from APP and TUYA cloud */
 	TUYA_RST_INFORM_CB
-	    gw_rst_cb; /* reset callback fucntion, triggered when user unbind device from a account */
+	gw_rst_cb; /* reset callback fucntion, triggered when user unbind device from a account */
 	TUYA_RESTART_INFORM_CB gw_restart_cb; /* restart callback function */
 
 	BOOL_T mem_save_mode; /* woking in low memory mode */

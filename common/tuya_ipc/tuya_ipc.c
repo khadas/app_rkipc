@@ -43,52 +43,45 @@ static unsigned char s_heartbeat_data[32] = {0};
 static unsigned int s_wakeup_len = 32;
 static int s_mqtt_socket_fd = -1;
 
+rk_tuya_ao_create rk_tuya_ao_create_ = NULL;
+rk_tuya_ao_write rk_tuya_ao_write_ = NULL;
+rk_tuya_ao_destroy rk_tuya_ao_destroy_ = NULL;
+
+void rk_tuya_ao_create_register(rk_tuya_ao_create callback_ptr) {
+	rk_tuya_ao_create_ = callback_ptr;
+}
+
+void rk_tuya_ao_write_register(rk_tuya_ao_write callback_ptr) { rk_tuya_ao_write_ = callback_ptr; }
+
+void rk_tuya_ao_destroy_register(rk_tuya_ao_destroy callback_ptr) {
+	rk_tuya_ao_destroy_ = callback_ptr;
+}
+
 STATIC VOID __depereated_online_cb(IN TRANSFER_ONLINE_E status) {
 	LOG_INFO("status is %d\n", status);
 }
 
-// 语音对讲的全局变量
-// std::shared_ptr<easymedia::Stream> out_stream;
-// std::string alsa_device = "default";
-// MediaConfig pcm_config;
-// AudioConfig &aud_cfg = pcm_config.aud_cfg;
-// SampleInfo &sample_info = aud_cfg.sample_info;
+char ao_data[2048];
 int TUYA_APP_Enable_Speaker_CB(int enable) {
-	// if (enable) {
-	//   // 输出流的格式配置
-	//   sample_info.fmt = SAMPLE_FMT_G711U;
-	//   sample_info.channels = 1;
-	//   sample_info.sample_rate = 8000;
-	//   sample_info.nb_samples = 320;
-	//   easymedia::REFLECTOR(Stream)::DumpFactories();
-
-	//   // 创建输出流
-	//   std::string stream_name("alsa_playback_stream");
-	//   std::string fmt_str = SampleFmtToString(sample_info.fmt);
-	//   std::string rule;
-	//   PARAM_STRING_APPEND(rule, KEY_INPUTDATATYPE, fmt_str);
-	//   if (!easymedia::REFLECTOR(Stream)::IsMatch(stream_name.c_str(),
-	//                                              rule.c_str())) {
-	//     fprintf(stderr, "unsupport data type\n");
-	//     exit(EXIT_FAILURE);
-	//   }
-	//   std::string params;
-	//   PARAM_STRING_APPEND(params, KEY_DEVICE, alsa_device);
-	//   PARAM_STRING_APPEND(params, KEY_SAMPLE_FMT, fmt_str);
-	//   PARAM_STRING_APPEND_TO(params, KEY_CHANNELS, sample_info.channels);
-	//   PARAM_STRING_APPEND_TO(params, KEY_SAMPLE_RATE, sample_info.sample_rate);
-	//   LOG_INFO("params:\n%s\n", params.c_str());
-	//   out_stream = easymedia::REFLECTOR(Stream)::Create<easymedia::Stream>(
-	//       stream_name.c_str(), params.c_str());
-	//   if (!out_stream) {
-	//     fprintf(stderr, "Create stream %s failed\n", stream_name.c_str());
-	//     exit(EXIT_FAILURE);
-	//   }
-	// } else {
-	//   out_stream.reset();
-	// }
+	if (enable)
+		rk_tuya_ao_create_();
+	else
+		rk_tuya_ao_destroy_();
 
 	return 0;
+}
+
+STATIC VOID __TUYA_APP_rev_audio_cb(IN CONST TRANSFER_AUDIO_FRAME_S *p_audio_frame,
+                                    IN CONST UINT_T frame_no) {
+	// LOG_DEBUG("Rev Audio. size:%u audio_codec:%d audio_sample:%d "
+	//           "audio_databits:%d audio_channel:%d\n",
+	//           p_audio_frame->buf_len, p_audio_frame->audio_codec, p_audio_frame->audio_sample,
+	//           p_audio_frame->audio_databits, p_audio_frame->audio_channel);
+	int data_len;
+	tuya_g711_decode(TUYA_G711_MU_LAW, p_audio_frame->p_audio_buf, p_audio_frame->buf_len, ao_data,
+	                 &data_len);
+	// LOG_DEBUG("data_len is %d\n", data_len);
+	rk_tuya_ao_write_(&ao_data, data_len);
 }
 
 /* Callback functions for transporting events */
@@ -98,20 +91,16 @@ STATIC VOID __TUYA_APP_p2p_event_cb(IN CONST TRANSFER_EVENT_E event, IN CONST PV
 	case TRANS_LIVE_VIDEO_START: {
 		C2C_TRANS_CTRL_VIDEO_START *parm = (C2C_TRANS_CTRL_VIDEO_START *)args;
 		LOG_INFO("chn[%u] video start\n", parm->channel);
-#ifdef THUNDER_BOOT
 		FILE *fp;
 		fp = fopen("/tmp/rtmp_live", "a");
 		if (fp)
 			fclose(fp);
-#endif
 		break;
 	}
 	case TRANS_LIVE_VIDEO_STOP: {
 		C2C_TRANS_CTRL_VIDEO_STOP *parm = (C2C_TRANS_CTRL_VIDEO_STOP *)args;
 		LOG_INFO("chn[%u] video stop\n", parm->channel);
-#ifdef THUNDER_BOOT
 		unlink("/tmp/rtmp_live");
-#endif
 		break;
 	}
 	case TRANS_LIVE_AUDIO_START: {
@@ -199,32 +188,45 @@ STATIC VOID __TUYA_APP_p2p_event_cb(IN CONST TRANSFER_EVENT_E event, IN CONST PV
 	}
 }
 
-STATIC VOID __TUYA_APP_rev_audio_cb(IN CONST TRANSFER_AUDIO_FRAME_S *p_audio_frame,
-                                    IN CONST UINT_T frame_no) {
-	MEDIA_FRAME_S audio_frame;
-	audio_frame.p_buf = p_audio_frame->p_audio_buf;
-	audio_frame.size = p_audio_frame->buf_len;
-	LOG_DEBUG("Rev Audio. size:%u audio_codec:%d audio_sample:%d "
-	          "audio_databits:%d audio_channel:%d\n",
-	          p_audio_frame->buf_len, p_audio_frame->audio_codec, p_audio_frame->audio_sample,
-	          p_audio_frame->audio_databits, p_audio_frame->audio_channel);
-	// if (out_stream)
-	//   out_stream->Write(p_audio_frame->p_audio_buf, p_audio_frame->buf_len, 1);
-}
-
 int rk_tuya_fill_media_param() {
-	s_media_info.video_fps[E_CHANNEL_VIDEO_MAIN] = 30;
-	s_media_info.video_fps[E_CHANNEL_VIDEO_MAIN] = TUYA_CODEC_VIDEO_H264; // TUYA_CODEC_VIDEO_H265
-	s_media_info.video_width[E_CHANNEL_VIDEO_MAIN] = rk_param_get_int("video.0:width", -1);
-	s_media_info.video_height[E_CHANNEL_VIDEO_MAIN] = rk_param_get_int("video.0:height", -1);
-	s_media_info.video_gop[E_CHANNEL_VIDEO_MAIN] = rk_param_get_int("video.0:gop", -1);
+	s_media_info.video_fps[E_CHANNEL_VIDEO_MAIN] =
+	    rk_param_get_int("video.0:dst_frame_rate_num", 30);
+	const char *value = rk_param_get_string("video.0:output_data_type", "H.264");
+	if (!strcmp(value, "H.264"))
+		s_media_info.video_fps[E_CHANNEL_VIDEO_MAIN] = TUYA_CODEC_VIDEO_H264;
+	else
+		s_media_info.video_fps[E_CHANNEL_VIDEO_MAIN] = TUYA_CODEC_VIDEO_H265;
+	s_media_info.video_width[E_CHANNEL_VIDEO_MAIN] = rk_param_get_int("video.0:width", 1920);
+	s_media_info.video_height[E_CHANNEL_VIDEO_MAIN] = rk_param_get_int("video.0:height", 1080);
+	s_media_info.video_gop[E_CHANNEL_VIDEO_MAIN] = rk_param_get_int("video.0:gop", 50);
 
-	s_media_info.audio_codec[E_CHANNEL_AUDIO] = TUYA_CODEC_AUDIO_G711A;    // TUYA_CODEC_AUDIO_PCM
-	s_media_info.audio_sample[E_CHANNEL_AUDIO] = TUYA_AUDIO_SAMPLE_16K;    // TUYA_AUDIO_SAMPLE_8K
-	s_media_info.audio_databits[E_CHANNEL_AUDIO] = TUYA_AUDIO_DATABITS_16; // TUYA_AUDIO_DATABITS_8
-	s_media_info.audio_channel[E_CHANNEL_AUDIO] =
-	    TUYA_AUDIO_CHANNEL_STERO; // TUYA_AUDIO_CHANNEL_MONO
-	s_media_info.audio_channel[E_CHANNEL_AUDIO] = TUYA_AUDIO_CHANNEL_MONO;
+	value = rk_param_get_string("audio.0:encode_type", "G711A");
+	if (!strcmp(value, "G711A"))
+		s_media_info.audio_codec[E_CHANNEL_AUDIO] = TUYA_CODEC_AUDIO_G711A;
+	else if (!strcmp(value, "PCM"))
+		s_media_info.audio_codec[E_CHANNEL_AUDIO] = TUYA_CODEC_AUDIO_PCM;
+	else
+		LOG_ERROR("audio_codec %s is unsupport\n", value);
+
+	int sample_rate = rk_param_get_int("audio.0:sample_rate", 8000);
+	if (sample_rate == 8000)
+		s_media_info.audio_sample[E_CHANNEL_AUDIO] = TUYA_AUDIO_SAMPLE_8K;
+	else if (sample_rate == 16000)
+		s_media_info.audio_sample[E_CHANNEL_AUDIO] = TUYA_AUDIO_SAMPLE_16K;
+	else
+		LOG_ERROR("audio_sample %d is unsupport\n", sample_rate);
+
+	value = rk_param_get_string("audio.0:format", "S16");
+	if (!strcmp(value, "S16"))
+		s_media_info.audio_databits[E_CHANNEL_AUDIO] = TUYA_AUDIO_DATABITS_16;
+	else
+		s_media_info.audio_databits[E_CHANNEL_AUDIO] = TUYA_AUDIO_DATABITS_8;
+
+	int channels = rk_param_get_int("audio.0:channels", 2);
+	if (channels == 2)
+		s_media_info.audio_channel[E_CHANNEL_AUDIO] = TUYA_AUDIO_CHANNEL_STERO;
+	else
+		s_media_info.audio_channel[E_CHANNEL_AUDIO] = TUYA_AUDIO_CHANNEL_MONO;
 }
 
 int rk_tuya_init_ring_buffer(void) {
@@ -304,10 +306,33 @@ int rk_tuya_p2p_init() {
 	p2p_var.online_cb = __depereated_online_cb;
 	p2p_var.on_rev_audio_cb = __TUYA_APP_rev_audio_cb;
 	/*speak data format  app->ipc*/
-	p2p_var.rev_audio_codec = TUYA_CODEC_AUDIO_PCM;
-	p2p_var.audio_sample = TUYA_AUDIO_SAMPLE_8K;
-	p2p_var.audio_databits = TUYA_AUDIO_DATABITS_16;
-	p2p_var.audio_channel = TUYA_AUDIO_CHANNEL_MONO;
+	const char *value = rk_param_get_string("audio.0:encode_type", "G711A");
+	if (!strcmp(value, "G711A"))
+		p2p_var.rev_audio_codec = TUYA_CODEC_AUDIO_G711A;
+	else if (!strcmp(value, "PCM"))
+		p2p_var.rev_audio_codec = TUYA_CODEC_AUDIO_PCM;
+	else
+		LOG_ERROR("audio_codec %s is unsupport\n", value);
+
+	int sample_rate = rk_param_get_int("audio.0:sample_rate", 8000);
+	if (sample_rate == 8000)
+		p2p_var.audio_sample = TUYA_AUDIO_SAMPLE_8K;
+	else if (sample_rate == 16000)
+		p2p_var.audio_sample = TUYA_AUDIO_SAMPLE_16K;
+	else
+		LOG_ERROR("audio_sample %d is unsupport\n", sample_rate);
+
+	value = rk_param_get_string("audio.0:format", "S16");
+	if (!strcmp(value, "S16"))
+		p2p_var.audio_databits = TUYA_AUDIO_DATABITS_16;
+	else
+		p2p_var.audio_databits = TUYA_AUDIO_DATABITS_8;
+
+	int channels = rk_param_get_int("audio.0:channels", 2);
+	if (channels == 2)
+		p2p_var.audio_channel = TUYA_AUDIO_CHANNEL_STERO;
+	else
+		p2p_var.audio_channel = TUYA_AUDIO_CHANNEL_MONO;
 	/*end*/
 	p2p_var.on_event_cb = __TUYA_APP_p2p_event_cb;
 	p2p_var.live_quality = TRANS_LIVE_QUALITY_MAX;
@@ -531,7 +556,6 @@ int rk_tuya_init_device() {
 }
 
 int rk_tuya_init() {
-	// 读licnese,改到init_sdk里做吧
 	rk_tuya_fill_media_param();
 	rk_tuya_init_device();
 
@@ -570,6 +594,7 @@ int rk_tuya_push_video(unsigned char *buffer, unsigned int buffer_size, int64_t 
 }
 
 int rk_tuya_push_audio(unsigned char *buffer, unsigned int buffer_size, int64_t present_time) {
+	// LOG_INFO("buffer_size is %d\n", buffer_size);
 	memset(&audio_frame, 0, sizeof(audio_frame));
 	audio_frame.type = E_AUDIO_FRAME;
 	audio_frame.p_buf = buffer;

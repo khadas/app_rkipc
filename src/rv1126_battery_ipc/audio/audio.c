@@ -8,6 +8,7 @@
 #include <rk_debug.h>
 #include <rk_mpi_aenc.h>
 #include <rk_mpi_ai.h>
+#include <rk_mpi_ao.h>
 #include <rk_mpi_mb.h>
 #include <rk_mpi_sys.h>
 
@@ -109,7 +110,7 @@ int rk_ai_init() {
 	snprintf(aiAttr.u8CardName, sizeof(aiAttr.u8CardName), "%s", card_name);
 	LOG_INFO("aiAttr.u8CardName is %s\n", aiAttr.u8CardName);
 	aiAttr.soundCard.channels = rk_param_get_int("audio.0:channels", 2);
-	aiAttr.soundCard.sampleRate = rk_param_get_int("audio.0:sample_rate", 16000);
+	aiAttr.soundCard.sampleRate = rk_param_get_int("audio.0:sample_rate", 8000);
 	const char *format = rk_param_get_string("audio.0:format", NULL);
 	if (!strcmp(format, "S16")) {
 		aiAttr.soundCard.bitWidth = AUDIO_BIT_WIDTH_16;
@@ -120,7 +121,7 @@ int rk_ai_init() {
 	} else {
 		LOG_ERROR("not support %s\n", format);
 	}
-	aiAttr.enSamplerate = rk_param_get_int("audio.0:sample_rate", 16000);
+	aiAttr.enSamplerate = rk_param_get_int("audio.0:sample_rate", 8000);
 	if (aiAttr.soundCard.channels = 2)
 		aiAttr.enSoundmode = AUDIO_SOUND_MODE_STEREO;
 	else
@@ -180,6 +181,7 @@ int rk_ai_deinit() {
 
 int rk_aenc_init() {
 	AENC_CHN_ATTR_S stAencAttr;
+	memset(&stAencAttr, 0, sizeof(stAencAttr));
 	const char *encode_type = rk_param_get_string("audio.0:encode_type", NULL);
 	if (!strcmp(encode_type, "MP2")) {
 		stAencAttr.enType = RK_AUDIO_ID_MP2;
@@ -189,8 +191,8 @@ int rk_aenc_init() {
 		LOG_ERROR("not support %s\n", encode_type);
 	}
 	stAencAttr.stAencCodec.u32Channels = rk_param_get_int("audio.0:channels", 2);
-	stAencAttr.stAencCodec.u32SampleRate = rk_param_get_int("audio.0:sample_rate", 16000);
-	const char *format = rk_param_get_string("audio.0:format", NULL);
+	stAencAttr.stAencCodec.u32SampleRate = rk_param_get_int("audio.0:sample_rate", 8000);
+	const char *format = rk_param_get_string("audio.0:format", "S16");
 	if (!strcmp(format, "S16")) {
 		stAencAttr.stAencCodec.enBitwidth = AUDIO_BIT_WIDTH_16;
 	} else if (!strcmp(format, "U8")) {
@@ -198,6 +200,7 @@ int rk_aenc_init() {
 	} else {
 		LOG_ERROR("not support %s\n", format);
 	}
+	// stAencAttr.u32Bitrate = rk_param_get_int("audio.0:bit_rate", 32000);
 	stAencAttr.u32BufCount = 4;
 	stAencAttr.extraDataSize = 0;
 	stAencAttr.extraData = RK_NULL;
@@ -224,6 +227,85 @@ int rk_aenc_deinit() {
 	return 0;
 }
 
+int rk_ao_init() {
+	int ret;
+	AIO_ATTR_S aoAttr;
+	memset(&aoAttr, 0, sizeof(AIO_ATTR_S));
+
+	const char *card_name = rk_param_get_string("audio.0:card_name", "default");
+	snprintf(aoAttr.u8CardName, sizeof(aoAttr.u8CardName), "%s", card_name);
+	LOG_INFO("aoAttr.u8CardName is %s\n", aoAttr.u8CardName);
+
+	aoAttr.soundCard.channels = 1;
+	aoAttr.soundCard.sampleRate = rk_param_get_int("audio.0:sample_rate", 8000);
+	aoAttr.soundCard.bitWidth = AUDIO_BIT_WIDTH_16;
+
+	aoAttr.enBitwidth = AUDIO_BIT_WIDTH_16;
+	if (aoAttr.soundCard.sampleRate == 8000)
+		aoAttr.enSamplerate = AUDIO_SAMPLE_RATE_8000;
+	else
+		aoAttr.enSamplerate = AUDIO_SAMPLE_RATE_16000;
+	aoAttr.enSoundmode = AUDIO_SOUND_MODE_MONO;
+	aoAttr.u32FrmNum = 4;
+	aoAttr.u32PtNumPerFrm = 1024;
+
+	aoAttr.u32EXFlag = 0;
+	aoAttr.u32ChnCnt = 2;
+
+	ret = RK_MPI_AO_SetPubAttr(0, &aoAttr);
+	if (ret)
+		LOG_ERROR("RK_MPI_AO_SetPubAttr fail %#x\n", ret);
+	ret = RK_MPI_AO_Enable(0);
+	if (ret)
+		LOG_ERROR("RK_MPI_AO_Enable fail %#x\n", ret);
+	ret = RK_MPI_AO_EnableChn(0, 0);
+	if (ret)
+		LOG_ERROR("RK_MPI_AO_EnableChn fail %#x\n", ret);
+
+	return 0;
+}
+
+int rk_ao_deinit() {
+	int ret;
+	ret = RK_MPI_AO_DisableChn(0, 0);
+	if (ret)
+		LOG_ERROR("RK_MPI_AO_DisableChn fail %#x\n", ret);
+	ret = RK_MPI_AO_Disable(0);
+	if (ret)
+		LOG_ERROR("RK_MPI_AO_Disable fail %#x\n", ret);
+
+	return 0;
+}
+
+int rk_ao_write(unsigned char *data, int data_len) {
+	int ret;
+	AUDIO_FRAME_S frame;
+	MB_EXT_CONFIG_S extConfig;
+	if (data_len <= 0) {
+		LOG_INFO("eof");
+		return 0;
+	}
+
+	memset(&frame, 0, sizeof(frame));
+	frame.u32Len = data_len;
+	frame.u64TimeStamp = 0;
+	frame.enBitWidth = AUDIO_BIT_WIDTH_16;
+	frame.enSoundMode = AUDIO_SOUND_MODE_MONO;
+	frame.bBypassMbBlk = RK_FALSE;
+
+	memset(&extConfig, 0, sizeof(extConfig));
+	extConfig.pu8VirAddr = data;
+	extConfig.u64Size = data_len;
+	RK_MPI_SYS_CreateMB(&(frame.pMbBlk), &extConfig);
+
+	ret = RK_MPI_AO_SendFrame(0, 0, &frame, 300);
+	if (ret < 0)
+		LOG_ERROR("send frame fail, result = %#x\n", ret);
+	RK_MPI_MB_ReleaseMB(frame.pMbBlk);
+
+	return 0;
+}
+
 int rk_audio_init() {
 	LOG_INFO("%s\n", __func__);
 	int ret = rk_ai_init();
@@ -242,6 +324,9 @@ int rk_audio_init() {
 		LOG_ERROR("RK_MPI_SYS_Bind fail %x\n", ret);
 	}
 	LOG_INFO("RK_MPI_SYS_Bind success\n");
+	rk_tuya_ao_create_register(rk_ao_init);
+	rk_tuya_ao_write_register(rk_ao_write);
+	rk_tuya_ao_destroy_register(rk_ao_deinit);
 
 	return ret;
 }
@@ -257,6 +342,9 @@ int rk_audio_deinit() {
 	LOG_INFO("RK_MPI_SYS_UnBind success\n");
 	ret |= rk_aenc_deinit();
 	ret |= rk_ai_deinit();
+	rk_tuya_ao_create_register(NULL);
+	rk_tuya_ao_write_register(NULL);
+	rk_tuya_ao_destroy_register(NULL);
 
 	return ret;
 }

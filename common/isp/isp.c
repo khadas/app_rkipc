@@ -886,16 +886,26 @@ int rk_isp_set_from_ini(int cam_id) {
 int rk_isp_init(int cam_id, char *iqfile_path) {
 	LOG_INFO("%s, cam_id is %d\n", __func__, cam_id);
 	int ret;
+	char entry[128] = {'\0'};
+	rk_aiq_working_mode_t mode = RK_AIQ_WORKING_MODE_NORMAL;
 	if (iqfile_path)
 		memcpy(g_iq_file_dir_, iqfile_path, strlen(iqfile_path));
 	else
 		memcpy(g_iq_file_dir_, "/etc/iqfiles", strlen("/etc/iqfiles"));
 	LOG_INFO("g_iq_file_dir_ is %s\n", g_iq_file_dir_);
 
-	ret = sample_common_isp_init(cam_id, RK_AIQ_WORKING_MODE_NORMAL, true, g_iq_file_dir_);
+	snprintf(entry, 127, "isp.%d.blc:hdr", cam_id);
+	const char *value = rk_param_get_string(entry, "close");
+	LOG_INFO("hdr mode is %s\n", value);
+	if (!strcmp(value, "close"))
+		mode = RK_AIQ_WORKING_MODE_NORMAL;
+	else if (!strcmp(value, "HDR2"))
+		mode = RK_AIQ_WORKING_MODE_ISP_HDR2;
+	else if (!strcmp(value, "HDR3"))
+		mode = RK_AIQ_WORKING_MODE_ISP_HDR3;
+
+	ret = sample_common_isp_init(cam_id, mode, true, g_iq_file_dir_);
 	ret |= sample_common_isp_run(cam_id);
-	ret |= rk_isp_set_frame_rate(cam_id, FPS);
-	// ret |= rk_isp_set_from_ini(cam_id);
 
 	return ret;
 }

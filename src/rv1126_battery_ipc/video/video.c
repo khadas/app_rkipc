@@ -191,8 +191,8 @@ int rkipc_vi_dev_deinit() {
 }
 
 int rkipc_pipe_0_init() {
-	int video_width = rk_param_get_int("video.0:width", -1);
-	int video_height = rk_param_get_int("video.0:height", -1);
+	int video_width = rk_param_get_int("video.0:width", 1920);
+	int video_height = rk_param_get_int("video.0:height", 1080);
 	const char *video_device_name = rk_param_get_string("video.0:src_node", "rkispp_scale0");
 	int buf_cnt = 3;
 	int ret = 0;
@@ -369,10 +369,10 @@ int rkipc_pipe_0_deinit() {
 }
 
 int rkipc_pipe_1_init() {
-	int video_width = 1280;
-	int video_height = 720;
-	const char *video_device_name = "rkispp_scale1";
-	int buf_cnt = 2;
+	int video_width = rk_param_get_int("video.1:width", 1280);
+	int video_height = rk_param_get_int("video.1:height", 720);
+	const char *video_device_name = rk_param_get_string("video.1:src_node", "rkispp_scale1");
+	int buf_cnt = 3;
 	int ret = 0;
 
 	VI_CHN_ATTR_S vi_chn_attr;

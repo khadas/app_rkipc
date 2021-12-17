@@ -186,6 +186,7 @@ int main(int argc, char **argv) {
 	// init
 	rk_param_init(rkipc_ini_path_);
 	rk_isp_init(0, rkipc_iq_file_path_);
+	rk_isp_set_frame_rate(0, rk_param_get_int("isp.0.adjustment:fps", 30));
 	rk_video_init();
 	rk_audio_init();
 	rk_tuya_init();
