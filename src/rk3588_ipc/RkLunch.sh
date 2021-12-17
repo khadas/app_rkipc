@@ -37,7 +37,7 @@ post_chk()
 	if [ ! -f "$rkipc_ini" ]; then
 		cp $default_rkipc_ini $rkipc_ini -f
 	fi
-	# rkipc &
+	rkipc &
 }
 
 ulimit -c unlimited
