@@ -43,11 +43,6 @@ post_chk()
 ulimit -c unlimited
 echo "/data/core-%p-%e" > /proc/sys/kernel/core_pattern
 
-# rkvenc
-echo 600000000 > /proc/mpp_service/rkvenc0_core/aclk
-echo 600000000 > /proc/mpp_service/rkvenc1_core/aclk
-echo 800000000 > /proc/mpp_service/rkvenc0_core/clk_core
-echo 800000000 > /proc/mpp_service/rkvenc1_core/clk_core
 # cpu
 echo performance > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
 echo userspce > /sys/devices/system/cpu/cpufreq/policy4/scaling_governor
