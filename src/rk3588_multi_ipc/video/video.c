@@ -1853,29 +1853,9 @@ int rk_video_get_h264_profile(int stream_id, const char **value) {
 
 int rk_video_set_h264_profile(int stream_id, const char *value) {
 	char entry[128] = {'\0'};
-
-	VENC_CHN_ATTR_S venc_chn_attr;
-	memset(&venc_chn_attr, 0, sizeof(venc_chn_attr));
-	RK_MPI_VENC_GetChnAttr(stream_id, &venc_chn_attr);
-	snprintf(entry, 127, "video.%d:output_data_type", stream_id);
-	tmp_output_data_type = rk_param_get_string(entry, "H.264");
-	if (!strcmp(tmp_output_data_type, "H.264")) {
-		venc_chn_attr.stVencAttr.enType = RK_VIDEO_ID_AVC;
-
-		if (!strcmp(value, "high"))
-			venc_chn_attr.stVencAttr.u32Profile = 100;
-		else if (!strcmp(value, "main"))
-			venc_chn_attr.stVencAttr.u32Profile = 77;
-		else if (!strcmp(value, "baseline"))
-			venc_chn_attr.stVencAttr.u32Profile = 66;
-		else
-			LOG_ERROR("value is %s\n", value);
-		RK_MPI_VENC_SetChnAttr(stream_id, &venc_chn_attr);
-	} else {
-		LOG_INFO("tmp_output_data_type not H.264\n");
-	}
 	snprintf(entry, 127, "video.%d:h264_profile", stream_id);
 	rk_param_set_string(entry, value);
+	rk_video_restart();
 
 	return 0;
 }
