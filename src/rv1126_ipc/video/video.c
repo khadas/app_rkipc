@@ -15,6 +15,7 @@
 #include "rkmedia_venc.h"
 #include "rkmedia_vi.h"
 #include "rkmedia_vo.h"
+#include "storage.h"
 
 #ifdef LOG_TAG
 #undef LOG_TAG

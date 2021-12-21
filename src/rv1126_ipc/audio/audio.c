@@ -3,17 +3,12 @@
 // found in the LICENSE file.
 #include "common.h"
 #include "log.h"
-//#include "rkmuxer.h"
 
 #include "rkmedia_aenc.h"
 #include "rkmedia_ai.h"
 #include "rkmedia_api.h"
 #include "rkmedia_common.h"
-/*#include <rk_debug.h>
-#include <rk_mpi_aenc.h>
-#include <rk_mpi_ai.h>
-#include <rk_mpi_mb.h>
-#include <rk_mpi_sys.h>*/
+#include "storage.h"
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -69,11 +64,11 @@ void *save_aenc_thread(void *ptr) {
 	const char *code_type;
 	code_type = rk_param_get_string("audio.0:encode_type", NULL);
 
-	file = fopen("/tmp/aenc.mp2", "wb+");
-	if (!file) {
-		LOG_ERROR("failed to open /tmp/aenc.mp2, error: %s\n", strerror(errno));
-		// return -1;
-	}
+	// file = fopen("/tmp/aenc.mp2", "wb+");
+	// if (!file) {
+	// 	LOG_ERROR("failed to open /tmp/aenc.mp2, error: %s\n", strerror(errno));
+	// 	// return -1;
+	// }
 
 	while (g_audio_run_) {
 		mb = RK_MPI_SYS_GetMediaBuffer(RK_ID_AENC, aenc_chn_id, -1);
@@ -81,22 +76,23 @@ void *save_aenc_thread(void *ptr) {
 			printf("RK_MPI_SYS_GetMediaBuffer get null buffer!\n");
 			break;
 		} else {
-			// void *buffer = RK_MPI_MB_GetPtr(mb);
+			// LOG_INFO("----AENC2 PTS:%lld\n",RK_MPI_MB_GetTimestamp(mb));
 			eos = (RK_MPI_MB_GetSize(mb) <= 0) ? 1 : 0;
-			// if (buffer) {
-			// LOG_INFO("get frame data = %p, size = %d\n", buffer, pstStream.u32Len);
-			// rkmuxer_write_audio_frame(buffer, RK_MPI_MB_GetSize(mb),
-			// RK_MPI_MB_GetTimestamp(mb));
-			if (file && !strcmp(code_type, "MP2")) {
-				// fwrite(buffer, RK_MPI_MB_GetSize(mb), 1, file);
-				fwrite(RK_MPI_MB_GetPtr(mb), 1, RK_MPI_MB_GetSize(mb), file);
-				fflush(file);
-				fclose(file);
-				file = NULL;
-			}
+			rk_storage_write_audio_frame(0, RK_MPI_MB_GetPtr(mb), RK_MPI_MB_GetSize(mb),
+			                             RK_MPI_MB_GetTimestamp(mb));
+			rk_storage_write_audio_frame(1, RK_MPI_MB_GetPtr(mb), RK_MPI_MB_GetSize(mb),
+			                             RK_MPI_MB_GetTimestamp(mb));
+			rk_storage_write_audio_frame(2, RK_MPI_MB_GetPtr(mb), RK_MPI_MB_GetSize(mb),
+			                             RK_MPI_MB_GetTimestamp(mb));
+			// if (file && !strcmp(code_type, "MP2")) {
+			//     // fwrite(buffer, RK_MPI_MB_GetSize(mb), 1, file);
+			//     fwrite(RK_MPI_MB_GetPtr(mb), 1, RK_MPI_MB_GetSize(mb), file);
+			//     fflush(file);
+			//     fclose(file);
+			//     file = NULL;
+			// }
 			RK_MPI_MB_ReleaseBuffer(mb);
 			count++;
-			//}
 		}
 		if (eos) {
 			LOG_INFO("get eos stream\n");

@@ -11,7 +11,7 @@
 #include "osd.h"
 #include "param.h"
 #include "server.h"
-//#include "storage.h"
+#include "storage.h"
 #include "system.h"
 #include "video.h"
 
@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
 	rk_video_init();
 	rk_audio_init();
 	rkipc_server_init();
-	// rk_storage_init();
+	rk_storage_init();
 	// rk_event_init();
 
 	while (g_main_run_) {
@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
 
 	// deinit
 	// rk_event_deinit();
-	// rk_storage_deinit();
+	rk_storage_deinit();
 	rkipc_server_deinit();
 	rk_system_deinit();
 	rk_audio_deinit();
