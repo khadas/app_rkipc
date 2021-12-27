@@ -102,6 +102,8 @@ int rk_storage_init_by_id(int id) {
 			LOG_ERROR("Create %s fail\n", rk_storage_group[id].file_path);
 			return -1;
 		}
+	} else {
+		closedir(d);
 	}
 
 	snprintf(entry, 127, "storage.%d:file_format", id);

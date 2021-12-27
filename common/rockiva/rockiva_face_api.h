@@ -158,16 +158,13 @@ typedef struct {
 	RockIvaArea forbiddenDetectArea[ROCKIVA_FACE_FORBIDDEN_AREA]; /* 屏蔽检测区域 */
 	uint32_t minPupilDis;       /* 界面设置的最小瞳距值，小于该值过滤 */
 	RockIvaFaceOptType optType; /* 人脸优选类型 */
-	RockIvaCaptureImageRule captureImageRule; /* 人脸抓拍图像规则 */
-	uint32_t optBestNum;    /* ROCKIVA_FACE_OPT_BEST：人脸优选张数 范围：1-3 */
-	uint32_t optCycleValue; /* ROCKIVA_FACE_OPT_CYCLE：人脸优选周期优选值 ms */
-	uint32_t optFastTime;   /* ROCKIVA_FACE_OPT_FAST：人脸优选快速模式下的时间设置 */
+	uint32_t optBestNum;        /* ROCKIVA_FACE_OPT_BEST：人脸优选张数 范围：1-3 */
+	uint32_t optCycleValue;     /* ROCKIVA_FACE_OPT_CYCLE：人脸优选周期优选值 ms */
+	uint32_t optFastTime; /* ROCKIVA_FACE_OPT_FAST：人脸优选快速模式下的时间设置 */
 } RockIvaFaceRule;
 
 /* 人脸分析业务初始化参数配置 */
 typedef struct {
-	uint32_t channelId;              /* 通道号 */
-	RockIvaImageInfo imageInfo;      /* 输入图像信息 */
 	RockIvaFaceRule faceCaptureRule; /* 人脸抓拍规则 */
 	RockIvaFaceTaskType faceTaskType; /* 人脸业务类型：人脸抓拍业务/人脸识别业务 */
 } RockIvaFaceTaskInitParam;
@@ -197,32 +194,28 @@ typedef struct {
 	RockIvaFaceObjectStatus faceObjState; /* 人脸目标状态 */
 } RockIvaFaceInfo;
 
-/* 单个目标人脸检测基本信息 */
+/* 单个目标人脸分析信息 */
 typedef struct {
-	uint32_t featureSize;                        /* 特征长度,单位字节 */
-	char feature[ROCKIVA_FACE_FEATURE_SIZE_MAX]; /* 半结构化特征信息 */
+	uint32_t featureSize;                        /* 人脸特征长度,单位字节 */
+	char feature[ROCKIVA_FACE_FEATURE_SIZE_MAX]; /* 人脸特征数据 */
 	RockIvaFaceAttribute faceAttr;               /* 人脸属性 */
 } RockIvaFaceAnalyseInfo;
 
 /* 人脸检测处理结果 */
 typedef struct {
-	uint32_t frameId;
+	uint32_t frameId;                                    /* 帧ID */
+	uint32_t channelId;                                  /* 通道号 */
 	uint32_t objNum;                                     /* 人脸个数 */
 	RockIvaFaceInfo faceInfo[ROCKIVA_FACE_MAX_FACE_NUM]; /* 各目标检测信息 */
-	uint32_t channelId;                                  /* 通道号 */
-	uint32_t passCount; /* 本帧过人计数[人脸单方向],按画面进入统计人数 */
-	uint32_t inversionPassCount; /* 本帧逆向过人计数,按画面进入统计人数 */
 } RockIvaFaceDetResult;
 
 /* 人脸抓拍处理结果 */
 typedef struct {
-	uint32_t frameId;
+	uint32_t channelId;                       /* 通道号 */
+	uint32_t frameId;                         /* 帧ID */
 	RockIvaFaceCapFrameType faceCapFrameType; /* 抓拍帧类型 */
 	RockIvaFaceInfo faceInfo;                 /* 人脸基本检测信息 */
 	RockIvaFaceAnalyseInfo faceAnalyseInfo;   /* 人脸分析信息 */
-	uint32_t channelId;                       /* 通道号 */
-	RockIvaImage faceImage;                   /* 编码后人脸目标图片信息(小图) */
-	RockIvaImage origImage;                   /* 编码后人脸抓拍帧图片信息(大图) */
 } RockIvaFaceCapResult;
 
 /* 入库特征对应的详细信息，用户输入 */
@@ -264,29 +257,19 @@ typedef void (*ROCKIVA_FACE_DetResultCallback)(const RockIvaFaceDetResult *resul
                                                const RockIvaExecuteStatus status, void *userData);
 
 /**
- * @brief 抓拍和人脸分析结果回调函数
+ * @brief 抓拍结果回调函数
  *
  * result 结果
  * status 状态码
  * userData 用户自定义数据
  */
-typedef void (*ROCKIVA_FACE_AnalyseResultCallback)(const RockIvaFaceCapResult *result,
-                                                   const RockIvaExecuteStatus status,
-                                                   void *userData);
+typedef void (*ROCKIVA_FACE_CapResultCallback)(const RockIvaFaceCapResult *result,
+                                               const RockIvaExecuteStatus status, void *userData);
 
 typedef struct {
 	ROCKIVA_FACE_DetResultCallback detCallback;
-	ROCKIVA_FACE_AnalyseResultCallback analyseCallback;
+	ROCKIVA_FACE_CapResultCallback capCallback;
 } RockIvaFaceCallback;
-
-/**
- * @brief 获取SDK版本号
- *
- * @param maxLen [IN] 版本号buffer大小(存储空间需大于64*char)
- * @param version [INOUT] 版本号buffer地址
- * @return RockIvaRetCode
- */
-RockIvaRetCode ROCKIVA_FACE_GetVersion(const uint32_t maxLen, int8_t *version);
 
 /**
  * @brief 初始化
@@ -295,22 +278,11 @@ RockIvaRetCode ROCKIVA_FACE_GetVersion(const uint32_t maxLen, int8_t *version);
  * @param workType [IN] 人脸任务模式
  * @param initParams [IN] 初始化参数
  * @param resultCallback [IN] 回调函数
- * @param userdata [INOUT] 用户自定义数据
  * @return RockIvaRetCode
  */
 RockIvaRetCode ROCKIVA_FACE_Init(RockIvaHandle handle, RockIvaFaceWorkType workType,
                                  const RockIvaFaceTaskInitParam *initParams,
-                                 const RockIvaFaceCallback callback, void *userdata);
-
-/**
- * @brief 输入图像帧
- *
- * @param handle [IN] handle
- * @param inputImg [IN] 输入图像帧
- * @return RockIvaRetCode
- */
-RockIvaRetCode ROCKIVA_FACE_PushFrame(RockIvaHandle handle, RockIvaFaceWorkType workType,
-                                      const RockIvaImage *inputImg);
+                                 const RockIvaFaceCallback callback);
 
 /**
  * @brief 销毁
@@ -318,7 +290,7 @@ RockIvaRetCode ROCKIVA_FACE_PushFrame(RockIvaHandle handle, RockIvaFaceWorkType 
  * @param handle [IN] handle
  * @return RockIvaRetCode
  */
-RockIvaRetCode ROCKIVA_FACE_Destroy(RockIvaHandle handle);
+RockIvaRetCode ROCKIVA_FACE_Release(RockIvaHandle handle);
 
 /**
  * @brief 1:1人脸特征比对接口

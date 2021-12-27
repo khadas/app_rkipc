@@ -296,8 +296,8 @@ static void *rkipc_get_vpss_bgr(void *arg) {
 			// rkipc_rockiva_write_rgb888_frame(frame.stVFrame.u32Width, frame.stVFrame.u32Height,
 			//                                  data);
 			int32_t fd = RK_MPI_MB_Handle2Fd(frame.stVFrame.pMbBlk);
-			rkipc_rockiva_write_rgb888_frame_by_fd(frame.stVFrame.u32Width, 
-													frame.stVFrame.u32Height, loopCount, fd);
+			rkipc_rockiva_write_rgb888_frame_by_fd(frame.stVFrame.u32Width,
+			                                       frame.stVFrame.u32Height, loopCount, fd);
 
 			ret = RK_MPI_VPSS_ReleaseChnFrame(4, 0, &frame);
 			if (ret != RK_SUCCESS)
@@ -999,8 +999,8 @@ int rkipc_venc_0_init() {
 	venc_chn_attr.stVencAttr.u32VirWidth = rk_param_get_int("avs:avs_width", 8176);
 	venc_chn_attr.stVencAttr.u32VirHeight = rk_param_get_int("avs:avs_height", 2720);
 	venc_chn_attr.stVencAttr.u32StreamBufCnt = 3;
-	venc_chn_attr.stVencAttr.u32BufSize = venc_chn_attr.stVencAttr.u32VirWidth
-											* venc_chn_attr.stVencAttr.u32VirHeight * 3 / 2;
+	venc_chn_attr.stVencAttr.u32BufSize =
+	    venc_chn_attr.stVencAttr.u32VirWidth * venc_chn_attr.stVencAttr.u32VirHeight * 3 / 2;
 	// venc_chn_attr.stVencAttr.u32Depth = 1;
 	ret = RK_MPI_VENC_CreateChn(VIDEO_PIPE_0, &venc_chn_attr);
 	if (ret) {

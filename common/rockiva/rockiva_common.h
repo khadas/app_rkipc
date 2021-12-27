@@ -35,16 +35,16 @@ extern "C" {
 #define ROCKIVA_PATH_LENGTH (128) /* 文件路径字符串长度 */
 
 /********************************************************************/
-/*                              枚举                                 */
+/*                          枚举定义                                 */
 /********************************************************************/
 
 /* 日志打印级别 */
 typedef enum {
-	ROCKIVA_LOG_DEBUG = 1, /* debug级别 */
-	ROCKIVA_LOG_INFO = 2,  /* info级别 */
-	ROCKIVA_LOG_WARN = 3,  /* warn级别 */
-	ROCKIVA_LOG_ERROR = 4, /* error级别 */
-	ROCKIVA_LOG_FATAL = 5, /* fatal级别 */
+	ROCKIVA_LOG_ERROR = 0, /* Error级别 */
+	ROCKIVA_LOG_WARN = 1,  /* Warn级别 */
+	ROCKIVA_LOG_DEBUG = 2, /* Debug级别 */
+	ROCKIVA_LOG_INFO = 3,  /* Info级别 */
+	ROCKIVA_LOG_TRACE = 4  /* Trace级别 */
 } RockIvaLogLevel;
 
 /* 函数返回错误码 */
@@ -73,6 +73,9 @@ typedef enum {
 	ROCKIVA_IMAGE_FORMAT_JPEG,
 } RockIvaImageFormat;
 
+/**
+ * 输入图像的旋转模式
+ */
 typedef enum {
 	ROCKIVA_IMAGE_TRANSFORM_NONE = 0x00,       ///< 正常
 	ROCKIVA_IMAGE_TRANSFORM_FLIP_H = 0x01,     ///< 水平翻转
@@ -98,8 +101,18 @@ typedef enum {
 	ROCKIVA_DECODER_EXIT = 12       /* 解码器内部退出  */
 } RockIvaExecuteStatus;
 
+/* 目标类型  */
+typedef enum {
+	ROCKIVA_OBJECT_TYPE_NONE = 0x0,        /* 未知 */
+	ROCKIVA_OBJECT_TYPE_PERSON = 0x1,      /* 行人 */
+	ROCKIVA_OBJECT_TYPE_VEHICLE = 0x2,     /* 机动车 */
+	ROCKIVA_OBJECT_TYPE_NON_VEHICLE = 0x4, /* 非机动车 */
+	ROCKIVA_OBJECT_TYPE_FACE = 0x8,        /* 人脸 */
+	ROCKIVA_OBJECT_TYPE_HEAD = 0x10,       /* 人头 */
+} RockIvaObjectType;
+
 /********************************************************************/
-/*                            类型定义                               */
+/*                          类型定义                                 */
 /********************************************************************/
 
 typedef void *RockIvaHandle;
@@ -114,8 +127,8 @@ typedef struct {
 
 /* 点坐标 */
 typedef struct {
-	uint16_t x; /* 横坐标，万分比表示，0~9999有效 ，防止因缩放关系导致传输过程中出现异常 */
-	uint16_t y; /* 纵坐标，万分比表示，0~9999有效 ，防止因缩放关系导致传输过程中出现异常 */
+	uint16_t x; /* 横坐标，万分比表示，数值范围0~9999 */
+	uint16_t y; /* 纵坐标，万分比表示，数值范围0~9999 */
 } RockIvaPoint;
 
 /* 线坐标 */
@@ -170,58 +183,124 @@ typedef struct {
 	uint32_t channelId;    /* 通道号 */
 	RockIvaImageInfo info; /* 图像信息 */
 	uint32_t size;         /* 图像数据大小, 图像格式为JPEG时需要 */
-	uint8_t *dataAddr;     /* 输入数据地址 */
-	uint8_t *dataPhyAddr;  /* 输入数据物理地址 */
-	int32_t dataFd;        /* 输入数据fd */
+	uint8_t *dataAddr;     /* 图像数据地址 */
+	uint8_t *dataPhyAddr;  /* 图像数据物理地址 */
+	int32_t dataFd;        /* 图像数据DMA buffer fd */
 } RockIvaImage;
 
-/* 抓拍图像类型 */
-typedef enum {
-	ROCKIVA_CAPTURE_IMAGE_NONE,           /* 不返回抓拍图像 */
-	ROCKIVA_CAPTURE_IMAGE_ENCODED_TARGET, /* 返回编码的目标区域图像 */
-	ROCKIVA_CAPTURE_IMAGE_ENCODED_ALL,    /* 返回编码的目标区域图像和编码的全图 */
-	ROCKIVA_CAPTURE_IMAGE_DATA_TARGET,    /* 返回目标区域图像数据 */
-	ROCKIVA_CAPTURE_IMAGE_DATA_ALL,       /* 返回目标区域图像数据和全图数据 */
-} RockIvaCaptureImageType;
-
 typedef struct {
-	RockIvaCaptureImageType type; /* 抓拍图像类型 */
-	uint16_t expandRatio;         /* 抓拍的目标区域图像的扩展比例(万分比) */
-} RockIvaCaptureImageRule;
+	uint32_t objId;         /* 目标ID[0,2^32) */
+	uint32_t frameId;       /* 所在帧序号 */
+	uint32_t score;         /* 目标检测分数 [1-100] */
+	RockIvaRectangle rect;  /* 目标区域框 (万分比) */
+	RockIvaObjectType type; /* 目标类别 */
+} RockIvaObjectInfo;
+
+/* 目标检测结果 */
+typedef struct {
+	uint32_t frameId;                               /* 帧ID */
+	uint32_t channelId;                             /* 帧通道号 */
+	uint32_t objNum;                                /* 目标个数 */
+	RockIvaObjectInfo objInfo[ROCKIVA_MAX_OBJ_NUM]; /* 各目标检测信息 */
+} RockIvaDetectResult;
+
+/**
+ * @brief 需要释放的帧列表
+ *
+ */
+typedef struct {
+	uint32_t channelId;
+	uint32_t count;
+	uint32_t frameId[ROCKIVA_MAX_OBJ_NUM];
+} RockIvaReleaseFrames;
+
+/* SDK通用配置 */
+typedef struct {
+	RockIvaLogLevel logLevel;            /* 日志等级 */
+	char logPath[ROCKIVA_PATH_LENGTH];   /* 日志输出路径 */
+	char modelPath[ROCKIVA_PATH_LENGTH]; /* 存放算法模型的目录路径 */
+	RockIvaMemInfo license;              /* License信息 */
+	uint32_t detectObject;      /* 配置要检测的目标,使用RockIvaObjectType类型 */
+	uint32_t coreMask;          /* 指定使用哪个NPU核跑(仅RK3588平台有效) */
+	uint32_t channelId;         /* 通道号 */
+	RockIvaImageInfo imageInfo; /* 输入图像信息 */
+} RockIvaInitParam;
 
 /********************************************************************/
 
-/* 多媒体操作函数 */
-typedef struct {
-	int (*ROCKIVA_Yuv2Jpeg)(RockIvaImage *inputImg, RockIvaRectangle yuvRect,
-	                        RockIvaImage *outputImg);
-} RockIvaMediaOps;
+/**
+ * @brief 检测结果回调函数
+ *
+ * result 结果
+ * status 状态码
+ * userData 用户自定义数据
+ */
+typedef void (*ROCKIVA_DetectResultCallback)(const RockIvaDetectResult *result,
+                                             const RockIvaExecuteStatus status, void *userdata);
 
-/* 算法全局参数配置 */
-typedef struct {
-	RockIvaLogLevel RockIvaLogLevel;     /* 日志等级 */
-	char logPath[ROCKIVA_PATH_LENGTH];   /* 日志输出路径 */
-	char modelPath[ROCKIVA_PATH_LENGTH]; /* 存放算法模型的路径 */
-	RockIvaMemInfo license;              /* License信息 */
-	RockIvaMediaOps mediaOps;            /* 媒体操作函数集 */
-	uint32_t
-	    coreMask; /* 指定使用哪个NPU核跑(仅RK3588平台有效) 0x1: core0; 0x2: core1; 0x4: core2 */
-} RockIvaGlobalInitParam;
+/**
+ * @brief 帧释放回调函数
+ *
+ * releaseFrames 释放帧
+ * userdata 用户自定义数据
+ *
+ */
+typedef void (*ROCKIVA_FrameReleaseCallback)(const RockIvaReleaseFrames *releaseFrames,
+                                             void *userdata);
 
 /**
  * @brief 算法SDK全局初始化配置
  *
- * @param globalInit [IN] 初始化参数
+ * @param handle [IN] 要初始化的实例句柄
+ * @param param [IN] 初始化参数
+ * @param userdata [IN] 用户自定义数据
  * @return RockIvaRetCode
  */
-RockIvaRetCode ROCKIVA_GlobalInit(RockIvaHandle *handle, const RockIvaGlobalInitParam *param);
+RockIvaRetCode ROCKIVA_Init(RockIvaHandle *handle, const RockIvaInitParam *param, void *userdata);
 
 /**
  * @brief 算法SDK全局销毁释放
  *
  * @return RockIvaRetCode
  */
-RockIvaRetCode ROCKIVA_GlobalRelease(RockIvaHandle handle);
+RockIvaRetCode ROCKIVA_Release(RockIvaHandle handle);
+
+/**
+ * @brief 设置检测结果回调
+ *
+ * @param handle [IN]
+ * @return RockIvaRetCode
+ */
+RockIvaRetCode ROCKIVA_SetDetectCallback(RockIvaHandle handle,
+                                         ROCKIVA_DetectResultCallback callback);
+
+/**
+ * @brief 设置帧释放回调
+ *
+ * @param handle
+ * @param callback
+ * @return RockIvaRetCode
+ */
+RockIvaRetCode ROCKIVA_SetFrameReleaseCallback(RockIvaHandle handle,
+                                               ROCKIVA_FrameReleaseCallback callback);
+
+/**
+ * @brief 输入图像帧
+ *
+ * @param handle [IN] handle
+ * @param inputImg [IN] 输入图像帧
+ * @return RockIvaRetCode
+ */
+RockIvaRetCode ROCKIVA_PushFrame(RockIvaHandle handle, const RockIvaImage *inputImg);
+
+/**
+ * @brief 获取SDK版本号
+ *
+ * @param maxLen [IN] 版本号buffer大小(存储空间需大于64*char)
+ * @param version [INOUT] 版本号buffer地址
+ * @return RockIvaRetCode
+ */
+RockIvaRetCode ROCKIVA_GetVersion(const uint32_t maxLen, char *version);
 
 #ifdef __cplusplus
 }

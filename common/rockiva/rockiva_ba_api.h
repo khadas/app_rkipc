@@ -97,9 +97,6 @@ typedef struct {
 
 /* 行为分析业务初始化参数配置 */
 typedef struct {
-	uint32_t channelId;         /* 通道号 */
-	RockIvaImageInfo imageInfo; /* 输入图像信息 */
-	uint32_t frameRate;         /* 输入帧率 */
 	RockIvaBaTaskRule baRules;  /* 行为分析规则参数配置初始化 */
 	RockIvaBaAiConfig aiConfig; /* 算法配置 */
 } RockIvaBaTaskInitParam;
@@ -108,62 +105,31 @@ typedef struct {
 
 /* -------------------------- 算法处理结果 --------------------------- */
 
-/* 目标类型  */
-typedef enum {
-	ROCKIVA_OBJ_TYPE_UNKNOWN = 0,     /* 未知 */
-	ROCKIVA_OBJ_TYPE_PERSON = 1,      /* 行人 */
-	ROCKIVA_OBJ_TYPE_VEHICLE = 2,     /* 机动车 */
-	ROCKIVA_OBJ_TYPE_NON_VEHICLE = 3, /* 非机动车 */
-	ROCKIVA_OBJ_TYPE_FACE = 4,
-} RockIvaObjType;
-
 /* 第一次触发规则信息 */
 typedef struct {
 	int32_t ruleID;                       /* 触发规则ID */
 	RockIvaBaRuleTriggerType triggerType; /* 触发规则类型 */
 } RockIvaBaTrigger;
 
-/* 单个目标检测基本信息 */
+/* 触发周界规则的单个目标基本信息 */
 typedef struct {
-	uint32_t objId;                /* 目标ID,范围[1,0xFFFFFFFF] */
-	uint32_t frameNum;             /* 所在帧序号 */
-	uint32_t confidence;           /* 目标类别置信度，范围:[0,100] */
-	RockIvaObjType objType;        /* 目标类型(大类 机、非、人、未知) */
-	RockIvaRectangle objRect;      /* 目标位置 */
-	int32_t trigRuleFlag;          /* 目标触发规则标志   */
-	RockIvaBaTrigger firstTrigger; /* 第一次触发规则信息，非首次lRuleID填-1 */
-} RockIvaObjectInfo;
-
-/* 绊线人数统计结果 */
-typedef struct {
-	uint32_t objIn[ROCKIVA_BA_MAX_RULE_NUM];  /* 进拌线人数 */
-	uint32_t objOut[ROCKIVA_BA_MAX_RULE_NUM]; /* 出拌线人数 */
-} RockIvaTrafficLineResult;
-
-/* 区域人数统计结果 */
-typedef struct {
-	uint32_t objNum[ROCKIVA_BA_MAX_RULE_NUM]; /* 区域内人数 */
-} RockIvaTrafficAreaResult;
-
-/* 人数统计结果 */
-typedef struct {
-	RockIvaTrafficLineResult lineDpcResult; /* 绊线人数统计结果 */
-	RockIvaTrafficAreaResult areaDpcResult; /* 区域人数统计结果 */
-} RockIvaTrafficResult;
+	RockIvaObjectInfo objInfo;     /* 目标信息 */
+	uint32_t triggerRules;         /* 目标触发规则   */
+	RockIvaBaTrigger firstTrigger; /* 目标第一次触发的规则,可用于抓拍 */
+} RockIvaBaObjectInfo;
 
 /* 检测结果全部信息 */
 typedef struct {
-	uint32_t frameId;                               /* 输入图像帧ID */
-	uint32_t channelId;                             /* 通道号 */
-	uint32_t objNum;                                /* 目标个数 */
-	RockIvaObjectInfo objInfo[ROCKIVA_MAX_OBJ_NUM]; /* 各目标检测信息 */
-	RockIvaTrafficResult trafficResult;             /* 人数统计结果 */
+	uint32_t frameId;                                        /* 输入图像帧ID */
+	uint32_t channelId;                                      /* 通道号 */
+	uint32_t objNum;                                         /* 目标个数 */
+	RockIvaBaObjectInfo triggerObjects[ROCKIVA_MAX_OBJ_NUM]; /* 触发周界规则的目标 */
 } RockIvaBaResult;
 
 /* ---------------------------------------------------------------- */
 
 /**
- * @brief 结果回调函数
+ * @brief 周界结果回调函数
  *
  * result 结果
  * status 状态码
@@ -173,42 +139,23 @@ typedef void (*ROCKIVA_BA_ResultCallback)(const RockIvaBaResult *result,
                                           const RockIvaExecuteStatus status, void *userData);
 
 /**
- * @brief 获取SDK版本号
- *
- * @param maxLen [IN] 版本号buffer大小(存储空间需大于64*char)
- * @param version [INOUT] 版本号buffer地址
- * @return RockIvaRetCode
- */
-RockIvaRetCode ROCKIVA_BA_GetVersion(const uint32_t maxLen, int8_t *version);
-
-/**
  * @brief 初始化
  *
  * @param handle [INOUT] 要初始化的handle
  * @param initParams [IN] 初始化参数
  * @param resultCallback [IN] 回调函数
- * @param userdata [INOUT] 用户自定义数据
  * @return RockIvaRetCode
  */
 RockIvaRetCode ROCKIVA_BA_Init(RockIvaHandle handle, const RockIvaBaTaskInitParam *initParams,
-                               const ROCKIVA_BA_ResultCallback resultCallback, void *userdata);
+                               const ROCKIVA_BA_ResultCallback resultCallback);
 
 /**
- * @brief 输入图像帧
- *
- * @param handle [IN] handle
- * @param inputImg [IN] 输入图像帧
- * @return RockIvaRetCode
- */
-RockIvaRetCode ROCKIVA_BA_PushFrame(RockIvaHandle handle, const RockIvaImage *inputImg);
-
-/**
- * @brief 销毁
+ * @brief 释放
  *
  * @param handle [in] handle
  * @return RockIvaRetCode
  */
-RockIvaRetCode ROCKIVA_BA_Destroy(RockIvaHandle handle);
+RockIvaRetCode ROCKIVA_BA_Release(RockIvaHandle handle);
 
 #ifdef __cplusplus
 }

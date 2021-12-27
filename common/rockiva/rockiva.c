@@ -11,13 +11,13 @@
 
 RockIvaHandle rkba_handle;
 RockIvaBaTaskInitParam initParams;
-RockIvaGlobalInitParam globalParams;
+RockIvaInitParam globalParams;
 
 void rkba_callback(const RockIvaBaResult *result, const RockIvaExecuteStatus status,
                    void *userData) {
 	if (result->objNum)
-		LOG_INFO("status is %d, frame %d, result->objNum is %d\n",
-					status, result->frameId, result->objNum);
+		LOG_INFO("status is %d, frame %d, result->objNum is %d\n", status, result->frameId,
+		         result->objNum);
 
 	// if (status == ROCKIVA_SUCCESS) {
 	//     CachedImageMem *cached_image_mem = get_image_from_cache(result->frameId);
@@ -58,8 +58,8 @@ int rkipc_rockiva_init() {
 	char *license_key;
 	int license_size;
 
-	memset(&initParams, 0, sizeof(RockIvaBaTaskInitParam));
-	memset(&globalParams, 0, sizeof(RockIvaGlobalInitParam));
+	memset(&initParams, 0, sizeof(initParams));
+	memset(&globalParams, 0, sizeof(globalParams));
 
 	// if (license_path != NULL) {
 	//     license_size = read_data_file(license_path, &license_key);
@@ -71,9 +71,10 @@ int rkipc_rockiva_init() {
 
 	snprintf(globalParams.modelPath, ROCKIVA_PATH_LENGTH, "/usr/lib/");
 	globalParams.coreMask = 0x04;
+	globalParams.logLevel = ROCKIVA_LOG_ERROR;
 
-	ROCKIVA_GlobalInit(&rkba_handle, &globalParams);
-	LOG_INFO("ROCKIVA_GlobalInit over\n");
+	ROCKIVA_Init(&rkba_handle, &globalParams, NULL);
+	LOG_INFO("ROCKIVA_Init over\n");
 
 	// 构建一个进入区域规则
 	initParams.baRules.areaInRule[0].ruleEnable = 1;
@@ -141,9 +142,8 @@ int rkipc_rockiva_init() {
 	initParams.baRules.areaInBreakRule[0].area.points[3].y =
 	    ROCKIVA_PIXEL_RATION_CONVERT(1080, 400);
 
-
 	initParams.aiConfig.detectResultMode = 1;
-	ret = ROCKIVA_BA_Init(rkba_handle, &initParams, rkba_callback, NULL);
+	ret = ROCKIVA_BA_Init(rkba_handle, &initParams, rkba_callback);
 	if (ret != ROCKIVA_RET_SUCCESS) {
 		printf("ROCKIVA_BA_Init error %d\n", ret);
 		return -1;
@@ -156,15 +156,16 @@ int rkipc_rockiva_init() {
 
 int rkipc_rockiva_deinit() {
 	LOG_INFO("begin\n");
-	ROCKIVA_BA_Destroy(rkba_handle);
-	LOG_INFO("ROCKIVA_BA_Destroy over\n");
-	ROCKIVA_GlobalRelease(rkba_handle);
+	ROCKIVA_BA_Release(rkba_handle);
+	LOG_INFO("ROCKIVA_BA_Release over\n");
+	ROCKIVA_Release(rkba_handle);
 	LOG_INFO("end\n");
 
 	return 0;
 }
 
-int rkipc_rockiva_write_rgb888_frame(uint16_t width, uint16_t height, uint32_t frame_id, unsigned char *buffer) {
+int rkipc_rockiva_write_rgb888_frame(uint16_t width, uint16_t height, uint32_t frame_id,
+                                     unsigned char *buffer) {
 	int ret;
 	RockIvaImage *image = (RockIvaImage *)malloc(sizeof(RockIvaImage));
 	memset(image, 0, sizeof(RockIvaImage));
@@ -173,13 +174,14 @@ int rkipc_rockiva_write_rgb888_frame(uint16_t width, uint16_t height, uint32_t f
 	image->info.format = ROCKIVA_IMAGE_FORMAT_BGR888;
 	image->dataAddr = buffer;
 	image->frameId = frame_id;
-	ret = ROCKIVA_BA_PushFrame(rkba_handle, image);
+	ret = ROCKIVA_PushFrame(rkba_handle, image);
 	free(image);
 
 	return ret;
 }
 
-int rkipc_rockiva_write_rgb888_frame_by_fd(uint16_t width, uint16_t height, uint32_t frame_id, int32_t fd) {
+int rkipc_rockiva_write_rgb888_frame_by_fd(uint16_t width, uint16_t height, uint32_t frame_id,
+                                           int32_t fd) {
 	int ret;
 	RockIvaImage *image = (RockIvaImage *)malloc(sizeof(RockIvaImage));
 	memset(image, 0, sizeof(RockIvaImage));
@@ -190,7 +192,7 @@ int rkipc_rockiva_write_rgb888_frame_by_fd(uint16_t width, uint16_t height, uint
 	image->dataAddr = NULL;
 	image->dataPhyAddr = NULL;
 	image->dataFd = fd;
-	ret = ROCKIVA_BA_PushFrame(rkba_handle, image);
+	ret = ROCKIVA_PushFrame(rkba_handle, image);
 	free(image);
 
 	return ret;
