@@ -1900,22 +1900,22 @@ static int rk_storage_muxer_init_by_id(int id) {
 	// set rk_storage_muxer_group[id].g_video_param
 	rk_storage_muxer_group[id].g_video_param.level = 52;
 	snprintf(entry, 127, "video.%d:width", id);
-	rk_storage_muxer_group[id].g_video_param.width = rk_param_get_int(entry, -1);
+	rk_storage_muxer_group[id].g_video_param.width = rk_param_get_int(entry, 1920);
 	snprintf(entry, 127, "video.%d:height", id);
-	rk_storage_muxer_group[id].g_video_param.height = rk_param_get_int(entry, -1);
+	rk_storage_muxer_group[id].g_video_param.height = rk_param_get_int(entry, 1080);
 	snprintf(entry, 127, "video.%d:max_rate", id);
-	rk_storage_muxer_group[id].g_video_param.bit_rate = rk_param_get_int(entry, -1);
+	rk_storage_muxer_group[id].g_video_param.bit_rate = rk_param_get_int(entry, 512) * 1024;
 	snprintf(entry, 127, "video.%d:dst_frame_rate_den", id);
-	rk_storage_muxer_group[id].g_video_param.frame_rate_den = rk_param_get_int(entry, -1);
+	rk_storage_muxer_group[id].g_video_param.frame_rate_den = rk_param_get_int(entry, 1);
 	snprintf(entry, 127, "video.%d:dst_frame_rate_num", id);
-	rk_storage_muxer_group[id].g_video_param.frame_rate_num = rk_param_get_int(entry, -1);
+	rk_storage_muxer_group[id].g_video_param.frame_rate_num = rk_param_get_int(entry, 30);
 	snprintf(entry, 127, "video.%d:output_data_type", id);
 	const char *output_data_type = rk_param_get_string(entry, NULL);
 	if (output_data_type)
 		memcpy(rk_storage_muxer_group[id].g_video_param.codec, output_data_type,
 		       strlen(output_data_type));
 	snprintf(entry, 127, "video.%d:h264_profile", id);
-	const char *h264_profile = rk_param_get_string(entry, NULL);
+	const char *h264_profile = rk_param_get_string(entry, "high");
 	if (!strcmp(h264_profile, "high"))
 		rk_storage_muxer_group[id].g_video_param.profile = 100;
 	else if (!strcmp(h264_profile, "main"))
