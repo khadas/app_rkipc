@@ -2,10 +2,12 @@
 
 echo "Stop Application ..."
 killall rkipc
+killall udhcpc
 
 cnt=0
 while [ 1 ];
 do
+	sleep 1
 	cnt=$(( cnt + 1 ))
 	if [ $cnt -eq 8 ]; then
 		echo "killall -9 rkipc"
@@ -20,5 +22,4 @@ do
 	else
 		echo "rkipc active"
 	fi
-	sleep 1
 done

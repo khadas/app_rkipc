@@ -18,7 +18,7 @@ post_chk()
 		sleep .1
 	done
 
-	udhcpc -i eth1 &
+	ifconfig eth0 up && udhcpc -i eth0 -b || ifconfig eth1 up && udhcpc -i eth1 -b
 	wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant.conf &
 	check_linker /userdata   /usr/www/userdata
 	check_linker /media/usb0 /usr/www/usb0
