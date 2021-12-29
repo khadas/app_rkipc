@@ -6,6 +6,7 @@
 #include "common.h"
 #include "isp.h"
 #include "osd.h"
+#include "rockiva.h"
 #include "rtmp.h"
 #include "rtsp_demo.h"
 #include "storage.h"

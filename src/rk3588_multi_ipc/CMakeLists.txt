@@ -56,7 +56,6 @@ add_definitions(-g -ggdb)
 # add_definitions(-fsanitize=address -g -ggdb -gdwarf -funwind-tables -rdynamic -O0)
 # add_definitions(-fno-stack-protector -fno-omit-frame-pointer -fsanitize-recover=address)
 # link_libraries(asan)
-
 add_executable(${PROJECT_NAME} ${SRCS})
 target_link_libraries(${PROJECT_NAME} pthread rockit rkaiq rtsp freetype wpa_client rkmuxer rockiva m rkfsmk)
 
@@ -76,4 +75,5 @@ install(FILES ${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1031-linux-gnu/librkmuxe
 install(FILES ${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1031-linux-gnu/libwpa_client.so DESTINATION lib)
 install(FILES ${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1031-linux-gnu/librknnrt.so DESTINATION lib)
 install(FILES ${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1031-linux-gnu/librockiva.so DESTINATION lib)
+install(FILES ${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1031-linux-gnu/librkfsmk.so DESTINATION lib)
 install(FILES ${PROJECT_SOURCE_DIR}/common/rockiva/object_detection_ipc_cls5.data DESTINATION lib)

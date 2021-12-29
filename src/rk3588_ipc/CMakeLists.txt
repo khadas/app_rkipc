@@ -70,3 +70,4 @@ install(FILES ${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1031-linux-gnu/libpng16.
 install(FILES ${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1031-linux-gnu/libz.so DESTINATION lib)
 install(FILES ${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1031-linux-gnu/libz.so.1 DESTINATION lib)
 install(FILES ${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1031-linux-gnu/librkmuxer.so DESTINATION lib)
+install(FILES ${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1031-linux-gnu/librkfsmk.so DESTINATION lib)
