@@ -1000,12 +1000,12 @@ int rk_isp_af_zoom_change(int cam_id, int change) {
 	}
 	rk_aiq_uapi2_getOpZoomPosition(g_aiq_ctx[cam_id], &code);
 	code += change;
-	if (code > af_zoom_range.max_pos) {
+	if ((code < af_zoom_range.min_pos) || (code > af_zoom_range.max_pos)) {
 		LOG_ERROR("set zoom: %d over range [%d, %d]\n", code, af_zoom_range.min_pos,
 		          af_zoom_range.max_pos);
 		ret = -1;
 	}
-	ret = rk_aiq_uapi2_setOpZoomPosition(g_aiq_ctx[cam_id], (short int)code);
+	ret = rk_aiq_uapi2_setOpZoomPosition(g_aiq_ctx[cam_id], code);
 	LOG_INFO("set zoom: %d, ret: %d\n", code, ret);
 	snprintf(entry, 127, "isp.%d.auto_focus:zoom_level", cam_id);
 	rk_param_set_int(entry, code);
@@ -1016,7 +1016,7 @@ int rk_isp_af_zoom_change(int cam_id, int change) {
 int rk_isp_af_focus_change(int cam_id, int change) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret = 0;
-	int code = 0;
+	short code = 0;
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.auto_focus:af_mode", cam_id);
 	const char *af_mode = rk_param_get_string(entry, "auto");
@@ -1029,14 +1029,14 @@ int rk_isp_af_focus_change(int cam_id, int change) {
 		LOG_ERROR("get focus range fail: %d\n", ret);
 		return ret;
 	}
-	rk_aiq_uapi2_getFixedModeCode(g_aiq_ctx[cam_id], (short *)&code);
+	rk_aiq_uapi2_getFixedModeCode(g_aiq_ctx[cam_id], &code);
 	code += change;
-	if (code >= af_focus_range.max_pos) {
+	if ((code < af_focus_range.min_pos) || (code > af_focus_range.max_pos)) {
 		LOG_ERROR("before set FixedModeCode: %d over range (%d, %d)\n", code,
 		          af_focus_range.min_pos, af_focus_range.max_pos);
 		return -1;
 	}
-	ret = rk_aiq_uapi2_setFixedModeCode(g_aiq_ctx[cam_id], (short int)code);
+	ret = rk_aiq_uapi2_setFixedModeCode(g_aiq_ctx[cam_id], code);
 	LOG_INFO("set FixedModeCode: %d, ret: %d\n", code, ret);
 	snprintf(entry, 127, "isp.%d.auto_focus:focus_level", cam_id);
 	rk_param_set_int(entry, code);
@@ -1044,13 +1044,13 @@ int rk_isp_af_focus_change(int cam_id, int change) {
 	return ret;
 }
 
-int rk_isp_af_zoom_in(int cam_id) { return rk_isp_af_zoom_change(cam_id, 10); }
+int rk_isp_af_zoom_in(int cam_id) { return rk_isp_af_zoom_change(cam_id, 20); }
 
-int rk_isp_af_zoom_out(int cam_id) { return rk_isp_af_zoom_change(cam_id, -10); }
+int rk_isp_af_zoom_out(int cam_id) { return rk_isp_af_zoom_change(cam_id, -20); }
 
-int rk_isp_af_focus_in(int cam_id) { return rk_isp_af_focus_change(cam_id, 10); }
+int rk_isp_af_focus_in(int cam_id) { return rk_isp_af_focus_change(cam_id, 1); }
 
-int rk_isp_af_focus_out(int cam_id) { return rk_isp_af_focus_change(cam_id, -10); }
+int rk_isp_af_focus_out(int cam_id) { return rk_isp_af_focus_change(cam_id, -1); }
 
 int rk_isp_af_focus_once(int cam_id) {
 	LOG_INFO("af_focus_once\n");
