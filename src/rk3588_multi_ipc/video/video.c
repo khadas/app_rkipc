@@ -583,7 +583,7 @@ int rkipc_vpss_1_init() {
 	if (ret != RK_SUCCESS)
 		LOG_ERROR("RK_MPI_VPSS_EnableChn error! ret is %#x\n", ret);
 
-	ret = RK_MPI_VPSS_SetVProcDev(VpssGrp, VIDEO_PROC_DEV_RGA);
+	ret = RK_MPI_VPSS_SetVProcDev(VpssGrp, VIDEO_PROC_DEV_GPU);
 	ret = RK_MPI_VPSS_StartGrp(VpssGrp);
 	if (ret != RK_SUCCESS) {
 		LOG_ERROR("RK_MPI_VPSS_StartGrp error! ret is %#x\n", ret);
@@ -997,8 +997,8 @@ int rkipc_venc_0_init() {
 	venc_chn_attr.stVencAttr.enPixelFormat = RK_FMT_YUV420SP;
 	venc_chn_attr.stVencAttr.u32PicWidth = venc_width;
 	venc_chn_attr.stVencAttr.u32PicHeight = venc_height;
-	venc_chn_attr.stVencAttr.u32VirWidth = rk_param_get_int("avs:avs_width", 8176);
-	venc_chn_attr.stVencAttr.u32VirHeight = rk_param_get_int("avs:avs_height", 2720);
+	venc_chn_attr.stVencAttr.u32VirWidth = rk_param_get_int("avs:avs_width", 8192);
+	venc_chn_attr.stVencAttr.u32VirHeight = rk_param_get_int("avs:avs_height", 2700);
 	venc_chn_attr.stVencAttr.u32StreamBufCnt = 3;
 	venc_chn_attr.stVencAttr.u32BufSize =
 	    venc_chn_attr.stVencAttr.u32VirWidth * venc_chn_attr.stVencAttr.u32VirHeight * 3 / 2;
