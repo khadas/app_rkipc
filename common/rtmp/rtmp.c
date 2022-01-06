@@ -10,7 +10,7 @@
 #endif
 #define LOG_TAG "rtmp.c"
 
-static int g_rtmp_enable[3] = {0,0,0};
+static int g_rtmp_enable[3] = {0, 0, 0};
 static VideoParam g_video_param;
 // static AudioParam g_audio_param;
 
