@@ -1144,9 +1144,11 @@ int rk_isp_group_init(int cam_group_id, char *iqfile_path) {
 	const char *hdr_mode = rk_param_get_string(entry, "close");
 	LOG_INFO("cam_group_id is %d, hdr_mode is %s\n", cam_group_id, hdr_mode);
 	if (!strcmp(hdr_mode, "HDR2")) {
-		ret = isp_camera_group_init(cam_group_id, RK_AIQ_WORKING_MODE_ISP_HDR2, false, g_iq_file_dir_);
+		ret = isp_camera_group_init(cam_group_id, RK_AIQ_WORKING_MODE_ISP_HDR2, false,
+		                            g_iq_file_dir_);
 	} else {
-		ret = isp_camera_group_init(cam_group_id, RK_AIQ_WORKING_MODE_NORMAL, false, g_iq_file_dir_);
+		ret =
+		    isp_camera_group_init(cam_group_id, RK_AIQ_WORKING_MODE_NORMAL, false, g_iq_file_dir_);
 	}
 
 	return ret;

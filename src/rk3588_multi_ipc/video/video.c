@@ -799,22 +799,42 @@ int rkipc_avs_init() {
 	AVS_OUTPUT_ATTR_S stAvsOutAttr;
 	AVS_CHN_ATTR_S stAvsChnAttr[4];
 
+	memset(&stAvsModParam, 0, sizeof(stAvsModParam));
+	memset(&stAvsGrpAttr, 0, sizeof(stAvsGrpAttr));
+	memset(&stAvsOutAttr, 0, sizeof(stAvsOutAttr));
+	memset(&stAvsChnAttr[0], 0, sizeof(stAvsChnAttr[0]));
 	stAvsModParam.u32WorkingSetSize = 67 * 1024;
 	stAvsGrpAttr.enMode = rk_param_get_int("avs:avs_mode", 0);
-	const char *lut_file_path = rk_param_get_string("avs:avs_file_path", NULL);
+#if 0
+	const char *lut_file_path = "/usr/share/avs_mesh/";
 	LOG_INFO("lut_file_path = %s\n", lut_file_path);
 	memcpy(stAvsGrpAttr.stLUT.aFilePath, lut_file_path, strlen(lut_file_path) + 1);
 	memset(stAvsGrpAttr.stLUT.aFilePath + strlen(lut_file_path) + 1, '\0', sizeof(char));
 	LOG_INFO("stAvsGrpAttr.stLUT.aFilePath = %s\n", stAvsGrpAttr.stLUT.aFilePath);
+#else
+	const char *calib_file_path =
+	    rk_param_get_string("avs:calib_file_path", "/usr/share/avs_calib/calib_file_pos.pto");
+	const char *mesh_alpha_path =
+	    rk_param_get_string("avs:mesh_alpha_path", "/usr/share/avs_calib/");
+	LOG_INFO("calib_file_path = %s, mesh_alpha_path = %s\n", calib_file_path, mesh_alpha_path);
+	memcpy(stAvsGrpAttr.stOutAttr.stCalib.aCalibFilePath, calib_file_path,
+	       strlen(calib_file_path) + 1);
+	memset(stAvsGrpAttr.stOutAttr.stCalib.aCalibFilePath + strlen(calib_file_path) + 1, '\0',
+	       sizeof(char));
+	memcpy(stAvsGrpAttr.stOutAttr.stCalib.aMeshAlphaPath, mesh_alpha_path,
+	       strlen(mesh_alpha_path) + 1);
+	memset(stAvsGrpAttr.stOutAttr.stCalib.aMeshAlphaPath + strlen(mesh_alpha_path) + 1, '\0',
+	       sizeof(char));
+#endif
 	stAvsGrpAttr.u32PipeNum = g_sensor_num;
 	stAvsGrpAttr.stGainAttr.enMode = AVS_GAIN_MODE_AUTO;
 	stAvsGrpAttr.stOutAttr.enPrjMode = AVS_PROJECTION_EQUIRECTANGULAR;
-	stAvsGrpAttr.stOutAttr.stCenter.s32X = 5088 / 2;
-	stAvsGrpAttr.stOutAttr.stCenter.s32Y = 1520 / 2;
-	stAvsGrpAttr.stOutAttr.stFOV.u32FOVX = 36000;
-	stAvsGrpAttr.stOutAttr.stFOV.u32FOVY = 18000;
-	stAvsGrpAttr.stOutAttr.stORIRotation.s32Roll = 9000;
-	stAvsGrpAttr.stOutAttr.stORIRotation.s32Pitch = 9000;
+	stAvsGrpAttr.stOutAttr.stCenter.s32X = rk_param_get_int("avs:center_x", 4196);
+	stAvsGrpAttr.stOutAttr.stCenter.s32Y = rk_param_get_int("avs:center_y", 2080);
+	stAvsGrpAttr.stOutAttr.stFOV.u32FOVX = rk_param_get_int("avs:fov_x", 28000);
+	stAvsGrpAttr.stOutAttr.stFOV.u32FOVY = rk_param_get_int("avs:fov_y", 9500);
+	stAvsGrpAttr.stOutAttr.stORIRotation.s32Roll = 0;
+	stAvsGrpAttr.stOutAttr.stORIRotation.s32Pitch = 0;
 	stAvsGrpAttr.stOutAttr.stORIRotation.s32Yaw = 0;
 	stAvsGrpAttr.stOutAttr.stRotation.s32Roll = 0;
 	stAvsGrpAttr.stOutAttr.stRotation.s32Pitch = 0;
@@ -1393,6 +1413,15 @@ int rkipc_vo_init() {
 		return ret;
 	}
 	LOG_INFO("RK_MPI_VO_GetPubAttr success\n");
+	if ((VoPubAttr.stSyncInfo.u16Hact == 0) || (VoPubAttr.stSyncInfo.u16Vact == 0)) {
+		if (g_vo_dev_id == RK3588_VO_DEV_HDMI) {
+			VoPubAttr.stSyncInfo.u16Hact = 1920;
+			VoPubAttr.stSyncInfo.u16Vact = 1080;
+		} else {
+			VoPubAttr.stSyncInfo.u16Hact = 1080;
+			VoPubAttr.stSyncInfo.u16Vact = 1920;
+		}
+	}
 
 	stLayerAttr.stDispRect.s32X = 0;
 	stLayerAttr.stDispRect.s32Y = 0;
@@ -1400,6 +1429,7 @@ int rkipc_vo_init() {
 	stLayerAttr.stDispRect.u32Height = VoPubAttr.stSyncInfo.u16Vact;
 	stLayerAttr.stImageSize.u32Width = VoPubAttr.stSyncInfo.u16Hact;
 	stLayerAttr.stImageSize.u32Height = VoPubAttr.stSyncInfo.u16Vact;
+
 	LOG_INFO("stLayerAttr W=%d, H=%d\n", stLayerAttr.stDispRect.u32Width,
 	         stLayerAttr.stDispRect.u32Height);
 
@@ -2405,54 +2435,54 @@ static void *wait_key_event(void *arg) {
 	return NULL;
 }
 
-static void *save_all_vi_frame(void *arg) {
-	printf("#Start %s thread, arg:%p\n", __func__, arg);
-	VI_FRAME_S stViFrame;
-	VI_CHN_STATUS_S stChnStatus;
-	int ret = 0;
-	char file_name[256];
-	void *data[6];
+// static void *save_all_vi_frame(void *arg) {
+// 	printf("#Start %s thread, arg:%p\n", __func__, arg);
+// 	VI_FRAME_S stViFrame;
+// 	VI_CHN_STATUS_S stChnStatus;
+// 	int ret = 0;
+// 	char file_name[256];
+// 	void *data[6];
 
-	while (g_video_run_) {
-		if (capture_one == 0) {
-			usleep(300 * 1000);
-			continue;
-		}
-		capture_one = 0;
-		for (int i = 0; i < 6; i++) {
-			if (g_format)
-				ret = RK_MPI_VI_GetChnFrame(i, RKISP_FBCPATH, &stViFrame, -1);
-			else
-				ret = RK_MPI_VI_GetChnFrame(i, RKISP_MAINPATH, &stViFrame, -1);
-			if (ret == RK_SUCCESS) {
-				data[i] = RK_MPI_MB_Handle2VirAddr(stViFrame.pMbBlk);
-				LOG_ERROR("RK_MPI_VI_GetChnFrame ok:data %p loop:%d seq:%d pts:%" PRId64 " ms\n",
-				          data[i], i, stViFrame.s32Seq, stViFrame.s64PTS / 1000);
-			} else {
-				LOG_ERROR("RK_MPI_VI_GetChnFrame timeout %#x\n", ret);
-			}
-			time_t t = time(NULL);
-			struct tm tm = *localtime(&t);
-			snprintf(file_name, 128, "/userdata/nv12_2560x1520_camera%d_%d%02d%02d%02d%02d%02d.yuv",
-			         i, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min,
-			         tm.tm_sec);
-			LOG_INFO("file_name is %s\n", file_name);
-			FILE *fp = fopen(file_name, "wb");
-			fwrite(data[i], 1, stViFrame.u32Len, fp);
-			fflush(fp);
-			fclose(fp);
-			if (g_format)
-				ret = RK_MPI_VI_ReleaseChnFrame(i, RKISP_FBCPATH, &stViFrame);
-			else
-				ret = RK_MPI_VI_ReleaseChnFrame(i, RKISP_MAINPATH, &stViFrame);
-			if (ret != RK_SUCCESS) {
-				LOG_ERROR("RK_MPI_VI_ReleaseChnFrame fail %#x\n", ret);
-			}
-		}
-	}
+// 	while (g_video_run_) {
+// 		if (capture_one == 0) {
+// 			usleep(300 * 1000);
+// 			continue;
+// 		}
+// 		capture_one = 0;
+// 		for (int i = 0; i < 6; i++) {
+// 			if (g_format)
+// 				ret = RK_MPI_VI_GetChnFrame(i, RKISP_FBCPATH, &stViFrame, -1);
+// 			else
+// 				ret = RK_MPI_VI_GetChnFrame(i, RKISP_MAINPATH, &stViFrame, -1);
+// 			if (ret == RK_SUCCESS) {
+// 				data[i] = RK_MPI_MB_Handle2VirAddr(stViFrame.pMbBlk);
+// 				LOG_ERROR("RK_MPI_VI_GetChnFrame ok:data %p loop:%d seq:%d pts:%" PRId64 " ms\n",
+// 				          data[i], i, stViFrame.s32Seq, stViFrame.s64PTS / 1000);
+// 			} else {
+// 				LOG_ERROR("RK_MPI_VI_GetChnFrame timeout %#x\n", ret);
+// 			}
+// 			time_t t = time(NULL);
+// 			struct tm tm = *localtime(&t);
+// 			snprintf(file_name, 128, "/userdata/nv12_2560x1520_camera%d_%d%02d%02d%02d%02d%02d.yuv",
+// 			         i, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min,
+// 			         tm.tm_sec);
+// 			LOG_INFO("file_name is %s\n", file_name);
+// 			FILE *fp = fopen(file_name, "wb");
+// 			fwrite(data[i], 1, stViFrame.u32Len, fp);
+// 			fflush(fp);
+// 			fclose(fp);
+// 			if (g_format)
+// 				ret = RK_MPI_VI_ReleaseChnFrame(i, RKISP_FBCPATH, &stViFrame);
+// 			else
+// 				ret = RK_MPI_VI_ReleaseChnFrame(i, RKISP_MAINPATH, &stViFrame);
+// 			if (ret != RK_SUCCESS) {
+// 				LOG_ERROR("RK_MPI_VI_ReleaseChnFrame fail %#x\n", ret);
+// 			}
+// 		}
+// 	}
 
-	return 0;
-}
+// 	return 0;
+// }
 
 int rk_take_photo() {
 	LOG_INFO("start\n");
