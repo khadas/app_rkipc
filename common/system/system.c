@@ -279,3 +279,22 @@ int rk_system_del_user(int id) {
 
 	return 0;
 }
+
+int rk_system_capability_get_video(char *value) {
+	char entry[128] = {'\0'};
+	int section_keys = iniparser_getsecnkeys(g_ini_d_, "capability.video");
+	LOG_INFO("section_keys is %d\n", section_keys);
+	if (!section_keys)
+		return 0;
+
+	int total_length = 0;
+	const char *tmp;
+	for (int i = 0; i < section_keys; i++) {
+		snprintf(entry, 127, "capability.video:%d", i);
+		tmp = rk_param_get_string(entry, NULL);
+		strcpy(value + total_length, tmp);
+		total_length += strlen(tmp);
+	}
+
+	return 0;
+}

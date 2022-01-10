@@ -1888,6 +1888,7 @@ static int rk_storage_muxer_init_by_id(int id) {
 	const char *mount_path = NULL;
 	const char *folder_name = NULL;
 
+	rk_storage_muxer_group[id].id = id;
 	// set rk_storage_muxer_group[id].g_video_param
 	rk_storage_muxer_group[id].g_video_param.level = 52;
 	snprintf(entry, 127, "video.%d:width", id);
@@ -1967,7 +1968,7 @@ static int rk_storage_muxer_init_by_id(int id) {
 	}
 	rk_storage_muxer_group[id].g_record_run_ = 1;
 	pthread_create(&rk_storage_muxer_group[id].record_thread_id, NULL, rk_storage_record,
-	               (void *)&id);
+	               (void *)&rk_storage_muxer_group[id].id);
 	LOG_INFO("end\n");
 
 	return 0;

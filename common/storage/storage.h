@@ -181,6 +181,7 @@ typedef struct {
 } rkipc_storage_handle;
 
 typedef struct rk_storage_muxer_struct_ {
+	int id;
 	char file_name[128];
 	char record_path[128];
 	const char *file_format;

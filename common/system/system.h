@@ -38,3 +38,5 @@ int rk_system_set_password(int id, const char *value);
 int rk_system_get_password(int id, const char **value);
 int rk_system_add_user(int id, int user_level, const char *user_name, const char *password);
 int rk_system_del_user(int id);
+// capability
+int rk_system_capability_get_video(char *value);
