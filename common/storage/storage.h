@@ -200,7 +200,7 @@ int rk_storage_write_audio_frame(int id, unsigned char *buffer, unsigned int buf
                                  int64_t present_time);
 int rk_storage_record_start();
 int rk_storage_record_stop();
-int rk_stoarge_record_statue_get(int *value);
+int rk_storage_record_statue_get(int *value);
 
 int rkipc_storage_quota_get(int id, char **value);    // TODO, current only sd card
 int rkipc_storage_quota_set(int id, char *value);     // TODO

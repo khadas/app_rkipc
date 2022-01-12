@@ -3655,11 +3655,11 @@ int ser_rk_system_import_db(int fd) {
 }
 
 // TODO
-int ser_rk_stoarge_record_statue_get(int fd) {
+int ser_rk_storage_record_statue_get(int fd) {
 	int err = 0;
 	int value;
 	value = 0;
-	// err = rk_stoarge_record_statue_get(&value);
+	// err = rk_storage_record_statue_get(&value);
 	LOG_DEBUG("value is %d\n", value);
 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
 		return -1;
@@ -4048,7 +4048,7 @@ static const struct FunMap map[] = {
     {(char *)"rk_wifi_connect_with_ssid", &ser_rk_wifi_connect_with_ssid},
     {(char *)"rk_wifi_forget_with_ssid", &ser_rk_wifi_forget_with_ssid},
     // storage
-    {(char *)"rk_stoarge_record_statue_get", &ser_rk_stoarge_record_statue_get},
+    {(char *)"rk_storage_record_statue_get", &ser_rk_storage_record_statue_get},
     {(char *)"rk_take_photo", &ser_rk_take_photo},
     // event
     // {(char *)"rk_event_ri_get_enabled", &ser_rk_event_ri_get_enabled},

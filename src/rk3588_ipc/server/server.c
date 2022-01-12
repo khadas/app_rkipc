@@ -445,6 +445,131 @@ int ser_rk_isp_set_exposure_gain(int fd) {
 	return 0;
 }
 
+// night to day
+int ser_rk_isp_get_night_to_day(int fd) {
+	int err = 0;
+	int id, len;
+	const char *value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_isp_get_night_to_day(id, &value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_isp_set_night_to_day(int fd) {
+	int ret = 0;
+	int id, len;
+	char *value = NULL;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_INFO("id is %d, value is %s\n", id, value);
+		ret = rk_isp_set_night_to_day(id, value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
+
+	return 0;
+}
+
+int ser_rk_isp_get_fill_light_mode(int fd) {
+	int err = 0;
+	int id, len;
+	const char *value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_isp_get_fill_light_mode(id, &value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_isp_set_fill_light_mode(int fd) {
+	int ret = 0;
+	int id, len;
+	char *value = NULL;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_INFO("id is %d, value is %s\n", id, value);
+		ret = rk_isp_set_fill_light_mode(id, value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
+
+	return 0;
+}
+
+int ser_rk_isp_get_light_brightness(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_isp_get_light_brightness(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_isp_set_light_brightness(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_isp_set_light_brightness(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
 // isp blc
 int ser_rk_isp_get_hdr(int fd) {
 	int err = 0;
@@ -3169,11 +3294,11 @@ int ser_rk_storage_record_stop(int fd) {
 	return 0;
 }
 
-int ser_rk_stoarge_record_statue_get(int fd) {
+int ser_rk_storage_record_statue_get(int fd) {
 	int err = 0;
 	int value;
 
-	err = rk_stoarge_record_statue_get(&value);
+	err = rk_storage_record_statue_get(&value);
 	LOG_DEBUG("value is %d\n", value);
 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
 		return -1;
@@ -3859,6 +3984,12 @@ static const struct FunMap map[] = {
     {(char *)"rk_isp_get_exposure_gain", &ser_rk_isp_get_exposure_gain},
     {(char *)"rk_isp_set_exposure_gain", &ser_rk_isp_set_exposure_gain},
     // isp night_to_day
+    {(char *)"rk_isp_get_night_to_day", &ser_rk_isp_get_night_to_day},
+    {(char *)"rk_isp_set_night_to_day", &ser_rk_isp_set_night_to_day},
+    {(char *)"rk_isp_get_fill_light_mode", &ser_rk_isp_get_fill_light_mode},
+    {(char *)"rk_isp_set_fill_light_mode", &ser_rk_isp_set_fill_light_mode},
+    {(char *)"rk_isp_get_light_brightness", &ser_rk_isp_get_light_brightness},
+    {(char *)"rk_isp_set_light_brightness", &ser_rk_isp_set_light_brightness},
     // isp blc
     {(char *)"rk_isp_get_hdr", &ser_rk_isp_get_hdr},
     {(char *)"rk_isp_set_hdr", &ser_rk_isp_set_hdr},
@@ -4001,7 +4132,7 @@ static const struct FunMap map[] = {
     // storage
     {(char *)"rk_storage_record_start", &ser_rk_storage_record_start},
     {(char *)"rk_storage_record_stop", &ser_rk_storage_record_stop},
-    {(char *)"rk_stoarge_record_statue_get", &ser_rk_stoarge_record_statue_get},
+    {(char *)"rk_storage_record_statue_get", &ser_rk_storage_record_statue_get},
     {(char *)"rk_take_photo", &ser_rk_take_photo},
     // system
     {(char *)"rk_system_get_deivce_name", &ser_rk_system_get_deivce_name},
