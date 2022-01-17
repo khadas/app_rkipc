@@ -39,8 +39,8 @@ int rkipc_storage_set_dev_attr(rkipc_str_dev_attr *pstDevAttr) {
 	LOG_INFO("mount path is %s, dev_path is %s\n", mount_path, dev_path);
 
 	pstDevAttr->auto_delete = 1;
-	pstDevAttr->free_size_del_min = rk_param_get_int("storage:free_size_del_min ", 500);
-	pstDevAttr->free_size_del_max = rk_param_get_int("storage:free_size_del_max ", 1000);
+	pstDevAttr->free_size_del_min = rk_param_get_int("storage:free_size_del_min ", 200);
+	pstDevAttr->free_size_del_max = rk_param_get_int("storage:free_size_del_max ", 500);
 	pstDevAttr->folder_num = STORAGE_NUM;
 	pstDevAttr->folder_attr =
 	    (rkipc_str_folder_attr *)malloc(sizeof(rkipc_str_folder_attr) * pstDevAttr->folder_num);

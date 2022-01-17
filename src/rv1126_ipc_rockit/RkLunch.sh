@@ -18,8 +18,8 @@ post_chk()
 		sleep .1
 	done
 
-	udhcpc -i eth1 &
-	wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant.conf &
+	ifconfig eth0 up && udhcpc -i eth0 &
+	ifconfig wlan0 up && wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant.conf &
 	check_linker /userdata   /usr/www/userdata
 	check_linker /media/usb0 /usr/www/usb0
 	check_linker /mnt/sdcard /usr/www/sdcard
@@ -39,23 +39,5 @@ post_chk()
 	fi
 	rkipc &
 }
-
-ulimit -c unlimited
-echo "/data/core-%p-%e" > /proc/sys/kernel/core_pattern
-
-# cpu
-echo performance > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
-echo userspce > /sys/devices/system/cpu/cpufreq/policy4/scaling_governor
-echo 1896000 > /sys/devices/system/cpu/cpufreq/policy4/scaling_setspeed
-echo userspce > /sys/devices/system/cpu/cpufreq/policy6/scaling_governor
-echo 1896000 > /sys/devices/system/cpu/cpufreq/policy6/scaling_setspeed
-# gpu
-# echo 900000 > /sys/kernel/debug/regulator/vdd_gpu_mem_s0/voltage
-# echo 900000 > /sys/kernel/debug/regulator/vdd_gpu_s0/voltage
-# echo 1000000000 > /sys/kernel/debug/clk/clk_gpu_coregroup/clk_rate
-echo userspace > /sys/class/devfreq/fb000000.gpu/governor
-echo 1000000000 > /sys/class/devfreq/fb000000.gpu/max_freq
-echo 1000000000 > /sys/class/devfreq/fb000000.gpu/min_freq
-cat /sys/class/devfreq/fb000000.gpu/cur_freq
 
 post_chk &
