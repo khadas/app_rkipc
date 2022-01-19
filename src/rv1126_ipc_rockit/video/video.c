@@ -441,8 +441,8 @@ int rkipc_vi_chn_init() {
 	vi_chn_attr.stSize.u32Width = video_width;
 	vi_chn_attr.stSize.u32Height = video_height;
 	vi_chn_attr.enPixelFormat = RK_FMT_YUV420SP;
-	if (g_vi_chn_id == 2) // FBCPATH
-		vi_chn_attr.enCompressMode = COMPRESS_MODE_NONE;//COMPRESS_AFBC_16x16;
+	if (g_vi_chn_id == 2)                                // FBCPATH
+		vi_chn_attr.enCompressMode = COMPRESS_MODE_NONE; // COMPRESS_AFBC_16x16;
 	vi_chn_attr.u32Depth = 2;
 	ret = RK_MPI_VI_SetChnAttr(pipe_id_, g_vi_chn_id, &vi_chn_attr);
 	ret |= RK_MPI_VI_EnableChn(pipe_id_, g_vi_chn_id);
@@ -1145,7 +1145,7 @@ int rkipc_pipe_vpss_vo_init() {
 	stVpssGrpAttr.enPixelFormat = RK_FMT_YUV420SP;
 	stVpssGrpAttr.stFrameRate.s32SrcFrameRate = -1;
 	stVpssGrpAttr.stFrameRate.s32DstFrameRate = -1;
-	stVpssGrpAttr.enCompressMode = COMPRESS_MODE_NONE;//COMPRESS_AFBC_16x16;
+	stVpssGrpAttr.enCompressMode = COMPRESS_MODE_NONE; // COMPRESS_AFBC_16x16;
 
 	stVpssChnAttr[0].enChnMode = VPSS_CHN_MODE_USER;
 	stVpssChnAttr[0].enDynamicRange = DYNAMIC_RANGE_SDR8;
@@ -1211,7 +1211,7 @@ int rkipc_pipe_vpss_vo_init() {
 		VoPubAttr.enIntfType = VO_INTF_MIPI;
 		VoPubAttr.enIntfSync = VO_OUTPUT_DEFAULT;
 	}
-	ret = RK_MPI_VO_SetPubAttr(g_vo_dev_id, &VoPubAttr);//g_vo_dev_id
+	ret = RK_MPI_VO_SetPubAttr(g_vo_dev_id, &VoPubAttr); // g_vo_dev_id
 	if (ret != RK_SUCCESS) {
 		LOG_ERROR("RK_MPI_VO_SetPubAttr err is %x\n", ret);
 		return ret;
@@ -1280,7 +1280,7 @@ int rkipc_pipe_vpss_vo_init() {
 	}
 	LOG_INFO("RK_MPI_VO_SetLayerAttr success\n");
 
-	ret = RK_MPI_VO_SetLayerSpliceMode(VoLayer, VO_SPLICE_MODE_RGA);/////////
+	ret = RK_MPI_VO_SetLayerSpliceMode(VoLayer, VO_SPLICE_MODE_RGA); /////////
 	if (ret != RK_SUCCESS) {
 		LOG_ERROR("RK_MPI_VO_SetLayerSpliceMode VoLayer = %d error\n", VoLayer);
 		return ret;

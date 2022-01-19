@@ -2088,7 +2088,7 @@ int rk_storage_record_stop() {
 	return 0;
 }
 
-int rk_stoarge_record_statue_get(int *value) {
+int rk_storage_record_statue_get(int *value) {
 	*value = rk_storage_muxer_group[0].g_record_run_;
 	return 0;
 }
