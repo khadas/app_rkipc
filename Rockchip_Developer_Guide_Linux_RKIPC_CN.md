@@ -112,19 +112,19 @@ graph LR
 
 ```mermaid
 graph TB
-	VI_0[VI_0_2688*1520]-->AVS[AVS_FBC_8192*2700]
-	VI_1[VI_1_2688*1520]-->AVS
-	VI_2[VI_2_2688*1520]-->AVS
-	VI_3[VI_3_2688*1520]-->AVS
-	VI_4[VI_4_2688*1520]-->AVS
-	VI_5[VI_5_2688*1520]-->AVS
-	AVS-->VPSS_GRP_1(VPSS_GRP_1_GPU_3840*1280_FBC)
-	AVS-->VENC_0_8192*2700-->RTSP/RTMP/MUXER_0
-	VPSS_GRP_1-->VENC_1-->RTSP/RTMP_1
-	VPSS_GRP_1-->VPSS_GRP_2(VPSS_GRP_2_RGA_2048*680_FBC)-->VENC_2-->RTSP/RTMP_2
-	VPSS_GRP_2-->VO
-	VPSS_GRP_2-->VPSS_GRP_4(VPSS_GRP_4_RGA_896*512_RGB)-->NPU
-	AVS-->VPSS_GRP_3(VPSS_GRP_3_GPU_8192*2700_NV12)-->VENC_3_JPEG
+	VI_0[VI_0_2688*1520]--FBC-->AVS[AVS_8192*2700]
+	VI_1[VI_1_2688*1520]--FBC-->AVS
+	VI_2[VI_2_2688*1520]--FBC-->AVS
+	VI_3[VI_3_2688*1520]--FBC-->AVS
+	VI_4[VI_4_2688*1520]--FBC-->AVS
+	VI_5[VI_5_2688*1520]--FBC-->AVS
+	AVS--FBC-->VPSS_GRP_1(VPSS_GRP_1_GPU_3840*1280)
+	AVS--FBC-->VENC_0_8192*2700-->RTSP/RTMP/MUXER_0
+	VPSS_GRP_1--FBC-->VENC_1-->RTSP/RTMP_1
+	VPSS_GRP_1--FBC-->VPSS_GRP_2(VPSS_GRP_2_RGA_2048*680)--FBC-->VENC_2-->RTSP/RTMP_2
+	VPSS_GRP_2-.FBC.->VO
+	VPSS_GRP_2--FBC-->VPSS_GRP_4(VPSS_GRP_4_RGA_896*512)--RGB-->NPU
+	AVS--FBC-->VPSS_GRP_3(VPSS_GRP_3_GPU_8192*2700)--NV12-->VENC_3_JPEG
 ```
 
 ### RV1126 IPC
@@ -573,7 +573,12 @@ submitOne(groupName: string, isReboot: boolean = false, isAppRestart = false) {
 
 ### 封装模块
 
-TODO
+| 函数名称                  | 功能             |
+| ------------------------- | ---------------- |
+| rkmuxer_init              | 封装模块初始化   |
+| rkmuxer_deinit            | 封装模块反初始化 |
+| rkmuxer_write_video_frame | 视频帧写入       |
+| rkmuxer_write_audio_frame | 音频帧写入       |
 
 ### 存储模块
 
@@ -652,14 +657,12 @@ TODO
 
 ### rtmp推流模块
 
-| 函数名称                      | 功能     |
-| ----------------------------- | -------- |
-| rtmp_sender_alloc             | 分配句柄 |
-| rtmp_sender_start_publish     | 开始推流 |
-| rtmp_sender_write_video_frame | 写视频帧 |
-| rtmp_sender_write_audio_frame | 写音频帧 |
-| rtmp_sender_stop_publish      | 停止推流 |
-| rtmp_sender_free              | 释放句柄 |
+| 函数名称                  | 功能             |
+| ------------------------- | ---------------- |
+| rk_rtmp_init              | rtmp模块初始化   |
+| rk_rtmp_deinit            | rtmp模块反初始化 |
+| rk_rtmp_write_video_frame | 写视频帧         |
+| rk_rtmp_write_audio_frame | 写音频帧         |
 
 ### rtsp推流模块
 
@@ -678,6 +681,85 @@ TODO
 | rtsp_do_event      | 执行操作          |
 
 ### ISP模块
+
+| 函数名称                             | 功能             |
+| ------------------------------------ | ---------------- |
+| rk_isp_init                          | 单摄像头初始化   |
+| rk_isp_deinit                        | 单摄像头反初始化 |
+| rk_isp_group_init                    | 多摄像头初始化   |
+| rk_isp_group_deinit                  | 多摄像头反初始化 |
+| rk_isp_set_frame_rate                | 设置帧率         |
+| rk_isp_get_contrast                  | 获取对比度       |
+| rk_isp_set_contrast                  | 设置对比度       |
+| rk_isp_get_brightness                | 获取亮度         |
+| rk_isp_set_brightness                | 设置亮度         |
+| rk_isp_get_saturation                | 获取饱和度       |
+| rk_isp_set_saturation                | 设置饱和度       |
+| rk_isp_get_sharpness                 | 获取锐度         |
+| rk_isp_set_sharpness                 | 设置锐度         |
+| rk_isp_get_hue                       | 获取色调         |
+| rk_isp_set_hue                       | 设置色调         |
+| rk_isp_get_exposure_mode             | 获取曝光模式     |
+| rk_isp_set_exposure_mode             | 设置曝光模式     |
+| rk_isp_get_gain_mode                 | 获取增益模式     |
+| rk_isp_set_gain_mode                 | 设置增益模式     |
+| rk_isp_get_exposure_time             | 获取曝光时间     |
+| rk_isp_set_exposure_time             | 设置曝光时间     |
+| rk_isp_get_exposure_gain             | 获取增益         |
+| rk_isp_set_exposure_gain             | 设置增益         |
+| rk_isp_get_hdr                       | 获取高动态模式   |
+| rk_isp_set_hdr                       | 设置高动态模式   |
+| rk_isp_get_blc_region                | 获取背光模式     |
+| rk_isp_set_blc_region                | 设置背光模式     |
+| rk_isp_get_hlc                       | 获取强光抑制模式 |
+| rk_isp_set_hlc                       | 设置强光抑制模式 |
+| rk_isp_get_hdr_level                 | 获取高动态级别   |
+| rk_isp_set_hdr_level                 | 设置高动态级别   |
+| rk_isp_get_blc_strength              | 获取背光强度     |
+| rk_isp_set_blc_strength              | 设置背光强度     |
+| rk_isp_get_hlc_level                 | 获取强光抑制等级 |
+| rk_isp_set_hlc_level                 | 设置强光抑制等级 |
+| rk_isp_get_dark_boost_level          | 获取暗区增强等级 |
+| rk_isp_set_dark_boost_level          | 设置暗区增强等级 |
+| rk_isp_get_white_blance_style        | 获取白平衡模式   |
+| rk_isp_set_white_blance_style        | 设置白平衡模式   |
+| rk_isp_get_white_blance_red          | 获取白平衡R增益  |
+| rk_isp_set_white_blance_red          | 设置白平衡R增益  |
+| rk_isp_get_white_blance_green        | 获取白平衡G增益  |
+| rk_isp_set_white_blance_green        | 设置白平衡G增益  |
+| rk_isp_get_white_blance_blue         | 获取白平衡B增益  |
+| rk_isp_set_white_blance_blue         | 设置白平衡B增益  |
+| rk_isp_get_noise_reduce_mode         | 获取降噪模式     |
+| rk_isp_set_noise_reduce_mode         | 设置降噪模式     |
+| rk_isp_get_dehaze                    | 获取去雾模式     |
+| rk_isp_set_dehaze                    | 设置去雾模式     |
+| rk_isp_get_gray_scale_mode           | 获取灰度范围     |
+| rk_isp_get_distortion_correction     | 获取畸变矫正模式 |
+| rk_isp_set_distortion_correction     | 设置畸变矫正模式 |
+| rk_isp_get_spatial_denoise_level     | 获取空域降噪等级 |
+| rk_isp_set_spatial_denoise_level     | 设置空域降噪等级 |
+| rk_isp_get_temporal_denoise_level    | 获取时域降噪等级 |
+| rk_isp_set_temporal_denoise_level    | 设置时域降噪等级 |
+| rk_isp_get_dehaze_level              | 获取去雾等级     |
+| rk_isp_set_dehaze_level              | 设置去雾等级     |
+| rk_isp_get_fec_level                 | 获取FEC等级      |
+| rk_isp_set_fec_level                 | 设置FEC等级      |
+| rk_isp_get_ldch_level                | 获取LDCH等级     |
+| rk_isp_set_ldch_level                | 设置LDCH等级     |
+| rk_isp_get_power_line_frequency_mode | 获取视频制式     |
+| rk_isp_set_power_line_frequency_mode | 设置视频制式     |
+| rk_isp_get_image_flip                | 获取镜像翻转     |
+| rk_isp_set_image_flip                | 设置镜像翻转     |
+| rk_isp_get_af_mode                   | 获取自动对焦模式 |
+| rk_isp_set_af_mode                   | 设置自动对焦模式 |
+| rk_isp_get_zoom_level                | 获取放大缩小等级 |
+| rk_isp_set_zoom_level                | 设置放大缩小等级 |
+| rk_isp_af_zoom_in                    | 放大             |
+| rk_isp_af_zoom_out                   | 缩小             |
+| rk_isp_af_focus_in                   | 聚焦             |
+| rk_isp_af_focus_out                  | 失焦             |
+
+
 
 ### 参数管理模块
 
