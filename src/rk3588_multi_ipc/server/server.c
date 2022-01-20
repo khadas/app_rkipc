@@ -1248,40 +1248,6 @@ int ser_rk_isp_set_dehaze_level(int fd) {
 	return 0;
 }
 
-int ser_rk_isp_get_fec_level(int fd) {
-	int err = 0;
-	int id;
-	int value;
-
-	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-		return -1;
-	err = rk_isp_get_fec_level(id, &value);
-	LOG_DEBUG("value is %d\n", value);
-	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-		return -1;
-	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-		return -1;
-
-	return 0;
-}
-
-int ser_rk_isp_set_fec_level(int fd) {
-	int err = 0;
-	int id;
-	int value;
-
-	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-		return -1;
-	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-		return -1;
-	LOG_DEBUG("value is %d\n", value);
-	err = rk_isp_set_fec_level(id, value);
-	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-		return -1;
-
-	return 0;
-}
-
 int ser_rk_isp_get_ldch_level(int fd) {
 	int err = 0;
 	int id;
@@ -3873,8 +3839,6 @@ static const struct FunMap map[] = {
     {(char *)"rk_isp_set_temporal_denoise_level", &ser_rk_isp_set_temporal_denoise_level},
     {(char *)"rk_isp_get_dehaze_level", &ser_rk_isp_get_dehaze_level},
     {(char *)"rk_isp_set_dehaze_level", &ser_rk_isp_set_dehaze_level},
-    {(char *)"rk_isp_get_fec_level", &ser_rk_isp_get_fec_level},
-    {(char *)"rk_isp_set_fec_level", &ser_rk_isp_set_fec_level},
     {(char *)"rk_isp_get_ldch_level", &ser_rk_isp_get_ldch_level},
     {(char *)"rk_isp_set_ldch_level", &ser_rk_isp_set_ldch_level},
     // isp video_adjustment

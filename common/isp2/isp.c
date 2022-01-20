@@ -10,7 +10,6 @@
 #define LOG_TAG "isp.c"
 
 #define MAX_AIQ_CTX 8
-#define FPS 30
 char g_iq_file_dir_[256];
 
 static rkipc_aiq_use_group = 0;
@@ -855,18 +854,9 @@ int rk_isp_set_distortion_correction(int cam_id, const char *value) {
 	int ret;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	if (!strcmp(value, "close")) {
-		rk_aiq_uapi2_setFecEn(rkipc_aiq_get_ctx(cam_id), false);
 		rk_aiq_uapi2_setLdchEn(rkipc_aiq_get_ctx(cam_id), false);
-	} else if (!strcmp(value, "FEC")) {
-		rk_aiq_uapi2_setFecEn(rkipc_aiq_get_ctx(cam_id), true);
-		rk_aiq_uapi2_setLdchEn(rkipc_aiq_get_ctx(cam_id), false);
-		// rk_aiq_uapi2_setFecCorrectLevel(rkipc_aiq_get_ctx(cam_id), level); // [0-100] ->
-		// [0->255]
 	} else if (!strcmp(value, "LDCH")) {
-		rk_aiq_uapi2_setFecEn(rkipc_aiq_get_ctx(cam_id), false);
 		rk_aiq_uapi2_setLdchEn(rkipc_aiq_get_ctx(cam_id), true);
-		// rk_aiq_uapi2_setLdchCorrectLevel(rkipc_aiq_get_ctx(cam_id), level); // [1, 100] ->
-		// [2 , 255]
 	}
 
 	char entry[128] = {'\0'};
@@ -928,26 +918,6 @@ int rk_isp_set_dehaze_level(int cam_id, int value) {
 	int ret = rk_aiq_uapi2_setMDehazeStrth(rkipc_aiq_get_ctx(cam_id), value);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.enhancement:dehaze_level", cam_id);
-	rk_param_set_int(entry, value);
-
-	return ret;
-}
-
-int rk_isp_get_fec_level(int cam_id, int *value) {
-	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	char entry[128] = {'\0'};
-	snprintf(entry, 127, "isp.%d.enhancement:fec_level", cam_id);
-	*value = rk_param_get_int(entry, -1);
-
-	return 0;
-}
-
-int rk_isp_set_fec_level(int cam_id, int value) {
-	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	int ret = rk_aiq_uapi2_setFecCorrectLevel(rkipc_aiq_get_ctx(cam_id),
-	                                          (int)(value * 2.55)); // [0-100] -> [0->255]
-	char entry[128] = {'\0'};
-	snprintf(entry, 127, "isp.%d.enhancement:fec_level", cam_id);
 	rk_param_set_int(entry, value);
 
 	return ret;
@@ -1196,7 +1166,6 @@ int rk_isp_init(int cam_id, char *iqfile_path) {
 	}
 
 	ret |= sample_common_isp_run(cam_id);
-	ret |= rk_isp_set_frame_rate(cam_id, FPS);
 	ret |= rk_isp_set_from_ini(cam_id);
 
 	return ret;
