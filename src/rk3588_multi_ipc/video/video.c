@@ -530,15 +530,18 @@ int rkipc_multi_vi_deinit() {
 	LOG_INFO("start\n");
 	int ret = 0;
 	for (int i = 0; i < g_sensor_num; i++) {
-		if (g_format)
+		if (g_format) {
 			ret = RK_MPI_VI_DisableChn(i, RKISP_FBCPATH);
-		else
+			ret = RK_MPI_VI_DeleteChn(i, RKISP_FBCPATH);
+		} else {
 			ret = RK_MPI_VI_DisableChn(i, RKISP_MAINPATH);
+			ret = RK_MPI_VI_DeleteChn(i, RKISP_MAINPATH);
+		}
 		if (ret) {
-			LOG_ERROR("%d: RK_MPI_VI_DisableChn error, ret=%#x\n", i, ret);
+			LOG_ERROR("%d: RK_MPI_VI_DeleteChn error, ret=%#x\n", i, ret);
 			return ret;
 		}
-		LOG_INFO("%d: RK_MPI_VI_DisableChn success\n", i);
+		LOG_INFO("%d: RK_MPI_VI_DeleteChn success\n", i);
 	}
 	LOG_INFO("end\n");
 

@@ -1,4 +1,4 @@
-// Copyright 2021 Rockchip Electronics Co., Ltd. All rights reserved.
+// Copyright 2022 Rockchip Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 int rk_video_init();
@@ -26,3 +26,4 @@ int rk_video_get_frame_rate(int stream_id, char **value);
 int rk_video_set_frame_rate(int stream_id, const char *value);
 int rk_video_get_frame_rate_in(int stream_id, char **value);
 int rk_video_set_frame_rate_in(int stream_id, const char *value);
+int rk_take_photo();

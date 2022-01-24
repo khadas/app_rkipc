@@ -1861,8 +1861,7 @@ char *rkipc_response_delete(int num, int id, char *name_list) {
 static void *rk_storage_record(void *arg) {
 	int *id_ptr = arg;
 	int id = *id_ptr;
-	printf("#Start %s thread, arg:%p\n", __func__, arg);
-
+	printf("id: %d, #Start %s thread, arg:%p\n", id, __func__, arg);
 	while (rk_storage_muxer_group[id].g_record_run_) {
 		time_t t = time(NULL);
 		struct tm tm = *localtime(&t);

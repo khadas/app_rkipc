@@ -17,7 +17,9 @@
 #include "isp.h"
 #include "log.h"
 #include "network.h"
+//#include "osd.h"
 #include "socket.h"
+#include "storage.h"
 #include "system.h"
 #include "video.h"
 
@@ -437,6 +439,131 @@ int ser_rk_isp_set_exposure_gain(int fd) {
 		return -1;
 	LOG_DEBUG("value is %d\n", value);
 	err = rk_isp_set_exposure_gain(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+// night to day
+int ser_rk_isp_get_night_to_day(int fd) {
+	int err = 0;
+	int id, len;
+	const char *value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_isp_get_night_to_day(id, &value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_isp_set_night_to_day(int fd) {
+	int ret = 0;
+	int id, len;
+	char *value = NULL;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_INFO("id is %d, value is %s\n", id, value);
+		ret = rk_isp_set_night_to_day(id, value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
+
+	return 0;
+}
+
+int ser_rk_isp_get_fill_light_mode(int fd) {
+	int err = 0;
+	int id, len;
+	const char *value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_isp_get_fill_light_mode(id, &value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_isp_set_fill_light_mode(int fd) {
+	int ret = 0;
+	int id, len;
+	char *value = NULL;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_INFO("id is %d, value is %s\n", id, value);
+		ret = rk_isp_set_fill_light_mode(id, value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
+
+	return 0;
+}
+
+int ser_rk_isp_get_light_brightness(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_isp_get_light_brightness(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_isp_set_light_brightness(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_isp_set_light_brightness(id, value);
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
 
@@ -1121,40 +1248,6 @@ int ser_rk_isp_set_dehaze_level(int fd) {
 	return 0;
 }
 
-int ser_rk_isp_get_fec_level(int fd) {
-	int err = 0;
-	int id;
-	int value;
-
-	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-		return -1;
-	err = rk_isp_get_fec_level(id, &value);
-	LOG_DEBUG("value is %d\n", value);
-	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-		return -1;
-	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-		return -1;
-
-	return 0;
-}
-
-int ser_rk_isp_set_fec_level(int fd) {
-	int err = 0;
-	int id;
-	int value;
-
-	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-		return -1;
-	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-		return -1;
-	LOG_DEBUG("value is %d\n", value);
-	err = rk_isp_set_fec_level(id, value);
-	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-		return -1;
-
-	return 0;
-}
-
 int ser_rk_isp_get_ldch_level(int fd) {
 	int err = 0;
 	int id;
@@ -1277,6 +1370,161 @@ int ser_rk_isp_set_image_flip(int fd) {
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
 			return -1;
 	}
+
+	return 0;
+}
+
+// auto focus
+int ser_rk_isp_get_af_mode(int fd) {
+	int err = 0;
+	int id, len;
+	const char *value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_isp_get_af_mode(id, &value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_isp_set_af_mode(int fd) {
+	int ret = 0;
+	int id, len;
+	char *value = NULL;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_INFO("id is %d, value is %s\n", id, value);
+		ret = rk_isp_set_af_mode(id, value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
+
+	return 0;
+}
+
+int ser_rk_isp_get_zoom_level(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_isp_get_zoom_level(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_isp_get_focus_level(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_isp_get_focus_level(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_isp_af_zoom_in(int fd) {
+	int ret = 0;
+	int id, len;
+	char *value = NULL;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_INFO("id is %d\n", id);
+	ret = rk_isp_af_zoom_in(id);
+	if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_isp_af_zoom_out(int fd) {
+	int ret = 0;
+	int id, len;
+	char *value = NULL;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_INFO("id is %d\n", id);
+	ret = rk_isp_af_zoom_out(id);
+	if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_isp_af_focus_in(int fd) {
+	int ret = 0;
+	int id, len;
+	char *value = NULL;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_INFO("id is %d\n", id);
+	ret = rk_isp_af_focus_in(id);
+	if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_isp_af_focus_out(int fd) {
+	int ret = 0;
+	int id, len;
+	char *value = NULL;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_INFO("id is %d\n", id);
+	ret = rk_isp_af_focus_out(id);
+	if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_isp_af_focus_once(int fd) {
+	int ret = 0;
+	int id, len;
+	char *value = NULL;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_INFO("id is %d\n", id);
+	ret = rk_isp_af_focus_once(id);
+	if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
 
 	return 0;
 }
@@ -1771,6 +2019,775 @@ int ser_rk_video_set_frame_rate_in(int fd) {
 
 	return 0;
 }
+
+// int ser_rk_osd_get_is_presistent_text(int fd) {
+// 	int err = 0;
+// 	int id;
+// 	int value;
+
+// 	err = rk_osd_get_is_presistent_text(&value);
+// 	LOG_DEBUG("value is %d\n", value);
+// 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_set_is_presistent_text(int fd) {
+// 	int err = 0;
+// 	int id;
+// 	int value;
+
+// 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	LOG_DEBUG("value is %d\n", value);
+// 	err = rk_osd_set_is_presistent_text(value);
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_get_font_size(int fd) {
+// 	int err = 0;
+// 	int id;
+// 	int value;
+
+// 	err = rk_osd_get_font_size(&value);
+// 	LOG_DEBUG("value is %d\n", value);
+// 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_set_font_size(int fd) {
+// 	int err = 0;
+// 	int id;
+// 	int value;
+
+// 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	LOG_DEBUG("value is %d\n", value);
+// 	err = rk_osd_set_font_size(value);
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_get_boundary(int fd) {
+// 	int err = 0;
+// 	int id;
+// 	int value;
+
+// 	err = rk_osd_get_boundary(&value);
+// 	LOG_DEBUG("value is %d\n", value);
+// 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_set_boundary(int fd) {
+// 	int err = 0;
+// 	int id;
+// 	int value;
+
+// 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	LOG_DEBUG("value is %d\n", value);
+// 	err = rk_osd_set_boundary(value);
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_get_normalized_screen_width(int fd) {
+// 	int err = 0;
+// 	int id;
+// 	int value;
+
+// 	err = rk_osd_get_normalized_screen_width(&value);
+// 	LOG_DEBUG("value is %d\n", value);
+// 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_get_normalized_screen_height(int fd) {
+// 	int err = 0;
+// 	int id;
+// 	int value;
+
+// 	err = rk_osd_get_normalized_screen_height(&value);
+// 	LOG_DEBUG("value is %d\n", value);
+// 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_get_attribute(int fd) {
+// 	int err = 0;
+// 	int len;
+// 	const char *value;
+
+// 	err = rk_osd_get_attribute(&value);
+// 	len = strlen(value);
+// 	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+// 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_set_attribute(int fd) {
+// 	int ret = 0;
+// 	int len;
+// 	char *value = NULL;
+
+// 	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (len) {
+// 		value = (char *)malloc(len);
+// 		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+// 			free(value);
+// 			return -1;
+// 		}
+// 		LOG_INFO("value is %s\n", value);
+// 		ret = rk_osd_set_attribute(value);
+// 		free(value);
+// 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+// 			return -1;
+// 	}
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_get_font_color_mode(int fd) {
+// 	int err = 0;
+// 	int len;
+// 	const char *value;
+
+// 	err = rk_osd_get_font_color_mode(&value);
+// 	len = strlen(value);
+// 	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+// 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_set_font_color_mode(int fd) {
+// 	int ret = 0;
+// 	int len;
+// 	char *value = NULL;
+
+// 	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (len) {
+// 		value = (char *)malloc(len);
+// 		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+// 			free(value);
+// 			return -1;
+// 		}
+// 		LOG_INFO("value is %s\n", value);
+// 		ret = rk_osd_set_font_color_mode(value);
+// 		free(value);
+// 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+// 			return -1;
+// 	}
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_get_font_color(int fd) {
+// 	int err = 0;
+// 	int len;
+// 	const char *value;
+
+// 	err = rk_osd_get_font_color(&value);
+// 	len = strlen(value);
+// 	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+// 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_set_font_color(int fd) {
+// 	int ret = 0;
+// 	int len;
+// 	char *value = NULL;
+
+// 	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (len) {
+// 		value = (char *)malloc(len);
+// 		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+// 			free(value);
+// 			return -1;
+// 		}
+// 		LOG_INFO("value is %s\n", value);
+// 		ret = rk_osd_set_font_color(value);
+// 		free(value);
+// 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+// 			return -1;
+// 	}
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_get_alignment(int fd) {
+// 	int err = 0;
+// 	int len;
+// 	const char *value;
+
+// 	err = rk_osd_get_alignment(&value);
+// 	len = strlen(value);
+// 	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+// 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_set_alignment(int fd) {
+// 	int ret = 0;
+// 	int len;
+// 	char *value = NULL;
+
+// 	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (len) {
+// 		value = (char *)malloc(len);
+// 		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+// 			free(value);
+// 			return -1;
+// 		}
+// 		LOG_INFO("value is %s\n", value);
+// 		ret = rk_osd_set_alignment(value);
+// 		free(value);
+// 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+// 			return -1;
+// 	}
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_get_font_path(int fd) {
+// 	int err = 0;
+// 	int len;
+// 	const char *value;
+
+// 	err = rk_osd_get_font_path(&value);
+// 	len = strlen(value);
+// 	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+// 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_set_font_path(int fd) {
+// 	int ret = 0;
+// 	int len;
+// 	char *value = NULL;
+
+// 	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (len) {
+// 		value = (char *)malloc(len);
+// 		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+// 			free(value);
+// 			return -1;
+// 		}
+// 		LOG_INFO("value is %s\n", value);
+// 		ret = rk_osd_set_font_path(value);
+// 		free(value);
+// 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+// 			return -1;
+// 	}
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_get_enabled(int fd) {
+// 	int err = 0;
+// 	int id;
+// 	int value;
+
+// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	err = rk_osd_get_enabled(id, &value);
+// 	LOG_DEBUG("value is %d\n", value);
+// 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_set_enabled(int fd) {
+// 	int err = 0;
+// 	int id;
+// 	int value;
+
+// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	LOG_DEBUG("value is %d\n", value);
+// 	err = rk_osd_set_enabled(id, value);
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_get_position_x(int fd) {
+// 	int err = 0;
+// 	int id;
+// 	int value;
+
+// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	err = rk_osd_get_position_x(id, &value);
+// 	LOG_DEBUG("value is %d\n", value);
+// 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_set_position_x(int fd) {
+// 	int err = 0;
+// 	int id;
+// 	int value;
+
+// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	LOG_DEBUG("value is %d\n", value);
+// 	err = rk_osd_set_position_x(id, value);
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_get_position_y(int fd) {
+// 	int err = 0;
+// 	int id;
+// 	int value;
+
+// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	err = rk_osd_get_position_y(id, &value);
+// 	LOG_DEBUG("value is %d\n", value);
+// 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_set_position_y(int fd) {
+// 	int err = 0;
+// 	int id;
+// 	int value;
+
+// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	LOG_DEBUG("value is %d\n", value);
+// 	err = rk_osd_set_position_y(id, value);
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_get_height(int fd) {
+// 	int err = 0;
+// 	int id;
+// 	int value;
+
+// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	err = rk_osd_get_height(id, &value);
+// 	LOG_DEBUG("value is %d\n", value);
+// 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_set_height(int fd) {
+// 	int err = 0;
+// 	int id;
+// 	int value;
+
+// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	LOG_DEBUG("value is %d\n", value);
+// 	err = rk_osd_set_height(id, value);
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_get_width(int fd) {
+// 	int err = 0;
+// 	int id;
+// 	int value;
+
+// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	err = rk_osd_get_width(id, &value);
+// 	LOG_DEBUG("value is %d\n", value);
+// 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_set_width(int fd) {
+// 	int err = 0;
+// 	int id;
+// 	int value;
+
+// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	LOG_DEBUG("value is %d\n", value);
+// 	err = rk_osd_set_width(id, value);
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_get_display_week_enabled(int fd) {
+// 	int err = 0;
+// 	int id;
+// 	int value;
+
+// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	err = rk_osd_get_display_week_enabled(id, &value);
+// 	LOG_DEBUG("value is %d\n", value);
+// 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_set_display_week_enabled(int fd) {
+// 	int err = 0;
+// 	int id;
+// 	int value;
+
+// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	LOG_DEBUG("value is %d\n", value);
+// 	err = rk_osd_set_display_week_enabled(id, value);
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_get_date_style(int fd) {
+// 	int err = 0;
+// 	int id, len;
+// 	const char *value;
+
+// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	err = rk_osd_get_date_style(id, &value);
+// 	len = strlen(value);
+// 	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+// 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_set_date_style(int fd) {
+// 	int ret = 0;
+// 	int id, len;
+// 	char *value = NULL;
+
+// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (len) {
+// 		value = (char *)malloc(len);
+// 		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+// 			free(value);
+// 			return -1;
+// 		}
+// 		LOG_INFO("id is %d, value is %s\n", id, value);
+// 		ret = rk_osd_set_date_style(id, value);
+// 		free(value);
+// 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+// 			return -1;
+// 	}
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_get_time_style(int fd) {
+// 	int err = 0;
+// 	int id, len;
+// 	const char *value;
+
+// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	err = rk_osd_get_time_style(id, &value);
+// 	len = strlen(value);
+// 	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+// 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_set_time_style(int fd) {
+// 	int ret = 0;
+// 	int id, len;
+// 	char *value = NULL;
+
+// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (len) {
+// 		value = (char *)malloc(len);
+// 		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+// 			free(value);
+// 			return -1;
+// 		}
+// 		LOG_INFO("id is %d, value is %s\n", id, value);
+// 		ret = rk_osd_set_time_style(id, value);
+// 		free(value);
+// 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+// 			return -1;
+// 	}
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_get_type(int fd) {
+// 	int err = 0;
+// 	int id, len;
+// 	const char *value;
+
+// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	err = rk_osd_get_type(id, &value);
+// 	len = strlen(value);
+// 	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+// 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_set_type(int fd) {
+// 	int ret = 0;
+// 	int id, len;
+// 	char *value = NULL;
+
+// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (len) {
+// 		value = (char *)malloc(len);
+// 		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+// 			free(value);
+// 			return -1;
+// 		}
+// 		LOG_INFO("id is %d, value is %s\n", id, value);
+// 		ret = rk_osd_set_type(id, value);
+// 		free(value);
+// 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+// 			return -1;
+// 	}
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_get_display_text(int fd) {
+// 	int err = 0;
+// 	int id, len;
+// 	const char *value;
+
+// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	err = rk_osd_get_display_text(id, &value);
+// 	len = strlen(value);
+// 	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+// 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_set_display_text(int fd) {
+// 	int ret = 0;
+// 	int id, len;
+// 	char *value = NULL;
+
+// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (len) {
+// 		value = (char *)malloc(len);
+// 		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+// 			free(value);
+// 			return -1;
+// 		}
+// 		LOG_INFO("id is %d, value is %s\n", id, value);
+// 		ret = rk_osd_set_display_text(id, value);
+// 		free(value);
+// 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+// 			return -1;
+// 	}
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_get_image_path(int fd) {
+// 	int err = 0;
+// 	int id, len;
+// 	const char *value;
+
+// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	err = rk_osd_get_image_path(id, &value);
+// 	len = strlen(value);
+// 	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+// 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_set_image_path(int fd) {
+// 	int ret = 0;
+// 	int id, len;
+// 	char *value = NULL;
+
+// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+// 		return -1;
+// 	if (len) {
+// 		value = (char *)malloc(len);
+// 		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+// 			free(value);
+// 			return -1;
+// 		}
+// 		LOG_INFO("id is %d, value is %s\n", id, value);
+// 		ret = rk_osd_set_image_path(id, value);
+// 		free(value);
+// 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+// 			return -1;
+// 	}
+
+// 	return 0;
+// }
+
+// int ser_rk_osd_restart(int fd) {
+// 	int err = 0;
+// 	int id;
+// 	int value;
+
+// 	LOG_DEBUG("restart begin\n");
+// 	err = rk_osd_restart();
+// 	LOG_DEBUG("restart end\n");
+// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+// 		return -1;
+
+// 	return 0;
+// }
+
 // network
 int ser_rk_network_ipv4_get(int fd) {
 	int err = 0;
@@ -2215,6 +3232,61 @@ int ser_rk_wifi_forget_with_ssid(int fd) {
 }
 
 // storage
+int ser_rk_storage_record_start(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	LOG_INFO("begin\n");
+	err = rk_storage_record_start();
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_INFO("end\n");
+
+	return 0;
+}
+
+int ser_rk_storage_record_stop(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	LOG_INFO("begin\n");
+	err = rk_storage_record_stop();
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_INFO("end\n");
+
+	return 0;
+}
+
+int ser_rk_storage_record_statue_get(int fd) {
+	int err = 0;
+	int value;
+
+	err = rk_storage_record_statue_get(&value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_take_photo(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	LOG_INFO("begin\n");
+	err = rk_take_photo();
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_INFO("end\n");
+
+	return 0;
+}
 
 // system
 int ser_rk_system_get_deivce_name(int fd) {
@@ -2878,6 +3950,12 @@ static const struct FunMap map[] = {
     {(char *)"rk_isp_get_exposure_gain", &ser_rk_isp_get_exposure_gain},
     {(char *)"rk_isp_set_exposure_gain", &ser_rk_isp_set_exposure_gain},
     // isp night_to_day
+    {(char *)"rk_isp_get_night_to_day", &ser_rk_isp_get_night_to_day},
+    {(char *)"rk_isp_set_night_to_day", &ser_rk_isp_set_night_to_day},
+    {(char *)"rk_isp_get_fill_light_mode", &ser_rk_isp_get_fill_light_mode},
+    {(char *)"rk_isp_set_fill_light_mode", &ser_rk_isp_set_fill_light_mode},
+    {(char *)"rk_isp_get_light_brightness", &ser_rk_isp_get_light_brightness},
+    {(char *)"rk_isp_set_light_brightness", &ser_rk_isp_set_light_brightness},
     // isp blc
     {(char *)"rk_isp_get_hdr", &ser_rk_isp_get_hdr},
     {(char *)"rk_isp_set_hdr", &ser_rk_isp_set_hdr},
@@ -2916,8 +3994,6 @@ static const struct FunMap map[] = {
     {(char *)"rk_isp_set_temporal_denoise_level", &ser_rk_isp_set_temporal_denoise_level},
     {(char *)"rk_isp_get_dehaze_level", &ser_rk_isp_get_dehaze_level},
     {(char *)"rk_isp_set_dehaze_level", &ser_rk_isp_set_dehaze_level},
-    {(char *)"rk_isp_get_fec_level", &ser_rk_isp_get_fec_level},
-    {(char *)"rk_isp_set_fec_level", &ser_rk_isp_set_fec_level},
     {(char *)"rk_isp_get_ldch_level", &ser_rk_isp_get_ldch_level},
     {(char *)"rk_isp_set_ldch_level", &ser_rk_isp_set_ldch_level},
     // isp video_adjustment
@@ -2925,6 +4001,16 @@ static const struct FunMap map[] = {
     {(char *)"rk_isp_set_power_line_frequency_mode", &ser_rk_isp_set_power_line_frequency_mode},
     {(char *)"rk_isp_get_image_flip", &ser_rk_isp_get_image_flip},
     {(char *)"rk_isp_set_image_flip", &ser_rk_isp_set_image_flip},
+    // auto focus
+    {(char *)"rk_isp_get_af_mode", &ser_rk_isp_get_af_mode},
+    {(char *)"rk_isp_set_af_mode", &ser_rk_isp_set_af_mode},
+    {(char *)"rk_isp_get_zoom_level", &ser_rk_isp_get_zoom_level},
+    {(char *)"rk_isp_get_focus_level", &ser_rk_isp_get_focus_level},
+    {(char *)"rk_isp_af_zoom_in", &ser_rk_isp_af_zoom_in},
+    {(char *)"rk_isp_af_zoom_out", &ser_rk_isp_af_zoom_out},
+    {(char *)"rk_isp_af_focus_in", &ser_rk_isp_af_focus_in},
+    {(char *)"rk_isp_af_focus_out", &ser_rk_isp_af_focus_out},
+    {(char *)"rk_isp_af_focus_once", &ser_rk_isp_af_focus_once},
     // video
     {(char *)"rk_video_restart", &ser_rk_video_restart},
     {(char *)"rk_video_get_gop", &ser_rk_video_get_gop},
@@ -2949,6 +4035,49 @@ static const struct FunMap map[] = {
     {(char *)"rk_video_set_frame_rate", &ser_rk_video_set_frame_rate},
     {(char *)"rk_video_get_frame_rate_in", &ser_rk_video_get_frame_rate_in},
     {(char *)"rk_video_set_frame_rate_in", &ser_rk_video_set_frame_rate_in},
+    // // osd.common
+    // {(char *)"rk_osd_get_is_presistent_text", &ser_rk_osd_get_is_presistent_text},
+    // {(char *)"rk_osd_set_is_presistent_text", &ser_rk_osd_set_is_presistent_text},
+    // {(char *)"rk_osd_get_font_size", &ser_rk_osd_get_font_size},
+    // {(char *)"rk_osd_set_font_size", &ser_rk_osd_set_font_size},
+    // {(char *)"rk_osd_get_boundary", &ser_rk_osd_get_boundary},
+    // {(char *)"rk_osd_set_boundary", &ser_rk_osd_set_boundary},
+    // {(char *)"rk_osd_get_normalized_screen_width", &ser_rk_osd_get_normalized_screen_width},
+    // {(char *)"rk_osd_get_normalized_screen_height", &ser_rk_osd_get_normalized_screen_height},
+    // {(char *)"rk_osd_get_attribute", &ser_rk_osd_get_attribute},
+    // {(char *)"rk_osd_set_attribute", &ser_rk_osd_set_attribute},
+    // {(char *)"rk_osd_get_font_color_mode", &ser_rk_osd_get_font_color_mode},
+    // {(char *)"rk_osd_set_font_color_mode", &ser_rk_osd_set_font_color_mode},
+    // {(char *)"rk_osd_get_font_color", &ser_rk_osd_get_font_color},
+    // {(char *)"rk_osd_set_font_color", &ser_rk_osd_set_font_color},
+    // {(char *)"rk_osd_get_alignment", &ser_rk_osd_get_alignment},
+    // {(char *)"rk_osd_set_alignment", &ser_rk_osd_set_alignment},
+    // {(char *)"rk_osd_get_font_path", &ser_rk_osd_get_font_path},
+    // {(char *)"rk_osd_set_font_path", &ser_rk_osd_set_font_path},
+    // // osd.x
+    // {(char *)"rk_osd_get_enabled", &ser_rk_osd_get_enabled},
+    // {(char *)"rk_osd_set_enabled", &ser_rk_osd_set_enabled},
+    // {(char *)"rk_osd_get_position_x", &ser_rk_osd_get_position_x},
+    // {(char *)"rk_osd_set_position_x", &ser_rk_osd_set_position_x},
+    // {(char *)"rk_osd_get_position_y", &ser_rk_osd_get_position_y},
+    // {(char *)"rk_osd_set_position_y", &ser_rk_osd_set_position_y},
+    // {(char *)"rk_osd_get_height", &ser_rk_osd_get_height},
+    // {(char *)"rk_osd_set_height", &ser_rk_osd_set_height},
+    // {(char *)"rk_osd_get_width", &ser_rk_osd_get_width},
+    // {(char *)"rk_osd_set_width", &ser_rk_osd_set_width},
+    // {(char *)"rk_osd_get_display_week_enabled", &ser_rk_osd_get_display_week_enabled},
+    // {(char *)"rk_osd_set_display_week_enabled", &ser_rk_osd_set_display_week_enabled},
+    // {(char *)"rk_osd_get_date_style", &ser_rk_osd_get_date_style},
+    // {(char *)"rk_osd_set_date_style", &ser_rk_osd_set_date_style},
+    // {(char *)"rk_osd_get_time_style", &ser_rk_osd_get_time_style},
+    // {(char *)"rk_osd_set_time_style", &ser_rk_osd_set_time_style},
+    // {(char *)"rk_osd_get_type", &ser_rk_osd_get_type},
+    // {(char *)"rk_osd_set_type", &ser_rk_osd_set_type},
+    // {(char *)"rk_osd_get_display_text", &ser_rk_osd_get_display_text},
+    // {(char *)"rk_osd_set_display_text", &ser_rk_osd_set_display_text},
+    // {(char *)"rk_osd_get_image_path", &ser_rk_osd_get_image_path},
+    // {(char *)"rk_osd_set_image_path", &ser_rk_osd_set_image_path},
+    // {(char *)"rk_osd_restart", &ser_rk_osd_restart},
     // network
     {(char *)"rk_network_ipv4_get", &ser_rk_network_ipv4_get},
     {(char *)"rk_network_ipv4_set", &ser_rk_network_ipv4_set},
@@ -2965,6 +4094,10 @@ static const struct FunMap map[] = {
     {(char *)"rk_wifi_connect_with_ssid", &ser_rk_wifi_connect_with_ssid},
     {(char *)"rk_wifi_forget_with_ssid", &ser_rk_wifi_forget_with_ssid},
     // storage
+    {(char *)"rk_storage_record_start", &ser_rk_storage_record_start},
+    {(char *)"rk_storage_record_stop", &ser_rk_storage_record_stop},
+    {(char *)"rk_storage_record_statue_get", &ser_rk_storage_record_statue_get},
+    {(char *)"rk_take_photo", &ser_rk_take_photo},
     // system
     {(char *)"rk_system_get_deivce_name", &ser_rk_system_get_deivce_name},
     {(char *)"rk_system_get_telecontrol_id", &ser_rk_system_get_telecontrol_id},

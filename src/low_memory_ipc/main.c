@@ -1,11 +1,10 @@
-// Copyright 2021 Rockchip Electronics Co., Ltd. All rights reserved.
+// Copyright 2022 Rockchip Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 #include <getopt.h>
 
 #include "audio.h"
 #include "common.h"
-#include "event.h"
 #include "isp.h"
 #include "log.h"
 #include "param.h"
@@ -96,8 +95,10 @@ int main(int argc, char **argv) {
 	rk_param_init(rkipc_ini_path_);
 	rk_system_init();
 	rk_isp_init(0, rkipc_iq_file_path_);
+	rk_isp_set_frame_rate(0, rk_param_get_int("isp.0.adjustment:fps", 30));
 	rk_video_init();
-	rk_audio_init();
+	if (rk_param_get_int("audio.0:enable", 0))
+		rkipc_audio_init();
 	rkipc_server_init();
 	rk_storage_init();
 
@@ -111,7 +112,8 @@ int main(int argc, char **argv) {
 	rk_system_deinit();
 	rk_video_deinit();
 	rk_isp_deinit(0);
-	rk_audio_deinit();
+	if (rk_param_get_int("audio.0:enable", 0))
+		rkipc_audio_deinit();
 	rk_param_deinit();
 
 	return 0;
