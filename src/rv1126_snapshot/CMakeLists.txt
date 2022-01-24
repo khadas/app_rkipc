@@ -12,11 +12,11 @@ include_directories(${PROJECT_SOURCE_DIR}/./include
 
 aux_source_directory(./ SRCS)
 aux_source_directory(video SRCS)
-aux_source_directory(${PROJECT_SOURCE_DIR}/common/isp SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/isp/rv1126 SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/param SRCS)
 
 include_directories(${PROJECT_SOURCE_DIR}/common
-					${PROJECT_SOURCE_DIR}/common/isp
+					${PROJECT_SOURCE_DIR}/common/isp/rv1126
 					${PROJECT_SOURCE_DIR}/common/param
 					video)
 

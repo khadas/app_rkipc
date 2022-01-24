@@ -20,7 +20,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include
 aux_source_directory(./ SRCS)
 aux_source_directory(audio SRCS)
 aux_source_directory(video SRCS)
-aux_source_directory(${PROJECT_SOURCE_DIR}/common/isp2 SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/isp/rk3588 SRCS)
 aux_source_directory(server SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/ SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/param SRCS)
@@ -32,7 +32,7 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/common/network SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/storage SRCS)
 
 include_directories(audio
-					${PROJECT_SOURCE_DIR}/common/isp2
+					${PROJECT_SOURCE_DIR}/common/isp/rk3588
 					video
 					server
 					${PROJECT_SOURCE_DIR}/common

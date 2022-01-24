@@ -43,12 +43,12 @@ rk_aiq_sys_ctx_t *rkipc_aiq_get_ctx(cam_id) {
 int sample_common_isp_init(int cam_id, rk_aiq_working_mode_t WDRMode, bool MultiCam,
                            const char *iq_file_dir) {
 	if (cam_id >= MAX_AIQ_CTX) {
-		printf("%s : cam_id is over 3\n", __FUNCTION__);
+		LOG_ERROR("%s : cam_id is over 3\n", __FUNCTION__);
 		return -1;
 	}
 	setlinebuf(stdout);
 	if (iq_file_dir == NULL) {
-		printf("rk_isp_init : not start.\n");
+		LOG_ERROR("rk_isp_init : not start.\n");
 		g_aiq_ctx[cam_id] = NULL;
 		return 0;
 	}
@@ -109,16 +109,16 @@ int sample_common_isp_init(int cam_id, rk_aiq_working_mode_t WDRMode, bool Multi
 int sample_common_isp_run(int cam_id) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	if (rk_aiq_uapi2_sysctl_prepare(g_aiq_ctx[cam_id], 0, 0, g_WDRMode[cam_id])) {
-		printf("rkaiq engine prepare failed !\n");
+		LOG_ERROR("rkaiq engine prepare failed !\n");
 		g_aiq_ctx[cam_id] = NULL;
 		return -1;
 	}
-	printf("rk_aiq_uapi2_sysctl_init/prepare succeed\n");
+	LOG_INFO("rk_aiq_uapi2_sysctl_init/prepare succeed\n");
 	if (rk_aiq_uapi2_sysctl_start(g_aiq_ctx[cam_id])) {
-		printf("rk_aiq_uapi2_sysctl_start  failed\n");
+		LOG_ERROR("rk_aiq_uapi2_sysctl_start  failed\n");
 		return -1;
 	}
-	printf("rk_aiq_uapi2_sysctl_start succeed\n");
+	LOG_INFO("rk_aiq_uapi2_sysctl_start succeed\n");
 	return 0;
 }
 
@@ -154,7 +154,7 @@ int isp_camera_group_init(int cam_group_id, rk_aiq_working_mode_t WDRMode, bool 
 	camgroup_cfg.config_file_dir = iq_file_dir;
 	g_camera_group_ctx[cam_group_id] = rk_aiq_uapi2_camgroup_create(&camgroup_cfg);
 	if (!g_camera_group_ctx[cam_group_id]) {
-		printf("create camgroup ctx error!\n");
+		LOG_ERROR("create camgroup ctx error!\n");
 		return -1;
 	}
 	LOG_INFO("rk_aiq_uapi2_camgroup_create over\n");
@@ -1174,11 +1174,11 @@ int rk_isp_init(int cam_id, char *iqfile_path) {
 int rk_isp_deinit(int cam_id) {
 	LOG_INFO("cam_id is %d\n", cam_id);
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	printf("rk_aiq_uapi2_sysctl_stop enter\n");
+	LOG_INFO("rk_aiq_uapi2_sysctl_stop enter\n");
 	rk_aiq_uapi2_sysctl_stop(g_aiq_ctx[cam_id], false);
-	printf("rk_aiq_uapi2_sysctl_deinit enter\n");
+	LOG_INFO("rk_aiq_uapi2_sysctl_deinit enter\n");
 	rk_aiq_uapi2_sysctl_deinit(g_aiq_ctx[cam_id]);
-	printf("rk_aiq_uapi2_sysctl_deinit exit\n");
+	LOG_INFO("rk_aiq_uapi2_sysctl_deinit exit\n");
 	g_aiq_ctx[cam_id] = NULL;
 
 	return 0;

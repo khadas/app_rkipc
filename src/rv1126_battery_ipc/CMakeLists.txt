@@ -14,13 +14,13 @@ include_directories(${PROJECT_SOURCE_DIR}/./include
 aux_source_directory(./ SRCS)
 aux_source_directory(audio SRCS)
 aux_source_directory(video SRCS)
-aux_source_directory(${PROJECT_SOURCE_DIR}/common/isp SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/isp/rv1126 SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/ SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/param SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/tuya_ipc SRCS)
 
 include_directories(audio
-					${PROJECT_SOURCE_DIR}/common/isp
+					${PROJECT_SOURCE_DIR}/common/isp/rv1126
 					video
 					${PROJECT_SOURCE_DIR}/common
 					${PROJECT_SOURCE_DIR}/common/rtsp
