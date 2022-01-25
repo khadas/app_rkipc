@@ -20,6 +20,7 @@ enum { LOG_ERROR, LOG_WARN, LOG_INFO, LOG_DEBUG };
 
 int enable_minilog = 0;
 int rkipc_log_level = LOG_DEBUG;
+int rkipc_camera_id_ = 0;
 
 static int g_main_run_ = 1;
 char *rkipc_ini_path_ = NULL;
@@ -82,7 +83,6 @@ void rkipc_get_opt(int argc, char *argv[]) {
 
 int main(int argc, char **argv) {
 	LOG_INFO("main begin\n");
-	int camera_id;
 	signal(SIGINT, sig_proc);
 
 	rkipc_get_opt(argc, argv);
@@ -93,8 +93,8 @@ int main(int argc, char **argv) {
 	// init
 	rk_param_init(rkipc_ini_path_);
 	rk_system_init();
-	camera_id = rk_param_get_int("video.0:camera_id", 0); // need rk_param_init
-	rk_isp_init(camera_id, rkipc_iq_file_path_);
+	rkipc_camera_id_ = rk_param_get_int("video.0:rkipc_camera_id_", 0); // need rk_param_init
+	rk_isp_init(rkipc_camera_id_, rkipc_iq_file_path_);
 	rk_isp_set_frame_rate(0, rk_param_get_int("isp.0.adjustment:fps", 30));
 	rk_video_init();
 	if (rk_param_get_int("audio.0:enable", 0))
@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
 	if (rk_param_get_int("audio.0:enable", 0))
 		rkipc_audio_deinit();
 	rk_video_deinit(); // RK_MPI_SYS_Exit
-	rk_isp_deinit(camera_id);
+	rk_isp_deinit(rkipc_camera_id_);
 	rk_param_deinit();
 
 	return 0;

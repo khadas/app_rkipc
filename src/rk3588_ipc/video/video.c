@@ -9,27 +9,6 @@
 //             		  → venc_3(nv12 jpeg) → jpeg
 
 #include "video.h"
-#include "common.h"
-#include "isp.h"
-#include "osd.h"
-#include "rtmp.h"
-#include "rtsp_demo.h"
-#include "storage.h"
-
-#include "rk_mpi_mmz.h"
-#include <rk_debug.h>
-#include <rk_mpi_mb.h>
-#include <rk_mpi_rgn.h>
-#include <rk_mpi_sys.h>
-#include <rk_mpi_venc.h>
-#include <rk_mpi_vi.h>
-#include <rk_mpi_vo.h>
-#include <rk_mpi_vpss.h>
-
-#include <inttypes.h> // PRId64
-
-#include <rga/im2d.h>
-#include <rga/rga.h>
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -56,12 +35,14 @@
 #define RTMP_URL_1 "rtmp://127.0.0.1:1935/live/substream"
 #define RTMP_URL_2 "rtmp://127.0.0.1:1935/live/thirdstream"
 
+int pipe_id_ = 0;
+int g_vi_chn_id = 0;
+
 static pthread_mutex_t g_rtsp_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int take_photo_one = 0;
 static int enable_jpeg, enable_venc_0, enable_venc_1, enable_venc_2;
-static int g_enable_vo, g_vo_dev_id, g_vi_chn_id;
+int g_enable_vo, g_vo_dev_id;
 static int g_video_run_ = 1;
-static int pipe_id_ = 0;
 static int dev_id_ = 0;
 static rtsp_demo_handle g_rtsplive = NULL;
 static rtsp_session_handle g_rtsp_session_0, g_rtsp_session_1, g_rtsp_session_2;
@@ -298,6 +279,7 @@ static void *rkipc_get_jpeg(void *arg) {
 			fwrite(data, 1, stFrame.pstPack->u32Len, fp);
 			fflush(fp);
 			fclose(fp);
+			take_photo_one = 0;
 			// 7.release the frame
 			ret = RK_MPI_VENC_ReleaseStream(JPEG_VENC_CHN, &stFrame);
 			if (ret != RK_SUCCESS) {
@@ -460,7 +442,10 @@ int rkipc_vi_chn_deinit() {
 	int ret = 0;
 	ret = RK_MPI_VI_DisableChn(pipe_id_, g_vi_chn_id);
 	if (ret)
-		LOG_ERROR("ERROR: Destroy VI error! ret=%x\n", ret);
+		LOG_ERROR("ERROR: RK_MPI_VI_DisableChn VI error! ret=%x\n", ret);
+	//ret = RK_MPI_VI_DeleteChn(pipe_id_, g_vi_chn_id);
+	if (ret)
+		LOG_ERROR("ERROR: RK_MPI_VI_DeleteChn VI error! ret=%x\n", ret);
 
 	return ret;
 }
@@ -983,6 +968,13 @@ int rkipc_venc_3_init() {
 	jpeg_chn_attr.stVencAttr.u32VirHeight = video_height;
 	jpeg_chn_attr.stVencAttr.u32StreamBufCnt = 2;
 	jpeg_chn_attr.stVencAttr.u32BufSize = video_width * video_height * 3 / 2;
+
+	jpeg_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_MJPEGCBR;
+	jpeg_chn_attr.stRcAttr.stMjpegCbr.u32BitRate = rk_param_get_int("video.0:max_rate", -1);
+	jpeg_chn_attr.stRcAttr.stMjpegCbr.fr32DstFrameRateDen = 1;
+	jpeg_chn_attr.stRcAttr.stMjpegCbr.fr32DstFrameRateNum = 1;
+	jpeg_chn_attr.stRcAttr.stMjpegCbr.u32SrcFrameRateDen = 1;
+	jpeg_chn_attr.stRcAttr.stMjpegCbr.u32SrcFrameRateNum = 1;
 	// jpeg_chn_attr.stVencAttr.u32Depth = 1;
 	ret = RK_MPI_VENC_CreateChn(JPEG_VENC_CHN, &jpeg_chn_attr);
 	if (ret) {

@@ -12,7 +12,7 @@
 #define MAX_AIQ_CTX 8
 char g_iq_file_dir_[256];
 
-static rkipc_aiq_use_group = 0;
+static int rkipc_aiq_use_group = 0;
 static rk_aiq_sys_ctx_t *g_aiq_ctx[MAX_AIQ_CTX];
 static rk_aiq_camgroup_ctx_t *g_camera_group_ctx[MAX_AIQ_CTX];
 rk_aiq_working_mode_t g_WDRMode[MAX_AIQ_CTX];
@@ -33,7 +33,7 @@ rk_aiq_wb_gain_t gs_wb_gain = {2.083900, 1.000000, 1.000000, 2.018500};
 		}                                                                                          \
 	} while (0)
 
-rk_aiq_sys_ctx_t *rkipc_aiq_get_ctx(cam_id) {
+rk_aiq_sys_ctx_t *rkipc_aiq_get_ctx(int cam_id) {
 	if (rkipc_aiq_use_group)
 		return (rk_aiq_sys_ctx_t *)g_camera_group_ctx[cam_id];
 
@@ -518,8 +518,6 @@ int rk_isp_set_hdr(int cam_id, const char *value) {
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.blc:hdr", cam_id);
 	rk_param_set_string(entry, value);
-	rk_param_save();
-	system("sleep 1 && killall -9 rkipc && sleep 3 && rkipc &");
 
 	return ret;
 }

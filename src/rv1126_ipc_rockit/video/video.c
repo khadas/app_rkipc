@@ -1203,7 +1203,7 @@ int rkipc_pipe_vpss_vo_init() {
 	memset(&stLayerAttr, 0, sizeof(VO_VIDEO_LAYER_ATTR_S));
 	memset(&VideoCSC, 0, sizeof(VO_CSC_S));
 	memset(&VoChnAttr, 0, sizeof(VoChnAttr));
-	LOG_INFO("dev id:%d\n",g_vo_dev_id);
+	LOG_INFO("dev id:%d\n", g_vo_dev_id);
 	if (g_vo_dev_id == 3) {
 		VoPubAttr.enIntfType = VO_INTF_HDMI;
 		VoPubAttr.enIntfSync = VO_OUTPUT_1080P60;
@@ -1246,12 +1246,12 @@ int rkipc_pipe_vpss_vo_init() {
 	}
 	LOG_INFO("RK_MPI_VO_GetPubAttr success\n");
 	if ((VoPubAttr.stSyncInfo.u16Hact == 0) || (VoPubAttr.stSyncInfo.u16Vact == 0)) {
-		if (g_vo_dev_id == 3) {//RK3588_VO_DEV_HDMI
+		if (g_vo_dev_id == 3) { // RK3588_VO_DEV_HDMI
 			VoPubAttr.stSyncInfo.u16Hact = 1920;
 			VoPubAttr.stSyncInfo.u16Vact = 1080;
 		} else {
-			VoPubAttr.stSyncInfo.u16Hact = 720;//1080;
-			VoPubAttr.stSyncInfo.u16Vact = 1280;//1920;
+			VoPubAttr.stSyncInfo.u16Hact = 720;  // 1080;
+			VoPubAttr.stSyncInfo.u16Vact = 1280; // 1920;
 		}
 	}
 
@@ -1296,7 +1296,7 @@ int rkipc_pipe_vpss_vo_init() {
 	}
 	LOG_INFO("RK_MPI_VO_SetLayerSpliceMode success\n");
 
-	ret = RK_MPI_VO_EnableLayer(VoLayer);//
+	ret = RK_MPI_VO_EnableLayer(VoLayer); //
 	if (ret != RK_SUCCESS) {
 		LOG_ERROR("RK_MPI_VO_EnableLayer VoLayer = %d error\n", VoLayer);
 		return ret;

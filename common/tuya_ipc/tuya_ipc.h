@@ -21,7 +21,7 @@ typedef int (*rk_tuya_ao_write)(unsigned char *, int);
 typedef int (*rk_tuya_ao_destroy)();
 void rk_tuya_ao_create_register(rk_tuya_ao_create callback_ptr);
 void rk_tuya_ao_write_register(rk_tuya_ao_write callback_ptr);
-void rk_tuya_ao_destroy_register(rk_tuya_ao_create callback_ptr);
+void rk_tuya_ao_destroy_register(rk_tuya_ao_destroy callback_ptr);
 
 int rk_tuya_init();
 int rk_tuya_deinit();

@@ -2,9 +2,9 @@
 
 文件标识：TODO
 
-发布版本：V0.3.0
+发布版本：V0.5.0
 
-日期：2021-11-12
+日期：2022-01-26
 
 文件密级：□绝密   □秘密   □内部资料   ■公开
 
@@ -62,11 +62,13 @@ Rockchip Electronics Co., Ltd.
 
 **修订记录**
 
-| **版本号** | **作者** | **修改日期** | **修改说明**       |
-| ---------- | -------- | :----------- | ------------------ |
-| V0.1.0     | 林刘迪铭 | 2021-09-23   | 初始版本           |
-| V0.2.0     | 林刘迪铭 | 2021-10-23   | 增加模块API介绍    |
-| V0.3.0     | 林刘迪铭 | 2021-11-12   | 增加媒体流框图说明 |
+| **版本号** | **作者** | **修改日期** | **修改说明**           |
+| ---------- | -------- | :----------- | ---------------------- |
+| V0.1.0     | 林刘迪铭 | 2021-09-23   | 初始版本               |
+| V0.2.0     | 林刘迪铭 | 2021-10-23   | 增加模块API介绍        |
+| V0.3.0     | 林刘迪铭 | 2021-11-12   | 增加媒体流框图说明     |
+| V0.4.0     | 林刘迪铭 | 2022-01-14   | 增加isp模块API介绍     |
+| V0.5.0     | 林刘迪铭 | 2022-01-26   | 更新代码结构和产品类型 |
 
 ---
 
@@ -78,14 +80,15 @@ Rockchip Electronics Co., Ltd.
 
 ## 产品类型
 
-| 源码目录           | 依赖库                                                       | 功能                                                         |
-| ------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| low_memory_ipc     | pthread、rockit、rkaiq、rtsp                                 | 针对低内存场景的IPC产品(TODO)。                              |
-| rk3588_ipc         | pthread、rockit、rkaiq、rtsp、rtmp、freetype、wpa_client     | 针对rk3588平台的单目IPC产品，支持网页/rtsp/rtmp预览，参数动态修改。 |
-| rk3588_muliti_ipc  | pthread、rockit、rkaiq、rtsp、rtmp、freetype、wpa_client     | 针对rk3588平台的多目IPC产品，支持网页/rtsp/rtmp预览，参数动态修改。 |
-| rv1126_ipc         | pthread、rockit、rkaiq、rtsp、rtmp、freetype、wpa_client、m、rkmuxer | 针对rv1126/rv1109平台的IPC产品，支持网页/rtsp/rtmp预览，参数动态修改。 |
-| rv1126_battery_ipc | pthread、easymedia、rkaiq                                    | 针对rv1126/rv1109平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能(TODO)。 |
-| rv1126_snapshot    | pthread、easymedia、rkaiq                                    | 针对rv1126/rv1109平台的抓拍类型产品，支持离线帧，本地拍照/录像，屏幕显示，插值放大(TODO)。 |
+| 源码目录           | 依赖外部库       | 功能                                                         |
+| ------------------ | ---------------- | ------------------------------------------------------------ |
+| low_memory_ipc     | rockit、rkaiq    | 针对低内存场景的IPC产品。                                    |
+| rk3588_ipc         | rockit、rkaiq    | 针对rk3588平台的单目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rk3588_muliti_ipc  | rockit、rkaiq    | 针对rk3588平台的多目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rv1126_ipc_rkmedia | rockit、rkaiq    | 针对rv1126/rv1109平台的IPC产品，使用rkmedia，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rv1126_ipc_rockit  | easymedia、rkaiq | 针对rv1126/rv1109平台的IPC产品，使用rockit，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rv1126_battery_ipc | rockit、rkaiq    | 针对rv1126/rv1109平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能。 |
+| rv1126_snapshot    | easymedia、rkaiq | 针对rv1126/rv1109平台的抓拍类型产品，支持离线帧，本地拍照/录像，屏幕显示，插值放大(TODO)。 |
 
 ### Low Memory IPC
 
@@ -127,7 +130,7 @@ graph TB
 	AVS--FBC-->VPSS_GRP_3(VPSS_GRP_3_GPU_8192*2700)--NV12-->VENC_3_JPEG
 ```
 
-### RV1126 IPC
+### RV1126 IPC Rkmedia
 
 ```mermaid
 graph LR
@@ -145,6 +148,19 @@ graph LR
 	VI_2[VI_2_1920*1080]-->VENC_2(VENC_2 H264)-->RTSP_2
 
 	VI_3[VI_3_1280*720]-->RGA_720*1280-->VO
+```
+
+### RV1126 IPC Rockit
+
+```mermaid
+graph LR
+	AI-->AENC-->MUXER-->MP4
+	VI-->VPSS-->VENC_0-->MUXER
+	VENC_0-->RTSP_RTMP_0
+	VPSS-->VENC_1-->RTSP_RTMP_1
+	VPSS-->VENC_2-->RTSP_RTMP_2
+	VPSS-->VENC_3-->JPEG
+	VI-->VPSS_ROTATE-->VO
 ```
 
 ### RV1126 Battery IPC
@@ -177,10 +193,12 @@ graph LR
 ```shell
 ├── CMakeLists.txt
 ├── common # 通用模块
-│   ├── avs # 拼接模块
 │   ├── common.h # 一些通用函数功能
 │   ├── event # 事件处理模块：移动侦测，人脸人形识别
 │   ├── isp # 图像处理模块
+│   │   ├── otter
+│   │   ├── rk3588
+│   │   └── rv1126
 │   ├── log.h # 日志管理
 │   ├── network # 网络模块
 │   ├── osd # OSD模块
@@ -188,12 +206,16 @@ graph LR
 │   │   └── simsun_en.ttf # 字体库
 │   ├── param # 参数管理模块
 │   ├── rkbar # 二维码识别模块
+│   ├── rockiva # 周界算法模块
 │   ├── rtmp # rtmp推流模块
 │   ├── rtsp # rtsp推流模块
 │   ├── storage # 存储模块
 │   └── system # 系统管理模块
+│   └── tuya_ipc # 涂鸦IPC模块
 ├── format.sh # 格式化脚本
 ├── lib # 存放32/64位版本，不同工具链的预编译库
+│   ├── aarch64-rockchip1031-linux-gnu
+│   └── arm-rockchip830-linux-gnueabihf
 ├── LICENSE # 版权声明
 └── src
     ├── low_memory_ipc
@@ -208,7 +230,8 @@ graph LR
     │       └── video.h
     ├── rk3588_muliti_ipc
     ├── rv1126_battery_ipc
-    ├── rv1126_ipc
+    ├── rv1126_ipc_rkmedia
+    ├── rv1126_ipc_rockit
     └── rv1126_snapshot
 ```
 

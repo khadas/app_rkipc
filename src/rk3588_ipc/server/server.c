@@ -591,6 +591,10 @@ int ser_rk_isp_get_hdr(int fd) {
 	return 0;
 }
 
+extern int pipe_id_;
+extern int g_vi_chn_id;
+extern int rkipc_camera_id_;
+extern char g_iq_file_dir_[256];
 int ser_rk_isp_set_hdr(int fd) {
 	int ret = 0;
 	int id, len;
@@ -612,6 +616,11 @@ int ser_rk_isp_set_hdr(int fd) {
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
 			return -1;
 	}
+	RK_MPI_VI_DisableChn(pipe_id_, g_vi_chn_id);
+	rk_isp_deinit(rkipc_camera_id_);
+	// usleep(100 * 1000);
+	rk_isp_init(rkipc_camera_id_, g_iq_file_dir_);
+	RK_MPI_VI_EnableChn(pipe_id_, g_vi_chn_id);
 
 	return 0;
 }

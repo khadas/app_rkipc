@@ -39,8 +39,8 @@ int rkipc_storage_set_dev_attr(rkipc_str_dev_attr *pstDevAttr) {
 	LOG_INFO("mount path is %s, dev_path is %s\n", mount_path, dev_path);
 
 	pstDevAttr->auto_delete = 1;
-	pstDevAttr->free_size_del_min = rk_param_get_int("storage:free_size_del_min ", 200);
-	pstDevAttr->free_size_del_max = rk_param_get_int("storage:free_size_del_max ", 500);
+	pstDevAttr->free_size_del_min = rk_param_get_int("storage:free_size_del_min", 200);
+	pstDevAttr->free_size_del_max = rk_param_get_int("storage:free_size_del_max", 500);
 	pstDevAttr->folder_num = STORAGE_NUM;
 	pstDevAttr->folder_attr =
 	    (rkipc_str_folder_attr *)malloc(sizeof(rkipc_str_folder_attr) * pstDevAttr->folder_num);
@@ -726,7 +726,7 @@ int rkipc_storage_read_file_list(rkipc_str_folder *folder) {
 			continue;
 		if (ptr->d_type == 8) { // file
 			sprintf(d_name, "%s/%s", folder->cpath, ptr->d_name);
-			LOG_DEBUG("d_name:%s\n", d_name);
+			// LOG_DEBUG("d_name:%s\n", d_name);
 			if (lstat(d_name, &statbuf)) {
 				LOG_ERROR("lstat[%s](IN_MOVED_TO) failed\n", d_name);
 			} else {
@@ -1632,22 +1632,14 @@ int rkipc_storage_get_file_list(rkipc_filelist *list, void *pHandle, rkipc_sort_
 
 	if (sort == LIST_ASCENDING) {
 		for (j = 0; j < list->file_num && tmp != NULL; j++) {
-			int len = strlen(tmp->filename) > (RKIPC_MAX_FILE_PATH_LEN - 1)
-			              ? (RKIPC_MAX_FILE_PATH_LEN - 1)
-			              : strlen(tmp->filename);
-			strncpy(list->file[j].filename, tmp->filename, len);
-			list->file[j].filename[len] = '\0';
+			strcpy(list->file[j].filename, tmp->filename);
 			list->file[j].size = tmp->size;
 			list->file[j].time = tmp->time;
 			tmp = tmp->next;
 		}
 	} else {
 		for (j = list->file_num - 1; j >= 0 && tmp != NULL; j--) {
-			int len = strlen(tmp->filename) > (RKIPC_MAX_FILE_PATH_LEN - 1)
-			              ? (RKIPC_MAX_FILE_PATH_LEN - 1)
-			              : strlen(tmp->filename);
-			strncpy(list->file[j].filename, tmp->filename, len);
-			list->file[j].filename[len] = '\0';
+			strcpy(list->file[j].filename, tmp->filename);
 			list->file[j].size = tmp->size;
 			list->file[j].time = tmp->time;
 			tmp = tmp->next;
