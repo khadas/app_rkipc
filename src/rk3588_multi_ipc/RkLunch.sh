@@ -45,10 +45,10 @@ echo "/data/core-%p-%e" > /proc/sys/kernel/core_pattern
 
 # cpu
 echo performance > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
-echo userspce > /sys/devices/system/cpu/cpufreq/policy4/scaling_governor
-echo 1896000 > /sys/devices/system/cpu/cpufreq/policy4/scaling_setspeed
-echo userspce > /sys/devices/system/cpu/cpufreq/policy6/scaling_governor
-echo 1896000 > /sys/devices/system/cpu/cpufreq/policy6/scaling_setspeed
+echo userspace > /sys/devices/system/cpu/cpufreq/policy4/scaling_governor
+echo 2200000 > /sys/devices/system/cpu/cpufreq/policy4/scaling_setspeed
+echo userspace > /sys/devices/system/cpu/cpufreq/policy6/scaling_governor
+echo 2200000 > /sys/devices/system/cpu/cpufreq/policy6/scaling_setspeed
 # gpu
 # echo 900000 > /sys/kernel/debug/regulator/vdd_gpu_mem_s0/voltage
 # echo 900000 > /sys/kernel/debug/regulator/vdd_gpu_s0/voltage
