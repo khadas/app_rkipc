@@ -43,7 +43,6 @@ static int take_photo_one = 0;
 static int enable_jpeg, enable_venc_0, enable_venc_1, enable_venc_2;
 int g_enable_vo, g_vo_dev_id;
 static int g_video_run_ = 1;
-static int dev_id_ = 0;
 static rtsp_demo_handle g_rtsplive = NULL;
 static rtsp_session_handle g_rtsp_session_0, g_rtsp_session_1, g_rtsp_session_2;
 static const char *tmp_output_data_type = "H.264";
@@ -369,10 +368,10 @@ int rkipc_vi_dev_init() {
 	memset(&stDevAttr, 0, sizeof(stDevAttr));
 	memset(&stBindPipe, 0, sizeof(stBindPipe));
 	// 0. get dev config status
-	ret = RK_MPI_VI_GetDevAttr(dev_id_, &stDevAttr);
+	ret = RK_MPI_VI_GetDevAttr(pipe_id_, &stDevAttr);
 	if (ret == RK_ERR_VI_NOT_CONFIG) {
 		// 0-1.config dev
-		ret = RK_MPI_VI_SetDevAttr(dev_id_, &stDevAttr);
+		ret = RK_MPI_VI_SetDevAttr(pipe_id_, &stDevAttr);
 		if (ret != RK_SUCCESS) {
 			LOG_ERROR("RK_MPI_VI_SetDevAttr %x\n", ret);
 			return -1;
@@ -381,10 +380,10 @@ int rkipc_vi_dev_init() {
 		LOG_ERROR("RK_MPI_VI_SetDevAttr already\n");
 	}
 	// 1.get dev enable status
-	ret = RK_MPI_VI_GetDevIsEnable(dev_id_);
+	ret = RK_MPI_VI_GetDevIsEnable(pipe_id_);
 	if (ret != RK_SUCCESS) {
 		// 1-2.enable dev
-		ret = RK_MPI_VI_EnableDev(dev_id_);
+		ret = RK_MPI_VI_EnableDev(pipe_id_);
 		if (ret != RK_SUCCESS) {
 			LOG_ERROR("RK_MPI_VI_EnableDev %x\n", ret);
 			return -1;
@@ -392,7 +391,7 @@ int rkipc_vi_dev_init() {
 		// 1-3.bind dev/pipe
 		stBindPipe.u32Num = pipe_id_;
 		stBindPipe.PipeId[0] = pipe_id_;
-		ret = RK_MPI_VI_SetDevBindPipe(dev_id_, &stBindPipe);
+		ret = RK_MPI_VI_SetDevBindPipe(pipe_id_, &stBindPipe);
 		if (ret != RK_SUCCESS) {
 			LOG_ERROR("RK_MPI_VI_SetDevBindPipe %x\n", ret);
 			return -1;
@@ -1011,7 +1010,7 @@ int rkipc_venc_3_deinit() {
 int rkipc_bind_init() {
 	int ret;
 	vi_chn.enModId = RK_ID_VI;
-	vi_chn.s32DevId = 0;
+	vi_chn.s32DevId = pipe_id_;
 	vi_chn.s32ChnId = g_vi_chn_id;
 	vpss_in_chn.enModId = RK_ID_VPSS;
 	vpss_in_chn.s32DevId = 0;
@@ -2041,6 +2040,7 @@ int rk_video_init() {
 	LOG_INFO("enable_jpeg is %d, enable_venc_0 is %d, enable_venc_1 is %d, enable_venc_2 is %d\n",
 	         enable_jpeg, enable_venc_0, enable_venc_1, enable_venc_2);
 
+	pipe_id_ = rk_param_get_int("video.source:camera_id", 0);
 	g_vi_chn_id = rk_param_get_int("video.source:vi_chn_id", 0);
 	g_enable_vo = rk_param_get_int("video.source:enable_vo", 1);
 	g_vo_dev_id = rk_param_get_int("video.source:vo_dev_id", 3);

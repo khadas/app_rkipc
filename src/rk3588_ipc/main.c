@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
 	// init
 	rk_param_init(rkipc_ini_path_);
 	rk_system_init();
-	rkipc_camera_id_ = rk_param_get_int("video.0:rkipc_camera_id_", 0); // need rk_param_init
+	rkipc_camera_id_ = rk_param_get_int("video.source:camera_id", 0); // need rk_param_init
 	rk_isp_init(rkipc_camera_id_, rkipc_iq_file_path_);
 	rk_isp_set_frame_rate(0, rk_param_get_int("isp.0.adjustment:fps", 30));
 	rk_video_init();
