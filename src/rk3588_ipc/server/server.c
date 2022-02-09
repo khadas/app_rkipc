@@ -3298,6 +3298,25 @@ int ser_rk_take_photo(int fd) {
 }
 
 // system
+int ser_rk_system_capability_get_video(int fd) {
+	int err = 0;
+	int len;
+	char value[4096];
+
+	memset(value, '\0', 1); // set terminator
+	err = rk_system_capability_get_video(value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
 int ser_rk_system_get_deivce_name(int fd) {
 	int err = 0;
 	int len;
@@ -4108,6 +4127,7 @@ static const struct FunMap map[] = {
     {(char *)"rk_storage_record_statue_get", &ser_rk_storage_record_statue_get},
     {(char *)"rk_take_photo", &ser_rk_take_photo},
     // system
+    {(char *)"rk_system_capability_get_video", &ser_rk_system_capability_get_video},
     {(char *)"rk_system_get_deivce_name", &ser_rk_system_get_deivce_name},
     {(char *)"rk_system_get_telecontrol_id", &ser_rk_system_get_telecontrol_id},
     {(char *)"rk_system_get_model", &ser_rk_system_get_model},
