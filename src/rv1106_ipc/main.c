@@ -94,7 +94,8 @@ int main(int argc, char **argv) {
 	// init
 	rk_param_init(rkipc_ini_path_);
 	rk_system_init();
-	rk_isp_init(0, rkipc_iq_file_path_);
+	if (rk_param_get_int("video.source:enable_aiq", 1))
+		rk_isp_init(0, rkipc_iq_file_path_);
 	rk_isp_set_frame_rate(0, rk_param_get_int("isp.0.adjustment:fps", 30));
 	rk_video_init();
 	if (rk_param_get_int("audio.0:enable", 0))
@@ -111,7 +112,8 @@ int main(int argc, char **argv) {
 	rkipc_server_deinit();
 	rk_system_deinit();
 	rk_video_deinit();
-	rk_isp_deinit(0);
+	if (rk_param_get_int("video.source:enable_aiq", 1))
+		rk_isp_deinit(0);
 	if (rk_param_get_int("audio.0:enable", 0))
 		rkipc_audio_deinit();
 	rk_param_deinit();
