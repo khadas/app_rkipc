@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 
 project(rkipc)
 
-option(COMPILE_FOR_LOW_MEMORY "compile for low memory ipc" OFF)
+option(COMPILE_FOR_RV1106_IPC "compile for rv1106 ipc" OFF)
 option(COMPILE_FOR_RV1126_RKMEDIA "compile for rv1126 ipc rkmedia" OFF)
 option(COMPILE_FOR_RV1126_ROCKIT "compile for rv1126 ipc rockit" OFF)
 option(COMPILE_FOR_RV1126_BATTERY_IPC "compile for rv1126 battery ipc" OFF)
@@ -16,8 +16,8 @@ set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-rpath-link,${PROJECT_SOURCE_DIR}/lib/$
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,-rpath-link,${PROJECT_SOURCE_DIR}/lib/${RKIPC_CROSS_COMPILE}")
 endif()
 
-if(COMPILE_FOR_LOW_MEMORY)
-  add_subdirectory(src/low_memory_ipc)
+if(COMPILE_FOR_RV1106_IPC)
+  add_subdirectory(src/rv1106_ipc)
 endif()
 
 if(COMPILE_FOR_RV1126_RKMEDIA)
