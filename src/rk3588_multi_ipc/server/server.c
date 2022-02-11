@@ -591,6 +591,9 @@ int ser_rk_isp_get_hdr(int fd) {
 	return 0;
 }
 
+extern int g_sensor_num;
+extern int g_format;
+extern char *rkipc_iq_file_path_;
 int ser_rk_isp_set_hdr(int fd) {
 	int ret = 0;
 	int id, len;
@@ -611,6 +614,22 @@ int ser_rk_isp_set_hdr(int fd) {
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
 			return -1;
+	}
+
+	for (int i = 0; i < g_sensor_num; i++) {
+		if (g_format)
+			ret |= RK_MPI_VI_DisableChn(i, 2);
+		else
+			ret |= RK_MPI_VI_DisableChn(i, 0);
+	}
+	rk_isp_group_deinit(0);
+	// usleep(100 * 1000);
+	rk_isp_group_init(0, rkipc_iq_file_path_);
+	for (int i = 0; i < g_sensor_num; i++) {
+		if (g_format)
+			ret |= RK_MPI_VI_EnableChn(i, 2);
+		else
+			ret |= RK_MPI_VI_EnableChn(i, 0);
 	}
 
 	return 0;
@@ -3153,6 +3172,139 @@ int ser_rk_system_capability_get_video(int fd) {
 	return 0;
 }
 
+int ser_rk_system_capability_get_image_adjustment(int fd) {
+	int err = 0;
+	int len;
+	char value[4096];
+
+	memset(value, '\0', 1); // set terminator
+	err = rk_system_capability_get_image_adjustment(value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_system_capability_get_image_blc(int fd) {
+	int err = 0;
+	int len;
+	char value[4096];
+
+	memset(value, '\0', 1); // set terminator
+	err = rk_system_capability_get_image_blc(value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_system_capability_get_image_enhancement(int fd) {
+	int err = 0;
+	int len;
+	char value[4096];
+
+	memset(value, '\0', 1); // set terminator
+	err = rk_system_capability_get_image_enhancement(value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_system_capability_get_image_exposure(int fd) {
+	int err = 0;
+	int len;
+	char value[4096];
+
+	memset(value, '\0', 1); // set terminator
+	err = rk_system_capability_get_image_exposure(value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_system_capability_get_image_night_to_day(int fd) {
+	int err = 0;
+	int len;
+	char value[4096];
+
+	memset(value, '\0', 1); // set terminator
+	err = rk_system_capability_get_image_night_to_day(value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_system_capability_get_image_video_adjustment(int fd) {
+	int err = 0;
+	int len;
+	char value[4096];
+
+	memset(value, '\0', 1); // set terminator
+	err = rk_system_capability_get_image_video_adjustment(value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_system_capability_get_image_white_blance(int fd) {
+	int err = 0;
+	int len;
+	char value[4096];
+
+	memset(value, '\0', 1); // set terminator
+	err = rk_system_capability_get_image_white_blance(value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
 int ser_rk_system_get_deivce_name(int fd) {
 	int err = 0;
 	int len;
@@ -3954,6 +4106,13 @@ static const struct FunMap map[] = {
     {(char *)"rk_take_photo", &ser_rk_take_photo},
     // system
     {(char *)"rk_system_capability_get_video", &ser_rk_system_capability_get_video},
+	{(char *)"rk_system_capability_get_image_adjustment", &ser_rk_system_capability_get_image_adjustment},
+	{(char *)"rk_system_capability_get_image_blc", &ser_rk_system_capability_get_image_blc},
+	{(char *)"rk_system_capability_get_image_enhancement", &ser_rk_system_capability_get_image_enhancement},
+	{(char *)"rk_system_capability_get_image_exposure", &ser_rk_system_capability_get_image_exposure},
+	{(char *)"rk_system_capability_get_image_night_to_day", &ser_rk_system_capability_get_image_night_to_day},
+	{(char *)"rk_system_capability_get_image_video_adjustment", &ser_rk_system_capability_get_image_video_adjustment},
+	{(char *)"rk_system_capability_get_image_white_blance", &ser_rk_system_capability_get_image_white_blance},
     {(char *)"rk_system_get_deivce_name", &ser_rk_system_get_deivce_name},
     {(char *)"rk_system_get_telecontrol_id", &ser_rk_system_get_telecontrol_id},
     {(char *)"rk_system_get_model", &ser_rk_system_get_model},

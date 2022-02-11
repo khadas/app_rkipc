@@ -40,3 +40,10 @@ int rk_system_add_user(int id, int user_level, const char *user_name, const char
 int rk_system_del_user(int id);
 // capability
 int rk_system_capability_get_video(char *value);
+int rk_system_capability_get_image_adjustment(char *value);
+int rk_system_capability_get_image_blc(char *value);
+int rk_system_capability_get_image_enhancement(char *value);
+int rk_system_capability_get_image_exposure(char *value);
+int rk_system_capability_get_image_night_to_day(char *value);
+int rk_system_capability_get_image_video_adjustment(char *value);
+int rk_system_capability_get_image_white_blance(char *value);

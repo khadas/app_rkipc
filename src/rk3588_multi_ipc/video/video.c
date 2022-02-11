@@ -65,10 +65,11 @@
 #define RTMP_URL_1 "rtmp://127.0.0.1:1935/live/substream"
 #define RTMP_URL_2 "rtmp://127.0.0.1:1935/live/thirdstream"
 
+int g_sensor_num = 6;
+int g_format;
 static pthread_mutex_t g_rtsp_mutex = PTHREAD_MUTEX_INITIALIZER;
-static int g_sensor_num = 6;
 static int g_video_run_ = 1;
-static int g_format, g_enable_vo, g_vo_dev_id;
+static int g_enable_vo, g_vo_dev_id;
 static int pipe_id_ = 0;
 static int pipe_id_1_ = 1;
 static rtsp_demo_handle g_rtsplive = NULL;

@@ -298,3 +298,136 @@ int rk_system_capability_get_video(char *value) {
 
 	return 0;
 }
+
+int rk_system_capability_get_image_adjustment(char *value) {
+	char entry[128] = {'\0'};
+	int section_keys = iniparser_getsecnkeys(g_ini_d_, "capability.image_adjustment");
+	LOG_INFO("section_keys is %d\n", section_keys);
+	if (!section_keys)
+		return 0;
+
+	int total_length = 0;
+	const char *tmp;
+	for (int i = 0; i < section_keys; i++) {
+		snprintf(entry, 127, "capability.image_adjustment:%d", i);
+		tmp = rk_param_get_string(entry, NULL);
+		strcpy(value + total_length, tmp);
+		total_length += strlen(tmp);
+	}
+
+	return 0;
+}
+
+int rk_system_capability_get_image_blc(char *value) {
+	char entry[128] = {'\0'};
+	int section_keys = iniparser_getsecnkeys(g_ini_d_, "capability.image_blc");
+	LOG_INFO("section_keys is %d\n", section_keys);
+	if (!section_keys)
+		return 0;
+
+	int total_length = 0;
+	const char *tmp;
+	for (int i = 0; i < section_keys; i++) {
+		snprintf(entry, 127, "capability.image_blc:%d", i);
+		tmp = rk_param_get_string(entry, NULL);
+		strcpy(value + total_length, tmp);
+		total_length += strlen(tmp);
+	}
+
+	return 0;
+}
+
+int rk_system_capability_get_image_enhancement(char *value) {
+	char entry[128] = {'\0'};
+	int section_keys = iniparser_getsecnkeys(g_ini_d_, "capability.image_enhancement");
+	LOG_INFO("section_keys is %d\n", section_keys);
+	if (!section_keys)
+		return 0;
+
+	int total_length = 0;
+	const char *tmp;
+	for (int i = 0; i < section_keys; i++) {
+		snprintf(entry, 127, "capability.image_enhancement:%d", i);
+		tmp = rk_param_get_string(entry, NULL);
+		strcpy(value + total_length, tmp);
+		total_length += strlen(tmp);
+	}
+
+	return 0;
+}
+
+int rk_system_capability_get_image_exposure(char *value) {
+	char entry[128] = {'\0'};
+	int section_keys = iniparser_getsecnkeys(g_ini_d_, "capability.image_exposure");
+	LOG_INFO("section_keys is %d\n", section_keys);
+	if (!section_keys)
+		return 0;
+
+	int total_length = 0;
+	const char *tmp;
+	for (int i = 0; i < section_keys; i++) {
+		snprintf(entry, 127, "capability.image_exposure:%d", i);
+		tmp = rk_param_get_string(entry, NULL);
+		strcpy(value + total_length, tmp);
+		total_length += strlen(tmp);
+	}
+
+	return 0;
+}
+
+int rk_system_capability_get_image_night_to_day(char *value) {
+	char entry[128] = {'\0'};
+	int section_keys = iniparser_getsecnkeys(g_ini_d_, "capability.image_night_to_day");
+	LOG_INFO("section_keys is %d\n", section_keys);
+	if (!section_keys)
+		return 0;
+
+	int total_length = 0;
+	const char *tmp;
+	for (int i = 0; i < section_keys; i++) {
+		snprintf(entry, 127, "capability.image_night_to_day:%d", i);
+		tmp = rk_param_get_string(entry, NULL);
+		strcpy(value + total_length, tmp);
+		total_length += strlen(tmp);
+	}
+
+	return 0;
+}
+
+int rk_system_capability_get_image_video_adjustment(char *value) {
+	char entry[128] = {'\0'};
+	int section_keys = iniparser_getsecnkeys(g_ini_d_, "capability.image_video_adjustment");
+	LOG_INFO("section_keys is %d\n", section_keys);
+	if (!section_keys)
+		return 0;
+
+	int total_length = 0;
+	const char *tmp;
+	for (int i = 0; i < section_keys; i++) {
+		snprintf(entry, 127, "capability.image_video_adjustment:%d", i);
+		tmp = rk_param_get_string(entry, NULL);
+		strcpy(value + total_length, tmp);
+		total_length += strlen(tmp);
+	}
+
+	return 0;
+}
+
+int rk_system_capability_get_image_white_blance(char *value) {
+	char entry[128] = {'\0'};
+	int section_keys = iniparser_getsecnkeys(g_ini_d_, "capability.image_white_blance");
+	LOG_INFO("section_keys is %d\n", section_keys);
+	if (!section_keys)
+		return 0;
+
+	int total_length = 0;
+	const char *tmp;
+	for (int i = 0; i < section_keys; i++) {
+		snprintf(entry, 127, "capability.image_white_blance:%d", i);
+		tmp = rk_param_get_string(entry, NULL);
+		strcpy(value + total_length, tmp);
+		total_length += strlen(tmp);
+	}
+
+	return 0;
+}
