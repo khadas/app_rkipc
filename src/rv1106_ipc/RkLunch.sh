@@ -18,6 +18,15 @@ post_chk()
 		sleep .1
 	done
 
+	# if ko exist, install ko first
+	default_ko_dir=/ko
+	if [ -f "/oem/usr/ko/insmod_ko.sh" ];then
+		default_ko_dir=/oem/usr/ko
+	fi
+	if [ -f "$default_ko_dir/insmod_ko.sh" ];then
+		cd $default_ko_dir && sh insmod_ko.sh && cd -
+	fi
+
 	ifconfig eth0 up && udhcpc -i eth0 -b || ifconfig eth1 up && udhcpc -i eth1 -b
 	ifconfig wlan0 up && wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant.conf &
 	check_linker /userdata   /usr/www/userdata
@@ -28,7 +37,7 @@ post_chk()
 	rkipc_ini=/userdata/rkipc.ini
 	default_rkipc_ini=/usr/share/rkipc.ini
 	if [ ! -f "$default_rkipc_ini" ];then
-		default_rkipc_ini=/oem/share/rkipc.ini
+		default_rkipc_ini=/oem/usr/share/rkipc.ini
 	fi
 	if [ ! -f "$default_rkipc_ini" ];then
 		echo "Error: not found rkipc.ini !!!"
@@ -37,7 +46,12 @@ post_chk()
 	if [ ! -f "$rkipc_ini" ]; then
 		cp $default_rkipc_ini $rkipc_ini -f
 	fi
-	rkipc &
+
+	if [ -d "/oem/usr/share/iqfiles" ];then
+		rkipc -a /oem/usr/share/iqfiles&
+	else
+		rkipc
+	fi
 }
 
 ulimit -c unlimited
