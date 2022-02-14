@@ -869,23 +869,11 @@ int rk_isp_get_noise_reduce_mode(int cam_id, const char **value) {
 	return 0;
 }
 
+// Turn off noise reduction, the actual default value is set to 50,
+// and it is done in the interface of setting level
 int rk_isp_set_noise_reduce_mode(int cam_id, const char *value) {
 	int ret;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	if (!strcmp(value, "close")) {
-		rk_aiq_uapi2_sysctl_setModuleCtl(rkipc_aiq_get_ctx(cam_id), RK_MODULE_NR, false);
-		rk_aiq_uapi2_sysctl_setModuleCtl(rkipc_aiq_get_ctx(cam_id), RK_MODULE_TNR, false);
-	} else if (!strcmp(value, "2dnr")) {
-		rk_aiq_uapi2_sysctl_setModuleCtl(rkipc_aiq_get_ctx(cam_id), RK_MODULE_NR, true);
-		rk_aiq_uapi2_sysctl_setModuleCtl(rkipc_aiq_get_ctx(cam_id), RK_MODULE_TNR, false);
-	} else if (!strcmp(value, "3dnr")) {
-		rk_aiq_uapi2_sysctl_setModuleCtl(rkipc_aiq_get_ctx(cam_id), RK_MODULE_NR, false);
-		rk_aiq_uapi2_sysctl_setModuleCtl(rkipc_aiq_get_ctx(cam_id), RK_MODULE_TNR, true);
-	} else if (!strcmp(value, "mixnr")) {
-		rk_aiq_uapi2_sysctl_setModuleCtl(rkipc_aiq_get_ctx(cam_id), RK_MODULE_NR, true);
-		rk_aiq_uapi2_sysctl_setModuleCtl(rkipc_aiq_get_ctx(cam_id), RK_MODULE_TNR, true);
-	}
-
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.enhancement:noise_reduce_mode", cam_id);
 	rk_param_set_string(entry, value);
@@ -975,8 +963,16 @@ int rk_isp_get_spatial_denoise_level(int cam_id, int *value) {
 int rk_isp_set_spatial_denoise_level(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret = 0;
+	const char *noise_reduce_mode;
 	rk_aiq_ynr_strength_v3_t ynrStrenght;
 	rk_aiq_bayer2dnr_strength_v2_t bayer2dnrV2Strenght;
+
+	rk_isp_get_noise_reduce_mode(cam_id, &noise_reduce_mode);
+	LOG_DEBUG("noise_reduce_mode is %s, value is %d\n", noise_reduce_mode, value);
+	if ((!strcmp(noise_reduce_mode, "close")) || (!strcmp(noise_reduce_mode, "3dnr"))) {
+		value = 50;
+		LOG_DEBUG("noise_reduce_mode is %s, value is %d\n", noise_reduce_mode, value);
+	}
 
 	ynrStrenght.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
 	ynrStrenght.percent = value / 100.0;
@@ -1005,7 +1001,15 @@ int rk_isp_get_temporal_denoise_level(int cam_id, int *value) {
 int rk_isp_set_temporal_denoise_level(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret = 0;
+	const char *noise_reduce_mode;
 	rk_aiq_bayertnr_strength_v2_t bayertnrV2Strenght;
+
+	rk_isp_get_noise_reduce_mode(cam_id, &noise_reduce_mode);
+	LOG_DEBUG("noise_reduce_mode is %s, value is %d\n", noise_reduce_mode, value);
+	if ((!strcmp(noise_reduce_mode, "close")) || (!strcmp(noise_reduce_mode, "2dnr"))) {
+		value = 50;
+		LOG_DEBUG("noise_reduce_mode is %s, value is %d\n", noise_reduce_mode, value);
+	}
 
 	bayertnrV2Strenght.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
 	bayertnrV2Strenght.percent = value / 100.0;
