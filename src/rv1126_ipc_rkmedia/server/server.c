@@ -1735,7 +1735,7 @@ int ser_rk_video_get_frame_rate_in(int fd) {
 
 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
 		return -1;
-	err = rk_video_get_frame_rate(id, &value);
+	err = rk_video_get_frame_rate_in(id, &value);
 	len = strlen(value);
 	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)

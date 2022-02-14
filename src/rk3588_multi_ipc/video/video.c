@@ -3,36 +3,6 @@
 // found in the LICENSE file.
 
 #include "video.h"
-#include "common.h"
-#include "isp.h"
-#include "osd.h"
-#include "rockiva.h"
-#include "rtmp.h"
-#include "rtsp_demo.h"
-#include "storage.h"
-
-#include "rk_mpi_mmz.h"
-#include <rk_debug.h>
-#include <rk_mpi_avs.h>
-#include <rk_mpi_mb.h>
-#include <rk_mpi_rgn.h>
-#include <rk_mpi_sys.h>
-#include <rk_mpi_venc.h>
-#include <rk_mpi_vi.h>
-#include <rk_mpi_vo.h>
-#include <rk_mpi_vpss.h>
-
-#include <fcntl.h>
-#include <inttypes.h> // PRId64
-#include <linux/input.h>
-#include <signal.h>
-#include <sys/prctl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-#include <rga/im2d.h>
-#include <rga/rga.h>
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -2113,11 +2083,12 @@ int rk_video_set_frame_rate_in(int stream_id, const char *value) {
 		sscanf(value, "%d/%d", &num, &den);
 	}
 	LOG_INFO("num is %d, den is %d\n", num, den);
-	snprintf(entry, 127, "video.%d:src_frame_rate_den", stream_id);
-	rk_param_set_int(entry, den);
-	snprintf(entry, 127, "video.%d:src_frame_rate_num", stream_id);
-	rk_param_set_int(entry, num);
-	rk_video_restart();
+	LOG_INFO("tmp not support set fps_src, default 30\n");
+	// snprintf(entry, 127, "video.%d:src_frame_rate_den", stream_id);
+	// rk_param_set_int(entry, den);
+	// snprintf(entry, 127, "video.%d:src_frame_rate_num", stream_id);
+	// rk_param_set_int(entry, num);
+	// rk_video_restart();
 
 	return 0;
 }
@@ -2518,7 +2489,6 @@ int rk_video_init() {
 	         "enable_npu is %d\n",
 	         enable_jpeg, enable_venc_0, enable_venc_1, enable_venc_2, enable_npu);
 
-	ret = RK_MPI_SYS_Init();
 	ret |= rkipc_vi_dev_init();
 	ret |= rkipc_multi_vi_init();
 	ret |= rkipc_avs_init();
@@ -2600,22 +2570,19 @@ int rk_video_deinit() {
 	ret |= rkipc_avs_deinit();
 	ret |= rkipc_multi_vi_deinit();
 	ret |= rkipc_vi_dev_deinit();
-	ret |= RK_MPI_SYS_Exit();
 	ret |= rkipc_rtmp_deinit();
 	ret |= rkipc_rtsp_deinit();
 
 	return ret;
 }
 
+extern char *rkipc_iq_file_path_;
 int rk_video_restart() {
 	int ret;
-	// ret = rk_video_deinit();
-	// rk_isp_deinit(0);
-	// rk_isp_deinit(1);
-	sleep(1);
-	// ret |= rk_video_init();
-	// rk_isp_init(0);
-	// rk_isp_init(1);
+	ret = rk_video_deinit();
+	ret |= rk_isp_group_deinit(0);
+	ret |= rk_isp_group_init(0, rkipc_iq_file_path_);
+	ret |= rk_video_init();
 
 	return ret;
 }
