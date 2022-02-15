@@ -22,6 +22,7 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/common/ SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/param SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/system SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/rtmp SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/osd SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/network SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/storage SRCS)
 
@@ -34,6 +35,8 @@ include_directories(audio
 					${PROJECT_SOURCE_DIR}/common/rtmp
 					${PROJECT_SOURCE_DIR}/common/param
 					${PROJECT_SOURCE_DIR}/common/system
+					${PROJECT_SOURCE_DIR}/common/osd
+					${PROJECT_SOURCE_DIR}/common/osd/freetype2
 					${PROJECT_SOURCE_DIR}/common/network
 					${PROJECT_SOURCE_DIR}/common/storage)
 
@@ -45,7 +48,7 @@ add_definitions(-Os)
 
 add_executable(${PROJECT_NAME} ${SRCS})
 
-target_link_libraries(${PROJECT_NAME} pthread rockit rkaiq rtsp wpa_client m rkmuxer rkfsmk)
+target_link_libraries(${PROJECT_NAME} pthread rockit rkaiq rtsp wpa_client m rkmuxer rkfsmk freetype)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 install(FILES rkipc.ini DESTINATION share)

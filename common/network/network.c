@@ -766,6 +766,7 @@ int rk_nic_state_get(const char *ifname) {
 }
 
 static void *rk_net_proc() {
+	prctl(PR_SET_NAME, "rk_net_proc", 0, 0, 0);
 	int flag = 1;
 	int status = 0;
 	while (flag) {

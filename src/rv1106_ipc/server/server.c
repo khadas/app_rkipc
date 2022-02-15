@@ -4205,6 +4205,7 @@ out:
 static void *rkipc_server_thread(void *arg) {
 	int clifd;
 	printf("#Start %s thread, arg:%p\n", __func__, arg);
+	prctl(PR_SET_NAME, "rkipc_server_thread", 0, 0, 0);
 	pthread_detach(pthread_self());
 
 	if ((listen_fd = serv_listen(CS_PATH)) < 0)

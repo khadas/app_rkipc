@@ -1862,6 +1862,7 @@ static void *rk_storage_record(void *arg) {
 	int *id_ptr = arg;
 	int id = *id_ptr;
 	printf("id: %d, #Start %s thread, arg:%p\n", id, __func__, arg);
+	prctl(PR_SET_NAME, "rk_storage_record", 0, 0, 0);
 	while (rk_storage_muxer_group[id].g_record_run_) {
 		time_t t = time(NULL);
 		struct tm tm = *localtime(&t);

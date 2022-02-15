@@ -51,6 +51,7 @@ void *save_ai_thread(void *ptr) {
 }
 static RK_S64 fake_time = 0;
 void *save_aenc_thread(void *ptr) {
+	prctl(PR_SET_NAME, "save_aenc_thread", 0, 0, 0);
 	RK_S32 s32ret = 0;
 	FILE *file = RK_NULL;
 	AUDIO_STREAM_S pstStream;

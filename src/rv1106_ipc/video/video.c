@@ -76,6 +76,7 @@ static VO_DEV VoLayer = RK3588_VOP_LAYER_CLUSTER0;
 
 static void *get_vi_send_vo(void *arg) {
 	printf("#Start %s thread, arg:%p\n", __func__, arg);
+	prctl(PR_SET_NAME, "get_vi_send_vo", 0, 0, 0);
 	VIDEO_FRAME_INFO_S stViFrame;
 	VI_CHN_STATUS_S stChnStatus;
 	int loopCount = 0;
@@ -118,6 +119,7 @@ static void *get_vi_send_vo(void *arg) {
 
 static void *rkipc_get_venc_0(void *arg) {
 	printf("#Start %s thread, arg:%p\n", __func__, arg);
+	prctl(PR_SET_NAME, "rkipc_get_venc_0", 0, 0, 0);
 	VENC_STREAM_S stFrame;
 	VI_CHN_STATUS_S stChnStatus;
 	int loopCount = 0;
@@ -175,6 +177,7 @@ static void *rkipc_get_venc_0(void *arg) {
 
 static void *rkipc_get_venc_1(void *arg) {
 	printf("#Start %s thread, arg:%p\n", __func__, arg);
+	prctl(PR_SET_NAME, "rkipc_get_venc_1", 0, 0, 0);
 	VENC_STREAM_S stFrame;
 	VI_CHN_STATUS_S stChnStatus;
 	int loopCount = 0;

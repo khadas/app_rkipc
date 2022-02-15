@@ -154,6 +154,7 @@ int generate_date_time(const char *fmt, wchar_t *result, int r_size) {
 
 static void *osd_time_server(void *arg) {
 	printf("#Start %s thread, arg:%p\n", __func__, arg);
+	prctl(PR_SET_NAME, "osd_time_server", 0, 0, 0);
 	int ret = 0;
 	int osd_time_id, last_time_sec, wchar_cnt;
 	const char *osd_type;

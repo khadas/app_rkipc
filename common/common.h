@@ -14,6 +14,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include <sys/prctl.h>
 
 #include "iniparser.h"
 #include "log.h"
