@@ -46,8 +46,11 @@ add_definitions(-DISP_HW_V30)
 #add_definitions(-g -ggdb)
 add_definitions(-Os)
 
-add_executable(${PROJECT_NAME} ${SRCS})
+# add_definitions(-fsanitize=address -g -ggdb -gdwarf -funwind-tables -rdynamic -O0)
+# add_definitions(-fno-stack-protector -fno-omit-frame-pointer -fsanitize-recover=address)
+# link_libraries(asan)
 
+add_executable(${PROJECT_NAME} ${SRCS})
 target_link_libraries(${PROJECT_NAME} pthread rockit rkaiq rtsp wpa_client m rkmuxer rkfsmk freetype)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
