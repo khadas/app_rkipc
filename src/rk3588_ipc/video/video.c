@@ -442,9 +442,6 @@ int rkipc_vi_chn_deinit() {
 	ret = RK_MPI_VI_DisableChn(pipe_id_, g_vi_chn_id);
 	if (ret)
 		LOG_ERROR("ERROR: RK_MPI_VI_DisableChn VI error! ret=%x\n", ret);
-	ret = RK_MPI_VI_DeleteChn(pipe_id_, g_vi_chn_id);
-	if (ret)
-		LOG_ERROR("ERROR: RK_MPI_VI_DeleteChn VI error! ret=%x\n", ret);
 
 	return ret;
 }

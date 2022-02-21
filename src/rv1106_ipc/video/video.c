@@ -604,9 +604,6 @@ int rkipc_pipe_0_deinit() {
 	ret = RK_MPI_VI_DisableChn(pipe_id_, VIDEO_PIPE_0);
 	if (ret)
 		LOG_ERROR("ERROR: Destroy VI error! ret=%#x\n", ret);
-	// ret = RK_MPI_VI_DeleteChn(pipe_id_, VIDEO_PIPE_0);
-	// if (ret)
-	// 	LOG_ERROR("ERROR: RK_MPI_VI_DeleteChn VI error! ret=%x\n", ret);
 
 	return 0;
 }
@@ -909,9 +906,6 @@ int rkipc_pipe_1_deinit() {
 	ret = RK_MPI_VI_DisableChn(pipe_id_, VIDEO_PIPE_1);
 	if (ret)
 		LOG_ERROR("ERROR: Destroy VI error! ret=%#x\n", ret);
-	// ret = RK_MPI_VI_DeleteChn(pipe_id_, VIDEO_PIPE_1);
-	// if (ret)
-	// 	LOG_ERROR("ERROR: RK_MPI_VI_DeleteChn VI error! ret=%x\n", ret);
 
 	return 0;
 }
