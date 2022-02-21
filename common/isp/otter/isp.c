@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include <rk_aiq_user_api2_acsm.h>
 #include <rk_aiq_user_api2_camgroup.h>
 #include <rk_aiq_user_api2_imgproc.h>
 #include <rk_aiq_user_api2_sysctl.h>
@@ -460,7 +461,7 @@ int rk_isp_set_night_to_day(int cam_id, const char *value) {
 	int ret;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	aie_attrib_t attr;
-	rk_aiq_user_api2_aie_GetAttrib(rkipc_aiq_get_ctx(cam_id),&attr);
+	rk_aiq_user_api2_aie_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	if (!strcmp(value, "night"))
 		attr.mode = RK_AIQ_IE_EFFECT_BW;
 	else
@@ -915,9 +916,22 @@ int rk_isp_get_gray_scale_mode(int cam_id, const char **value) {
 	return 0;
 }
 
-// int rk_isp_set_gray_scale_mode(int cam_id, const char *value) {
-// 	// TODO set by venc, not aiq
-// }
+int rk_isp_set_gray_scale_mode(int cam_id, const char *value) {
+	int ret;
+	char entry[128] = {'\0'};
+	RK_ISP_CHECK_CAMERA_ID(cam_id);
+	rk_aiq_uapi_acsm_attrib_t attr;
+	rk_aiq_user_api2_acsm_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
+	if (!strcmp(value, "[16-235]"))
+		attr.param.full_range = false;
+	else
+		attr.param.full_range = true;
+	rk_aiq_user_api2_acsm_SetAttrib(rkipc_aiq_get_ctx(cam_id), attr);
+	snprintf(entry, 127, "isp.%d.enhancement:gray_scale_mode", cam_id);
+	rk_param_set_string(entry, value);
+
+	return ret;
+}
 
 int rk_isp_get_distortion_correction(int cam_id, const char **value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);

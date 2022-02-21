@@ -1123,6 +1123,31 @@ int ser_rk_isp_get_gray_scale_mode(int fd) {
 	return 0;
 }
 
+int ser_rk_isp_set_gray_scale_mode(int fd) {
+	int ret = 0;
+	int id, len;
+	char *value = NULL;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_INFO("id is %d, value is %s\n", id, value);
+		ret = rk_isp_set_gray_scale_mode(id, value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
+
+	return 0;
+}
+
 int ser_rk_isp_get_distortion_correction(int fd) {
 	int err = 0;
 	int id, len;
@@ -4005,6 +4030,7 @@ static const struct FunMap map[] = {
     {(char *)"rk_isp_get_dehaze", &ser_rk_isp_get_dehaze},
     {(char *)"rk_isp_set_dehaze", &ser_rk_isp_set_dehaze},
     {(char *)"rk_isp_get_gray_scale_mode", &ser_rk_isp_get_gray_scale_mode},
+    {(char *)"rk_isp_set_gray_scale_mode", &ser_rk_isp_set_gray_scale_mode},
     {(char *)"rk_isp_get_distortion_correction", &ser_rk_isp_get_distortion_correction},
     {(char *)"rk_isp_set_distortion_correction", &ser_rk_isp_set_distortion_correction},
     {(char *)"rk_isp_get_spatial_denoise_level", &ser_rk_isp_get_spatial_denoise_level},
