@@ -459,18 +459,13 @@ int rk_isp_get_night_to_day(int cam_id, const char **value) {
 int rk_isp_set_night_to_day(int cam_id, const char *value) {
 	int ret;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	rk_aiq_cpsl_cfg_t cpsl_cfg;
-	if (!strcmp(value, "day")) {
-		cpsl_cfg.mode = RK_AIQ_OP_MODE_MANUAL;
-		cpsl_cfg.gray_on = false;
-		cpsl_cfg.u.m.on = 0;
-	} else if (!strcmp(value, "night")) {
-		cpsl_cfg.mode = RK_AIQ_OP_MODE_MANUAL;
-		cpsl_cfg.gray_on = true;
-		cpsl_cfg.u.m.on = 1;
-	}
-	LOG_INFO("cpsl_cfg.gray_on is %d, cpsl_cfg.u.m.on is %d\n", cpsl_cfg.gray_on, cpsl_cfg.u.m.on);
-	ret = rk_aiq_uapi2_sysctl_setCpsLtCfg(rkipc_aiq_get_ctx(cam_id), &cpsl_cfg);
+	aie_attrib_t attr;
+	rk_aiq_user_api2_aie_GetAttrib(rkipc_aiq_get_ctx(cam_id),&attr);
+	if (!strcmp(value, "night"))
+		attr.mode = RK_AIQ_IE_EFFECT_BW;
+	else
+		attr.mode = RK_AIQ_IE_EFFECT_NONE;
+	rk_aiq_user_api2_aie_SetAttrib(rkipc_aiq_get_ctx(cam_id), attr);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.night_to_day:night_to_day", cam_id);
 	rk_param_set_string(entry, value);
