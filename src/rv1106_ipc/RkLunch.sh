@@ -1,5 +1,29 @@
 #!/bin/sh
 
+rcS()
+{
+	for i in /oem/usr/etc/init.d/S??* ;do
+
+		# Ignore dangling symlinks (if any).
+		[ ! -f "$i" ] && continue
+
+		case "$i" in
+			*.sh)
+				# Source shell script for speed.
+				(
+					trap - INT QUIT TSTP
+					set start
+					. $i
+				)
+				;;
+			*)
+				# No sh extension, so fork subprocess.
+				$i start
+				;;
+		esac
+	done
+}
+
 check_linker()
 {
         [ ! -L "$2" ] && ln -sf $1 $2
@@ -53,6 +77,8 @@ post_chk()
 		rkipc
 	fi
 }
+
+rcS
 
 ulimit -c unlimited
 echo "/data/core-%p-%e" > /proc/sys/kernel/core_pattern
