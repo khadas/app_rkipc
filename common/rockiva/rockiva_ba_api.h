@@ -81,12 +81,10 @@ typedef struct {
 
 /* 行为分析类规则配置 */
 typedef struct {
-	RockIvaBaWireRule tripWireRule[ROCKIVA_BA_MAX_RULE_NUM];     /* 越界事件 */
-	RockIvaBaAreaRule areaInRule[ROCKIVA_BA_MAX_RULE_NUM];       /* 进入区域 */
-	RockIvaBaAreaRule areaOutRule[ROCKIVA_BA_MAX_RULE_NUM];      /* 离开区域 */
-	RockIvaBaAreaRule areaInBreakRule[ROCKIVA_BA_MAX_RULE_NUM];  /* 区域入侵 */
-	RockIvaBaWireRule astAreaCountRule[ROCKIVA_BA_MAX_RULE_NUM]; /* 区域人数统计 */
-	RockIvaBaAreaRule astLineCountRule[ROCKIVA_BA_MAX_RULE_NUM]; /* 拌线人数统计 */
+	RockIvaBaWireRule tripWireRule[ROCKIVA_BA_MAX_RULE_NUM];    /* 越界事件 */
+	RockIvaBaAreaRule areaInRule[ROCKIVA_BA_MAX_RULE_NUM];      /* 进入区域 */
+	RockIvaBaAreaRule areaOutRule[ROCKIVA_BA_MAX_RULE_NUM];     /* 离开区域 */
+	RockIvaBaAreaRule areaInBreakRule[ROCKIVA_BA_MAX_RULE_NUM]; /* 区域入侵 */
 } RockIvaBaTaskRule;
 
 typedef struct {

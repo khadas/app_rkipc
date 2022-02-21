@@ -48,11 +48,10 @@ typedef enum {
 
 /* 人脸业务类型 */
 typedef enum {
-	ROCKIVA_FACE_MODE_VIDEO = 0,   /* 视频流模式 */
-	ROCKIVA_FACE_MODE_PICTURE = 1, /* 图片流模式 */
-	ROCKIVA_FACE_MODE_IMPORT = 2,  /* 导库模式(底图特征提取) */
-	ROCKIVA_FACE_MODE_SEARCH = 3,  /* 以图搜图模式 */
-} RockIvaFaceWorkType;
+	ROCKIVA_FACE_MODE_NORMAL = 0, /* 正常模式(根据RockIvaWorkMode配置) */
+	ROCKIVA_FACE_MODE_IMPORT = 1, /* 导库模式(底图特征提取) */
+	ROCKIVA_FACE_MODE_SEARCH = 2, /* 以图搜图模式 */
+} RockIvaFaceWorkMode;
 
 /* 目标状态 */
 typedef enum {
@@ -165,6 +164,7 @@ typedef struct {
 
 /* 人脸分析业务初始化参数配置 */
 typedef struct {
+	RockIvaFaceWorkMode mode;        /* 人脸任务模式 */
 	RockIvaFaceRule faceCaptureRule; /* 人脸抓拍规则 */
 	RockIvaFaceTaskType faceTaskType; /* 人脸业务类型：人脸抓拍业务/人脸识别业务 */
 } RockIvaFaceTaskInitParam;
@@ -185,13 +185,28 @@ typedef struct {
 	uint32_t attractive;             /* 颜值 */
 } RockIvaFaceAttribute;
 
+/* 人脸角度信息 */
+typedef struct {
+	int16_t pitch; /* 俯仰角,表示绕x轴旋转角度 */
+	int16_t yaw;   /* 偏航角,表示绕y轴旋转角度 */
+	int16_t roll;  /* 翻滚角,表示绕z轴旋转角度 */
+} RockIvaAngle;
+
+/* 人脸质量信息 */
+typedef struct {
+	uint16_t score;     /* 人脸质量分数(值范围0~100) */
+	uint16_t clarity;   /* 人脸清晰度(值范围0~100, 100表示最清晰) */
+	RockIvaAngle angle; /* 人脸角度 */
+} RockIvaFaceQualityInfo;
+
 /* 单个目标人脸检测基本信息 */
 typedef struct {
 	uint32_t objId;                       /* 目标ID[0,2^32) */
 	uint32_t frameId;                     /* 人脸所在帧序号 */
 	RockIvaRectangle faceRect;            /* 人脸区域原始位置 */
-	uint32_t faceScore;                   /* 人脸质量分数 [1-100] */
+	RockIvaFaceQualityInfo faceQuality;   /* 人脸质量信息 */
 	RockIvaFaceObjectStatus faceObjState; /* 人脸目标状态 */
+	RockIvaObjectInfo person;             /* 关联的人体检测信息 */
 } RockIvaFaceInfo;
 
 /* 单个目标人脸分析信息 */
@@ -257,31 +272,30 @@ typedef void (*ROCKIVA_FACE_DetResultCallback)(const RockIvaFaceDetResult *resul
                                                const RockIvaExecuteStatus status, void *userData);
 
 /**
- * @brief 抓拍结果回调函数
+ * @brief 抓拍和人脸分析结果回调函数
  *
  * result 结果
  * status 状态码
  * userData 用户自定义数据
  */
-typedef void (*ROCKIVA_FACE_CapResultCallback)(const RockIvaFaceCapResult *result,
-                                               const RockIvaExecuteStatus status, void *userData);
+typedef void (*ROCKIVA_FACE_AnalyseResultCallback)(const RockIvaFaceCapResult *result,
+                                                   const RockIvaExecuteStatus status,
+                                                   void *userData);
 
 typedef struct {
 	ROCKIVA_FACE_DetResultCallback detCallback;
-	ROCKIVA_FACE_CapResultCallback capCallback;
+	ROCKIVA_FACE_AnalyseResultCallback analyseCallback;
 } RockIvaFaceCallback;
 
 /**
  * @brief 初始化
  *
  * @param handle [INOUT] 初始化完成的handle
- * @param workType [IN] 人脸任务模式
  * @param initParams [IN] 初始化参数
  * @param resultCallback [IN] 回调函数
  * @return RockIvaRetCode
  */
-RockIvaRetCode ROCKIVA_FACE_Init(RockIvaHandle handle, RockIvaFaceWorkType workType,
-                                 const RockIvaFaceTaskInitParam *initParams,
+RockIvaRetCode ROCKIVA_FACE_Init(RockIvaHandle handle, const RockIvaFaceTaskInitParam *initParams,
                                  const RockIvaFaceCallback callback);
 
 /**

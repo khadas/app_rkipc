@@ -73,7 +73,7 @@ int rkipc_rockiva_init() {
 	globalParams.coreMask = 0x04;
 	globalParams.logLevel = ROCKIVA_LOG_ERROR;
 
-	ROCKIVA_Init(&rkba_handle, &globalParams, NULL);
+	ROCKIVA_Init(&rkba_handle, ROCKIVA_MODE_VIDEO, &globalParams, NULL);
 	LOG_INFO("ROCKIVA_Init over\n");
 
 	// 构建一个进入区域规则

@@ -26,6 +26,7 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/common/rtmp SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/osd SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/network SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/storage SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/rockiva SRCS)
 
 include_directories(audio
 					${PROJECT_SOURCE_DIR}/common/isp/otter
@@ -40,7 +41,9 @@ include_directories(audio
 					${PROJECT_SOURCE_DIR}/common/osd
 					${PROJECT_SOURCE_DIR}/common/osd/freetype2
 					${PROJECT_SOURCE_DIR}/common/network
-					${PROJECT_SOURCE_DIR}/common/storage)
+					${PROJECT_SOURCE_DIR}/common/storage
+					${PROJECT_SOURCE_DIR}/common/rockiva
+					)
 
 link_directories(${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-uclibcgnueabihf)
 
@@ -53,7 +56,7 @@ add_definitions(-Os)
 # link_libraries(asan)
 
 add_executable(${PROJECT_NAME} ${SRCS})
-target_link_libraries(${PROJECT_NAME} pthread rockit rkaiq rtsp wpa_client m rkmuxer rkfsmk freetype)
+target_link_libraries(${PROJECT_NAME} pthread rockit rkaiq rtsp wpa_client m rkmuxer rkfsmk freetype rockiva)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 install(FILES rkipc.ini DESTINATION share)
@@ -66,3 +69,6 @@ install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-uclibcgnueabihf/li
 install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-uclibcgnueabihf/libz.so DESTINATION lib)
 install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-uclibcgnueabihf/libiconv.so.2 DESTINATION lib)
 install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-uclibcgnueabihf/libiconv.so DESTINATION lib)
+install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-uclibcgnueabihf/librknnrt.so DESTINATION lib)
+install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-uclibcgnueabihf/librockiva.so DESTINATION lib)
+install(FILES ${PROJECT_SOURCE_DIR}/common/rockiva/object_detection_ipc_pfcd.data DESTINATION lib)

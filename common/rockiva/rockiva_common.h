@@ -109,7 +109,15 @@ typedef enum {
 	ROCKIVA_OBJECT_TYPE_NON_VEHICLE = 0x4, /* 非机动车 */
 	ROCKIVA_OBJECT_TYPE_FACE = 0x8,        /* 人脸 */
 	ROCKIVA_OBJECT_TYPE_HEAD = 0x10,       /* 人头 */
+	ROCKIVA_OBJECT_TYPE_CAT = 0x20,        /* 猫 */
+	ROCKIVA_OBJECT_TYPE_DOG = 0x40,        /* 狗 */
 } RockIvaObjectType;
+
+/* 工作模式 */
+typedef enum {
+	ROCKIVA_MODE_VIDEO = 0,   /* 视频流模式(使能跟踪) */
+	ROCKIVA_MODE_PICTURE = 1, /* 图片模式(不使能跟踪) */
+} RockIvaWorkMode;
 
 /********************************************************************/
 /*                          类型定义                                 */
@@ -188,6 +196,7 @@ typedef struct {
 	int32_t dataFd;        /* 图像数据DMA buffer fd */
 } RockIvaImage;
 
+/* 单个目标检测结果信息 */
 typedef struct {
 	uint32_t objId;         /* 目标ID[0,2^32) */
 	uint32_t frameId;       /* 所在帧序号 */
@@ -220,23 +229,12 @@ typedef struct {
 	char logPath[ROCKIVA_PATH_LENGTH];   /* 日志输出路径 */
 	char modelPath[ROCKIVA_PATH_LENGTH]; /* 存放算法模型的目录路径 */
 	RockIvaMemInfo license;              /* License信息 */
-	uint32_t detectObject;      /* 配置要检测的目标,使用RockIvaObjectType类型 */
-	uint32_t coreMask;          /* 指定使用哪个NPU核跑(仅RK3588平台有效) */
-	uint32_t channelId;         /* 通道号 */
-	RockIvaImageInfo imageInfo; /* 输入图像信息 */
+	uint32_t coreMask;                   /* 指定使用哪个NPU核跑(仅RK3588平台有效) */
+	uint32_t channelId;                  /* 通道号 */
+	RockIvaImageInfo imageInfo;          /* 输入图像信息 */
 } RockIvaInitParam;
 
 /********************************************************************/
-
-/**
- * @brief 检测结果回调函数
- *
- * result 结果
- * status 状态码
- * userData 用户自定义数据
- */
-typedef void (*ROCKIVA_DetectResultCallback)(const RockIvaDetectResult *result,
-                                             const RockIvaExecuteStatus status, void *userdata);
 
 /**
  * @brief 帧释放回调函数
@@ -252,11 +250,13 @@ typedef void (*ROCKIVA_FrameReleaseCallback)(const RockIvaReleaseFrames *release
  * @brief 算法SDK全局初始化配置
  *
  * @param handle [IN] 要初始化的实例句柄
+ * @param mode [IN] 工作模式
  * @param param [IN] 初始化参数
  * @param userdata [IN] 用户自定义数据
  * @return RockIvaRetCode
  */
-RockIvaRetCode ROCKIVA_Init(RockIvaHandle *handle, const RockIvaInitParam *param, void *userdata);
+RockIvaRetCode ROCKIVA_Init(RockIvaHandle *handle, RockIvaWorkMode mode,
+                            const RockIvaInitParam *param, void *userdata);
 
 /**
  * @brief 算法SDK全局销毁释放
@@ -264,15 +264,6 @@ RockIvaRetCode ROCKIVA_Init(RockIvaHandle *handle, const RockIvaInitParam *param
  * @return RockIvaRetCode
  */
 RockIvaRetCode ROCKIVA_Release(RockIvaHandle handle);
-
-/**
- * @brief 设置检测结果回调
- *
- * @param handle [IN]
- * @return RockIvaRetCode
- */
-RockIvaRetCode ROCKIVA_SetDetectCallback(RockIvaHandle handle,
-                                         ROCKIVA_DetectResultCallback callback);
 
 /**
  * @brief 设置帧释放回调

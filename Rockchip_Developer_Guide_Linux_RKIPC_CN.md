@@ -2,9 +2,9 @@
 
 文件标识：TODO
 
-发布版本：V0.5.0
+发布版本：V0.6.0
 
-日期：2022-01-26
+日期：2022-02-21
 
 文件密级：□绝密   □秘密   □内部资料   ■公开
 
@@ -69,6 +69,7 @@ Rockchip Electronics Co., Ltd.
 | V0.3.0     | 林刘迪铭 | 2021-11-12   | 增加媒体流框图说明     |
 | V0.4.0     | 林刘迪铭 | 2022-01-14   | 增加isp模块API介绍     |
 | V0.5.0     | 林刘迪铭 | 2022-01-26   | 更新代码结构和产品类型 |
+| V0.6.0     | 林刘迪铭 | 2022-02-21   | 更新RV1106信息         |
 
 ---
 
@@ -82,7 +83,7 @@ Rockchip Electronics Co., Ltd.
 
 | 源码目录           | 依赖外部库       | 功能                                                         |
 | ------------------ | ---------------- | ------------------------------------------------------------ |
-| low_memory_ipc     | rockit、rkaiq    | 针对低内存场景的IPC产品。                                    |
+| rv1106_ipc         | rockit、rkaiq    | 针对rv1106平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
 | rk3588_ipc         | rockit、rkaiq    | 针对rk3588平台的单目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
 | rk3588_muliti_ipc  | rockit、rkaiq    | 针对rk3588平台的多目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
 | rv1126_ipc_rkmedia | rockit、rkaiq    | 针对rv1126/rv1109平台的IPC产品，使用rkmedia，支持网页和rtsp/rtmp预览，参数动态修改。 |
@@ -90,12 +91,16 @@ Rockchip Electronics Co., Ltd.
 | rv1126_battery_ipc | rockit、rkaiq    | 针对rv1126/rv1109平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能。 |
 | rv1126_snapshot    | easymedia、rkaiq | 针对rv1126/rv1109平台的抓拍类型产品，支持离线帧，本地拍照/录像，屏幕显示，插值放大(TODO)。 |
 
-### Low Memory IPC
+### RV1106 IPC
 
 ```mermaid
 graph LR
-	VI[VI]-->VENC(VENC)-->RTSP/RTMP/MUXER(RTSP/RTMP/MUXER)
-	AI[AI]-->AENC(AENC)-->RTSP/RTMP/MUXER(RTSP/RTMP/MUXER)
+	AI-->AENC-->MUXER-->MP4
+	VI_0-->VENC_0-->MUXER
+	VENC_0-->RTSP_RTMP_0
+	VI_1-->VENC_1-->RTSP_RTMP_1
+	VI_1-->VO
+	VI_1-->VPSS-->NPU
 ```
 
 ### RK3588 IPC
@@ -604,7 +609,15 @@ submitOne(groupName: string, isReboot: boolean = false, isAppRestart = false) {
 
 ### 存储模块
 
-TODO
+| 函数名称                     | 功能             |
+| ---------------------------- | ---------------- |
+| rk_storage_init              | 存储模块初始化   |
+| rk_storage_deinit            | 存储模块反初始化 |
+| rk_storage_write_video_frame | 视频帧写入       |
+| rk_storage_write_audio_frame | 音频帧写入       |
+| rk_storage_record_start      | 录像开始         |
+| rk_storage_record_stop       | 录像停止         |
+| rk_storage_record_status_get | 录像状态获取     |
 
 ### OSD模块
 
@@ -756,6 +769,7 @@ TODO
 | rk_isp_get_dehaze                    | 获取去雾模式     |
 | rk_isp_set_dehaze                    | 设置去雾模式     |
 | rk_isp_get_gray_scale_mode           | 获取灰度范围     |
+| rk_isp_set_gray_scale_mode           | 设置灰度范围     |
 | rk_isp_get_distortion_correction     | 获取畸变矫正模式 |
 | rk_isp_set_distortion_correction     | 设置畸变矫正模式 |
 | rk_isp_get_spatial_denoise_level     | 获取空域降噪等级 |

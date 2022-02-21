@@ -8,6 +8,7 @@
 #include "isp.h"
 #include "log.h"
 #include "param.h"
+#include "rockiva.h"
 #include "server.h"
 #include "storage.h"
 #include "system.h"
@@ -102,6 +103,8 @@ int main(int argc, char **argv) {
 		rkipc_audio_init();
 	rkipc_server_init();
 	rk_storage_init();
+	if (rk_param_get_int("video.source:enable_npu", 0))
+		rkipc_rockiva_init();
 
 	while (g_main_run_) {
 		usleep(100 * 1000 * 1000);
@@ -116,6 +119,8 @@ int main(int argc, char **argv) {
 		rk_isp_deinit(0);
 	if (rk_param_get_int("audio.0:enable", 0))
 		rkipc_audio_deinit();
+	if (rk_param_get_int("video.source:enable_npu", 0))
+		rkipc_rockiva_deinit();
 	rk_param_deinit();
 
 	return 0;

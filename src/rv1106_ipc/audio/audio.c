@@ -71,8 +71,8 @@ void *save_aenc_thread(void *ptr) {
 			void *buffer = RK_MPI_MB_Handle2VirAddr(bBlk);
 			eos = (pstStream.u32Len <= 0) ? 1 : 0;
 			if (buffer) {
-				// LOG_INFO("get frame data = %p, size = %d, pts is %lld\n", buffer,
-				// pstStream.u32Len, pstStream.u64TimeStamp);
+				LOG_INFO("get frame data = %p, size = %d, pts is %lld, seq is %d\n", buffer,
+				pstStream.u32Len, pstStream.u64TimeStamp, pstStream.u32Seq);
 				// fake 72ms
 				fake_time += 72000;
 				// LOG_INFO("fake pts is %lld\n", fake_time);
