@@ -2579,10 +2579,12 @@ int rk_video_deinit() {
 extern char *rkipc_iq_file_path_;
 int rk_video_restart() {
 	int ret;
-	ret = rk_video_deinit();
+	ret = rk_storage_deinit();
+	ret |= rk_video_deinit();
 	ret |= rk_isp_group_deinit(0);
 	ret |= rk_isp_group_init(0, rkipc_iq_file_path_);
 	ret |= rk_video_init();
+	ret |= rk_storage_init();
 
 	return ret;
 }

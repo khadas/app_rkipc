@@ -441,7 +441,7 @@ int rkipc_pipe_0_init() {
 	int ret;
 	int video_width = rk_param_get_int("video.0:width", -1);
 	int video_height = rk_param_get_int("video.0:height", -1);
-	int buf_cnt = 4;
+	int buf_cnt = 2;
 
 	// VI
 	VI_CHN_ATTR_S vi_chn_attr;
@@ -615,7 +615,7 @@ int rkipc_pipe_1_init() {
 	int ret;
 	int video_width = rk_param_get_int("video.1:width", 1920);
 	int video_height = rk_param_get_int("video.1:height", 1080);
-	int buf_cnt = 4;
+	int buf_cnt = 2;
 
 	// VI
 	VI_CHN_ATTR_S vi_chn_attr;
@@ -625,7 +625,8 @@ int rkipc_pipe_1_init() {
 	vi_chn_attr.stSize.u32Width = video_width;
 	vi_chn_attr.stSize.u32Height = video_height;
 	vi_chn_attr.enPixelFormat = RK_FMT_YUV420SP;
-	vi_chn_attr.u32Depth = 1;
+	if (g_enable_vo)
+		vi_chn_attr.u32Depth = 1;
 	ret = RK_MPI_VI_SetChnAttr(pipe_id_, VIDEO_PIPE_1, &vi_chn_attr);
 	ret |= RK_MPI_VI_EnableChn(pipe_id_, VIDEO_PIPE_1);
 	if (ret) {
@@ -1650,13 +1651,14 @@ int rk_video_deinit() {
 extern char *rkipc_iq_file_path_;
 int rk_video_restart() {
 	int ret;
-	ret = rk_video_deinit();
+	ret = rk_storage_deinit();
+	ret |= rk_video_deinit();
 	if (rk_param_get_int("video.source:enable_aiq", 1))
-		rk_isp_deinit(0);
-	usleep(100 * 1000);
+		ret |= rk_isp_deinit(0);
 	if (rk_param_get_int("video.source:enable_aiq", 1))
-		rk_isp_init(0, rkipc_iq_file_path_);
+		ret |= rk_isp_init(0, rkipc_iq_file_path_);
 	ret |= rk_video_init();
+	ret |= rk_storage_init();
 
 	return ret;
 }

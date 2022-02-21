@@ -1978,19 +1978,17 @@ static int rk_storage_muxer_init_by_id(int id) {
 int rk_storage_muxer_deinit_by_id(int id) {
 	LOG_INFO("begin\n");
 	char entry[128] = {'\0'};
-	for (int id = 0; id < STORAGE_NUM; id++) {
-		snprintf(entry, 127, "storage.%d:enable", id);
-		if (rk_param_get_int(entry, 0) == 0) {
-			LOG_INFO("storage[%d]:enable is 0\n", id);
-			return 0;
-		}
-		rk_storage_muxer_group[id].g_record_run_ = 0;
-		if (rk_storage_muxer_group[id].g_storage_signal) {
-			rk_signal_give(rk_storage_muxer_group[id].g_storage_signal);
-			pthread_join(rk_storage_muxer_group[id].record_thread_id, NULL);
-			rk_signal_destroy(rk_storage_muxer_group[id].g_storage_signal);
-			rk_storage_muxer_group[id].g_storage_signal = NULL;
-		}
+	snprintf(entry, 127, "storage.%d:enable", id);
+	if (rk_param_get_int(entry, 0) == 0) {
+		LOG_INFO("storage[%d]:enable is 0\n", id);
+		return 0;
+	}
+	rk_storage_muxer_group[id].g_record_run_ = 0;
+	if (rk_storage_muxer_group[id].g_storage_signal) {
+		rk_signal_give(rk_storage_muxer_group[id].g_storage_signal);
+		pthread_join(rk_storage_muxer_group[id].record_thread_id, NULL);
+		rk_signal_destroy(rk_storage_muxer_group[id].g_storage_signal);
+		rk_storage_muxer_group[id].g_storage_signal = NULL;
 	}
 	LOG_INFO("end\n");
 
@@ -2034,6 +2032,8 @@ int rk_storage_deinit() {
 	// }
 	rkipc_storage_free_dev_attr(g_sd_dev_attr);
 	rkipc_storage_manager_deinit(g_sd_phandle);
+	g_sd_phandle = NULL;
+
 	return 0;
 }
 
