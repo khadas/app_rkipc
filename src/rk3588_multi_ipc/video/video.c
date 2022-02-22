@@ -48,6 +48,7 @@ static const char *tmp_output_data_type = "H.264";
 static const char *tmp_rc_mode;
 static const char *tmp_h264_profile;
 static const char *tmp_smart;
+static const char *tmp_rc_quality;
 static pthread_t venc_thread_0, venc_thread_1, venc_thread_2, jpeg_venc_thread_id, vpss_thread_rgb;
 static int capture_one = 0;
 static int take_photo_one = 0;
@@ -1000,16 +1001,47 @@ int rkipc_venc_0_init() {
 		LOG_ERROR("ERROR: create VENC error! ret=%#x\n", ret);
 		return -1;
 	}
-	// VENC_RC_PARAM_S h265_RcParam;
-	// RK_MPI_VENC_GetRcParam(VIDEO_PIPE_0, &h265_RcParam);
-	// h265_RcParam.s32FirstFrameStartQp = 26;
-	// h265_RcParam.stParamH265.u32StepQp = 8;
-	// h265_RcParam.stParamH265.u32MaxQp = 51;
-	// h265_RcParam.stParamH265.u32MinQp = 10;
-	// h265_RcParam.stParamH265.u32MaxIQp = 46;
-	// h265_RcParam.stParamH265.u32MinIQp = 24;
-	// h265_RcParam.stParamH265.s32DeltIpQp = rk_param_get_int("avs:deltea_ip_qp", -4);
-	// RK_MPI_VENC_SetRcParam(VIDEO_PIPE_0, &h265_RcParam);
+
+	tmp_rc_quality = rk_param_get_string("video.0:rc_quality", NULL);
+	VENC_RC_PARAM_S venc_rc_param;
+	RK_MPI_VENC_GetRcParam(VIDEO_PIPE_0, &venc_rc_param);
+	if (!strcmp(tmp_output_data_type, "H.264")) {
+		if (!strcmp(tmp_rc_quality, "highest")) {
+			venc_rc_param.stParamH264.u32MinQp = 10;
+		} else if (!strcmp(tmp_rc_quality, "higher")) {
+			venc_rc_param.stParamH264.u32MinQp = 15;
+		} else if (!strcmp(tmp_rc_quality, "high")) {
+			venc_rc_param.stParamH264.u32MinQp = 20;
+		} else if (!strcmp(tmp_rc_quality, "medium")) {
+			venc_rc_param.stParamH264.u32MinQp = 25;
+		} else if (!strcmp(tmp_rc_quality, "low")) {
+			venc_rc_param.stParamH264.u32MinQp = 30;
+		} else if (!strcmp(tmp_rc_quality, "lower")) {
+			venc_rc_param.stParamH264.u32MinQp = 35;
+		} else {
+			venc_rc_param.stParamH264.u32MinQp = 40;
+		}
+	} else if (!strcmp(tmp_output_data_type, "H.265")) {
+		if (!strcmp(tmp_rc_quality, "highest")) {
+			venc_rc_param.stParamH265.u32MinQp = 10;
+		} else if (!strcmp(tmp_rc_quality, "higher")) {
+			venc_rc_param.stParamH265.u32MinQp = 15;
+		} else if (!strcmp(tmp_rc_quality, "high")) {
+			venc_rc_param.stParamH265.u32MinQp = 20;
+		} else if (!strcmp(tmp_rc_quality, "medium")) {
+			venc_rc_param.stParamH265.u32MinQp = 25;
+		} else if (!strcmp(tmp_rc_quality, "low")) {
+			venc_rc_param.stParamH265.u32MinQp = 30;
+		} else if (!strcmp(tmp_rc_quality, "lower")) {
+			venc_rc_param.stParamH265.u32MinQp = 35;
+		} else {
+			venc_rc_param.stParamH265.u32MinQp = 40;
+		}
+	} else {
+		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
+		return -1;
+	}
+	RK_MPI_VENC_SetRcParam(VIDEO_PIPE_0, &venc_rc_param);
 
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
@@ -1137,6 +1169,48 @@ int rkipc_venc_1_init() {
 		LOG_ERROR("ERROR: create VENC error! ret=%#x\n", ret);
 		return -1;
 	}
+
+	tmp_rc_quality = rk_param_get_string("video.1:rc_quality", NULL);
+	VENC_RC_PARAM_S venc_rc_param;
+	RK_MPI_VENC_GetRcParam(VIDEO_PIPE_1, &venc_rc_param);
+	if (!strcmp(tmp_output_data_type, "H.264")) {
+		if (!strcmp(tmp_rc_quality, "highest")) {
+			venc_rc_param.stParamH264.u32MinQp = 10;
+		} else if (!strcmp(tmp_rc_quality, "higher")) {
+			venc_rc_param.stParamH264.u32MinQp = 15;
+		} else if (!strcmp(tmp_rc_quality, "high")) {
+			venc_rc_param.stParamH264.u32MinQp = 20;
+		} else if (!strcmp(tmp_rc_quality, "medium")) {
+			venc_rc_param.stParamH264.u32MinQp = 25;
+		} else if (!strcmp(tmp_rc_quality, "low")) {
+			venc_rc_param.stParamH264.u32MinQp = 30;
+		} else if (!strcmp(tmp_rc_quality, "lower")) {
+			venc_rc_param.stParamH264.u32MinQp = 35;
+		} else {
+			venc_rc_param.stParamH264.u32MinQp = 40;
+		}
+	} else if (!strcmp(tmp_output_data_type, "H.265")) {
+		if (!strcmp(tmp_rc_quality, "highest")) {
+			venc_rc_param.stParamH265.u32MinQp = 10;
+		} else if (!strcmp(tmp_rc_quality, "higher")) {
+			venc_rc_param.stParamH265.u32MinQp = 15;
+		} else if (!strcmp(tmp_rc_quality, "high")) {
+			venc_rc_param.stParamH265.u32MinQp = 20;
+		} else if (!strcmp(tmp_rc_quality, "medium")) {
+			venc_rc_param.stParamH265.u32MinQp = 25;
+		} else if (!strcmp(tmp_rc_quality, "low")) {
+			venc_rc_param.stParamH265.u32MinQp = 30;
+		} else if (!strcmp(tmp_rc_quality, "lower")) {
+			venc_rc_param.stParamH265.u32MinQp = 35;
+		} else {
+			venc_rc_param.stParamH265.u32MinQp = 40;
+		}
+	} else {
+		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
+		return -1;
+	}
+	RK_MPI_VENC_SetRcParam(VIDEO_PIPE_1, &venc_rc_param);
+
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
 	RK_MPI_VENC_StartRecvFrame(VIDEO_PIPE_1, &stRecvParam);
@@ -1263,6 +1337,48 @@ int rkipc_venc_2_init() {
 		LOG_ERROR("ERROR: create VENC error! ret=%#x\n", ret);
 		return -1;
 	}
+
+	tmp_rc_quality = rk_param_get_string("video.2:rc_quality", NULL);
+	VENC_RC_PARAM_S venc_rc_param;
+	RK_MPI_VENC_GetRcParam(VIDEO_PIPE_2, &venc_rc_param);
+	if (!strcmp(tmp_output_data_type, "H.264")) {
+		if (!strcmp(tmp_rc_quality, "highest")) {
+			venc_rc_param.stParamH264.u32MinQp = 10;
+		} else if (!strcmp(tmp_rc_quality, "higher")) {
+			venc_rc_param.stParamH264.u32MinQp = 15;
+		} else if (!strcmp(tmp_rc_quality, "high")) {
+			venc_rc_param.stParamH264.u32MinQp = 20;
+		} else if (!strcmp(tmp_rc_quality, "medium")) {
+			venc_rc_param.stParamH264.u32MinQp = 25;
+		} else if (!strcmp(tmp_rc_quality, "low")) {
+			venc_rc_param.stParamH264.u32MinQp = 30;
+		} else if (!strcmp(tmp_rc_quality, "lower")) {
+			venc_rc_param.stParamH264.u32MinQp = 35;
+		} else {
+			venc_rc_param.stParamH264.u32MinQp = 40;
+		}
+	} else if (!strcmp(tmp_output_data_type, "H.265")) {
+		if (!strcmp(tmp_rc_quality, "highest")) {
+			venc_rc_param.stParamH265.u32MinQp = 10;
+		} else if (!strcmp(tmp_rc_quality, "higher")) {
+			venc_rc_param.stParamH265.u32MinQp = 15;
+		} else if (!strcmp(tmp_rc_quality, "high")) {
+			venc_rc_param.stParamH265.u32MinQp = 20;
+		} else if (!strcmp(tmp_rc_quality, "medium")) {
+			venc_rc_param.stParamH265.u32MinQp = 25;
+		} else if (!strcmp(tmp_rc_quality, "low")) {
+			venc_rc_param.stParamH265.u32MinQp = 30;
+		} else if (!strcmp(tmp_rc_quality, "lower")) {
+			venc_rc_param.stParamH265.u32MinQp = 35;
+		} else {
+			venc_rc_param.stParamH265.u32MinQp = 40;
+		}
+	} else {
+		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
+		return -1;
+	}
+	RK_MPI_VENC_SetRcParam(VIDEO_PIPE_2, &venc_rc_param);
+
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
 	RK_MPI_VENC_StartRecvFrame(VIDEO_PIPE_2, &stRecvParam);
@@ -1910,9 +2026,53 @@ int rk_video_get_rc_quality(int stream_id, const char **value) {
 }
 
 int rk_video_set_rc_quality(int stream_id, const char *value) {
-	char entry[128] = {'\0'};
-	snprintf(entry, 127, "video.%d:rc_quality", stream_id);
-	rk_param_set_string(entry, value);
+	char entry_rc_quality[128] = {'\0'};
+	char entry_output_data_type[128] = {'\0'};
+
+	snprintf(entry_rc_quality, 127, "video.%d:rc_quality", stream_id);
+	snprintf(entry_output_data_type, 127, "video.%d:output_data_type", stream_id);
+	tmp_output_data_type = rk_param_get_string(entry_output_data_type, "H.264");
+
+	VENC_RC_PARAM_S venc_rc_param;
+	RK_MPI_VENC_GetRcParam(stream_id, &venc_rc_param);
+	if (!strcmp(tmp_output_data_type, "H.264")) {
+		if (!strcmp(value, "highest")) {
+			venc_rc_param.stParamH264.u32MinQp = 10;
+		} else if (!strcmp(value, "higher")) {
+			venc_rc_param.stParamH264.u32MinQp = 15;
+		} else if (!strcmp(value, "high")) {
+			venc_rc_param.stParamH264.u32MinQp = 20;
+		} else if (!strcmp(value, "medium")) {
+			venc_rc_param.stParamH264.u32MinQp = 25;
+		} else if (!strcmp(value, "low")) {
+			venc_rc_param.stParamH264.u32MinQp = 30;
+		} else if (!strcmp(value, "lower")) {
+			venc_rc_param.stParamH264.u32MinQp = 35;
+		} else {
+			venc_rc_param.stParamH264.u32MinQp = 40;
+		}
+	} else if (!strcmp(tmp_output_data_type, "H.265")) {
+		if (!strcmp(value, "highest")) {
+			venc_rc_param.stParamH265.u32MinQp = 10;
+		} else if (!strcmp(value, "higher")) {
+			venc_rc_param.stParamH265.u32MinQp = 15;
+		} else if (!strcmp(value, "high")) {
+			venc_rc_param.stParamH265.u32MinQp = 20;
+		} else if (!strcmp(value, "medium")) {
+			venc_rc_param.stParamH265.u32MinQp = 25;
+		} else if (!strcmp(value, "low")) {
+			venc_rc_param.stParamH265.u32MinQp = 30;
+		} else if (!strcmp(value, "lower")) {
+			venc_rc_param.stParamH265.u32MinQp = 35;
+		} else {
+			venc_rc_param.stParamH265.u32MinQp = 40;
+		}
+	} else {
+		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
+		return -1;
+	}
+	RK_MPI_VENC_SetRcParam(stream_id, &venc_rc_param);
+	rk_param_set_string(entry_rc_quality, value);
 
 	return 0;
 }
