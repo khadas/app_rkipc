@@ -982,10 +982,11 @@ int rk_isp_set_spatial_denoise_level(int cam_id, int value) {
 		value = 50;
 		LOG_DEBUG("noise_reduce_mode is %s, value is %d\n", noise_reduce_mode, value);
 	}
-
+	ynrStrenght.strength_enable = true;
 	ynrStrenght.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
 	ynrStrenght.percent = value / 100.0;
 	ret = rk_aiq_user_api2_aynrV3_SetStrength(rkipc_aiq_get_ctx(cam_id), &ynrStrenght);
+	bayer2dnrV2Strenght.strength_enable = true;
 	bayer2dnrV2Strenght.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
 	bayer2dnrV2Strenght.percent = value / 100.0;
 	ret =
@@ -1019,7 +1020,7 @@ int rk_isp_set_temporal_denoise_level(int cam_id, int value) {
 		value = 50;
 		LOG_DEBUG("noise_reduce_mode is %s, value is %d\n", noise_reduce_mode, value);
 	}
-
+	bayertnrV2Strenght.strength_enable = true;
 	bayertnrV2Strenght.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
 	bayertnrV2Strenght.percent = value / 100.0;
 	ret = rk_aiq_user_api2_abayertnrV2_SetStrength(rkipc_aiq_get_ctx(cam_id), &bayertnrV2Strenght);
