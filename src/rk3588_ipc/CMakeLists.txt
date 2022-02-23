@@ -23,6 +23,7 @@ aux_source_directory(video SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/isp/rk3588 SRCS)
 aux_source_directory(server SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/ SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/socket_server SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/param SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/system SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/rtmp SRCS)
@@ -36,6 +37,7 @@ include_directories(audio
 					video
 					server
 					${PROJECT_SOURCE_DIR}/common
+					${PROJECT_SOURCE_DIR}/common/socket_server
 					${PROJECT_SOURCE_DIR}/common/rtsp
 					${PROJECT_SOURCE_DIR}/common/rtmp
 					${PROJECT_SOURCE_DIR}/common/param
