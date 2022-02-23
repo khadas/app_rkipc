@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 #include "common.h"
 #include "log.h"
+#include "rtsp_demo.h"
 #include "storage.h"
 
 #include <rk_debug.h>
@@ -24,6 +25,9 @@ static int aenc_dev_id = 0;
 static int aenc_chn_id = 0;
 static int g_audio_run_ = 1;
 MPP_CHN_S ai_chn, aenc_chn;
+extern pthread_mutex_t g_rtsp_mutex;
+extern rtsp_demo_handle g_rtsplive;
+extern rtsp_session_handle g_rtsp_session_0, g_rtsp_session_1, g_rtsp_session_2;
 
 void *save_ai_thread(void *ptr) {
 	RK_S32 ret = 0;
@@ -72,13 +76,27 @@ void *save_aenc_thread(void *ptr) {
 			eos = (pstStream.u32Len <= 0) ? 1 : 0;
 			if (buffer) {
 				LOG_INFO("get frame data = %p, size = %d, pts is %lld, seq is %d\n", buffer,
-				pstStream.u32Len, pstStream.u64TimeStamp, pstStream.u32Seq);
+				         pstStream.u32Len, pstStream.u64TimeStamp, pstStream.u32Seq);
+#if 0
 				// fake 72ms
 				fake_time += 72000;
 				// LOG_INFO("fake pts is %lld\n", fake_time);
 				rk_storage_write_audio_frame(0, buffer, pstStream.u32Len, fake_time);
 				rk_storage_write_audio_frame(1, buffer, pstStream.u32Len, fake_time);
 				rk_storage_write_audio_frame(2, buffer, pstStream.u32Len, fake_time);
+#endif
+				if (g_rtsplive && g_rtsp_session_0) {
+					pthread_mutex_lock(&g_rtsp_mutex);
+					rtsp_tx_audio(g_rtsp_session_0, buffer, pstStream.u32Len, pstStream.u32Seq);
+					rtsp_do_event(g_rtsplive);
+					pthread_mutex_unlock(&g_rtsp_mutex);
+				}
+				if (g_rtsplive && g_rtsp_session_1) {
+					pthread_mutex_lock(&g_rtsp_mutex);
+					rtsp_tx_audio(g_rtsp_session_1, buffer, pstStream.u32Len, pstStream.u32Seq);
+					rtsp_do_event(g_rtsplive);
+					pthread_mutex_unlock(&g_rtsp_mutex);
+				}
 				// if (file) {
 				// 	fwrite(buffer, pstStream.u32Len, 1, file);
 				// 	fflush(file);
@@ -189,6 +207,9 @@ int rkipc_aenc_init() {
 	if (!strcmp(encode_type, "MP2")) {
 		stAencAttr.enType = RK_AUDIO_ID_MP2;
 		stAencAttr.stCodecAttr.enType = RK_AUDIO_ID_MP2;
+	} else if (!strcmp(encode_type, "G711A")) {
+		stAencAttr.enType = RK_AUDIO_ID_PCM_ALAW;
+		stAencAttr.stCodecAttr.enType = RK_AUDIO_ID_PCM_ALAW;
 	} else {
 		LOG_ERROR("not support %s\n", encode_type);
 	}
@@ -244,6 +265,10 @@ int rkipc_audio_init() {
 		LOG_ERROR("RK_MPI_SYS_Bind fail %x\n", ret);
 	}
 	LOG_INFO("RK_MPI_SYS_Bind success\n");
+	rtsp_set_audio(g_rtsp_session_0, RTSP_CODEC_ID_AUDIO_G711A, NULL, 0);
+	rtsp_set_audio(g_rtsp_session_1, RTSP_CODEC_ID_AUDIO_G711A, NULL, 0);
+	rtsp_sync_audio_ts(g_rtsp_session_0, rtsp_get_reltime(), rtsp_get_ntptime());
+	rtsp_sync_audio_ts(g_rtsp_session_1, rtsp_get_reltime(), rtsp_get_ntptime());
 
 	return ret;
 }

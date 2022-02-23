@@ -24,8 +24,8 @@
 
 // set by CMakeList.txt
 #include "isp.h"
-#include "video.h"
 #include "osd.h"
+#include "video.h"
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -4167,7 +4167,7 @@ static const struct FunMap map[] = {
     {(char *)"rk_isp_af_focus_in", &ser_rk_isp_af_focus_in},
     {(char *)"rk_isp_af_focus_out", &ser_rk_isp_af_focus_out},
     {(char *)"rk_isp_af_focus_once", &ser_rk_isp_af_focus_once},
-	// video
+    // video
     {(char *)"rk_video_restart", &ser_rk_video_restart},
     {(char *)"rk_video_get_gop", &ser_rk_video_get_gop},
     {(char *)"rk_video_set_gop", &ser_rk_video_set_gop},

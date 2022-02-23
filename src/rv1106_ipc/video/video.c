@@ -24,13 +24,17 @@
 #include <rk_mpi_sys.h>
 #include <rk_mpi_venc.h>
 #include <rk_mpi_vi.h>
-#include <rk_mpi_vo.h>
 #include <rk_mpi_vpss.h>
 
 #include <inttypes.h> // PRId64
 
 #include <rga/im2d.h>
 #include <rga/rga.h>
+
+#define HAS_VO 0
+#if HAS_VO
+#include <rk_mpi_vo.h>
+#endif
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -58,15 +62,15 @@
 #define RTMP_URL_1 "rtmp://127.0.0.1:1935/live/substream"
 #define RTMP_URL_2 "rtmp://127.0.0.1:1935/live/thirdstream"
 
-static pthread_mutex_t g_rtsp_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t g_rtsp_mutex = PTHREAD_MUTEX_INITIALIZER;
+rtsp_demo_handle g_rtsplive = NULL;
+rtsp_session_handle g_rtsp_session_0, g_rtsp_session_1, g_rtsp_session_2;
 static int take_photo_one = 0;
 static int enable_jpeg, enable_venc_0, enable_venc_1, enable_venc_2;
 static int g_enable_vo, g_vo_dev_id, g_vi_chn_id, enable_npu;
 static int g_video_run_ = 1;
 static int pipe_id_ = 0;
 static int dev_id_ = 0;
-static rtsp_demo_handle g_rtsplive = NULL;
-static rtsp_session_handle g_rtsp_session_0, g_rtsp_session_1, g_rtsp_session_2;
 static const char *tmp_output_data_type = "H.264";
 static const char *tmp_rc_mode;
 static const char *tmp_h264_profile;
@@ -77,6 +81,7 @@ static pthread_t venc_thread_0, venc_thread_1, venc_thread_2, jpeg_venc_thread_i
 static MPP_CHN_S vi_chn, vpss_bgr_chn, vpss_rotate_chn, vo_chn, vpss_out_chn[4], venc_chn;
 static VO_DEV VoLayer = RK3588_VOP_LAYER_CLUSTER0;
 
+#if HAS_VO
 static void *get_vi_send_vo(void *arg) {
 	printf("#Start %s thread, arg:%p\n", __func__, arg);
 	prctl(PR_SET_NAME, "get_vi_send_vo", 0, 0, 0);
@@ -119,6 +124,7 @@ static void *get_vi_send_vo(void *arg) {
 
 	return 0;
 }
+#endif
 
 static void *rkipc_get_venc_0(void *arg) {
 	printf("#Start %s thread, arg:%p\n", __func__, arg);
@@ -871,6 +877,7 @@ int rkipc_pipe_1_init() {
 
 	if (!g_enable_vo)
 		return 0;
+#if HAS_VO
 	// VO
 	VO_PUB_ATTR_S VoPubAttr;
 	VO_VIDEO_LAYER_ATTR_S stLayerAttr;
@@ -998,6 +1005,7 @@ int rkipc_pipe_1_init() {
 
 	pthread_t thread_id;
 	pthread_create(&thread_id, NULL, get_vi_send_vo, NULL);
+#endif
 
 	return 0;
 }
