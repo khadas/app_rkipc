@@ -533,9 +533,41 @@ int rk_isp_get_hdr(int cam_id, const char **value) {
 }
 
 int rk_isp_set_hdr(int cam_id, const char *value) {
-	int ret;
+	int ret, format, sensor_num, pipe_id, vi_chn_id;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	char entry[128] = {'\0'};
+	const char *old_value = NULL;
+	rk_isp_get_hdr(cam_id, &old_value);
+	LOG_INFO("cam_id is %d, value is %s, old_value is %s\n", cam_id, value, old_value);
+	if (strcmp(value, old_value)) {
+		if (rkipc_aiq_use_group) {
+			format = rk_param_get_int("avs:format", 0);
+			sensor_num = rk_param_get_int("avs:sensor_num", 6);
+			for (int i = 0; i < sensor_num; i++) {
+				if (format)
+					ret |= RK_MPI_VI_DisableChn(i, 2);
+				else
+					ret |= RK_MPI_VI_DisableChn(i, 0);
+			}
+			rk_isp_group_deinit(0);
+			// usleep(100 * 1000);
+			rk_isp_group_init(0, g_iq_file_dir_);
+			for (int i = 0; i < sensor_num; i++) {
+				if (format)
+					ret |= RK_MPI_VI_EnableChn(i, 2);
+				else
+					ret |= RK_MPI_VI_EnableChn(i, 0);
+			}
+		} else {
+			pipe_id = rk_param_get_int("video.source:camera_id", 0);
+			vi_chn_id = rk_param_get_int("video.source:vi_chn_id", 0);
+			RK_MPI_VI_DisableChn(pipe_id, vi_chn_id);
+			rk_isp_deinit(pipe_id);
+			// usleep(100 * 1000);
+			rk_isp_init(pipe_id, g_iq_file_dir_);
+			RK_MPI_VI_EnableChn(pipe_id, vi_chn_id);
+		}
+	}
 	snprintf(entry, 127, "isp.%d.blc:hdr", cam_id);
 	rk_param_set_string(entry, value);
 

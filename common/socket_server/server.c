@@ -1,6 +1,7 @@
-// Copyright 2021 Rockchip Electronics Co., Ltd. All rights reserved.
+// Copyright 2022 Rockchip Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+
 #include <assert.h>
 #include <fcntl.h>
 #include <pthread.h>
@@ -14,14 +15,17 @@
 #include <unistd.h>
 
 #include "common.h"
-#include "isp.h"
+
 #include "log.h"
 #include "network.h"
-//#include "osd.h"
 #include "socket.h"
 #include "storage.h"
 #include "system.h"
+
+// set by CMakeList.txt
+#include "isp.h"
 #include "video.h"
+#include "osd.h"
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -38,7 +42,6 @@ struct FunMap {
 };
 
 int ser_rk_isp_set(int fd) {
-	int ret = 0;
 	int len;
 	char *json = NULL;
 
@@ -60,7 +63,6 @@ int ser_rk_isp_set(int fd) {
 }
 
 int ser_rk_video_set(int fd) {
-	int ret = 0;
 	int len;
 	char *json = NULL;
 
@@ -82,7 +84,6 @@ int ser_rk_video_set(int fd) {
 }
 
 int ser_rk_audio_set(int fd) {
-	int ret = 0;
 	int len;
 	char *json = NULL;
 
@@ -594,6 +595,7 @@ int ser_rk_isp_get_hdr(int fd) {
 int ser_rk_isp_set_hdr(int fd) {
 	int ret = 0;
 	int id, len;
+	const char *old_value = NULL;
 	char *value = NULL;
 
 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
@@ -606,7 +608,6 @@ int ser_rk_isp_set_hdr(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
 		ret = rk_isp_set_hdr(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -1101,6 +1102,31 @@ int ser_rk_isp_get_gray_scale_mode(int fd) {
 	return 0;
 }
 
+int ser_rk_isp_set_gray_scale_mode(int fd) {
+	int ret = 0;
+	int id, len;
+	char *value = NULL;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_INFO("id is %d, value is %s\n", id, value);
+		ret = rk_isp_set_gray_scale_mode(id, value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
+
+	return 0;
+}
+
 int ser_rk_isp_get_distortion_correction(int fd) {
 	int err = 0;
 	int id, len;
@@ -1532,8 +1558,6 @@ int ser_rk_isp_af_focus_once(int fd) {
 // video
 int ser_rk_video_restart(int fd) {
 	int err = 0;
-	int id;
-	int value;
 
 	LOG_DEBUG("restart begin\n");
 	err = rk_video_restart();
@@ -2020,773 +2044,763 @@ int ser_rk_video_set_frame_rate_in(int fd) {
 	return 0;
 }
 
-// int ser_rk_osd_get_is_presistent_text(int fd) {
-// 	int err = 0;
-// 	int id;
-// 	int value;
-
-// 	err = rk_osd_get_is_presistent_text(&value);
-// 	LOG_DEBUG("value is %d\n", value);
-// 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_set_is_presistent_text(int fd) {
-// 	int err = 0;
-// 	int id;
-// 	int value;
-
-// 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	LOG_DEBUG("value is %d\n", value);
-// 	err = rk_osd_set_is_presistent_text(value);
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_get_font_size(int fd) {
-// 	int err = 0;
-// 	int id;
-// 	int value;
-
-// 	err = rk_osd_get_font_size(&value);
-// 	LOG_DEBUG("value is %d\n", value);
-// 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_set_font_size(int fd) {
-// 	int err = 0;
-// 	int id;
-// 	int value;
-
-// 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	LOG_DEBUG("value is %d\n", value);
-// 	err = rk_osd_set_font_size(value);
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_get_boundary(int fd) {
-// 	int err = 0;
-// 	int id;
-// 	int value;
-
-// 	err = rk_osd_get_boundary(&value);
-// 	LOG_DEBUG("value is %d\n", value);
-// 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_set_boundary(int fd) {
-// 	int err = 0;
-// 	int id;
-// 	int value;
-
-// 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	LOG_DEBUG("value is %d\n", value);
-// 	err = rk_osd_set_boundary(value);
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_get_normalized_screen_width(int fd) {
-// 	int err = 0;
-// 	int id;
-// 	int value;
-
-// 	err = rk_osd_get_normalized_screen_width(&value);
-// 	LOG_DEBUG("value is %d\n", value);
-// 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_get_normalized_screen_height(int fd) {
-// 	int err = 0;
-// 	int id;
-// 	int value;
-
-// 	err = rk_osd_get_normalized_screen_height(&value);
-// 	LOG_DEBUG("value is %d\n", value);
-// 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_get_attribute(int fd) {
-// 	int err = 0;
-// 	int len;
-// 	const char *value;
-
-// 	err = rk_osd_get_attribute(&value);
-// 	len = strlen(value);
-// 	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
-// 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_set_attribute(int fd) {
-// 	int ret = 0;
-// 	int len;
-// 	char *value = NULL;
-
-// 	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (len) {
-// 		value = (char *)malloc(len);
-// 		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
-// 			free(value);
-// 			return -1;
-// 		}
-// 		LOG_INFO("value is %s\n", value);
-// 		ret = rk_osd_set_attribute(value);
-// 		free(value);
-// 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
-// 			return -1;
-// 	}
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_get_font_color_mode(int fd) {
-// 	int err = 0;
-// 	int len;
-// 	const char *value;
-
-// 	err = rk_osd_get_font_color_mode(&value);
-// 	len = strlen(value);
-// 	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
-// 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_set_font_color_mode(int fd) {
-// 	int ret = 0;
-// 	int len;
-// 	char *value = NULL;
-
-// 	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (len) {
-// 		value = (char *)malloc(len);
-// 		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
-// 			free(value);
-// 			return -1;
-// 		}
-// 		LOG_INFO("value is %s\n", value);
-// 		ret = rk_osd_set_font_color_mode(value);
-// 		free(value);
-// 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
-// 			return -1;
-// 	}
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_get_font_color(int fd) {
-// 	int err = 0;
-// 	int len;
-// 	const char *value;
-
-// 	err = rk_osd_get_font_color(&value);
-// 	len = strlen(value);
-// 	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
-// 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_set_font_color(int fd) {
-// 	int ret = 0;
-// 	int len;
-// 	char *value = NULL;
-
-// 	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (len) {
-// 		value = (char *)malloc(len);
-// 		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
-// 			free(value);
-// 			return -1;
-// 		}
-// 		LOG_INFO("value is %s\n", value);
-// 		ret = rk_osd_set_font_color(value);
-// 		free(value);
-// 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
-// 			return -1;
-// 	}
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_get_alignment(int fd) {
-// 	int err = 0;
-// 	int len;
-// 	const char *value;
-
-// 	err = rk_osd_get_alignment(&value);
-// 	len = strlen(value);
-// 	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
-// 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_set_alignment(int fd) {
-// 	int ret = 0;
-// 	int len;
-// 	char *value = NULL;
-
-// 	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (len) {
-// 		value = (char *)malloc(len);
-// 		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
-// 			free(value);
-// 			return -1;
-// 		}
-// 		LOG_INFO("value is %s\n", value);
-// 		ret = rk_osd_set_alignment(value);
-// 		free(value);
-// 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
-// 			return -1;
-// 	}
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_get_font_path(int fd) {
-// 	int err = 0;
-// 	int len;
-// 	const char *value;
-
-// 	err = rk_osd_get_font_path(&value);
-// 	len = strlen(value);
-// 	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
-// 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_set_font_path(int fd) {
-// 	int ret = 0;
-// 	int len;
-// 	char *value = NULL;
-
-// 	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (len) {
-// 		value = (char *)malloc(len);
-// 		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
-// 			free(value);
-// 			return -1;
-// 		}
-// 		LOG_INFO("value is %s\n", value);
-// 		ret = rk_osd_set_font_path(value);
-// 		free(value);
-// 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
-// 			return -1;
-// 	}
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_get_enabled(int fd) {
-// 	int err = 0;
-// 	int id;
-// 	int value;
-
-// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	err = rk_osd_get_enabled(id, &value);
-// 	LOG_DEBUG("value is %d\n", value);
-// 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_set_enabled(int fd) {
-// 	int err = 0;
-// 	int id;
-// 	int value;
-
-// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	LOG_DEBUG("value is %d\n", value);
-// 	err = rk_osd_set_enabled(id, value);
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_get_position_x(int fd) {
-// 	int err = 0;
-// 	int id;
-// 	int value;
-
-// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	err = rk_osd_get_position_x(id, &value);
-// 	LOG_DEBUG("value is %d\n", value);
-// 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_set_position_x(int fd) {
-// 	int err = 0;
-// 	int id;
-// 	int value;
-
-// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	LOG_DEBUG("value is %d\n", value);
-// 	err = rk_osd_set_position_x(id, value);
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_get_position_y(int fd) {
-// 	int err = 0;
-// 	int id;
-// 	int value;
-
-// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	err = rk_osd_get_position_y(id, &value);
-// 	LOG_DEBUG("value is %d\n", value);
-// 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_set_position_y(int fd) {
-// 	int err = 0;
-// 	int id;
-// 	int value;
-
-// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	LOG_DEBUG("value is %d\n", value);
-// 	err = rk_osd_set_position_y(id, value);
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_get_height(int fd) {
-// 	int err = 0;
-// 	int id;
-// 	int value;
-
-// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	err = rk_osd_get_height(id, &value);
-// 	LOG_DEBUG("value is %d\n", value);
-// 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_set_height(int fd) {
-// 	int err = 0;
-// 	int id;
-// 	int value;
-
-// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	LOG_DEBUG("value is %d\n", value);
-// 	err = rk_osd_set_height(id, value);
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_get_width(int fd) {
-// 	int err = 0;
-// 	int id;
-// 	int value;
-
-// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	err = rk_osd_get_width(id, &value);
-// 	LOG_DEBUG("value is %d\n", value);
-// 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_set_width(int fd) {
-// 	int err = 0;
-// 	int id;
-// 	int value;
-
-// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	LOG_DEBUG("value is %d\n", value);
-// 	err = rk_osd_set_width(id, value);
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_get_display_week_enabled(int fd) {
-// 	int err = 0;
-// 	int id;
-// 	int value;
-
-// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	err = rk_osd_get_display_week_enabled(id, &value);
-// 	LOG_DEBUG("value is %d\n", value);
-// 	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_set_display_week_enabled(int fd) {
-// 	int err = 0;
-// 	int id;
-// 	int value;
-
-// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	LOG_DEBUG("value is %d\n", value);
-// 	err = rk_osd_set_display_week_enabled(id, value);
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_get_date_style(int fd) {
-// 	int err = 0;
-// 	int id, len;
-// 	const char *value;
-
-// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	err = rk_osd_get_date_style(id, &value);
-// 	len = strlen(value);
-// 	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
-// 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_set_date_style(int fd) {
-// 	int ret = 0;
-// 	int id, len;
-// 	char *value = NULL;
-
-// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (len) {
-// 		value = (char *)malloc(len);
-// 		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
-// 			free(value);
-// 			return -1;
-// 		}
-// 		LOG_INFO("id is %d, value is %s\n", id, value);
-// 		ret = rk_osd_set_date_style(id, value);
-// 		free(value);
-// 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
-// 			return -1;
-// 	}
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_get_time_style(int fd) {
-// 	int err = 0;
-// 	int id, len;
-// 	const char *value;
-
-// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	err = rk_osd_get_time_style(id, &value);
-// 	len = strlen(value);
-// 	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
-// 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_set_time_style(int fd) {
-// 	int ret = 0;
-// 	int id, len;
-// 	char *value = NULL;
-
-// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (len) {
-// 		value = (char *)malloc(len);
-// 		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
-// 			free(value);
-// 			return -1;
-// 		}
-// 		LOG_INFO("id is %d, value is %s\n", id, value);
-// 		ret = rk_osd_set_time_style(id, value);
-// 		free(value);
-// 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
-// 			return -1;
-// 	}
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_get_type(int fd) {
-// 	int err = 0;
-// 	int id, len;
-// 	const char *value;
-
-// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	err = rk_osd_get_type(id, &value);
-// 	len = strlen(value);
-// 	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
-// 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_set_type(int fd) {
-// 	int ret = 0;
-// 	int id, len;
-// 	char *value = NULL;
-
-// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (len) {
-// 		value = (char *)malloc(len);
-// 		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
-// 			free(value);
-// 			return -1;
-// 		}
-// 		LOG_INFO("id is %d, value is %s\n", id, value);
-// 		ret = rk_osd_set_type(id, value);
-// 		free(value);
-// 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
-// 			return -1;
-// 	}
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_get_display_text(int fd) {
-// 	int err = 0;
-// 	int id, len;
-// 	const char *value;
-
-// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	err = rk_osd_get_display_text(id, &value);
-// 	len = strlen(value);
-// 	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
-// 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_set_display_text(int fd) {
-// 	int ret = 0;
-// 	int id, len;
-// 	char *value = NULL;
-
-// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (len) {
-// 		value = (char *)malloc(len);
-// 		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
-// 			free(value);
-// 			return -1;
-// 		}
-// 		LOG_INFO("id is %d, value is %s\n", id, value);
-// 		ret = rk_osd_set_display_text(id, value);
-// 		free(value);
-// 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
-// 			return -1;
-// 	}
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_get_image_path(int fd) {
-// 	int err = 0;
-// 	int id, len;
-// 	const char *value;
-
-// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	err = rk_osd_get_image_path(id, &value);
-// 	len = strlen(value);
-// 	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
-// 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_set_image_path(int fd) {
-// 	int ret = 0;
-// 	int id, len;
-// 	char *value = NULL;
-
-// 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
-// 		return -1;
-// 	if (len) {
-// 		value = (char *)malloc(len);
-// 		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
-// 			free(value);
-// 			return -1;
-// 		}
-// 		LOG_INFO("id is %d, value is %s\n", id, value);
-// 		ret = rk_osd_set_image_path(id, value);
-// 		free(value);
-// 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
-// 			return -1;
-// 	}
-
-// 	return 0;
-// }
-
-// int ser_rk_osd_restart(int fd) {
-// 	int err = 0;
-// 	int id;
-// 	int value;
-
-// 	LOG_DEBUG("restart begin\n");
-// 	err = rk_osd_restart();
-// 	LOG_DEBUG("restart end\n");
-// 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-// 		return -1;
-
-// 	return 0;
-// }
+int ser_rk_osd_get_is_presistent_text(int fd) {
+	int err = 0;
+	int value;
+
+	err = rk_osd_get_is_presistent_text(&value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_set_is_presistent_text(int fd) {
+	int err = 0;
+	int value;
+
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_osd_set_is_presistent_text(value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_get_font_size(int fd) {
+	int err = 0;
+	int value;
+
+	err = rk_osd_get_font_size(&value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_set_font_size(int fd) {
+	int err = 0;
+	int value;
+
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_osd_set_font_size(value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_get_boundary(int fd) {
+	int err = 0;
+	int value;
+
+	err = rk_osd_get_boundary(&value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_set_boundary(int fd) {
+	int err = 0;
+	int value;
+
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_osd_set_boundary(value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_get_normalized_screen_width(int fd) {
+	int err = 0;
+	int value;
+
+	err = rk_osd_get_normalized_screen_width(&value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_get_normalized_screen_height(int fd) {
+	int err = 0;
+	int value;
+
+	err = rk_osd_get_normalized_screen_height(&value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_get_attribute(int fd) {
+	int err = 0;
+	int len;
+	const char *value;
+
+	err = rk_osd_get_attribute(&value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_set_attribute(int fd) {
+	int ret = 0;
+	int len;
+	char *value = NULL;
+
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_INFO("value is %s\n", value);
+		ret = rk_osd_set_attribute(value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
+
+	return 0;
+}
+
+int ser_rk_osd_get_font_color_mode(int fd) {
+	int err = 0;
+	int len;
+	const char *value;
+
+	err = rk_osd_get_font_color_mode(&value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_set_font_color_mode(int fd) {
+	int ret = 0;
+	int len;
+	char *value = NULL;
+
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_INFO("value is %s\n", value);
+		ret = rk_osd_set_font_color_mode(value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
+
+	return 0;
+}
+
+int ser_rk_osd_get_font_color(int fd) {
+	int err = 0;
+	int len;
+	const char *value;
+
+	err = rk_osd_get_font_color(&value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_set_font_color(int fd) {
+	int ret = 0;
+	int len;
+	char *value = NULL;
+
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_INFO("value is %s\n", value);
+		ret = rk_osd_set_font_color(value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
+
+	return 0;
+}
+
+int ser_rk_osd_get_alignment(int fd) {
+	int err = 0;
+	int len;
+	const char *value;
+
+	err = rk_osd_get_alignment(&value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_set_alignment(int fd) {
+	int ret = 0;
+	int len;
+	char *value = NULL;
+
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_INFO("value is %s\n", value);
+		ret = rk_osd_set_alignment(value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
+
+	return 0;
+}
+
+int ser_rk_osd_get_font_path(int fd) {
+	int err = 0;
+	int len;
+	const char *value;
+
+	err = rk_osd_get_font_path(&value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_set_font_path(int fd) {
+	int ret = 0;
+	int len;
+	char *value = NULL;
+
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_INFO("value is %s\n", value);
+		ret = rk_osd_set_font_path(value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
+
+	return 0;
+}
+
+int ser_rk_osd_get_enabled(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_osd_get_enabled(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_set_enabled(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_osd_set_enabled(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_get_position_x(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_osd_get_position_x(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_set_position_x(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_osd_set_position_x(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_get_position_y(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_osd_get_position_y(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_set_position_y(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_osd_set_position_y(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_get_height(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_osd_get_height(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_set_height(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_osd_set_height(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_get_width(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_osd_get_width(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_set_width(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_osd_set_width(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_get_display_week_enabled(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_osd_get_display_week_enabled(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_set_display_week_enabled(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_osd_set_display_week_enabled(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_get_date_style(int fd) {
+	int err = 0;
+	int id, len;
+	const char *value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_osd_get_date_style(id, &value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_set_date_style(int fd) {
+	int ret = 0;
+	int id, len;
+	char *value = NULL;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_INFO("id is %d, value is %s\n", id, value);
+		ret = rk_osd_set_date_style(id, value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
+
+	return 0;
+}
+
+int ser_rk_osd_get_time_style(int fd) {
+	int err = 0;
+	int id, len;
+	const char *value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_osd_get_time_style(id, &value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_set_time_style(int fd) {
+	int ret = 0;
+	int id, len;
+	char *value = NULL;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_INFO("id is %d, value is %s\n", id, value);
+		ret = rk_osd_set_time_style(id, value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
+
+	return 0;
+}
+
+int ser_rk_osd_get_type(int fd) {
+	int err = 0;
+	int id, len;
+	const char *value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_osd_get_type(id, &value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_set_type(int fd) {
+	int ret = 0;
+	int id, len;
+	char *value = NULL;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_INFO("id is %d, value is %s\n", id, value);
+		ret = rk_osd_set_type(id, value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
+
+	return 0;
+}
+
+int ser_rk_osd_get_display_text(int fd) {
+	int err = 0;
+	int id, len;
+	const char *value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_osd_get_display_text(id, &value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_set_display_text(int fd) {
+	int ret = 0;
+	int id, len;
+	char *value = NULL;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_INFO("id is %d, value is %s\n", id, value);
+		ret = rk_osd_set_display_text(id, value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
+
+	return 0;
+}
+
+int ser_rk_osd_get_image_path(int fd) {
+	int err = 0;
+	int id, len;
+	const char *value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_osd_get_image_path(id, &value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_set_image_path(int fd) {
+	int ret = 0;
+	int id, len;
+	char *value = NULL;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_INFO("id is %d, value is %s\n", id, value);
+		ret = rk_osd_set_image_path(id, value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
+
+	return 0;
+}
+
+int ser_rk_osd_restart(int fd) {
+	int err = 0;
+
+	LOG_DEBUG("restart begin\n");
+	err = rk_osd_restart();
+	LOG_DEBUG("restart end\n");
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
 
 // network
 int ser_rk_network_ipv4_get(int fd) {
@@ -2842,7 +2856,7 @@ int ser_rk_network_ipv4_get(int fd) {
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
 
-	return 0;
+	return ret;
 }
 
 int ser_rk_network_ipv4_set(int fd) {
@@ -2916,7 +2930,7 @@ int ser_rk_network_ipv4_set(int fd) {
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
 
-	return 0;
+	return ret;
 }
 
 int ser_rk_network_dns_get(int fd) {
@@ -2942,7 +2956,7 @@ int ser_rk_network_dns_get(int fd) {
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
 
-	return 0;
+	return ret;
 }
 
 int ser_rk_network_dns_set(int fd) {
@@ -2973,7 +2987,7 @@ int ser_rk_network_dns_set(int fd) {
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
 
-	return 0;
+	return ret;
 }
 
 int ser_rk_network_get_mac(int fd) {
@@ -3006,7 +3020,7 @@ int ser_rk_network_get_mac(int fd) {
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
 
-	return 0;
+	return ret;
 }
 
 int ser_rk_network_nicspeed_get(int fd) {
@@ -3040,12 +3054,12 @@ int ser_rk_network_nicspeed_get(int fd) {
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
 
-	return 0;
+	return ret;
 }
 
 int ser_rk_network_nicspeed_set(int fd) {
 	int err = 0;
-	int len, ret, speed, duplex, autoneg;
+	int ret, len, speed, duplex, autoneg;
 	char *interface;
 
 	// read
@@ -3072,7 +3086,7 @@ int ser_rk_network_nicspeed_set(int fd) {
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
 
-	return 0;
+	return ret;
 }
 
 int ser_rk_network_nicspeed_support_get(int fd) {
@@ -3105,20 +3119,20 @@ int ser_rk_network_nicspeed_support_get(int fd) {
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
 
-	return 0;
+	return ret;
 }
 
 int ser_rk_wifi_power_get(int fd) {
 	int err = 0;
-	int on, ret;
+	int on;
 
 	// get
-	ret = rk_wifi_power_get(&on);
+	err = rk_wifi_power_get(&on);
 	LOG_INFO("on is %d\n", on);
 	// write
 	if (sock_write(fd, &on, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
-	if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
 
 	return 0;
@@ -3126,7 +3140,7 @@ int ser_rk_wifi_power_get(int fd) {
 
 int ser_rk_wifi_power_set(int fd) {
 	int err = 0;
-	int on, ret;
+	int on;
 
 	// read
 	if (sock_read(fd, &on, sizeof(int)) == SOCKERR_CLOSED)
@@ -3159,7 +3173,7 @@ int ser_rk_wifi_get_list(int fd) {
 
 	// get
 	err = rk_wifi_get_list(&wifi_list);
-	LOG_INFO("strlen(wifi_list) is %d\n", strlen(wifi_list));
+	LOG_INFO("strlen(wifi_list) is %ld\n", strlen(wifi_list));
 	// write
 	len = strlen(wifi_list);
 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
@@ -3234,8 +3248,6 @@ int ser_rk_wifi_forget_with_ssid(int fd) {
 // storage
 int ser_rk_storage_record_start(int fd) {
 	int err = 0;
-	int id;
-	int value;
 
 	LOG_INFO("begin\n");
 	err = rk_storage_record_start();
@@ -3248,8 +3260,6 @@ int ser_rk_storage_record_start(int fd) {
 
 int ser_rk_storage_record_stop(int fd) {
 	int err = 0;
-	int id;
-	int value;
 
 	LOG_INFO("begin\n");
 	err = rk_storage_record_stop();
@@ -3276,8 +3286,6 @@ int ser_rk_storage_record_statue_get(int fd) {
 
 int ser_rk_take_photo(int fd) {
 	int err = 0;
-	int id;
-	int value;
 
 	LOG_INFO("begin\n");
 	err = rk_take_photo();
@@ -3296,6 +3304,139 @@ int ser_rk_system_capability_get_video(int fd) {
 
 	memset(value, '\0', 1); // set terminator
 	err = rk_system_capability_get_video(value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_system_capability_get_image_adjustment(int fd) {
+	int err = 0;
+	int len;
+	char value[4096];
+
+	memset(value, '\0', 1); // set terminator
+	err = rk_system_capability_get_image_adjustment(value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_system_capability_get_image_blc(int fd) {
+	int err = 0;
+	int len;
+	char value[4096];
+
+	memset(value, '\0', 1); // set terminator
+	err = rk_system_capability_get_image_blc(value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_system_capability_get_image_enhancement(int fd) {
+	int err = 0;
+	int len;
+	char value[4096];
+
+	memset(value, '\0', 1); // set terminator
+	err = rk_system_capability_get_image_enhancement(value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_system_capability_get_image_exposure(int fd) {
+	int err = 0;
+	int len;
+	char value[4096];
+
+	memset(value, '\0', 1); // set terminator
+	err = rk_system_capability_get_image_exposure(value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_system_capability_get_image_night_to_day(int fd) {
+	int err = 0;
+	int len;
+	char value[4096];
+
+	memset(value, '\0', 1); // set terminator
+	err = rk_system_capability_get_image_night_to_day(value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_system_capability_get_image_video_adjustment(int fd) {
+	int err = 0;
+	int len;
+	char value[4096];
+
+	memset(value, '\0', 1); // set terminator
+	err = rk_system_capability_get_image_video_adjustment(value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_system_capability_get_image_white_blance(int fd) {
+	int err = 0;
+	int len;
+	char value[4096];
+
+	memset(value, '\0', 1); // set terminator
+	err = rk_system_capability_get_image_white_blance(value);
 	len = strlen(value);
 	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
@@ -3627,8 +3768,6 @@ int ser_rk_system_set_telecontrol_id(int fd) {
 
 int ser_rk_system_reboot(int fd) {
 	int err = 0;
-	int id;
-	int value;
 
 	LOG_INFO("begin\n");
 	err = rk_system_reboot();
@@ -3640,8 +3779,6 @@ int ser_rk_system_reboot(int fd) {
 
 int ser_rk_system_factory_reset(int fd) {
 	int err = 0;
-	int id;
-	int value;
 
 	LOG_INFO("begin\n");
 	err = rk_system_factory_reset();
@@ -3773,8 +3910,7 @@ int ser_rk_system_set_user_num(int fd) {
 
 int ser_rk_system_get_user_level(int fd) {
 	int err = 0;
-	int id, len;
-	int value;
+	int id, value;
 
 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
 		return -1;
@@ -4005,6 +4141,7 @@ static const struct FunMap map[] = {
     {(char *)"rk_isp_get_dehaze", &ser_rk_isp_get_dehaze},
     {(char *)"rk_isp_set_dehaze", &ser_rk_isp_set_dehaze},
     {(char *)"rk_isp_get_gray_scale_mode", &ser_rk_isp_get_gray_scale_mode},
+    {(char *)"rk_isp_set_gray_scale_mode", &ser_rk_isp_set_gray_scale_mode},
     {(char *)"rk_isp_get_distortion_correction", &ser_rk_isp_get_distortion_correction},
     {(char *)"rk_isp_set_distortion_correction", &ser_rk_isp_set_distortion_correction},
     {(char *)"rk_isp_get_spatial_denoise_level", &ser_rk_isp_get_spatial_denoise_level},
@@ -4020,7 +4157,7 @@ static const struct FunMap map[] = {
     {(char *)"rk_isp_set_power_line_frequency_mode", &ser_rk_isp_set_power_line_frequency_mode},
     {(char *)"rk_isp_get_image_flip", &ser_rk_isp_get_image_flip},
     {(char *)"rk_isp_set_image_flip", &ser_rk_isp_set_image_flip},
-    // auto focus
+    // isp auto focus
     {(char *)"rk_isp_get_af_mode", &ser_rk_isp_get_af_mode},
     {(char *)"rk_isp_set_af_mode", &ser_rk_isp_set_af_mode},
     {(char *)"rk_isp_get_zoom_level", &ser_rk_isp_get_zoom_level},
@@ -4030,7 +4167,7 @@ static const struct FunMap map[] = {
     {(char *)"rk_isp_af_focus_in", &ser_rk_isp_af_focus_in},
     {(char *)"rk_isp_af_focus_out", &ser_rk_isp_af_focus_out},
     {(char *)"rk_isp_af_focus_once", &ser_rk_isp_af_focus_once},
-    // video
+	// video
     {(char *)"rk_video_restart", &ser_rk_video_restart},
     {(char *)"rk_video_get_gop", &ser_rk_video_get_gop},
     {(char *)"rk_video_set_gop", &ser_rk_video_set_gop},
@@ -4054,49 +4191,49 @@ static const struct FunMap map[] = {
     {(char *)"rk_video_set_frame_rate", &ser_rk_video_set_frame_rate},
     {(char *)"rk_video_get_frame_rate_in", &ser_rk_video_get_frame_rate_in},
     {(char *)"rk_video_set_frame_rate_in", &ser_rk_video_set_frame_rate_in},
-    // // osd.common
-    // {(char *)"rk_osd_get_is_presistent_text", &ser_rk_osd_get_is_presistent_text},
-    // {(char *)"rk_osd_set_is_presistent_text", &ser_rk_osd_set_is_presistent_text},
-    // {(char *)"rk_osd_get_font_size", &ser_rk_osd_get_font_size},
-    // {(char *)"rk_osd_set_font_size", &ser_rk_osd_set_font_size},
-    // {(char *)"rk_osd_get_boundary", &ser_rk_osd_get_boundary},
-    // {(char *)"rk_osd_set_boundary", &ser_rk_osd_set_boundary},
-    // {(char *)"rk_osd_get_normalized_screen_width", &ser_rk_osd_get_normalized_screen_width},
-    // {(char *)"rk_osd_get_normalized_screen_height", &ser_rk_osd_get_normalized_screen_height},
-    // {(char *)"rk_osd_get_attribute", &ser_rk_osd_get_attribute},
-    // {(char *)"rk_osd_set_attribute", &ser_rk_osd_set_attribute},
-    // {(char *)"rk_osd_get_font_color_mode", &ser_rk_osd_get_font_color_mode},
-    // {(char *)"rk_osd_set_font_color_mode", &ser_rk_osd_set_font_color_mode},
-    // {(char *)"rk_osd_get_font_color", &ser_rk_osd_get_font_color},
-    // {(char *)"rk_osd_set_font_color", &ser_rk_osd_set_font_color},
-    // {(char *)"rk_osd_get_alignment", &ser_rk_osd_get_alignment},
-    // {(char *)"rk_osd_set_alignment", &ser_rk_osd_set_alignment},
-    // {(char *)"rk_osd_get_font_path", &ser_rk_osd_get_font_path},
-    // {(char *)"rk_osd_set_font_path", &ser_rk_osd_set_font_path},
-    // // osd.x
-    // {(char *)"rk_osd_get_enabled", &ser_rk_osd_get_enabled},
-    // {(char *)"rk_osd_set_enabled", &ser_rk_osd_set_enabled},
-    // {(char *)"rk_osd_get_position_x", &ser_rk_osd_get_position_x},
-    // {(char *)"rk_osd_set_position_x", &ser_rk_osd_set_position_x},
-    // {(char *)"rk_osd_get_position_y", &ser_rk_osd_get_position_y},
-    // {(char *)"rk_osd_set_position_y", &ser_rk_osd_set_position_y},
-    // {(char *)"rk_osd_get_height", &ser_rk_osd_get_height},
-    // {(char *)"rk_osd_set_height", &ser_rk_osd_set_height},
-    // {(char *)"rk_osd_get_width", &ser_rk_osd_get_width},
-    // {(char *)"rk_osd_set_width", &ser_rk_osd_set_width},
-    // {(char *)"rk_osd_get_display_week_enabled", &ser_rk_osd_get_display_week_enabled},
-    // {(char *)"rk_osd_set_display_week_enabled", &ser_rk_osd_set_display_week_enabled},
-    // {(char *)"rk_osd_get_date_style", &ser_rk_osd_get_date_style},
-    // {(char *)"rk_osd_set_date_style", &ser_rk_osd_set_date_style},
-    // {(char *)"rk_osd_get_time_style", &ser_rk_osd_get_time_style},
-    // {(char *)"rk_osd_set_time_style", &ser_rk_osd_set_time_style},
-    // {(char *)"rk_osd_get_type", &ser_rk_osd_get_type},
-    // {(char *)"rk_osd_set_type", &ser_rk_osd_set_type},
-    // {(char *)"rk_osd_get_display_text", &ser_rk_osd_get_display_text},
-    // {(char *)"rk_osd_set_display_text", &ser_rk_osd_set_display_text},
-    // {(char *)"rk_osd_get_image_path", &ser_rk_osd_get_image_path},
-    // {(char *)"rk_osd_set_image_path", &ser_rk_osd_set_image_path},
-    // {(char *)"rk_osd_restart", &ser_rk_osd_restart},
+    // osd.common
+    {(char *)"rk_osd_get_is_presistent_text", &ser_rk_osd_get_is_presistent_text},
+    {(char *)"rk_osd_set_is_presistent_text", &ser_rk_osd_set_is_presistent_text},
+    {(char *)"rk_osd_get_font_size", &ser_rk_osd_get_font_size},
+    {(char *)"rk_osd_set_font_size", &ser_rk_osd_set_font_size},
+    {(char *)"rk_osd_get_boundary", &ser_rk_osd_get_boundary},
+    {(char *)"rk_osd_set_boundary", &ser_rk_osd_set_boundary},
+    {(char *)"rk_osd_get_normalized_screen_width", &ser_rk_osd_get_normalized_screen_width},
+    {(char *)"rk_osd_get_normalized_screen_height", &ser_rk_osd_get_normalized_screen_height},
+    {(char *)"rk_osd_get_attribute", &ser_rk_osd_get_attribute},
+    {(char *)"rk_osd_set_attribute", &ser_rk_osd_set_attribute},
+    {(char *)"rk_osd_get_font_color_mode", &ser_rk_osd_get_font_color_mode},
+    {(char *)"rk_osd_set_font_color_mode", &ser_rk_osd_set_font_color_mode},
+    {(char *)"rk_osd_get_font_color", &ser_rk_osd_get_font_color},
+    {(char *)"rk_osd_set_font_color", &ser_rk_osd_set_font_color},
+    {(char *)"rk_osd_get_alignment", &ser_rk_osd_get_alignment},
+    {(char *)"rk_osd_set_alignment", &ser_rk_osd_set_alignment},
+    {(char *)"rk_osd_get_font_path", &ser_rk_osd_get_font_path},
+    {(char *)"rk_osd_set_font_path", &ser_rk_osd_set_font_path},
+    // osd.x
+    {(char *)"rk_osd_get_enabled", &ser_rk_osd_get_enabled},
+    {(char *)"rk_osd_set_enabled", &ser_rk_osd_set_enabled},
+    {(char *)"rk_osd_get_position_x", &ser_rk_osd_get_position_x},
+    {(char *)"rk_osd_set_position_x", &ser_rk_osd_set_position_x},
+    {(char *)"rk_osd_get_position_y", &ser_rk_osd_get_position_y},
+    {(char *)"rk_osd_set_position_y", &ser_rk_osd_set_position_y},
+    {(char *)"rk_osd_get_height", &ser_rk_osd_get_height},
+    {(char *)"rk_osd_set_height", &ser_rk_osd_set_height},
+    {(char *)"rk_osd_get_width", &ser_rk_osd_get_width},
+    {(char *)"rk_osd_set_width", &ser_rk_osd_set_width},
+    {(char *)"rk_osd_get_display_week_enabled", &ser_rk_osd_get_display_week_enabled},
+    {(char *)"rk_osd_set_display_week_enabled", &ser_rk_osd_set_display_week_enabled},
+    {(char *)"rk_osd_get_date_style", &ser_rk_osd_get_date_style},
+    {(char *)"rk_osd_set_date_style", &ser_rk_osd_set_date_style},
+    {(char *)"rk_osd_get_time_style", &ser_rk_osd_get_time_style},
+    {(char *)"rk_osd_set_time_style", &ser_rk_osd_set_time_style},
+    {(char *)"rk_osd_get_type", &ser_rk_osd_get_type},
+    {(char *)"rk_osd_set_type", &ser_rk_osd_set_type},
+    {(char *)"rk_osd_get_display_text", &ser_rk_osd_get_display_text},
+    {(char *)"rk_osd_set_display_text", &ser_rk_osd_set_display_text},
+    {(char *)"rk_osd_get_image_path", &ser_rk_osd_get_image_path},
+    {(char *)"rk_osd_set_image_path", &ser_rk_osd_set_image_path},
+    {(char *)"rk_osd_restart", &ser_rk_osd_restart},
     // network
     {(char *)"rk_network_ipv4_get", &ser_rk_network_ipv4_get},
     {(char *)"rk_network_ipv4_set", &ser_rk_network_ipv4_set},
@@ -4119,6 +4256,19 @@ static const struct FunMap map[] = {
     {(char *)"rk_take_photo", &ser_rk_take_photo},
     // system
     {(char *)"rk_system_capability_get_video", &ser_rk_system_capability_get_video},
+    {(char *)"rk_system_capability_get_image_adjustment",
+     &ser_rk_system_capability_get_image_adjustment},
+    {(char *)"rk_system_capability_get_image_blc", &ser_rk_system_capability_get_image_blc},
+    {(char *)"rk_system_capability_get_image_enhancement",
+     &ser_rk_system_capability_get_image_enhancement},
+    {(char *)"rk_system_capability_get_image_exposure",
+     &ser_rk_system_capability_get_image_exposure},
+    {(char *)"rk_system_capability_get_image_night_to_day",
+     &ser_rk_system_capability_get_image_night_to_day},
+    {(char *)"rk_system_capability_get_image_video_adjustment",
+     &ser_rk_system_capability_get_image_video_adjustment},
+    {(char *)"rk_system_capability_get_image_white_blance",
+     &ser_rk_system_capability_get_image_white_blance},
     {(char *)"rk_system_get_deivce_name", &ser_rk_system_get_deivce_name},
     {(char *)"rk_system_get_telecontrol_id", &ser_rk_system_get_telecontrol_id},
     {(char *)"rk_system_get_model", &ser_rk_system_get_model},
@@ -4248,4 +4398,6 @@ int rkipc_server_deinit(void) {
 		LOG_INFO("rkipc_server_deinit success\n");
 	else
 		LOG_INFO("rkipc_server_deinit failed\n");
+
+	return 0;
 }
