@@ -116,12 +116,16 @@ int rk_system_set_telecontrol_id(const char *value) {
 
 // action
 
-int rk_system_reboot() { system("reboot"); }
+int rk_system_reboot() {
+	system("reboot");
+	return 0;
+}
 
 int rk_system_factory_reset() {
 	system("cp /usr/share/rkipc_factory.ini /usr/share/rkipc.ini");
 	system("reboot");
 	// system("update factory");
+	return 0;
 }
 
 int rk_system_export_log(const char *path) {
@@ -150,6 +154,7 @@ int rk_system_export_log(const char *path) {
 		snprintf(cmd, 127, "%s >> %s", cmd_list[i], path);
 		system(cmd);
 	}
+	return 0;
 }
 
 int rk_system_export_db(const char *path) {
@@ -157,6 +162,7 @@ int rk_system_export_db(const char *path) {
 	snprintf(cmd, 127, "cp /usr/share/rkipc.ini %s", path);
 	LOG_INFO("cmd is %s\n", cmd);
 	system(cmd);
+	return 0;
 }
 
 int rk_system_import_db(const char *path) {
@@ -166,6 +172,7 @@ int rk_system_import_db(const char *path) {
 	system(cmd);
 	rk_param_reload();
 	rk_system_reboot();
+	return 0;
 }
 
 int rk_system_upgrade(const char *path) {

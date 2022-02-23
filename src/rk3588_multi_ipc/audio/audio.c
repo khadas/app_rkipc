@@ -52,7 +52,7 @@ void *save_ai_thread(void *ptr) {
 static RK_S64 fake_time = 0;
 void *save_aenc_thread(void *ptr) {
 	RK_S32 s32ret = 0;
-	FILE *file = RK_NULL;
+	// FILE *file = RK_NULL;
 	AUDIO_STREAM_S pstStream;
 	RK_S32 eos = 0;
 	RK_S32 count = 0;
@@ -103,12 +103,11 @@ void *save_aenc_thread(void *ptr) {
 
 int rkipc_ai_init() {
 	int ret;
-	AUDIO_DEV aiDevId = ai_dev_id;
 	AIO_ATTR_S aiAttr;
 	memset(&aiAttr, 0, sizeof(AIO_ATTR_S));
 
 	const char *card_name = rk_param_get_string("audio.0:card_name", "default");
-	snprintf(aiAttr.u8CardName, sizeof(aiAttr.u8CardName), "%s", card_name);
+	snprintf((char *)aiAttr.u8CardName, sizeof(aiAttr.u8CardName), "%s", card_name);
 	LOG_INFO("aiAttr.u8CardName is %s\n", aiAttr.u8CardName);
 	aiAttr.soundCard.channels = rk_param_get_int("audio.0:channels", 2);
 	aiAttr.soundCard.sampleRate = rk_param_get_int("audio.0:sample_rate", 16000);
@@ -123,7 +122,7 @@ int rkipc_ai_init() {
 		LOG_ERROR("not support %s\n", format);
 	}
 	aiAttr.enSamplerate = rk_param_get_int("audio.0:sample_rate", 16000);
-	if (aiAttr.soundCard.channels = 2)
+	if (aiAttr.soundCard.channels == 2)
 		aiAttr.enSoundmode = AUDIO_SOUND_MODE_STEREO;
 	else
 		aiAttr.enSoundmode = AUDIO_SOUND_MODE_MONO;
@@ -178,6 +177,8 @@ int rkipc_ai_deinit() {
 		return RK_FAILURE;
 	}
 	LOG_INFO("RK_MPI_AI_Disable success\n");
+
+	return 0;
 }
 
 int rkipc_aenc_init() {

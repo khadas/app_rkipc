@@ -30,6 +30,8 @@ int rk_param_dump() {
 			LOG_INFO("%s = %s\n", keys[j], iniparser_getstring(g_ini_d_, keys[j], ""));
 		}
 	}
+
+	return 0;
 }
 
 int rk_param_save() {
@@ -44,6 +46,8 @@ int rk_param_save() {
 
 	fflush(fp);
 	fclose(fp);
+
+	return 0;
 }
 
 int rk_param_get_int(const char *entry, int default_val) {

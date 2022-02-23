@@ -79,7 +79,6 @@ int load_bmp_form_file(osd_data_s *data) {
 	BITMAPFILEHEADER bitHead;
 	BITMAPINFOHEADER bitInfoHead;
 	uint8_t *bmp_data;
-	RGBQUAD *argb_8888_data;
 	LOG_INFO("load_bmp_form_file\n");
 	FILE *pfile = fopen(data->image, "rb");
 	if (pfile == NULL) {

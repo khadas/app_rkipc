@@ -134,7 +134,6 @@ int sample_common_isp_run(int cam_id) {
 int isp_camera_group_init(int cam_group_id, rk_aiq_working_mode_t WDRMode, bool MultiCam,
                           const char *iq_file_dir) {
 	int ret;
-	rk_aiq_sys_ctx_t *aiq_ctx;
 	rk_aiq_static_info_t aiq_static_info;
 	char sensor_name_array[6][128];
 	rk_aiq_camgroup_instance_cfg_t camgroup_cfg;
@@ -202,7 +201,7 @@ int rk_isp_set_frame_rate(int cam_id, int value) {
 	snprintf(entry, 127, "isp.%d.adjustment:fps", cam_id);
 	rk_param_set_int(entry, value);
 
-	return 0;
+	return ret;
 }
 
 // image adjustment
@@ -356,7 +355,7 @@ int rk_isp_set_exposure_mode(int cam_id, const char *value) {
 	snprintf(entry, 127, "isp.%d.exposure:exposure_mode", cam_id);
 	rk_param_set_string(entry, value);
 
-	return 0;
+	return ret;
 }
 
 int rk_isp_get_gain_mode(int cam_id, const char **value) {
@@ -1124,24 +1123,25 @@ int rk_isp_get_image_flip(int cam_id, const char **value) {
 
 int rk_isp_set_image_flip(int cam_id, const char *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	int ret, mirror, flip;
+	int ret;
+	// int mirror, flip;
 	char entry[128] = {'\0'};
-	if (!strcmp(value, "close")) {
-		mirror = 0;
-		flip = 0;
-	}
-	if (!strcmp(value, "flip")) {
-		mirror = 0;
-		flip = 1;
-	}
-	if (!strcmp(value, "mirror")) {
-		mirror = 1;
-		flip = 0;
-	}
-	if (!strcmp(value, "centrosymmetric")) {
-		mirror = 1;
-		flip = 1;
-	}
+	// if (!strcmp(value, "close")) {
+	// 	mirror = 0;
+	// 	flip = 0;
+	// }
+	// if (!strcmp(value, "flip")) {
+	// 	mirror = 0;
+	// 	flip = 1;
+	// }
+	// if (!strcmp(value, "mirror")) {
+	// 	mirror = 1;
+	// 	flip = 0;
+	// }
+	// if (!strcmp(value, "centrosymmetric")) {
+	// 	mirror = 1;
+	// 	flip = 1;
+	// }
 	// rk_aiq_uapi2_setMirroFlip(rkipc_aiq_get_ctx(cam_id), mirror, flip, 4); // skip 4 frame
 	snprintf(entry, 127, "isp.%d.video_adjustment:image_flip", cam_id);
 	rk_param_set_string(entry, value);

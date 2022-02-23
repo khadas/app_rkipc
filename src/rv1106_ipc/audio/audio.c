@@ -124,7 +124,7 @@ int rkipc_ai_init() {
 		LOG_ERROR("not support %s\n", format);
 	}
 	aiAttr.enSamplerate = rk_param_get_int("audio.0:sample_rate", 16000);
-	if (aiAttr.soundCard.channels = 2)
+	if (aiAttr.soundCard.channels == 2)
 		aiAttr.enSoundmode = AUDIO_SOUND_MODE_STEREO;
 	else
 		aiAttr.enSoundmode = AUDIO_SOUND_MODE_MONO;
@@ -179,6 +179,8 @@ int rkipc_ai_deinit() {
 		return RK_FAILURE;
 	}
 	LOG_INFO("RK_MPI_AI_Disable success\n");
+
+	return 0;
 }
 
 int rkipc_aenc_init() {

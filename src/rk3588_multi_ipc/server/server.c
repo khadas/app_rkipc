@@ -38,7 +38,6 @@ struct FunMap {
 };
 
 int ser_rk_isp_set(int fd) {
-	int ret = 0;
 	int len;
 	char *json = NULL;
 
@@ -60,7 +59,6 @@ int ser_rk_isp_set(int fd) {
 }
 
 int ser_rk_video_set(int fd) {
-	int ret = 0;
 	int len;
 	char *json = NULL;
 
@@ -82,7 +80,6 @@ int ser_rk_video_set(int fd) {
 }
 
 int ser_rk_audio_set(int fd) {
-	int ret = 0;
 	int len;
 	char *json = NULL;
 
@@ -597,7 +594,7 @@ extern char *rkipc_iq_file_path_;
 int ser_rk_isp_set_hdr(int fd) {
 	int ret = 0;
 	int id, len;
-	char *old_value = NULL;
+	const char *old_value = NULL;
 	char *value = NULL;
 
 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
@@ -1424,8 +1421,6 @@ int ser_rk_isp_set_image_flip(int fd) {
 // video
 int ser_rk_video_restart(int fd) {
 	int err = 0;
-	int id;
-	int value;
 
 	LOG_DEBUG("restart begin\n");
 	err = rk_video_restart();
@@ -1914,7 +1909,6 @@ int ser_rk_video_set_frame_rate_in(int fd) {
 
 int ser_rk_osd_get_is_presistent_text(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	err = rk_osd_get_is_presistent_text(&value);
@@ -1929,7 +1923,6 @@ int ser_rk_osd_get_is_presistent_text(int fd) {
 
 int ser_rk_osd_set_is_presistent_text(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
@@ -1944,7 +1937,6 @@ int ser_rk_osd_set_is_presistent_text(int fd) {
 
 int ser_rk_osd_get_font_size(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	err = rk_osd_get_font_size(&value);
@@ -1959,7 +1951,6 @@ int ser_rk_osd_get_font_size(int fd) {
 
 int ser_rk_osd_set_font_size(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
@@ -1974,7 +1965,6 @@ int ser_rk_osd_set_font_size(int fd) {
 
 int ser_rk_osd_get_boundary(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	err = rk_osd_get_boundary(&value);
@@ -1989,7 +1979,6 @@ int ser_rk_osd_get_boundary(int fd) {
 
 int ser_rk_osd_set_boundary(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
@@ -2004,7 +1993,6 @@ int ser_rk_osd_set_boundary(int fd) {
 
 int ser_rk_osd_get_normalized_screen_width(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	err = rk_osd_get_normalized_screen_width(&value);
@@ -2019,7 +2007,6 @@ int ser_rk_osd_get_normalized_screen_width(int fd) {
 
 int ser_rk_osd_get_normalized_screen_height(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	err = rk_osd_get_normalized_screen_height(&value);
@@ -2668,8 +2655,6 @@ int ser_rk_osd_set_image_path(int fd) {
 
 int ser_rk_osd_restart(int fd) {
 	int err = 0;
-	int id;
-	int value;
 
 	LOG_DEBUG("restart begin\n");
 	err = rk_osd_restart();
@@ -2734,7 +2719,7 @@ int ser_rk_network_ipv4_get(int fd) {
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
 
-	return 0;
+	return ret;
 }
 
 int ser_rk_network_ipv4_set(int fd) {
@@ -2808,7 +2793,7 @@ int ser_rk_network_ipv4_set(int fd) {
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
 
-	return 0;
+	return ret;
 }
 
 int ser_rk_network_dns_get(int fd) {
@@ -2834,7 +2819,7 @@ int ser_rk_network_dns_get(int fd) {
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
 
-	return 0;
+	return ret;
 }
 
 int ser_rk_network_dns_set(int fd) {
@@ -2865,7 +2850,7 @@ int ser_rk_network_dns_set(int fd) {
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
 
-	return 0;
+	return ret;
 }
 
 int ser_rk_network_get_mac(int fd) {
@@ -2898,7 +2883,7 @@ int ser_rk_network_get_mac(int fd) {
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
 
-	return 0;
+	return ret;
 }
 
 int ser_rk_network_nicspeed_get(int fd) {
@@ -2932,12 +2917,12 @@ int ser_rk_network_nicspeed_get(int fd) {
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
 
-	return 0;
+	return ret;
 }
 
 int ser_rk_network_nicspeed_set(int fd) {
 	int err = 0;
-	int len, ret, speed, duplex, autoneg;
+	int ret, len, speed, duplex, autoneg;
 	char *interface;
 
 	// read
@@ -2964,7 +2949,7 @@ int ser_rk_network_nicspeed_set(int fd) {
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
 
-	return 0;
+	return ret;
 }
 
 int ser_rk_network_nicspeed_support_get(int fd) {
@@ -2997,20 +2982,20 @@ int ser_rk_network_nicspeed_support_get(int fd) {
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
 
-	return 0;
+	return ret;
 }
 
 int ser_rk_wifi_power_get(int fd) {
 	int err = 0;
-	int on, ret;
+	int on;
 
 	// get
-	ret = rk_wifi_power_get(&on);
+	err = rk_wifi_power_get(&on);
 	LOG_INFO("on is %d\n", on);
 	// write
 	if (sock_write(fd, &on, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
-	if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
 
 	return 0;
@@ -3018,7 +3003,7 @@ int ser_rk_wifi_power_get(int fd) {
 
 int ser_rk_wifi_power_set(int fd) {
 	int err = 0;
-	int on, ret;
+	int on;
 
 	// read
 	if (sock_read(fd, &on, sizeof(int)) == SOCKERR_CLOSED)
@@ -3051,7 +3036,7 @@ int ser_rk_wifi_get_list(int fd) {
 
 	// get
 	err = rk_wifi_get_list(&wifi_list);
-	LOG_INFO("strlen(wifi_list) is %d\n", strlen(wifi_list));
+	LOG_INFO("strlen(wifi_list) is %ld\n", strlen(wifi_list));
 	// write
 	len = strlen(wifi_list);
 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
@@ -3126,8 +3111,6 @@ int ser_rk_wifi_forget_with_ssid(int fd) {
 // storage
 int ser_rk_storage_record_start(int fd) {
 	int err = 0;
-	int id;
-	int value;
 
 	LOG_INFO("begin\n");
 	err = rk_storage_record_start();
@@ -3140,8 +3123,6 @@ int ser_rk_storage_record_start(int fd) {
 
 int ser_rk_storage_record_stop(int fd) {
 	int err = 0;
-	int id;
-	int value;
 
 	LOG_INFO("begin\n");
 	err = rk_storage_record_stop();
@@ -3168,8 +3149,6 @@ int ser_rk_storage_record_statue_get(int fd) {
 
 int ser_rk_take_photo(int fd) {
 	int err = 0;
-	int id;
-	int value;
 
 	LOG_INFO("begin\n");
 	err = rk_take_photo();
@@ -3652,8 +3631,6 @@ int ser_rk_system_set_telecontrol_id(int fd) {
 
 int ser_rk_system_reboot(int fd) {
 	int err = 0;
-	int id;
-	int value;
 
 	LOG_INFO("begin\n");
 	err = rk_system_reboot();
@@ -3665,8 +3642,6 @@ int ser_rk_system_reboot(int fd) {
 
 int ser_rk_system_factory_reset(int fd) {
 	int err = 0;
-	int id;
-	int value;
 
 	LOG_INFO("begin\n");
 	err = rk_system_factory_reset();
@@ -3798,8 +3773,7 @@ int ser_rk_system_set_user_num(int fd) {
 
 int ser_rk_system_get_user_level(int fd) {
 	int err = 0;
-	int id, len;
-	int value;
+	int id, value;
 
 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
 		return -1;
@@ -4276,4 +4250,6 @@ int rkipc_server_deinit(void) {
 		LOG_INFO("rkipc_server_deinit success\n");
 	else
 		LOG_INFO("rkipc_server_deinit failed\n");
+
+	return 0;
 }

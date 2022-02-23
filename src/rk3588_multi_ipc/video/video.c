@@ -40,8 +40,6 @@ int g_format;
 static pthread_mutex_t g_rtsp_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int g_video_run_ = 1;
 static int g_enable_vo, g_vo_dev_id;
-static int pipe_id_ = 0;
-static int pipe_id_1_ = 1;
 static rtsp_demo_handle g_rtsplive = NULL;
 static rtsp_session_handle g_rtsp_session_0, g_rtsp_session_1, g_rtsp_session_2;
 static const char *tmp_output_data_type = "H.264";
@@ -50,7 +48,7 @@ static const char *tmp_h264_profile;
 static const char *tmp_smart;
 static const char *tmp_rc_quality;
 static pthread_t venc_thread_0, venc_thread_1, venc_thread_2, jpeg_venc_thread_id, vpss_thread_rgb;
-static int capture_one = 0;
+// static int capture_one = 0;
 static int take_photo_one = 0;
 static int enable_jpeg, enable_venc_0, enable_venc_1, enable_venc_2, enable_npu;
 
@@ -99,7 +97,6 @@ static VO_DEV VoLayer = RK3588_VOP_LAYER_CLUSTER0;
 static void *rkipc_get_venc_0(void *arg) {
 	printf("#Start %s thread, arg:%p\n", __func__, arg);
 	VENC_STREAM_S stFrame;
-	VI_CHN_STATUS_S stChnStatus;
 	int loopCount = 0;
 	int ret = 0;
 	// FILE *fp = fopen("/data/venc.h265", "wb");
@@ -157,7 +154,6 @@ static void *rkipc_get_venc_0(void *arg) {
 static void *rkipc_get_venc_1(void *arg) {
 	printf("#Start %s thread, arg:%p\n", __func__, arg);
 	VENC_STREAM_S stFrame;
-	VI_CHN_STATUS_S stChnStatus;
 	int loopCount = 0;
 	int ret = 0;
 	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
@@ -207,7 +203,6 @@ static void *rkipc_get_venc_1(void *arg) {
 static void *rkipc_get_venc_2(void *arg) {
 	printf("#Start %s thread, arg:%p\n", __func__, arg);
 	VENC_STREAM_S stFrame;
-	VI_CHN_STATUS_S stChnStatus;
 	int loopCount = 0;
 	int ret = 0;
 	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
@@ -257,7 +252,6 @@ static void *rkipc_get_venc_2(void *arg) {
 static void *rkipc_get_vpss_bgr(void *arg) {
 	printf("#Start %s thread, arg:%p\n", __func__, arg);
 	VIDEO_FRAME_INFO_S frame;
-	VI_CHN_STATUS_S stChnStatus;
 	int32_t loopCount = 0;
 	int ret = 0;
 	while (g_video_run_) {
@@ -287,7 +281,6 @@ static void *rkipc_get_vpss_bgr(void *arg) {
 static void *rkipc_get_jpeg(void *arg) {
 	printf("#Start %s thread, arg:%p\n", __func__, arg);
 	VENC_STREAM_S stFrame;
-	VI_CHN_STATUS_S stChnStatus;
 	int loopCount = 0;
 	int ret = 0;
 	char file_name[128] = {0};
@@ -459,8 +452,6 @@ int rkipc_multi_vi_init() {
 	LOG_INFO("start\n");
 	int video_width = rk_param_get_int("avs:source_width", -1);
 	int video_height = rk_param_get_int("avs:source_height", -1);
-	const char *video_device_name;
-	char entry[128] = {'\0'};
 	int buf_cnt = 10;
 	int ret = 0;
 	VI_CHN_ATTR_S vi_chn_attr;
@@ -476,10 +467,6 @@ int rkipc_multi_vi_init() {
 		vi_chn_attr.enCompressMode = COMPRESS_AFBC_16x16;
 	vi_chn_attr.u32Depth = 2;
 	for (int i = 0; i < g_sensor_num; i++) {
-		// snprintf(entry, 127, "avs:source_node_%d", i);
-		// video_device_name = rk_param_get_string(entry, NULL);
-		// LOG_INFO("%d: video_device_name = %s\n", i, video_device_name);
-		// memcpy(vi_chn_attr.stIspOpt.aEntityName, video_device_name, strlen(video_device_name));
 		if (g_format) {
 			ret = RK_MPI_VI_SetChnAttr(i, RKISP_FBCPATH, &vi_chn_attr);
 			ret |= RK_MPI_VI_EnableChn(i, RKISP_FBCPATH);
@@ -1054,7 +1041,7 @@ int rkipc_venc_0_init() {
 
 int rkipc_venc_0_deinit() {
 	LOG_INFO("start\n");
-	int ret;
+	int ret = 0;
 	pthread_join(venc_thread_0, NULL);
 	ret |= RK_MPI_VENC_StopRecvFrame(VIDEO_PIPE_0);
 	ret |= RK_MPI_VENC_DestroyChn(VIDEO_PIPE_0);
@@ -1222,7 +1209,7 @@ int rkipc_venc_1_init() {
 
 int rkipc_venc_1_deinit() {
 	LOG_INFO("start\n");
-	int ret;
+	int ret = 0;
 	pthread_join(venc_thread_1, NULL);
 	ret |= RK_MPI_VENC_StopRecvFrame(VIDEO_PIPE_1);
 	ret |= RK_MPI_VENC_DestroyChn(VIDEO_PIPE_1);
@@ -1390,9 +1377,7 @@ int rkipc_venc_2_init() {
 
 int rkipc_venc_2_deinit() {
 	LOG_INFO("start\n");
-	int ret;
-	int venc_width = rk_param_get_int("video.2:width", 0);
-	int venc_height = rk_param_get_int("video.2:height", 0);
+	int ret = 0;
 	pthread_join(venc_thread_2, NULL);
 	ret |= RK_MPI_VENC_StopRecvFrame(VIDEO_PIPE_2);
 	ret |= RK_MPI_VENC_DestroyChn(VIDEO_PIPE_2);
@@ -1615,7 +1600,7 @@ int rkipc_vo_deinit() {
 
 int rkipc_bind_init() {
 	LOG_INFO("start\n");
-	int ret;
+	int ret = 0;
 	for (int i = 0; i < g_sensor_num; i++) {
 		LOG_INFO("i is %d\n", i);
 		vi_chn[i].enModId = RK_ID_VI;
@@ -2232,7 +2217,7 @@ int rk_video_get_frame_rate_in(int stream_id, char **value) {
 }
 
 int rk_video_set_frame_rate_in(int stream_id, const char *value) {
-	char entry[128] = {'\0'};
+	// char entry[128] = {'\0'};
 	int den, num;
 	if (strchr(value, '/') == NULL) {
 		den = 1;

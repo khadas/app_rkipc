@@ -174,7 +174,6 @@ void draw_argb8888_text(unsigned char *buffer, int buf_w, int buf_h, const wchar
 		return;
 	}
 
-	int x_offset = 0;
 	int len = wcslen(wstr);
 	// wprintf("wstr is %ls\n", wstr);
 	// LOG_DEBUG("len is %d\n", len);
