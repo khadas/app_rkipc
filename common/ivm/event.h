@@ -1,8 +1,10 @@
-// Copyright 2021-2022 Rockchip Electronics Co., Ltd. All rights reserved.
+// Copyright 2021 Rockchip Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 int rk_event_init();
 int rk_event_deinit();
+int event_process(int fd, void *addr, int width, int height, size_t size,
+                  unsigned long long timestamp);
 // regional invasion
 int rk_event_ri_get_enabled(int *value);
 int rk_event_ri_set_enabled(int value);
