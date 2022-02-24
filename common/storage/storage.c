@@ -942,6 +942,17 @@ file_scan_out:
 	LOG_DEBUG("out\n");
 
 	if (pHandle->dev_sta.folder) {
+		for (int i = 0; i < pHandle->dev_sta.folder_num; i++) {
+			while (pHandle->dev_sta.folder[i].file_list_first) {
+				rkipc_str_file *tmp = pHandle->dev_sta.folder[i].file_list_first;
+				pHandle->dev_sta.folder[i].file_list_first =
+				    pHandle->dev_sta.folder[i].file_list_first->next;
+				free(tmp);
+				if (pHandle->dev_sta.folder[i].file_list_first == NULL) {
+					pHandle->dev_sta.folder[i].file_list_last = NULL;
+				}
+			}
+		}
 		free(pHandle->dev_sta.folder);
 		pHandle->dev_sta.folder = NULL;
 	}
