@@ -344,8 +344,8 @@ static void *rkipc_get_vpss_bgr(void *arg) {
 		ret = RK_MPI_VPSS_GetChnFrame(VPSS_BGR, 0, &frame, 1000);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(frame.stVFrame.pMbBlk);
-			LOG_INFO("data:%p, u32Width:%d, u32Height:%d, PTS is %" PRId64 "\n", data,
-			         frame.stVFrame.u32Width, frame.stVFrame.u32Height, frame.stVFrame.u64PTS);
+			// LOG_INFO("data:%p, u32Width:%d, u32Height:%d, PTS is %" PRId64 "\n", data,
+			//          frame.stVFrame.u32Width, frame.stVFrame.u32Height, frame.stVFrame.u64PTS);
 			// rkipc_rockiva_write_rgb888_frame(frame.stVFrame.u32Width, frame.stVFrame.u32Height,
 			//                                  data);
 			int32_t fd = RK_MPI_MB_Handle2Fd(frame.stVFrame.pMbBlk);
