@@ -126,7 +126,6 @@ static int is_non_psk(const char *str) {
 }
 
 static RK_wifi_state_callback m_cb;
-static int priority = 0;
 static volatile bool wifi_wrong_key = false;
 static volatile bool wifi_cancel = false;
 static volatile bool wifi_connect_lock = false;
@@ -152,8 +151,8 @@ static void wifi_state_send(RK_WIFI_RUNNING_State_e state, RK_WIFI_INFO_Connecti
 		RK_WIFI_INFO_Connection_s cndinfo;
 
 		RK_wifi_running_getConnectionInfo(&cndinfo);
-		strncpy(cndinfo.ssid, connect_info.ssid, SSID_BUF_LEN);
-		strncpy(cndinfo.bssid, connect_info.bssid, BSSID_BUF_LEN);
+		strcpy(cndinfo.ssid, connect_info.ssid);
+		strcpy(cndinfo.bssid, connect_info.bssid);
 		cndinfo.ssid[SSID_BUF_LEN - 1] = '\0';
 		cndinfo.bssid[BSSID_BUF_LEN - 1] = '\0';
 		pr_info("[RKWIFI]: %s: %s, %s, %s, reason=%d\n", __func__, wifi_state[state], cndinfo.ssid,
@@ -221,7 +220,6 @@ int RK_wifi_register_callback(RK_wifi_state_callback cb) {
 
 static int RK_wifi_search_with_bssid(const char *bssid) {
 	RK_WIFI_SAVED_INFO wsi;
-	int id;
 
 	RK_wifi_getSavedInfo(&wsi);
 	for (int i = 0; i < wsi.count; i++) {
@@ -235,13 +233,13 @@ static int RK_wifi_search_with_bssid(const char *bssid) {
 
 static int RK_wifi_search_with_ssid(const char *ssid) {
 	RK_WIFI_SAVED_INFO wsi;
-	int id, len;
+	int len;
 
 	RK_wifi_getSavedInfo(&wsi);
 	for (int i = 0; i < wsi.count; i++) {
 		if ((strlen(wsi.save_info[i].ssid) > 64) || (strlen(ssid) > 64))
 			pr_err("RK_wifi_search_with_ssid ssid error!!!\n");
-		pr_err("RK_wifi_search_with_ssid save_info[%d].ssid: %s:%d, ssid: %s:%d \n", i,
+		pr_err("RK_wifi_search_with_ssid save_info[%d].ssid: %s:%ld, ssid: %s:%ld \n", i,
 		       wsi.save_info[i].ssid, strlen(wsi.save_info[i].ssid), ssid, strlen(ssid));
 		if (strlen(wsi.save_info[i].ssid) > strlen(ssid))
 			len = strlen(wsi.save_info[i].ssid);
@@ -362,6 +360,8 @@ static int get_ssid_from_list_network(RK_WIFI_SAVED_INFO_s *info, int row, int c
 	get_encode_gbk_utf8(m_gbk_head, sname, utf8);
 	pr_info("ndirect convers str: %s, sname: %s, ori: %s\n", str, sname, utf8);
 	strcpy(info->ssid, utf8);
+
+	return 0;
 }
 
 int get_bssid_from_list_network(RK_WIFI_SAVED_INFO_s *info, int row, int columns) {
@@ -383,7 +383,7 @@ int get_bssid_from_list_network(RK_WIFI_SAVED_INFO_s *info, int row, int columns
 	exec_command(cmd, str, 128);
 	pr_info("%s: row = %d, column(%d) = %s\n", __func__, row, bssid_column, str);
 
-	strncpy(info->bssid, str, (127 > BSSID_BUF_LEN) ? BSSID_BUF_LEN : 127);
+	strcpy(info->bssid, str);
 	return 0;
 }
 
@@ -430,13 +430,12 @@ void get_flags_from_list_network(char *flags_buf, int buf_len, int row, int colu
 	exec_command(cmd, str, 128);
 	if (!strncmp(str, "[CURRENT]", strlen("[CURRENT]")) ||
 	    !strncmp(str, "[DISABLED]", strlen("[DISABLED]"))) {
-		strncpy(flags_buf, str, 128 > buf_len ? buf_len : 127);
+		strcpy(flags_buf, str);
 		pr_info("%s: row = %d, column(%d) = %s\n", __func__, row, columns, flags_buf);
 	}
 }
 
 int RK_wifi_getSavedInfo(RK_WIFI_SAVED_INFO *pInfo) {
-	FILE *fp = NULL;
 	int cnt, row, columns;
 	char str[128];
 
@@ -533,7 +532,7 @@ int RK_wifi_running_getConnectionInfo(RK_WIFI_INFO_Connection_s *pInfo) {
 		if (0 == strncmp(line, "bssid", 5)) {
 			value = strchr(line, '=');
 			if (value && strlen(value) > 0) {
-				strncpy(pInfo->bssid, value + 1, sizeof(pInfo->bssid));
+				strncpy(pInfo->bssid, value + 1, sizeof(pInfo->bssid) - 1);
 			}
 		} else if (0 == strncmp(line, "freq", 4)) {
 			value = strchr(line, '=');
@@ -563,22 +562,22 @@ int RK_wifi_running_getConnectionInfo(RK_WIFI_INFO_Connection_s *pInfo) {
 		} else if (0 == strncmp(line, "mode", 4)) {
 			value = strchr(line, '=');
 			if (value && strlen(value) > 0) {
-				strncpy(pInfo->mode, value + 1, sizeof(pInfo->mode));
+				strncpy(pInfo->mode, value + 1, sizeof(pInfo->mode) - 1);
 			}
 		} else if (0 == strncmp(line, "wpa_state", 9)) {
 			value = strchr(line, '=');
 			if (value && strlen(value) > 0) {
-				strncpy(pInfo->wpa_state, value + 1, sizeof(pInfo->wpa_state));
+				strncpy(pInfo->wpa_state, value + 1, sizeof(pInfo->wpa_state) - 1);
 			}
 		} else if (0 == strncmp(line, "ip_address", 10)) {
 			value = strchr(line, '=');
 			if (value && strlen(value) > 0) {
-				strncpy(pInfo->ip_address, value + 1, sizeof(pInfo->ip_address));
+				strncpy(pInfo->ip_address, value + 1, sizeof(pInfo->ip_address) - 1);
 			}
 		} else if (0 == strncmp(line, "address", 7)) {
 			value = strchr(line, '=');
 			if (value && strlen(value) > 0) {
-				strncpy(pInfo->mac_address, value + 1, sizeof(pInfo->mac_address));
+				strncpy(pInfo->mac_address, value + 1, sizeof(pInfo->mac_address) - 1);
 			}
 		}
 	}
@@ -661,7 +660,6 @@ int RK_wifi_enable(int enable) {
 }
 
 int RK_wifi_scan(void) {
-	int ret;
 	char str[32];
 
 	memset(str, 0, sizeof(str));
@@ -678,7 +676,7 @@ int RK_wifi_scan(void) {
 char *RK_wifi_scan_r(void) { return RK_wifi_scan_r_sec(0x1F); }
 
 char *RK_wifi_scan_r_sec(const unsigned int cols) {
-	char line[256], utf[256];
+	char line[256];
 	char item[384];
 	char col[128];
 	char *scan_r, *p_strtok;
@@ -756,7 +754,8 @@ char *RK_wifi_scan_r_sec(const unsigned int cols) {
 						memset(utf8_noescape, 0, sizeof(utf8_noescape));
 						memset(dst_noescape, 0, sizeof(dst_noescape));
 						if (!is_utf8) {
-							RK_encode_gbk_to_utf8(dst, strlen(dst), utf8);
+							RK_encode_gbk_to_utf8((unsigned char *)dst, strlen(dst),
+													(unsigned char *)utf8);
 							remove_escape_character(dst, dst_noescape);
 							remove_escape_character(utf8, utf8_noescape);
 							m_gbk_head = encode_gbk_insert(m_gbk_head, dst_noescape, utf8_noescape);
@@ -817,7 +816,6 @@ static int add_network() {
 
 static int set_network(const int id, const char *ssid, const char *psk,
                        const RK_WIFI_CONNECTION_Encryp_e encryp) {
-	int ret;
 	char str[8];
 	char cmd[128];
 	char wifi_ssid[128];
@@ -867,7 +865,6 @@ static int set_network(const int id, const char *ssid, const char *psk,
 }
 
 static int set_hide_network(const int id) {
-	int ret;
 	char str[8];
 	char cmd[128];
 
@@ -883,7 +880,6 @@ static int set_hide_network(const int id) {
 }
 
 static int clear_bssid_network(const int id) {
-	int ret;
 	char str[8];
 	char cmd[128];
 
@@ -901,7 +897,6 @@ static int clear_bssid_network(const int id) {
 }
 
 static int select_network(const int id) {
-	int ret;
 	char str[8];
 	char cmd[128];
 
@@ -921,7 +916,6 @@ static int select_network(const int id) {
 }
 
 static int enable_network(const int id) {
-	int ret;
 	char str[8];
 	char cmd[128];
 
@@ -1013,7 +1007,6 @@ static void format_wifiinfo(int flag, char *info) {
 }
 
 static int set_priority_network(const int id, int priority) {
-	int ret;
 	char str[8];
 	char cmd[128];
 
@@ -1116,7 +1109,7 @@ static void wifi_connectfail_process(int id) {
 static void *wifi_connect_state_check(void *arg) {
 	RK_WIFI_RUNNING_State_e state = -1;
 	bool isconnected;
-	RK_WIFI_INFO_Connection_s cndinfo;
+	// RK_WIFI_INFO_Connection_s cndinfo;
 	int id = *((int *)arg);
 
 	prctl(PR_SET_NAME, "wifi_connect_state_check");
@@ -1125,8 +1118,8 @@ static void *wifi_connect_state_check(void *arg) {
 	isconnected = check_wifi_isconnected();
 
 	if (isconnected == 1) {
-		char cmd[128];
-		char str[8];
+		// char cmd[128];
+		// char str[8];
 		RK_WIFI_SAVED_INFO wsi;
 
 		// RK_wifi_running_getConnectionInfo(&cndinfo);
@@ -1280,7 +1273,7 @@ fail:
 }
 
 int RK_wifi_forget_with_ssid(const char *ssid) {
-	int id, ret;
+	int id;
 	char cmd[64];
 	char str[8];
 
@@ -1308,7 +1301,7 @@ int RK_wifi_forget_with_ssid(const char *ssid) {
 }
 
 int RK_wifi_forget_with_bssid(const char *bssid) {
-	int id, ret;
+	int id;
 	char cmd[64];
 	char str[8];
 
@@ -1609,9 +1602,7 @@ static char primary_iface[PROPERTY_VALUE_MAX] = "wlan0";
 #define UDHCPC "udhcpc"
 
 static int get_pid(const char Name[]) {
-	int len;
 	char name[32] = {0};
-	len = strlen(Name);
 	strcpy(name, Name);
 	name[31] = '\0';
 	char cmdresult[256] = {0};
@@ -1719,7 +1710,10 @@ static void get_wifi_info_by_event(char *event, RK_WIFI_RUNNING_State_e state,
 			info->id = atoi(buf);
 		}
 
-		strncpy(info->bssid, connect_info.bssid, BSSID_BUF_LEN);
+		strcpy(info->bssid, connect_info.bssid);
+		info->bssid[BSSID_BUF_LEN - 1] = '\0';
+		break;
+	default:
 		break;
 	}
 }
@@ -1777,7 +1771,6 @@ static int dispatch_event(char *event) {
 }
 
 static int check_wpa_supplicant_state() {
-	int count = 5;
 	int wpa_supplicant_pid = 0;
 	wpa_supplicant_pid = get_pid(WPA_SUPPLICANT);
 	// pr_info("%s: wpa_supplicant_pid = %d\n",__FUNCTION__,wpa_supplicant_pid);
@@ -1882,8 +1875,6 @@ static int wifi_wait_on_socket(char *buf, size_t buflen) {
 }
 
 static int wifi_connect_on_socket_path(const char *path) {
-	char supp_status[PROPERTY_VALUE_MAX] = {'\0'};
-
 	if (!check_wpa_supplicant_state()) {
 		pr_info("%s: wpa_supplicant is not ready\n", __FUNCTION__);
 		return -1;

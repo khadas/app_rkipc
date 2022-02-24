@@ -596,7 +596,6 @@ int ser_rk_isp_get_hdr(int fd) {
 int ser_rk_isp_set_hdr(int fd) {
 	int ret = 0;
 	int id, len;
-	const char *old_value = NULL;
 	char *value = NULL;
 
 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
@@ -1517,8 +1516,7 @@ int ser_rk_isp_get_focus_level(int fd) {
 
 int ser_rk_isp_af_zoom_in(int fd) {
 	int ret = 0;
-	int id, len;
-	char *value = NULL;
+	int id;
 
 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
 		return -1;
@@ -1532,8 +1530,7 @@ int ser_rk_isp_af_zoom_in(int fd) {
 
 int ser_rk_isp_af_zoom_out(int fd) {
 	int ret = 0;
-	int id, len;
-	char *value = NULL;
+	int id;
 
 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
 		return -1;
@@ -1547,8 +1544,7 @@ int ser_rk_isp_af_zoom_out(int fd) {
 
 int ser_rk_isp_af_focus_in(int fd) {
 	int ret = 0;
-	int id, len;
-	char *value = NULL;
+	int id;
 
 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
 		return -1;
@@ -1562,8 +1558,7 @@ int ser_rk_isp_af_focus_in(int fd) {
 
 int ser_rk_isp_af_focus_out(int fd) {
 	int ret = 0;
-	int id, len;
-	char *value = NULL;
+	int id;
 
 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
 		return -1;
@@ -1577,8 +1572,7 @@ int ser_rk_isp_af_focus_out(int fd) {
 
 int ser_rk_isp_af_focus_once(int fd) {
 	int ret = 0;
-	int id, len;
-	char *value = NULL;
+	int id;
 
 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
 		return -1;
@@ -3334,7 +3328,6 @@ int ser_rk_take_photo(int fd) {
 // event
 int ser_rk_event_ri_get_enabled(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	err = rk_event_ri_get_enabled(&value);
@@ -3349,7 +3342,6 @@ int ser_rk_event_ri_get_enabled(int fd) {
 
 int ser_rk_event_ri_set_enabled(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
@@ -3364,7 +3356,6 @@ int ser_rk_event_ri_set_enabled(int fd) {
 
 int ser_rk_event_ri_get_position_x(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	err = rk_event_ri_get_position_x(&value);
@@ -3379,7 +3370,6 @@ int ser_rk_event_ri_get_position_x(int fd) {
 
 int ser_rk_event_ri_set_position_x(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
@@ -3394,7 +3384,6 @@ int ser_rk_event_ri_set_position_x(int fd) {
 
 int ser_rk_event_ri_get_position_y(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	err = rk_event_ri_get_position_y(&value);
@@ -3409,7 +3398,6 @@ int ser_rk_event_ri_get_position_y(int fd) {
 
 int ser_rk_event_ri_set_position_y(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
@@ -3424,7 +3412,6 @@ int ser_rk_event_ri_set_position_y(int fd) {
 
 int ser_rk_event_ri_get_width(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	err = rk_event_ri_get_width(&value);
@@ -3439,7 +3426,6 @@ int ser_rk_event_ri_get_width(int fd) {
 
 int ser_rk_event_ri_set_width(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
@@ -3454,7 +3440,6 @@ int ser_rk_event_ri_set_width(int fd) {
 
 int ser_rk_event_ri_get_height(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	err = rk_event_ri_get_height(&value);
@@ -3469,7 +3454,6 @@ int ser_rk_event_ri_get_height(int fd) {
 
 int ser_rk_event_ri_set_height(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
@@ -3484,7 +3468,6 @@ int ser_rk_event_ri_set_height(int fd) {
 
 int ser_rk_event_ri_get_proportion(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	err = rk_event_ri_get_proportion(&value);
@@ -3499,7 +3482,6 @@ int ser_rk_event_ri_get_proportion(int fd) {
 
 int ser_rk_event_ri_set_proportion(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
@@ -3514,7 +3496,6 @@ int ser_rk_event_ri_set_proportion(int fd) {
 
 int ser_rk_event_ri_get_sensitivity_level(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	err = rk_event_ri_get_sensitivity_level(&value);
@@ -3529,7 +3510,6 @@ int ser_rk_event_ri_get_sensitivity_level(int fd) {
 
 int ser_rk_event_ri_set_sensitivity_level(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
@@ -3544,7 +3524,6 @@ int ser_rk_event_ri_set_sensitivity_level(int fd) {
 
 int ser_rk_event_ri_get_time_threshold(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	err = rk_event_ri_get_time_threshold(&value);
@@ -3559,7 +3538,6 @@ int ser_rk_event_ri_get_time_threshold(int fd) {
 
 int ser_rk_event_ri_set_time_threshold(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
@@ -4603,7 +4581,7 @@ static const struct FunMap map[] = {
     {(char *)"rk_system_del_user", &ser_rk_system_del_user}};
 
 static void *rec_thread(void *arg) {
-	int fd = (int)arg;
+	int fd = (int)(intptr_t)arg;
 	char *name = NULL;
 	int len;
 	int ret = 0;
@@ -4668,7 +4646,7 @@ static void *rkipc_server_thread(void *arg) {
 		}
 
 		if (clifd >= 0)
-			pthread_create(&thread_id, NULL, rec_thread, (void *)clifd);
+			pthread_create(&thread_id, NULL, rec_thread, (void *)(intptr_t)clifd);
 	}
 	RkIpcServerTid = 0;
 	pthread_exit(NULL);

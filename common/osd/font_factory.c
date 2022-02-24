@@ -146,7 +146,7 @@ void draw_argb8888_buffer(unsigned int *buffer, int buf_w, int buf_h) {
 void draw_argb8888_wchar(unsigned char *buffer, int buf_w, int buf_h, const wchar_t wch) {
 	pthread_mutex_lock(&g_font_mutex);
 	if (!face_) {
-		LOG_ERROR("please check font_path %s\n", font_path_);
+		LOG_INFO("please check font_path %s\n", *font_path_);
 		pthread_mutex_unlock(&g_font_mutex);
 		return;
 	}

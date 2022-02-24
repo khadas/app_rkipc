@@ -129,7 +129,7 @@ typedef struct _rkipc_str_file {
 } rkipc_str_file;
 
 typedef struct {
-	char cpath[RKIPC_MAX_FILE_PATH_LEN];
+	char cpath[RKIPC_MAX_FILE_PATH_LEN * 2];
 	rkipc_sort_condition sort_cond;
 	int wd;
 	int file_num;
@@ -182,8 +182,8 @@ typedef struct {
 
 typedef struct rk_storage_muxer_struct_ {
 	int id;
-	char file_name[128];
-	char record_path[128];
+	char file_name[256 * 2];
+	char record_path[256];
 	const char *file_format;
 	int file_duration;
 	int g_record_run_;

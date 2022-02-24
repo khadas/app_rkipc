@@ -14,7 +14,6 @@
 #define BUFSIZE 8192
 #define BUFLEN 20480
 
-static char ifname[32];
 static char netmode[32];
 static rk_network_cb rk_cb;
 
@@ -97,12 +96,11 @@ static void parseRoutes(struct nlmsghdr *nlHdr, struct route_info *rtInfo, char 
 
 static int get_gateway(char *gateway) {
 	struct nlmsghdr *nlMsg;
-	struct rtmsg *rtMsg;
+	// struct rtmsg *rtMsg;
 	struct route_info *rtInfo;
 	char msgBuf[BUFSIZE];
 
 	int sock, len, msgSeq = 0;
-	char buff[1024];
 	/* Create Socket */
 	if ((sock = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_ROUTE)) < 0)
 		perror("Socket Creation: ");
@@ -110,7 +108,7 @@ static int get_gateway(char *gateway) {
 	memset(msgBuf, 0, BUFSIZE);
 	/* point the header and the msg structure pointers into the buffer */
 	nlMsg = (struct nlmsghdr *)msgBuf;
-	rtMsg = (struct rtmsg *)NLMSG_DATA(nlMsg);
+	// rtMsg = (struct rtmsg *)NLMSG_DATA(nlMsg);
 	/* Fill in the nlmsg header*/
 	nlMsg->nlmsg_len = NLMSG_LENGTH(sizeof(struct rtmsg)); // Length of message.
 	nlMsg->nlmsg_type = RTM_GETROUTE;                // Get the routes from kernel routing table .
@@ -167,7 +165,7 @@ static size_t net_stringcopy(char *dst, const char *src, size_t siz) {
 	return (s - src - 1); /* count does not include NUL */
 }
 
-static int whether_ether_is_linked(char *ifname, int ifname_size) {
+RKIPC_MAYBE_UNUSED static int whether_ether_is_linked(char *ifname, int ifname_size) {
 	struct ethtool_value edata;
 	int fd = -1, err = 0;
 	struct ifreq ifr;
@@ -343,6 +341,8 @@ int rk_network_dns_get(char *ethernet_v4_dns, char *ethernet_v4_dns2) {
 		usleep(1000);
 		return count;
 	}
+
+	return 0;
 }
 
 int rk_network_dns_set(char *dns, char *dns2) {
@@ -350,13 +350,12 @@ int rk_network_dns_set(char *dns, char *dns2) {
 	int req_len = 64;
 	char *buf = NULL;
 	buf = (char *)malloc(req_len);
-	char fake_dns[24];
-	char fake_dns1[24];
+	// char fake_dns[24];
+	// char fake_dns1[24];
 
 	// cnt = rk_network_dns_get(fake_dns,fake_dns1);
 	char *FILE_NAME = "/etc/resolv.conf";
 	FILE *file_fd;
-	int len = 0;
 	file_fd = fopen(FILE_NAME, "w+");
 
 	pos += net_stringcopy(&buf[pos], "nameserver ", pos < req_len ? req_len - pos : 0);
@@ -648,6 +647,7 @@ int rk_ethernet_power_set(const char *ifname, int powerswitch) {
 			         ifname); //激活网卡，如:ifconfig eth0 up
 			system(netconfig_cmd);
 		}
+		return 0;
 	}
 
 	else if (powerswitch == 0) {
@@ -658,6 +658,8 @@ int rk_ethernet_power_set(const char *ifname, int powerswitch) {
 
 		return 0;
 	}
+
+	return 0;
 }
 
 int rk_network_get_cable_state() {
@@ -667,7 +669,7 @@ int rk_network_get_cable_state() {
 	struct sockaddr_nl addr;
 	struct nlmsghdr *nh;
 	struct ifinfomsg *ifinfo;
-	struct rtattr *attr;
+	// struct rtattr *attr;
 
 	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
 	setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &len, sizeof(len));
@@ -702,7 +704,8 @@ int rk_network_get_cable_state() {
 			 LOG_INFO("\n");*/
 		}
 	}
-	// return 0;
+
+	return 0;
 }
 
 int rk_nic_state_get(const char *ifname) {
@@ -774,6 +777,8 @@ static void *rk_net_proc() {
 		rk_cb(status);
 		sleep(10);
 	}
+
+	return NULL;
 }
 
 void rk_network_init(rk_network_cb func) { // func_cb func
@@ -809,7 +814,7 @@ int rk_wifi_scan_wifi() { return RK_wifi_scan(); }
 
 int rk_wifi_get_list(char **wifi_list) {
 	*wifi_list = RK_wifi_scan_r();
-	LOG_INFO("strlen(*wifi_list) is %d\n", strlen(*wifi_list));
+	LOG_INFO("strlen(*wifi_list) is %ld\n", strlen(*wifi_list));
 
 	return 0;
 }

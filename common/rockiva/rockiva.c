@@ -68,9 +68,9 @@ void rkba_callback(const RockIvaBaResult *result, const RockIvaExecuteStatus sta
 int rkipc_rockiva_init() {
 	LOG_INFO("begin\n");
 	RockIvaRetCode ret;
-	char *license_path = NULL;
-	char *license_key;
-	int license_size;
+	// char *license_path = NULL;
+	// char *license_key;
+	// int license_size;
 
 	memset(&initParams, 0, sizeof(initParams));
 	memset(&globalParams, 0, sizeof(globalParams));

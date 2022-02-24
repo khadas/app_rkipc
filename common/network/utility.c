@@ -125,14 +125,12 @@ int test_pthread(pthread_t tid) /*pthread_kill的返回值：成功（0）
 }
 
 int get_ps_pid(const char Name[]) {
-	int len;
 	char name[32] = {0};
 	char cmdresult[256] = {0};
 	char cmd[64] = {0};
 	FILE *pFile = NULL;
 	int pid = 0;
 
-	len = strlen(Name);
 	strcpy(name, Name);
 	name[31] = '\0';
 
@@ -152,7 +150,6 @@ int get_ps_pid(const char Name[]) {
 
 int kill_task(char *name) {
 	char cmd[128] = {0};
-	int exec_cnt = 3, retry_cnt = 10;
 
 	if (!get_ps_pid(name))
 		return 0;

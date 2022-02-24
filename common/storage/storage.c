@@ -19,12 +19,12 @@ static rkipc_str_dev_attr rkipc_storage_get_param(rkipc_storage_handle *pHandle)
 	return pHandle->dev_attr;
 }
 
-static rkipc_str_dev_attr rkipc_storage_get_dev_attr(void *pHandle) {
+RKIPC_MAYBE_UNUSED static rkipc_str_dev_attr rkipc_storage_get_dev_attr(void *pHandle) {
 	return rkipc_storage_get_param((rkipc_storage_handle *)pHandle);
 }
 
 int rkipc_storage_set_dev_attr(rkipc_str_dev_attr *pstDevAttr) {
-	int i, quota;
+	int quota;
 	const char *folder_name = NULL;
 	const char *mount_path = NULL;
 	const char *dev_path = NULL;
@@ -235,8 +235,8 @@ exit:
 	return ret;
 }
 
-static bool rkipc_storage_file_compare(rkipc_str_file *existingFile, rkipc_str_file *newFile,
-                                       rkipc_sort_condition cond) {
+RKIPC_MAYBE_UNUSED static bool rkipc_storage_file_compare(rkipc_str_file *existingFile,
+									rkipc_str_file *newFile, rkipc_sort_condition cond) {
 	bool ret = false;
 
 	switch (cond) {
@@ -269,7 +269,6 @@ static int rkipc_storage_file_list_check(rkipc_str_folder *folder, char *filenam
 	pthread_mutex_lock(&folder->mutex);
 
 	if (folder->file_list_first) {
-		rkipc_str_file *tmp_1 = NULL;
 		tmp = folder->file_list_first;
 
 		if (!strcmp(tmp->filename, filename)) {
@@ -294,7 +293,6 @@ static int rkipc_storage_file_list_add(rkipc_str_folder *folder, char *filename,
                                        struct stat *statbuf) {
 	rkipc_str_file *tmp = NULL;
 	rkipc_str_file *tmp_1 = NULL;
-	int file_num = 0;
 
 	RKIPC_CHECK_POINTER(folder, RKIPC_STORAGE_FAIL);
 	RKIPC_CHECK_POINTER(filename, RKIPC_STORAGE_FAIL);
@@ -396,7 +394,7 @@ again:
 	return 0;
 }
 
-static int rkipc_storage_file_list_save(rkipc_str_folder pst_folder,
+RKIPC_MAYBE_UNUSED static int rkipc_storage_file_list_save(rkipc_str_folder pst_folder,
                                         rkipc_str_folder_attr pst_folder_attr, char *mount_path) {
 	int i, len;
 	char dataFileName[RKIPC_MAX_FILE_PATH_LEN];
@@ -450,7 +448,7 @@ static int rkipc_storage_file_list_save(rkipc_str_folder pst_folder,
 	return 0;
 }
 
-static int rkipc_storage_file_list_load(rkipc_str_folder *pst_folder,
+RKIPC_MAYBE_UNUSED static int rkipc_storage_file_list_load(rkipc_str_folder *pst_folder,
                                         rkipc_str_folder_attr pst_folder_attr, char *mount_path) {
 	int i, len;
 	long long lenStr;
@@ -569,7 +567,7 @@ static int rkipc_storage_repair(rkipc_storage_handle *pHandle, rkipc_str_dev_att
 			snprintf(file, 3 * RKIPC_MAX_FILE_PATH_LEN, "%s/%s/%s", dev_attr->mount_path,
 			         dev_attr->folder_attr[i].folder_path, current->filename);
 			if ((current->size == 0) || (repair_mp4(file) == REPA_FAIL)) {
-				LOG_ERROR("Delete %s file. %lld", file, current->size);
+				LOG_ERROR("Delete %s file. %ld", file, current->size);
 				if (remove(file))
 					LOG_ERROR("Delete %s file error.", file);
 				folder->file_list_first = current->next;
@@ -587,7 +585,7 @@ static int rkipc_storage_repair(rkipc_storage_handle *pHandle, rkipc_str_dev_att
 			snprintf(file, 3 * RKIPC_MAX_FILE_PATH_LEN, "%s/%s/%s", dev_attr->mount_path,
 			         dev_attr->folder_attr[i].folder_path, current->next->filename);
 			if ((current->next->size == 0) || (repair_mp4(file) == REPA_FAIL)) {
-				LOG_ERROR("Delete %s file. %lld", file, current->next->size);
+				LOG_ERROR("Delete %s file. %ld", file, current->next->size);
 				if (remove(file))
 					LOG_ERROR("Delete %s file error.", file);
 				next = current->next;
@@ -650,7 +648,7 @@ static void *rkipc_storage_file_monitor_thread(void *arg) {
 				for (j = 0; j < pHandle->dev_sta.folder_num; j++) {
 					if (event->wd == pHandle->dev_sta.folder[j].wd) {
 						if (event->mask & IN_MOVED_TO) {
-							char d_name[RKIPC_MAX_FILE_PATH_LEN];
+							char d_name[RKIPC_MAX_FILE_PATH_LEN * 3];
 							struct stat statbuf;
 							sprintf(d_name, "%s/%s", pHandle->dev_sta.folder[j].cpath, event->name);
 							if (lstat(d_name, &statbuf)) {
@@ -670,7 +668,7 @@ static void *rkipc_storage_file_monitor_thread(void *arg) {
 								LOG_ERROR("FileListDel failed");
 
 						if (event->mask & IN_CLOSE_WRITE) {
-							char d_name[RKIPC_MAX_FILE_PATH_LEN];
+							char d_name[RKIPC_MAX_FILE_PATH_LEN * 3];
 							struct stat statbuf;
 							sprintf(d_name, "%s/%s", pHandle->dev_sta.folder[j].cpath, event->name);
 							if (lstat(d_name, &statbuf)) {
@@ -713,7 +711,7 @@ int rkipc_storage_read_file_list(rkipc_str_folder *folder) {
 	DIR *dir;
 	struct dirent *ptr;
 	struct stat statbuf;
-	char d_name[RKIPC_MAX_FILE_PATH_LEN];
+	char d_name[RKIPC_MAX_FILE_PATH_LEN * 3];
 
 	if ((dir = opendir(folder->cpath)) == NULL) {
 		LOG_ERROR("Open dir error\n");
@@ -741,7 +739,7 @@ int rkipc_storage_read_file_list(rkipc_str_folder *folder) {
 	return 0;
 }
 
-static int rkipc_storage_RKFSCK(rkipc_storage_handle *pHandle, rkipc_str_dev_attr *dev_attr) {
+RKIPC_MAYBE_UNUSED static int rkipc_storage_RKFSCK(rkipc_storage_handle *pHandle, rkipc_str_dev_attr *dev_attr) {
 	int i;
 	int ret = 0;
 	struct reg_para para;
@@ -1339,8 +1337,9 @@ err_event_listener:
 
 static int rkipc_storage_para_init(rkipc_storage_handle *pstHandle,
                                    rkipc_str_dev_attr *pstDevAttr) {
-	int i, quota;
-	const char *folder_name = NULL;
+	int i;
+	// const char *folder_name = NULL;
+	// int quota;
 	// const char *mount_path = NULL;
 	// const char *dev_path = NULL;
 
@@ -1812,7 +1811,7 @@ int rkipc_storage_current_path_get(char **value) {
 	cJSON *path_info = NULL;
 	path_info = cJSON_CreateObject();
 	cJSON_AddStringToObject(path_info, "sMountPath", g_sd_dev_attr.mount_path);
-	char *out = cJSON_Print(path_info);
+	*value = cJSON_Print(path_info);
 	cJSON_Delete(path_info);
 
 	return 0;
@@ -1833,7 +1832,7 @@ char *rkipc_response_delete(int num, int id, char *name_list) {
 		for (int i = 0; i < num; i++) {
 			ret = rkipc_storage_file_list_del(&phandle->dev_sta.folder[0], &name_list[i]);
 			if (ret) {
-				LOG_ERROR("delete %s failed!\n", name_list[i]);
+				LOG_ERROR("delete %s failed!\n", &name_list[i]);
 				cJSON_AddNumberToObject(del_info, "rst", 0);
 				char *out = cJSON_Print(del_info);
 				cJSON_Delete(del_info);
@@ -1844,7 +1843,7 @@ char *rkipc_response_delete(int num, int id, char *name_list) {
 		for (int i = 0; i < num; i++) {
 			ret = rkipc_storage_file_list_del(&phandle->dev_sta.folder[1], &name_list[i]);
 			if (ret) {
-				LOG_ERROR("delete %s failed!\n", name_list[i]);
+				LOG_ERROR("delete %s failed!\n", &name_list[i]);
 				cJSON_AddNumberToObject(del_info, "rst", 0);
 				char *out = cJSON_Print(del_info);
 				cJSON_Delete(del_info);
@@ -1855,7 +1854,7 @@ char *rkipc_response_delete(int num, int id, char *name_list) {
 		for (int i = 0; i < num; i++) {
 			ret = rkipc_storage_file_list_del(&phandle->dev_sta.folder[2], &name_list[i]);
 			if (ret) {
-				LOG_ERROR("delete %s failed!\n", name_list[i]);
+				LOG_ERROR("delete %s failed!\n", &name_list[i]);
 				cJSON_AddNumberToObject(del_info, "rst", 0);
 				char *out = cJSON_Print(del_info);
 				cJSON_Delete(del_info);
@@ -1877,7 +1876,7 @@ static void *rk_storage_record(void *arg) {
 	while (rk_storage_muxer_group[id].g_record_run_) {
 		time_t t = time(NULL);
 		struct tm tm = *localtime(&t);
-		snprintf(rk_storage_muxer_group[id].file_name, 128, "%s/%d%02d%02d%02d%02d%02d.%s",
+		snprintf(rk_storage_muxer_group[id].file_name, 512, "%s/%d%02d%02d%02d%02d%02d.%s",
 		         rk_storage_muxer_group[id].record_path, tm.tm_year + 1900, tm.tm_mon + 1,
 		         tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec,
 		         rk_storage_muxer_group[id].file_format);
@@ -1944,7 +1943,7 @@ static int rk_storage_muxer_init_by_id(int id) {
 	snprintf(entry, 127, "storage.%d:folder_name", id);
 	folder_name = rk_param_get_string(entry, "video0");
 	memset(&rk_storage_muxer_group[id].record_path, 0,
-	       sizeof(&rk_storage_muxer_group[id].record_path));
+	       sizeof(rk_storage_muxer_group[id].record_path));
 	strcat(rk_storage_muxer_group[id].record_path, mount_path);
 	strcat(rk_storage_muxer_group[id].record_path, "/");
 	strcat(rk_storage_muxer_group[id].record_path, folder_name);
@@ -2068,7 +2067,7 @@ int rk_storage_record_start() {
 	time_t t = time(NULL);
 	struct tm tm = *localtime(&t);
 
-	snprintf(rk_storage_muxer_group[0].file_name, 128, "%s/%d%02d%02d%02d%02d%02d.%s",
+	snprintf(rk_storage_muxer_group[0].file_name, 512, "%s/%d%02d%02d%02d%02d%02d.%s",
 	         rk_storage_muxer_group[0].record_path, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
 	         tm.tm_hour, tm.tm_min, tm.tm_sec, rk_storage_muxer_group[0].file_format);
 	LOG_INFO("file_name is %s\n", rk_storage_muxer_group[0].file_name);

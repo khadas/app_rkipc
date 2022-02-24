@@ -1751,12 +1751,11 @@ const unsigned short mb_uni2gb_table[20902] = {
 
 int utf8_to_gbk(unsigned char *pszBufIn, int nBufInLen, unsigned char *pszBufOut) {
 	int i = 0;
-	int j = 0, nLen = 0;
+	int j = 0;
 	unsigned short unicode;
 	unsigned short gbk;
 	for (; i < nBufInLen; i++, j++) {
 		if ((pszBufIn[i] & 0x80) == 0x00) { // 1λ
-			nLen = 1;
 			pszBufOut[j] = pszBufIn[i];
 		}                                        /*else if((pszBufIn[i] & 0xE0) == 0xC0) {// 2λ
 		                                           nLen = 2;

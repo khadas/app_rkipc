@@ -2056,7 +2056,7 @@ static int unicode_to_utf8(unsigned long c, unsigned char *pszUtf8, int *pnUtf8L
 		*t++ = (char)(0x80 | (c & 0x3F));
 		*t = '\0';
 	}
-	strcpy(pszUtf8, tmp);
+	strcpy((char *)pszUtf8, tmp);
 	*pnUtf8Len = strlen(tmp);
 	return 0;
 }

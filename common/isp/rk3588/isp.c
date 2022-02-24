@@ -1,4 +1,6 @@
 #include "common.h"
+#include "isp.h"
+#include "video.h"
 
 #include <rk_aiq_user_api2_acsm.h>
 #include <rk_aiq_user_api2_camgroup.h>
@@ -533,7 +535,8 @@ int rk_isp_get_hdr(int cam_id, const char **value) {
 }
 
 int rk_isp_set_hdr(int cam_id, const char *value) {
-	int ret, format, sensor_num, pipe_id, vi_chn_id;
+	int ret = 0;
+	int format, sensor_num, pipe_id, vi_chn_id;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	char entry[128] = {'\0'};
 	const char *old_value = NULL;

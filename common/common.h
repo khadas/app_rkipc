@@ -20,6 +20,12 @@
 #include "log.h"
 #include "param.h"
 
+#ifdef __GNUC__
+#define RKIPC_MAYBE_UNUSED __attribute__((unused))
+#else
+#define RKIPC_MAYBE_UNUSED
+#endif
+
 void *rk_signal_create(int defval, int maxval);
 void rk_signal_destroy(void *sem);
 int rk_signal_wait(void *sem, int timeout);
