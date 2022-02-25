@@ -162,8 +162,8 @@ bool parse_mcu_rkraws(const char *subdev, struct mcu_rkaiq_rkraw *mcu_rkraws) {
 			break;
 		}
 		case 0xff02:
-			mcu_rkraws[icnt].rawfmt = *((struct _raw_format *)p);
-			p = p + sizeof(struct _raw_format);
+			mcu_rkraws[icnt].rawfmt = *((struct rkipc_raw_format *)p);
+			p = p + sizeof(struct rkipc_raw_format);
 			break;
 		case 0xff03:
 			mcu_rkraws[icnt].finfo = *((struct _frame_inf *)p);
@@ -223,7 +223,7 @@ void make_rkraws(struct mcu_rkaiq_rkraw *mcu_rkraws, uint8_t **rkraws) {
 		uint32_t size;
 	} __attribute__((packed));
 
-	struct _raw_format {
+	struct rkipc_raw_format {
 		uint16_t tag;
 		uint32_t size;
 		uint16_t vesrion;
@@ -271,7 +271,7 @@ void make_rkraws(struct mcu_rkaiq_rkraw *mcu_rkraws, uint8_t **rkraws) {
 
 	struct _block_header header;
 	struct _st_addrinfo addrinfo;
-	struct _raw_format format;
+	struct rkipc_raw_format format;
 	struct _frame_info frame_info;
 	uint16_t tag;
 	for (int i = 0; i < MAX_FAKE_FRAMES_NUM; i++) {
@@ -287,7 +287,7 @@ void make_rkraws(struct mcu_rkaiq_rkraw *mcu_rkraws, uint8_t **rkraws) {
 		format.vesrion = mcu_rkraws[i].rawfmt.vesrion;
 		memcpy(format.sensor, mcu_rkraws[i].rawfmt.sensor, 32);
 		memcpy(format.scene, mcu_rkraws[i].rawfmt.scene, 32);
-		format.frame_id = mcu_rkraws[i].rawfmt.frame_id;
+		format.frame_id = mcu_rkraws[i].rawfmt.frame_no;
 		format.width = mcu_rkraws[i].rawfmt.width;
 		format.height = mcu_rkraws[i].rawfmt.height;
 
@@ -307,8 +307,10 @@ void make_rkraws(struct mcu_rkaiq_rkraw *mcu_rkraws, uint8_t **rkraws) {
 		ptr += sizeof(addrinfo);
 
 		frame_info.frame_id = i;
-		frame_info.normal_gain_reg = mcu_rkraws[i].finfo.normal_gain;
-		frame_info.normal_exp_reg = mcu_rkraws[i].finfo.normal_exp;
+		// WARNING: although mcu_rkraws[i].finfo.normal_gain/exp are float, but they are actually
+		// integer reg_value
+		frame_info.normal_gain_reg = (uint32_t)(mcu_rkraws[i].finfo.normal_gain);
+		frame_info.normal_exp_reg = (uint32_t)(mcu_rkraws[i].finfo.normal_exp);
 		frame_info.size = sizeof(frame_info) - sizeof(header);
 		frame_info.tag = 0xff06;
 		memcpy(ptr, &frame_info, sizeof(frame_info));

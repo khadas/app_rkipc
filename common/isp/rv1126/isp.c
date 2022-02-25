@@ -13,6 +13,7 @@
 
 #define MAX_AIQ_CTX 4
 #define FPS 30
+
 char g_iq_file_dir_[256];
 
 static rk_aiq_sys_ctx_t *g_aiq_ctx[MAX_AIQ_CTX];
@@ -50,7 +51,7 @@ int sample_common_isp_init(int cam_id, rk_aiq_working_mode_t WDRMode, bool Multi
 	rk_aiq_static_info_t aiq_static_info;
 	rk_aiq_uapi_sysctl_enumStaticMetas(cam_id, &aiq_static_info);
 
-	printf("ID: %d, sensor_name is %s, iqfiles is %s\n", cam_id,
+	printf("ID: %d, sensor_name is %s, iq_file_dir is %s\n", cam_id,
 	       aiq_static_info.sensor_info.sensor_name, iq_file_dir);
 
 	aiq_ctx =
@@ -322,6 +323,85 @@ int rk_isp_set_exposure_gain(int cam_id, int value) {
 }
 
 // night_to_day
+int rk_isp_get_night_to_day(int cam_id, const char **value) {
+	RK_ISP_CHECK_CAMERA_ID(cam_id);
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "isp.%d.night_to_day:night_to_day", cam_id);
+	*value = rk_param_get_string(entry, NULL);
+
+	return 0;
+}
+
+int rk_isp_set_night_to_day(int cam_id, const char *value) {
+	int ret;
+	RK_ISP_CHECK_CAMERA_ID(cam_id);
+	rk_aiq_cpsl_cfg_t cpsl_cfg;
+	if (!strcmp(value, "day")) {
+		cpsl_cfg.mode = RK_AIQ_OP_MODE_MANUAL;
+		cpsl_cfg.gray_on = false;
+		cpsl_cfg.u.m.on = 0;
+	} else if (!strcmp(value, "night")) {
+		cpsl_cfg.mode = RK_AIQ_OP_MODE_MANUAL;
+		cpsl_cfg.gray_on = true;
+		cpsl_cfg.u.m.on = 1;
+	}
+	LOG_INFO("cpsl_cfg.gray_on is %d, cpsl_cfg.u.m.on is %d\n", cpsl_cfg.gray_on, cpsl_cfg.u.m.on);
+	ret = rk_aiq_uapi_sysctl_setCpsLtCfg(g_aiq_ctx[cam_id], &cpsl_cfg);
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "isp.%d.night_to_day:night_to_day", cam_id);
+	rk_param_set_string(entry, value);
+
+	return ret;
+}
+
+int rk_isp_get_fill_light_mode(int cam_id, const char **value) {
+	RK_ISP_CHECK_CAMERA_ID(cam_id);
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "isp.%d.night_to_day:fill_light_mode", cam_id);
+	*value = rk_param_get_string(entry, NULL);
+
+	return 0;
+}
+
+int rk_isp_set_fill_light_mode(int cam_id, const char *value) {
+	int ret;
+	RK_ISP_CHECK_CAMERA_ID(cam_id);
+	rk_aiq_cpsl_cfg_t cpsl_cfg;
+	if (!strcmp(value, "IR")) {
+		cpsl_cfg.lght_src = RK_AIQ_CPSLS_IR;
+	} else if (!strcmp(value, "LED")) {
+		cpsl_cfg.lght_src = RK_AIQ_CPSLS_LED;
+	}
+	ret = rk_aiq_uapi_sysctl_setCpsLtCfg(g_aiq_ctx[cam_id], &cpsl_cfg);
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "isp.%d.night_to_day:fill_light_mode", cam_id);
+	rk_param_set_string(entry, value);
+
+	return ret;
+}
+
+int rk_isp_get_light_brightness(int cam_id, int *value) {
+	RK_ISP_CHECK_CAMERA_ID(cam_id);
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "isp.%d.night_to_day:light_brightness", cam_id);
+	*value = rk_param_get_int(entry, -1);
+
+	return 0;
+}
+
+int rk_isp_set_light_brightness(int cam_id, int value) {
+	int ret;
+	RK_ISP_CHECK_CAMERA_ID(cam_id);
+	rk_aiq_cpsl_cfg_t cpsl_cfg;
+	cpsl_cfg.u.m.strength_led = value;
+	cpsl_cfg.u.m.strength_ir = value;
+	ret = rk_aiq_uapi_sysctl_setCpsLtCfg(g_aiq_ctx[cam_id], &cpsl_cfg);
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "isp.%d.night_to_day:light_brightness", cam_id);
+	rk_param_set_int(entry, value);
+
+	return ret;
+}
 
 // blc
 int rk_isp_get_hdr(int cam_id, const char **value) {
@@ -672,9 +752,23 @@ int rk_isp_get_gray_scale_mode(int cam_id, const char **value) {
 	return 0;
 }
 
-// int rk_isp_set_gray_scale_mode(int cam_id, const char *value) {
-// 	// TODO set by venc, not aiq
-// }
+int rk_isp_set_gray_scale_mode(int cam_id, const char *value) {
+	int ret;
+	char entry[128] = {'\0'};
+	RK_ISP_CHECK_CAMERA_ID(cam_id);
+	// 1126 should set by venc
+	// rk_aiq_uapi_acsm_attrib_t attr;
+	// rk_aiq_user_api_acsm_GetAttrib(g_aiq_ctx[cam_id], &attr);
+	// if (!strcmp(value, "[16-235]"))
+	// 	attr.param.full_range = false;
+	// else
+	// 	attr.param.full_range = true;
+	// rk_aiq_user_api_acsm_SetAttrib(g_aiq_ctx[cam_id], attr);
+	snprintf(entry, 127, "isp.%d.enhancement:gray_scale_mode", cam_id);
+	rk_param_set_string(entry, value);
+
+	return ret;
+}
 
 int rk_isp_get_distortion_correction(int cam_id, const char **value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
@@ -866,6 +960,130 @@ int rk_isp_set_image_flip(int cam_id, const char *value) {
 	rk_param_set_string(entry, value);
 
 	return ret;
+}
+
+// auto focus
+
+int rk_isp_get_af_mode(int cam_id, const char **value) {
+	RK_ISP_CHECK_CAMERA_ID(cam_id);
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "isp.%d.auto_focus:af_mode", cam_id);
+	*value = rk_param_get_string(entry, "auto");
+
+	return 0;
+}
+
+int rk_isp_set_af_mode(int cam_id, const char *value) {
+	RK_ISP_CHECK_CAMERA_ID(cam_id);
+	int ret = 0;
+	char entry[128] = {'\0'};
+	opMode_t af_mode = OP_AUTO;
+	if (value == NULL)
+		return -1;
+	if (!strcmp(value, "auto")) {
+		af_mode = OP_AUTO;
+	} else if (!strcmp(value, "semi-auto")) {
+		af_mode = OP_SEMI_AUTO;
+	} else if (!strcmp(value, "manual")) {
+		af_mode = OP_MANUAL;
+	} else {
+		return -1;
+	}
+	ret = rk_aiq_uapi_setFocusMode(g_aiq_ctx[cam_id], af_mode);
+	LOG_INFO("set af mode: %s, ret: %d\n", value, ret);
+	snprintf(entry, 127, "isp.%d.auto_focus:af_mode", cam_id);
+	rk_param_set_string(entry, value);
+
+	return 0;
+}
+
+int rk_isp_get_zoom_level(int cam_id, int *value) {
+	RK_ISP_CHECK_CAMERA_ID(cam_id);
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "isp.%d.auto_focus:zoom_level", cam_id);
+	*value = rk_param_get_int(entry, -1);
+
+	return 0;
+}
+
+int rk_isp_get_focus_level(int cam_id, int *value) {
+	RK_ISP_CHECK_CAMERA_ID(cam_id);
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "isp.%d.auto_focus:focus_level", cam_id);
+	*value = rk_param_get_int(entry, -1);
+
+	return 0;
+}
+
+int rk_isp_af_zoom_change(int cam_id, int change) {
+	RK_ISP_CHECK_CAMERA_ID(cam_id);
+	int ret = 0;
+	int code = 0;
+	char entry[128] = {'\0'};
+
+	rk_aiq_af_zoomrange af_zoom_range = {0};
+	ret = rk_aiq_uapi_getZoomRange(g_aiq_ctx[cam_id], &af_zoom_range);
+	if (ret) {
+		LOG_ERROR("get zoom range fail: %d\n", ret);
+		return ret;
+	}
+	rk_aiq_uapi_getOpZoomPosition(g_aiq_ctx[cam_id], &code);
+	code += change;
+	if ((code < af_zoom_range.min_pos) || (code > af_zoom_range.max_pos)) {
+		LOG_ERROR("set zoom: %d over range [%d, %d]\n", code, af_zoom_range.min_pos,
+		          af_zoom_range.max_pos);
+		ret = -1;
+	}
+	ret = rk_aiq_uapi_setOpZoomPosition(g_aiq_ctx[cam_id], code);
+	LOG_INFO("set zoom: %d, ret: %d\n", code, ret);
+	snprintf(entry, 127, "isp.%d.auto_focus:zoom_level", cam_id);
+	rk_param_set_int(entry, code);
+
+	return ret;
+}
+
+int rk_isp_af_focus_change(int cam_id, int change) {
+	RK_ISP_CHECK_CAMERA_ID(cam_id);
+	int ret = 0;
+	short code = 0;
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "isp.%d.auto_focus:af_mode", cam_id);
+	const char *af_mode = rk_param_get_string(entry, "auto");
+	if (!strcmp(af_mode, "auto"))
+		return 0;
+
+	rk_aiq_af_focusrange af_focus_range = {0};
+	ret = rk_aiq_uapi_getFocusRange(g_aiq_ctx[cam_id], &af_focus_range);
+	if (ret) {
+		LOG_ERROR("get focus range fail: %d\n", ret);
+		return ret;
+	}
+	rk_aiq_uapi_getFixedModeCode(g_aiq_ctx[cam_id], &code);
+	code += change;
+	if ((code < af_focus_range.min_pos) || (code > af_focus_range.max_pos)) {
+		LOG_ERROR("before set getFocusPosition: %d over range (%d, %d)\n", code,
+		          af_focus_range.min_pos, af_focus_range.max_pos);
+		return -1;
+	}
+	ret = rk_aiq_uapi_setFixedModeCode(g_aiq_ctx[cam_id], code);
+	LOG_INFO("set setFocusPosition: %d, ret: %d\n", code, ret);
+	snprintf(entry, 127, "isp.%d.auto_focus:focus_level", cam_id);
+	rk_param_set_int(entry, code);
+
+	return ret;
+}
+
+int rk_isp_af_zoom_in(int cam_id) { return rk_isp_af_zoom_change(cam_id, 20); }
+
+int rk_isp_af_zoom_out(int cam_id) { return rk_isp_af_zoom_change(cam_id, -20); }
+
+int rk_isp_af_focus_in(int cam_id) { return rk_isp_af_focus_change(cam_id, 1); }
+
+int rk_isp_af_focus_out(int cam_id) { return rk_isp_af_focus_change(cam_id, -1); }
+
+int rk_isp_af_focus_once(int cam_id) {
+	LOG_INFO("af_focus_once\n");
+	return rk_aiq_uapi_endOpZoomChange(g_aiq_ctx[cam_id]);
 }
 
 int rk_isp_set_from_ini(int cam_id) {

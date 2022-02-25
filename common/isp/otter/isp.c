@@ -1053,6 +1053,26 @@ int rk_isp_set_dehaze_level(int cam_id, int value) {
 	return ret;
 }
 
+int rk_isp_get_fec_level(int cam_id, int *value) {
+	RK_ISP_CHECK_CAMERA_ID(cam_id);
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "isp.%d.enhancement:fec_level", cam_id);
+	*value = rk_param_get_int(entry, -1);
+
+	return 0;
+}
+
+int rk_isp_set_fec_level(int cam_id, int value) {
+	RK_ISP_CHECK_CAMERA_ID(cam_id);
+	// int ret = rk_aiq_uapi2_setFecCorrectLevel(g_aiq_ctx[cam_id],
+	//                                          (int)(value * 2.55)); // [0-100] -> [0->255]
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "isp.%d.enhancement:fec_level", cam_id);
+	rk_param_set_int(entry, value);
+
+	return 0;
+}
+
 int rk_isp_get_ldch_level(int cam_id, int *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	char entry[128] = {'\0'};

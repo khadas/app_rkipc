@@ -47,6 +47,26 @@ struct _raw_data {
 	uint32_t ddr_laddr;
 	uint32_t raw_size;
 } __attribute__((packed));
+
+struct rkipc_raw_format {
+	uint16_t flag;
+	uint32_t size;
+	uint16_t vesrion;
+	char sensor[32];
+	char scene[32];
+	uint32_t frame_no;
+	uint16_t width;
+	uint16_t height;
+	uint8_t bitw;
+	uint8_t bayer;
+	uint8_t hdr_frame_cnt;
+	uint8_t frame_type;
+	uint8_t buf_type;
+	uint16_t row_len;
+	uint16_t valid_row_len;
+	char remark[32];
+} __attribute__((packed));
+
 struct _frame_inf {
 	uint16_t flag;
 	uint32_t size;
@@ -68,7 +88,7 @@ struct mcu_rkaiq_rkraw {
 	struct _raw_data rawdata;
 	uint8_t *frame_base;
 	int raw_buf_fd;
-	struct _raw_format rawfmt;
+	struct rkipc_raw_format rawfmt;
 	struct _frame_inf finfo;
 } __attribute__((packed));
 
