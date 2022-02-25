@@ -24,6 +24,12 @@ int rk_isp_set_exposure_time(int cam_id, const char *value);
 int rk_isp_get_exposure_gain(int cam_id, int *value);
 int rk_isp_set_exposure_gain(int cam_id, int value);
 // night_to_day
+int rk_isp_get_night_to_day(int cam_id, const char **value);
+int rk_isp_set_night_to_day(int cam_id, const char *value);
+int rk_isp_get_fill_light_mode(int cam_id, const char **value);
+int rk_isp_set_fill_light_mode(int cam_id, const char *value);
+int rk_isp_get_light_brightness(int cam_id, int *value);
+int rk_isp_set_light_brightness(int cam_id, int value);
 // blc
 int rk_isp_get_hdr(int cam_id, const char **value);
 int rk_isp_set_hdr(int cam_id, const char *value);
@@ -54,7 +60,7 @@ int rk_isp_set_noise_reduce_mode(int cam_id, const char *value);
 int rk_isp_get_dehaze(int cam_id, const char **value);
 int rk_isp_set_dehaze(int cam_id, const char *value);
 int rk_isp_get_gray_scale_mode(int cam_id, const char **value);
-// int rk_isp_set_gray_scale_mode(int cam_id, const char *value);
+int rk_isp_set_gray_scale_mode(int cam_id, const char *value);
 int rk_isp_get_distortion_correction(int cam_id, const char **value);
 int rk_isp_set_distortion_correction(int cam_id, const char *value);
 int rk_isp_get_spatial_denoise_level(int cam_id, int *value);
@@ -72,3 +78,13 @@ int rk_isp_get_power_line_frequency_mode(int cam_id, const char **value);
 int rk_isp_set_power_line_frequency_mode(int cam_id, const char *value);
 int rk_isp_get_image_flip(int cam_id, const char **value);
 int rk_isp_set_image_flip(int cam_id, const char *value);
+// auto focus
+int rk_isp_get_af_mode(int cam_id, const char **value);
+int rk_isp_set_af_mode(int cam_id, const char *value);
+int rk_isp_get_zoom_level(int cam_id, int *value);
+int rk_isp_get_focus_level(int cam_id, int *value);
+int rk_isp_af_zoom_in(int cam_id);
+int rk_isp_af_zoom_out(int cam_id);
+int rk_isp_af_focus_in(int cam_id);
+int rk_isp_af_focus_out(int cam_id);
+int rk_isp_af_focus_once(int cam_id);
