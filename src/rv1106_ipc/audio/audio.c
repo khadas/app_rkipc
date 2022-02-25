@@ -129,7 +129,7 @@ int rkipc_ai_init() {
 	const char *card_name = rk_param_get_string("audio.0:card_name", "default");
 	snprintf(aiAttr.u8CardName, sizeof(aiAttr.u8CardName), "%s", card_name);
 	LOG_INFO("aiAttr.u8CardName is %s\n", aiAttr.u8CardName);
-	aiAttr.soundCard.channels = rk_param_get_int("audio.0:channels", 2);
+	aiAttr.soundCard.channels = 2;
 	aiAttr.soundCard.sampleRate = rk_param_get_int("audio.0:sample_rate", 16000);
 	const char *format = rk_param_get_string("audio.0:format", NULL);
 	if (!strcmp(format, "S16")) {
@@ -142,14 +142,14 @@ int rkipc_ai_init() {
 		LOG_ERROR("not support %s\n", format);
 	}
 	aiAttr.enSamplerate = rk_param_get_int("audio.0:sample_rate", 16000);
-	if (aiAttr.soundCard.channels == 2)
-		aiAttr.enSoundmode = AUDIO_SOUND_MODE_STEREO;
-	else
-		aiAttr.enSoundmode = AUDIO_SOUND_MODE_MONO;
 	aiAttr.u32FrmNum = 4;
 	aiAttr.u32PtNumPerFrm = rk_param_get_int("audio.0:frame_size", 1024);
 	aiAttr.u32EXFlag = 0;
 	aiAttr.u32ChnCnt = rk_param_get_int("audio.0:channels", 2);
+	if (aiAttr.u32ChnCnt == 2)
+		aiAttr.enSoundmode = AUDIO_SOUND_MODE_STEREO;
+	else
+		aiAttr.enSoundmode = AUDIO_SOUND_MODE_MONO;
 
 	ret = RK_MPI_AI_SetPubAttr(ai_dev_id, &aiAttr);
 	if (ret != 0) {
