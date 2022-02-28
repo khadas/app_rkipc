@@ -31,6 +31,7 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/common/osd/freetype2 SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/network SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/storage SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/event SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/rockiva SRCS)
 
 include_directories(audio
 					video
@@ -45,6 +46,7 @@ include_directories(audio
 					${PROJECT_SOURCE_DIR}/common/osd/freetype2
 					${PROJECT_SOURCE_DIR}/common/network
 					${PROJECT_SOURCE_DIR}/common/storage
+					${PROJECT_SOURCE_DIR}/common/event
 					${PROJECT_SOURCE_DIR}/common/rockiva
 					)
 
@@ -56,7 +58,7 @@ add_definitions(-g -ggdb)
 add_executable(${PROJECT_NAME} ${SRCS})
 
 target_link_libraries(${PROJECT_NAME}
-						pthread rockit rkaiq rtsp freetype wpa_client rkmuxer m rkfsmk)
+						pthread rockit rkaiq rtsp freetype wpa_client rkmuxer m rkfsmk rockiva)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 install(FILES rkipc.ini DESTINATION share)

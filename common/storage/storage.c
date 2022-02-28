@@ -236,7 +236,8 @@ exit:
 }
 
 RKIPC_MAYBE_UNUSED static bool rkipc_storage_file_compare(rkipc_str_file *existingFile,
-									rkipc_str_file *newFile, rkipc_sort_condition cond) {
+                                                          rkipc_str_file *newFile,
+                                                          rkipc_sort_condition cond) {
 	bool ret = false;
 
 	switch (cond) {
@@ -395,7 +396,8 @@ again:
 }
 
 RKIPC_MAYBE_UNUSED static int rkipc_storage_file_list_save(rkipc_str_folder pst_folder,
-                                        rkipc_str_folder_attr pst_folder_attr, char *mount_path) {
+                                                           rkipc_str_folder_attr pst_folder_attr,
+                                                           char *mount_path) {
 	int i, len;
 	char dataFileName[RKIPC_MAX_FILE_PATH_LEN];
 	char jsonFileName[2 * RKIPC_MAX_FILE_PATH_LEN];
@@ -449,7 +451,8 @@ RKIPC_MAYBE_UNUSED static int rkipc_storage_file_list_save(rkipc_str_folder pst_
 }
 
 RKIPC_MAYBE_UNUSED static int rkipc_storage_file_list_load(rkipc_str_folder *pst_folder,
-                                        rkipc_str_folder_attr pst_folder_attr, char *mount_path) {
+                                                           rkipc_str_folder_attr pst_folder_attr,
+                                                           char *mount_path) {
 	int i, len;
 	long long lenStr;
 	char *str;
@@ -739,7 +742,8 @@ int rkipc_storage_read_file_list(rkipc_str_folder *folder) {
 	return 0;
 }
 
-RKIPC_MAYBE_UNUSED static int rkipc_storage_RKFSCK(rkipc_storage_handle *pHandle, rkipc_str_dev_attr *dev_attr) {
+RKIPC_MAYBE_UNUSED static int rkipc_storage_RKFSCK(rkipc_storage_handle *pHandle,
+                                                   rkipc_str_dev_attr *dev_attr) {
 	int i;
 	int ret = 0;
 	struct reg_para para;

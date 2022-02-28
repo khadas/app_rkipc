@@ -16,12 +16,12 @@
 
 #include "common.h"
 
+#include "event.h"
 #include "log.h"
 #include "network.h"
 #include "socket.h"
 #include "storage.h"
 #include "system.h"
-#include "event.h"
 
 // set by CMakeList.txt
 #include "isp.h"
@@ -4523,14 +4523,10 @@ static const struct FunMap map[] = {
     {(char *)"rk_event_ri_set_height", &ser_rk_event_ri_set_height},
     {(char *)"rk_event_ri_get_proportion", &ser_rk_event_ri_get_proportion},
     {(char *)"rk_event_ri_set_proportion", &ser_rk_event_ri_set_proportion},
-    {(char *)"rk_event_ri_get_sensitivity_level",
-    &ser_rk_event_ri_get_sensitivity_level},
-    {(char *)"rk_event_ri_set_sensitivity_level",
-    &ser_rk_event_ri_set_sensitivity_level},
-    {(char *)"rk_event_ri_get_time_threshold",
-    &ser_rk_event_ri_get_time_threshold},
-    {(char *)"rk_event_ri_set_time_threshold",
-    &ser_rk_event_ri_set_time_threshold},
+    {(char *)"rk_event_ri_get_sensitivity_level", &ser_rk_event_ri_get_sensitivity_level},
+    {(char *)"rk_event_ri_set_sensitivity_level", &ser_rk_event_ri_set_sensitivity_level},
+    {(char *)"rk_event_ri_get_time_threshold", &ser_rk_event_ri_get_time_threshold},
+    {(char *)"rk_event_ri_set_time_threshold", &ser_rk_event_ri_set_time_threshold},
     // system
     {(char *)"rk_system_capability_get_video", &ser_rk_system_capability_get_video},
     {(char *)"rk_system_capability_get_image_adjustment",

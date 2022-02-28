@@ -755,7 +755,7 @@ char *RK_wifi_scan_r_sec(const unsigned int cols) {
 						memset(dst_noescape, 0, sizeof(dst_noescape));
 						if (!is_utf8) {
 							RK_encode_gbk_to_utf8((unsigned char *)dst, strlen(dst),
-													(unsigned char *)utf8);
+							                      (unsigned char *)utf8);
 							remove_escape_character(dst, dst_noescape);
 							remove_escape_character(utf8, utf8_noescape);
 							m_gbk_head = encode_gbk_insert(m_gbk_head, dst_noescape, utf8_noescape);

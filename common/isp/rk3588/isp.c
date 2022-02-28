@@ -1,5 +1,5 @@
-#include "common.h"
 #include "isp.h"
+#include "common.h"
 #include "video.h"
 
 #include <rk_aiq_user_api2_acsm.h>
