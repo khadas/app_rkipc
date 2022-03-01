@@ -814,6 +814,8 @@ int rkipc_avs_init() {
 	stAvsChnAttr[0].u32Width = rk_param_get_int("avs:avs_width", -1);
 	stAvsChnAttr[0].u32Height = rk_param_get_int("avs:avs_height", -1);
 	stAvsChnAttr[0].enDynamicRange = DYNAMIC_RANGE_SDR8;
+	// 8 buffers are required to ensure that the post-level H264 reaches 30 frames
+	stAvsChnAttr[0].u32FrameBufCnt = 8;
 	ret = RK_MPI_AVS_SetModParam(&stAvsModParam);
 	if (RK_SUCCESS != ret) {
 		LOG_ERROR("RK_MPI_AVS_SetModParam failed, ret is %#x\n", ret);
