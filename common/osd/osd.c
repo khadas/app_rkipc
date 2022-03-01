@@ -7,6 +7,10 @@
 #include "common.h"
 #include "font_factory.h"
 #include "osd_common.h"
+#include <iconv.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -303,9 +307,9 @@ int rk_osd_init() {
 				free(osd_data.buffer);
 		} else if (!strcmp(osd_type, "privacyMask")) {
 			snprintf(entry, 127, "osd.%d:width", i);
-			osd_data.width = UPALIGNTO16(rk_param_get_int(entry, -1));
+			osd_data.width = UPALIGNTO16((int)(rk_param_get_int(entry, -1) * g_x_rate));
 			snprintf(entry, 127, "osd.%d:height", i);
-			osd_data.height = UPALIGNTO16(rk_param_get_int(entry, -1));
+			osd_data.height = UPALIGNTO16((int)(rk_param_get_int(entry, -1) * g_y_rate));
 			rk_osd_cover_create_(i, &osd_data);
 		} else {
 			osd_data.text.font_size = rk_param_get_int("osd.common:font_size", -1);
@@ -323,12 +327,41 @@ int rk_osd_init() {
 			if (!strcmp(osd_type, "channelName") || !strcmp(osd_type, "character")) {
 				snprintf(entry, 127, "osd.%d:display_text", i);
 				const char *display_text = rk_param_get_string(entry, NULL);
+				LOG_DEBUG("display_text is %s\n", display_text);
+				LOG_DEBUG("strlen(display_text) is %d\n", strlen(display_text));
+#if 0
 				int ret = mbstowcs(osd_data.text.wch, display_text, strlen(display_text));
 				LOG_DEBUG("mbstowcs ret is %d\n", ret);
 				if (ret == -1)
 					continue;
 				osd_data.text.wch[ret] = '\0';
-				osd_data.width = UPALIGNTO16(strlen(display_text) * osd_data.text.font_size);
+#else
+				int ret;
+				int src_len = strlen(display_text);
+				int out_len = 0;
+				// To have this temporary variable,
+				// otherwise iconv will directly overwrite the original pointer
+				char *tmp_out_buffer = (char *)osd_data.text.wch;
+				iconv_t cd = iconv_open("WCHAR_T", "UTF-8");
+				if (cd == (iconv_t)-1) {
+					perror("iconv_open error");
+					continue;
+				}
+				ret = iconv(cd, &display_text, (size_t *)&src_len, &tmp_out_buffer,
+				            (size_t *)&out_len);
+				if (ret == -1)
+					perror("iconv error");
+				iconv_close(cd);
+				LOG_DEBUG("out_len is %d\n", out_len);
+				// osd_data.text.wch[???] = '\0';
+				// for(int i=0;i< strlen(display_text); i++) {
+				// 	LOG_INFO("111 display_text [%02x]\n",display_text[i]);
+				// }
+				// for(int i=0;i< wcslen(osd_data.text.wch); i++) {
+				// 	LOG_INFO("222 osd_data.text.wch [%02x]\n",osd_data.text.wch[i]);
+				// }
+#endif
+				osd_data.width = UPALIGNTO16(wcslen(osd_data.text.wch) * osd_data.text.font_size);
 				osd_data.height = UPALIGNTO16(osd_data.text.font_size);
 				osd_data.size = osd_data.width * osd_data.height * 4; // BGRA8888 4byte
 				osd_data.buffer = malloc(osd_data.size);

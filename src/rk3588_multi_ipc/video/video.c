@@ -2281,6 +2281,18 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 		LOG_INFO("RK_MPI_RGN_AttachToChn to venc0 success\n");
 	}
 	if (enable_venc_1) {
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X =
+		    UPALIGNTO16(osd_data->origin_x * rk_param_get_int("video.1:width", 1) /
+		                rk_param_get_int("video.0:width", 1));
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y =
+		    UPALIGNTO16(osd_data->origin_y * rk_param_get_int("video.1:height", 1) /
+		                rk_param_get_int("video.0:height", 1));
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width =
+		    UPALIGNTO16(osd_data->width * rk_param_get_int("video.1:width", 1) /
+		                rk_param_get_int("video.0:width", 1));
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height =
+		    UPALIGNTO16(osd_data->height * rk_param_get_int("video.1:height", 1) /
+		                rk_param_get_int("video.0:height", 1));
 		stCoverChn.s32ChnId = 1;
 		ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
 		if (RK_SUCCESS != ret) {
@@ -2290,6 +2302,18 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 		LOG_INFO("RK_MPI_RGN_AttachToChn to venc0 success\n");
 	}
 	if (enable_venc_2) {
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X =
+		    UPALIGNTO16(osd_data->origin_x * rk_param_get_int("video.2:width", 1) /
+		                rk_param_get_int("video.0:width", 1));
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y =
+		    UPALIGNTO16(osd_data->origin_y * rk_param_get_int("video.2:height", 1) /
+		                rk_param_get_int("video.0:height", 1));
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width =
+		    UPALIGNTO16(osd_data->width * rk_param_get_int("video.2:width", 1) /
+		                rk_param_get_int("video.0:width", 1));
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height =
+		    UPALIGNTO16(osd_data->height * rk_param_get_int("video.2:height", 1) /
+		                rk_param_get_int("video.0:height", 1));
 		stCoverChn.s32ChnId = 2;
 		ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
 		if (RK_SUCCESS != ret) {
@@ -2395,6 +2419,12 @@ int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 		LOG_INFO("RK_MPI_RGN_AttachToChn to venc0 success\n");
 	}
 	if (enable_venc_1) {
+		stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32X =
+		    UPALIGNTO16(osd_data->origin_x * rk_param_get_int("video.1:width", 1) /
+		                rk_param_get_int("video.0:width", 1));
+		stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32Y =
+		    UPALIGNTO16(osd_data->origin_y * rk_param_get_int("video.1:height", 1) /
+		                rk_param_get_int("video.0:height", 1));
 		stMppChn.s32ChnId = 1;
 		ret = RK_MPI_RGN_AttachToChn(RgnHandle, &stMppChn, &stRgnChnAttr);
 		if (RK_SUCCESS != ret) {
@@ -2404,6 +2434,12 @@ int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 		LOG_INFO("RK_MPI_RGN_AttachToChn to venc1 success\n");
 	}
 	if (enable_venc_2) {
+		stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32X =
+		    UPALIGNTO16(osd_data->origin_x * rk_param_get_int("video.2:width", 1) /
+		                rk_param_get_int("video.0:width", 1));
+		stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32Y =
+		    UPALIGNTO16(osd_data->origin_y * rk_param_get_int("video.2:height", 1) /
+		                rk_param_get_int("video.0:height", 1));
 		stMppChn.s32ChnId = 2;
 		ret = RK_MPI_RGN_AttachToChn(RgnHandle, &stMppChn, &stRgnChnAttr);
 		if (RK_SUCCESS != ret) {
