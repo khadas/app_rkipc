@@ -2580,9 +2580,9 @@ int rkipc_osd_deinit() {
 
 static void *wait_key_event(void *arg) {
 	int key_fd;
-	key_fd = open("/dev/input/event1", O_RDONLY);
+	key_fd = open("/dev/input/event3", O_RDONLY);
 	if (key_fd < 0) {
-		LOG_ERROR("can't open /dev/input/event1\n");
+		LOG_ERROR("can't open /dev/input/event3\n");
 		return NULL;
 	}
 	fd_set rfds;
