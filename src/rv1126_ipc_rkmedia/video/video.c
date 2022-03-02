@@ -56,6 +56,7 @@ static const char *g_output_data_type;
 static const char *g_rc_mode;
 static const char *g_h264_profile;
 static const char *g_smart;
+static const char *g_svc;
 static pthread_t venc_thread_id_0;
 static pthread_t venc_thread_id_1;
 static pthread_t venc_thread_id_2;
@@ -570,7 +571,10 @@ int rkipc_pipe_0_to_RTSP_init() { // VI 0 2688*1520 -> VENC 0 H264 ->RTSP 0 &
 		return -1;
 	}
 	g_smart = rk_param_get_string("video.0:smart", NULL);
-	if (!strcmp(g_rc_mode, "open")) {
+	g_svc = rk_param_get_string("video.0:svc", NULL);
+	if (!strcmp(g_svc, "open")) {
+		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC;
+	} else if (!strcmp(g_smart, "open")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
 	} else {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
@@ -739,7 +743,10 @@ int rkipc_pipe_1_init() { // VI 1 640*480 -> VENC 1 H264 ->RTSP 1 & RTMP
 		return -1;
 	}
 	g_smart = rk_param_get_string("video.1:smart", NULL);
-	if (!strcmp(g_rc_mode, "open")) {
+	g_svc = rk_param_get_string("video.1:svc", NULL);
+	if (!strcmp(g_svc, "open")) {
+		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC;
+	} else if (!strcmp(g_smart, "open")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
 	} else {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
@@ -915,7 +922,10 @@ int rkipc_pipe_2_init() { // VI 2 1920*1080 -> VENC 2 H264 ->RTSP 2  & RTMP
 		return -1;
 	}
 	g_smart = rk_param_get_string("video.2:smart", NULL);
-	if (!strcmp(g_rc_mode, "open")) {
+	g_svc = rk_param_get_string("video.2:svc", NULL);
+	if (!strcmp(g_svc, "open")) {
+		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC;
+	} else if (!strcmp(g_smart, "open")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
 	} else {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
@@ -1302,6 +1312,23 @@ int rk_video_get_smart(int stream_id, const char **value) {
 int rk_video_set_smart(int stream_id, const char *value) {
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "video.%d:smart", stream_id);
+	rk_param_set_string(entry, value);
+	rk_video_restart();
+
+	return 0;
+}
+
+int rk_video_get_svc(int stream_id, const char **value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.%d:svc", stream_id);
+	*value = rk_param_get_string(entry, "close");
+
+	return 0;
+}
+
+int rk_video_set_svc(int stream_id, const char *value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.%d:svc", stream_id);
 	rk_param_set_string(entry, value);
 	rk_video_restart();
 

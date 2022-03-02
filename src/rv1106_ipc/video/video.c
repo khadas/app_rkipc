@@ -75,6 +75,7 @@ static const char *tmp_output_data_type = "H.264";
 static const char *tmp_rc_mode;
 static const char *tmp_h264_profile;
 static const char *tmp_smart;
+static const char *tmp_svc;
 static const char *tmp_rc_quality;
 static pthread_t venc_thread_0, venc_thread_1, venc_thread_2, jpeg_venc_thread_id, vpss_thread_rgb;
 
@@ -578,7 +579,10 @@ int rkipc_pipe_0_init() {
 		return -1;
 	}
 	tmp_smart = rk_param_get_string("video.0:smart", NULL);
-	if (!strcmp(tmp_rc_mode, "open")) {
+	tmp_svc = rk_param_get_string("video.0:svc", NULL);
+	if (!strcmp(tmp_svc, "open")) {
+		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC4;
+	} else if (!strcmp(tmp_smart, "open")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
 	} else {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
@@ -795,7 +799,10 @@ int rkipc_pipe_1_init() {
 		return -1;
 	}
 	tmp_smart = rk_param_get_string("video.1:smart", NULL);
-	if (!strcmp(tmp_rc_mode, "open")) {
+	tmp_svc = rk_param_get_string("video.1:svc", NULL);
+	if (!strcmp(tmp_svc, "open")) {
+		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC4;
+	} else if (!strcmp(tmp_smart, "open")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
 	} else {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
@@ -1382,6 +1389,23 @@ int rk_video_get_smart(int stream_id, const char **value) {
 int rk_video_set_smart(int stream_id, const char *value) {
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "video.%d:smart", stream_id);
+	rk_param_set_string(entry, value);
+	rk_video_restart();
+
+	return 0;
+}
+
+int rk_video_get_svc(int stream_id, const char **value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.%d:svc", stream_id);
+	*value = rk_param_get_string(entry, "close");
+
+	return 0;
+}
+
+int rk_video_set_svc(int stream_id, const char *value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.%d:svc", stream_id);
 	rk_param_set_string(entry, value);
 	rk_video_restart();
 
