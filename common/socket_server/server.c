@@ -26,6 +26,7 @@
 // set by CMakeList.txt
 #include "isp.h"
 #include "osd.h"
+#include "roi.h"
 #include "video.h"
 
 #ifdef LOG_TAG
@@ -2876,6 +2877,346 @@ int ser_rk_osd_restart(int fd) {
 	return 0;
 }
 
+// roi.x
+int ser_rk_roi_get_stream_type(int fd) {
+	int err = 0;
+	int id, len;
+	const char *value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_roi_get_stream_type(id, &value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_roi_set_stream_type(int fd) {
+	int ret = 0;
+	int id, len;
+	char *value = NULL;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_INFO("id is %d, value is %s\n", id, value);
+		ret = rk_roi_set_stream_type(id, value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
+
+	return 0;
+}
+
+int ser_rk_roi_get_name(int fd) {
+	int err = 0;
+	int id, len;
+	const char *value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_roi_get_name(id, &value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_roi_set_name(int fd) {
+	int ret = 0;
+	int id, len;
+	char *value = NULL;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_INFO("id is %d, value is %s\n", id, value);
+		ret = rk_roi_set_name(id, value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
+
+	return 0;
+}
+
+int ser_rk_roi_get_id(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_roi_get_id(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_roi_set_id(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_roi_set_id(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_roi_get_enabled(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_roi_get_enabled(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_roi_set_enabled(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_roi_set_enabled(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_roi_get_position_x(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_roi_get_position_x(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_roi_set_position_x(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_roi_set_position_x(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_roi_get_position_y(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_roi_get_position_y(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_roi_set_position_y(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_roi_set_position_y(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_roi_get_height(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_roi_get_height(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_roi_set_height(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_roi_set_height(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_roi_get_width(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_roi_get_width(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_roi_set_width(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_roi_set_width(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_roi_get_quality_level(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_roi_get_quality_level(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_roi_set_quality_level(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_roi_set_quality_level(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_roi_set_all(int fd) {
+	int err = 0;
+
+	LOG_DEBUG("begin\n");
+	err = rk_roi_set_all();
+	LOG_DEBUG("end\n");
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
 // network
 int ser_rk_network_ipv4_get(int fd) {
 	int err = 0;
@@ -4537,6 +4878,26 @@ static const struct FunMap map[] = {
     {(char *)"rk_osd_get_image_path", &ser_rk_osd_get_image_path},
     {(char *)"rk_osd_set_image_path", &ser_rk_osd_set_image_path},
     {(char *)"rk_osd_restart", &ser_rk_osd_restart},
+    // roi.x
+    {(char *)"rk_roi_get_stream_type", &ser_rk_roi_get_stream_type},
+    {(char *)"rk_roi_set_stream_type", &ser_rk_roi_set_stream_type},
+    {(char *)"rk_roi_get_name", &ser_rk_roi_get_name},
+    {(char *)"rk_roi_set_name", &ser_rk_roi_set_name},
+    {(char *)"rk_roi_get_id", &ser_rk_roi_get_id},
+    {(char *)"rk_roi_set_id", &ser_rk_roi_set_id},
+    {(char *)"rk_roi_get_enabled", &ser_rk_roi_get_enabled},
+    {(char *)"rk_roi_set_enabled", &ser_rk_roi_set_enabled},
+    {(char *)"rk_roi_get_position_x", &ser_rk_roi_get_position_x},
+    {(char *)"rk_roi_set_position_x", &ser_rk_roi_set_position_x},
+    {(char *)"rk_roi_get_position_y", &ser_rk_roi_get_position_y},
+    {(char *)"rk_roi_set_position_y", &ser_rk_roi_set_position_y},
+    {(char *)"rk_roi_get_height", &ser_rk_roi_get_height},
+    {(char *)"rk_roi_set_height", &ser_rk_roi_set_height},
+    {(char *)"rk_roi_get_width", &ser_rk_roi_get_width},
+    {(char *)"rk_roi_set_width", &ser_rk_roi_set_width},
+    {(char *)"rk_roi_get_quality_level", &ser_rk_roi_get_quality_level},
+    {(char *)"rk_roi_set_quality_level", &ser_rk_roi_set_quality_level},
+    {(char *)"rk_roi_set_all", &ser_rk_roi_set_all},
     // network
     {(char *)"rk_network_ipv4_get", &ser_rk_network_ipv4_get},
     {(char *)"rk_network_ipv4_set", &ser_rk_network_ipv4_set},

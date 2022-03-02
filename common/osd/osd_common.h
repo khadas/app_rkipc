@@ -7,12 +7,6 @@
 #include "font_factory.h"
 #include <wchar.h>
 
-#define UPALIGNTO(value, align) ((value + align - 1) & (~(align - 1)))
-#define UPALIGNTO2(value) UPALIGNTO(value, 2)
-#define UPALIGNTO4(value) UPALIGNTO(value, 4)
-#define UPALIGNTO16(value) UPALIGNTO(value, 16)
-#define MULTI_UPALIGNTO16(grad, value) UPALIGNTO16((int)(grad * value))
-
 #define OSD_FMT_SPACE " "
 #define OSD_FMT_TIME0 "24hour"
 #define OSD_FMT_TIME1 "12hour"
