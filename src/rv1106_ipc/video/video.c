@@ -345,8 +345,8 @@ static void *rkipc_get_vpss_bgr(void *arg) {
 		ret = RK_MPI_VPSS_GetChnFrame(VPSS_BGR, 0, &frame, 1000);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(frame.stVFrame.pMbBlk);
-			LOG_INFO("data:%p, u32Width:%d, u32Height:%d, PTS is %" PRId64 "\n", data,
-			         frame.stVFrame.u32Width, frame.stVFrame.u32Height, frame.stVFrame.u64PTS);
+			// LOG_INFO("data:%p, u32Width:%d, u32Height:%d, PTS is %" PRId64 "\n", data,
+			//          frame.stVFrame.u32Width, frame.stVFrame.u32Height, frame.stVFrame.u64PTS);
 			// rkipc_rockiva_write_rgb888_frame(frame.stVFrame.u32Width, frame.stVFrame.u32Height,
 			//                                  data);
 			int32_t fd = RK_MPI_MB_Handle2Fd(frame.stVFrame.pMbBlk);
@@ -1909,7 +1909,6 @@ int rk_video_init() {
 	LOG_INFO("g_vi_chn_id is %d, g_enable_vo is %d, g_vo_dev_id is %d, enable_npu is %d\n",
 	         g_vi_chn_id, g_enable_vo, g_vo_dev_id, enable_npu);
 	g_video_run_ = 1;
-	ret = RK_MPI_SYS_Init();
 	ret |= rkipc_vi_dev_init();
 	ret |= rkipc_rtsp_init();
 	ret |= rkipc_rtmp_init();
@@ -1957,7 +1956,6 @@ int rk_video_deinit() {
 	// 	ret |= rkipc_pipe_3_deinit();
 	// }
 	ret |= rkipc_vi_dev_deinit();
-	ret |= RK_MPI_SYS_Exit();
 	ret |= rkipc_rtmp_deinit();
 	ret |= rkipc_rtsp_deinit();
 
