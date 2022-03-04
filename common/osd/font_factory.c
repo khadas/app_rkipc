@@ -25,9 +25,16 @@ unsigned int trans_index_;
 int create_font(const char *font_path, int font_size) {
 	pthread_mutex_lock(&g_font_mutex);
 	FT_Init_FreeType(&library_);
+	if (!library_) {
+		LOG_ERROR("FT_Init_FreeType fail\n");
+		pthread_mutex_unlock(&g_font_mutex);
+		return -1;
+	}
 	FT_New_Face(library_, font_path, 0, &face_);
 	if (!face_) {
 		LOG_ERROR("please check font_path %s\n", font_path);
+		FT_Done_FreeType(library_);
+		library_ = NULL;
 		pthread_mutex_unlock(&g_font_mutex);
 		return -1;
 	}
@@ -57,11 +64,15 @@ int destroy_font() {
 }
 
 int set_font_size(int font_size) {
+	if (!face_) {
+		LOG_ERROR("face_ is null\n");
+		return -1;
+	}
 	pthread_mutex_lock(&g_font_mutex);
 	FT_Set_Pixel_Sizes(face_, font_size, font_size);
-	pthread_mutex_unlock(&g_font_mutex);
 	// FT_Set_Char_Size(face_, font_size * 64, font_size * 64, 0, 0);
 	font_size_ = font_size;
+	pthread_mutex_unlock(&g_font_mutex);
 
 	return 0;
 }
@@ -156,6 +167,7 @@ void draw_argb8888_wchar(unsigned char *buffer, int buf_w, int buf_h, const wcha
 	FT_Render_Glyph(slot_, FT_RENDER_MODE_NORMAL); // 8bit per pixel
 	if (error) {
 		LOG_DEBUG("FT_Load_Char error\n");
+		pthread_mutex_unlock(&g_font_mutex);
 		return;
 	}
 	// DrawYuvMapBuffer(buffer, buf_w, buf_h);
