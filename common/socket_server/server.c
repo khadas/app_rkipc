@@ -26,6 +26,7 @@
 // set by CMakeList.txt
 #include "isp.h"
 #include "osd.h"
+#include "region_clip.h"
 #include "roi.h"
 #include "video.h"
 
@@ -3217,6 +3218,191 @@ int ser_rk_roi_set_all(int fd) {
 
 	return 0;
 }
+
+// region_clip.x
+
+int ser_rk_region_clip_get_enabled(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_region_clip_get_enabled(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_region_clip_set_enabled(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_region_clip_set_enabled(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_region_clip_get_position_x(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_region_clip_get_position_x(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_region_clip_set_position_x(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_region_clip_set_position_x(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_region_clip_get_position_y(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_region_clip_get_position_y(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_region_clip_set_position_y(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_region_clip_set_position_y(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_region_clip_get_height(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_region_clip_get_height(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_region_clip_set_height(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_region_clip_set_height(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_region_clip_get_width(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_region_clip_get_width(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_region_clip_set_width(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_region_clip_set_width(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_region_clip_set_all(int fd) {
+	int err = 0;
+
+	LOG_DEBUG("begin\n");
+	err = rk_region_clip_set_all();
+	LOG_DEBUG("end\n");
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
 // network
 int ser_rk_network_ipv4_get(int fd) {
 	int err = 0;
@@ -4898,6 +5084,18 @@ static const struct FunMap map[] = {
     {(char *)"rk_roi_get_quality_level", &ser_rk_roi_get_quality_level},
     {(char *)"rk_roi_set_quality_level", &ser_rk_roi_set_quality_level},
     {(char *)"rk_roi_set_all", &ser_rk_roi_set_all},
+    // region_clip.x
+    {(char *)"rk_region_clip_get_enabled", &ser_rk_region_clip_get_enabled},
+    {(char *)"rk_region_clip_set_enabled", &ser_rk_region_clip_set_enabled},
+    {(char *)"rk_region_clip_get_position_x", &ser_rk_region_clip_get_position_x},
+    {(char *)"rk_region_clip_set_position_x", &ser_rk_region_clip_set_position_x},
+    {(char *)"rk_region_clip_get_position_y", &ser_rk_region_clip_get_position_y},
+    {(char *)"rk_region_clip_set_position_y", &ser_rk_region_clip_set_position_y},
+    {(char *)"rk_region_clip_get_height", &ser_rk_region_clip_get_height},
+    {(char *)"rk_region_clip_set_height", &ser_rk_region_clip_set_height},
+    {(char *)"rk_region_clip_get_width", &ser_rk_region_clip_get_width},
+    {(char *)"rk_region_clip_set_width", &ser_rk_region_clip_set_width},
+    {(char *)"rk_region_clip_set_all", &ser_rk_region_clip_set_all},
     // network
     {(char *)"rk_network_ipv4_get", &ser_rk_network_ipv4_get},
     {(char *)"rk_network_ipv4_set", &ser_rk_network_ipv4_set},

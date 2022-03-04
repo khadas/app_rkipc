@@ -30,6 +30,7 @@
 #define UPALIGNTO2(value) UPALIGNTO(value, 2)
 #define UPALIGNTO4(value) UPALIGNTO(value, 4)
 #define UPALIGNTO16(value) UPALIGNTO(value, 16)
+#define DOWNALIGNTO16(value) (UPALIGNTO(value, 16) - 16)
 #define MULTI_UPALIGNTO16(grad, value) UPALIGNTO16((int)(grad * value))
 
 void *rk_signal_create(int defval, int maxval);

@@ -8,6 +8,7 @@
 #include "rtmp.h"
 #include "rtsp_demo.h"
 #include "storage.h"
+#include "region_clip.h"
 
 #include <inttypes.h> // PRId64
 #include <rga/im2d.h>

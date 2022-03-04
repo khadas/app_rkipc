@@ -2679,10 +2679,10 @@ int rk_take_photo() {
 }
 
 int rk_roi_set(roi_data_s *roi_data) {
-	// LOG_INFO("id is %d\n", id);
 	int ret = 0;
 	int venc_chn = 0;
 	VENC_ROI_ATTR_S pstRoiAttr;
+
 	pstRoiAttr.u32Index = roi_data->id;
 	pstRoiAttr.bEnable = roi_data->enabled;
 	pstRoiAttr.bAbsQp = RK_FALSE;
@@ -2722,10 +2722,39 @@ int rk_roi_set(roi_data_s *roi_data) {
 
 	ret = RK_MPI_VENC_SetRoiAttr(venc_chn, &pstRoiAttr);
 	if (RK_SUCCESS != ret) {
-		LOG_ERROR("RK_MPI_VENC_SetRoiAttr to venc0 failed with %#x\n", ret);
+		LOG_ERROR("RK_MPI_VENC_SetRoiAttr to venc failed with %#x\n", ret);
 		return RK_FAILURE;
 	}
-	LOG_INFO("RK_MPI_VENC_SetRoiAttr to venc0 success\n");
+	LOG_INFO("RK_MPI_VENC_SetRoiAttr to venc success\n");
+
+	return ret;
+}
+
+int rk_region_clip_set(int venc_chn, region_clip_data_s *region_clip_data) {
+	int ret = 0;
+	VENC_CHN_PARAM_S stParam;
+
+	RK_MPI_VENC_GetChnParam(venc_chn, &stParam);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("RK_MPI_VENC_GetChnParam to venc failed with %#x\n", ret);
+		return RK_FAILURE;
+	}
+	LOG_INFO("RK_MPI_VENC_GetChnParam to venc success\n");
+	LOG_INFO("venc_chn is %d\n", venc_chn);
+	if (region_clip_data->enabled)
+		stParam.stCropCfg.enCropType = VENC_CROP_ONLY;
+	else
+		stParam.stCropCfg.enCropType = VENC_CROP_NONE;
+	stParam.stCropCfg.stCropRect.s32X = region_clip_data->position_x;
+	stParam.stCropCfg.stCropRect.s32Y = region_clip_data->position_y;
+	stParam.stCropCfg.stCropRect.u32Width = region_clip_data->width;
+	stParam.stCropCfg.stCropRect.u32Height = region_clip_data->height;
+	ret = RK_MPI_VENC_SetChnParam(venc_chn, &stParam);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("RK_MPI_VENC_SetChnParam to venc failed with %#x\n", ret);
+		return RK_FAILURE;
+	}
+	LOG_INFO("RK_MPI_VENC_SetChnParam to venc success\n");
 
 	return ret;
 }
@@ -2785,6 +2814,8 @@ int rk_video_init() {
 	ret |= rkipc_osd_init();
 	rk_roi_set_callback_register(rk_roi_set);
 	ret |= rk_roi_set_all();
+	rk_region_clip_set_callback_register(rk_region_clip_set);
+	rk_region_clip_set_all();
 #if 1
 	pthread_t key_id;
 	// pthread_t get_vi_id;
@@ -2800,6 +2831,7 @@ int rk_video_deinit() {
 	LOG_INFO("%s\n", __func__);
 	int ret = 0;
 	g_video_run_ = 0;
+	rk_region_clip_set_callback_register(NULL);
 	rk_roi_set_callback_register(NULL);
 	ret |= rkipc_osd_deinit();
 	ret |= rkipc_bind_deinit();

@@ -79,6 +79,10 @@ Rockchip Electronics Co., Ltd.
 
 ---
 
+## 整体框架
+
+![image-20220307174016727](./rkipc-framework.png)
+
 ## 产品类型
 
 | 源码目录           | 依赖外部库       | 功能                                                         |

@@ -29,6 +29,7 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/common/network SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/storage SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/rockiva SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/event SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/region_clip SRCS)
 
 include_directories(audio
 					${PROJECT_SOURCE_DIR}/common/isp/otter
@@ -47,6 +48,7 @@ include_directories(audio
 					${PROJECT_SOURCE_DIR}/common/storage
 					${PROJECT_SOURCE_DIR}/common/rockiva
 					${PROJECT_SOURCE_DIR}/common/event
+					${PROJECT_SOURCE_DIR}/common/region_clip
 					)
 
 link_directories(${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-uclibcgnueabihf)

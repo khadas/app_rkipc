@@ -17,6 +17,7 @@
 #include "rtmp.h"
 #include "rtsp_demo.h"
 #include "storage.h"
+#include "region_clip.h"
 
 #include "rk_mpi_mmz.h"
 #include <rk_debug.h>
@@ -1945,6 +1946,37 @@ int rk_take_photo() {
 // 	return ret;
 // }
 
+// int rk_region_clip_set(int venc_chn, region_clip_data_s *region_clip_data) {
+// 	int ret = 0;
+// 	VENC_CHN_PARAM_S stParam;
+
+// 	RK_MPI_VENC_GetChnParam(venc_chn, &stParam);
+// 	if (RK_SUCCESS != ret) {
+// 		LOG_ERROR("RK_MPI_VENC_GetChnParam to venc failed with %#x\n", ret);
+// 		return RK_FAILURE;
+// 	}
+// 	LOG_INFO("RK_MPI_VENC_GetChnParam to venc success\n");
+// 	LOG_INFO("venc_chn is %d\n", venc_chn);
+// 	if (region_clip_data->enabled)
+// 		stParam.stCropCfg.enCropType = VENC_CROP_ONLY;
+// 	else
+// 		stParam.stCropCfg.enCropType = VENC_CROP_NONE;
+// 	stParam.stCropCfg.stCropRect.s32X = region_clip_data->position_x;
+// 	stParam.stCropCfg.stCropRect.s32Y = region_clip_data->position_y;
+// 	stParam.stCropCfg.stCropRect.u32Width = region_clip_data->width;
+// 	stParam.stCropCfg.stCropRect.u32Height = region_clip_data->height;
+// 	LOG_INFO("xywh is %d,%d,%d,%d\n", stParam.stCropCfg.stCropRect.s32X, stParam.stCropCfg.stCropRect.s32Y,
+// 				stParam.stCropCfg.stCropRect.u32Width, stParam.stCropCfg.stCropRect.u32Height);
+// 	ret = RK_MPI_VENC_SetChnParam(venc_chn, &stParam);
+// 	if (RK_SUCCESS != ret) {
+// 		LOG_ERROR("RK_MPI_VENC_SetChnParam to venc failed with %#x\n", ret);
+// 		return RK_FAILURE;
+// 	}
+// 	LOG_INFO("RK_MPI_VENC_SetChnParam to venc success\n");
+
+// 	return ret;
+// }
+
 int rk_video_init() {
 	LOG_INFO("begin\n");
 	int ret = 0;
@@ -1978,6 +2010,8 @@ int rk_video_init() {
 	// ret |= rkipc_osd_init();
 	// rk_roi_set_callback_register(rk_roi_set);
 	// ret |= rk_roi_set_all();
+	// rk_region_clip_set_callback_register(rk_region_clip_set);
+	// rk_region_clip_set_all();
 	if (enable_npu)
 		ret |= rkipc_vpss_bgr_init();
 	LOG_INFO("over\n");
@@ -1991,6 +2025,7 @@ int rk_video_deinit() {
 	int ret = 0;
 	if (enable_npu)
 		ret |= rkipc_vpss_bgr_deinit();
+	// rk_region_clip_set_callback_register(NULL);
 	// rk_roi_set_callback_register(NULL);
 	// ret |= rkipc_osd_deinit();
 	// if (g_enable_vo)
