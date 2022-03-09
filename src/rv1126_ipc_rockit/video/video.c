@@ -12,11 +12,11 @@
 #include "common.h"
 #include "isp.h"
 #include "osd.h"
+#include "region_clip.h"
 #include "roi.h"
 #include "rtmp.h"
 #include "rtsp_demo.h"
 #include "storage.h"
-#include "region_clip.h"
 
 #include "rk_mpi_mmz.h"
 #include <rk_debug.h>
@@ -2345,8 +2345,9 @@ int rk_region_clip_set(int venc_chn, region_clip_data_s *region_clip_data) {
 	stParam.stCropCfg.stCropRect.s32Y = region_clip_data->position_y;
 	stParam.stCropCfg.stCropRect.u32Width = region_clip_data->width;
 	stParam.stCropCfg.stCropRect.u32Height = region_clip_data->height;
-	LOG_INFO("xywh is %d,%d,%d,%d\n", stParam.stCropCfg.stCropRect.s32X, stParam.stCropCfg.stCropRect.s32Y,
-				stParam.stCropCfg.stCropRect.u32Width, stParam.stCropCfg.stCropRect.u32Height);
+	// LOG_INFO("xywh is %d,%d,%d,%d\n", stParam.stCropCfg.stCropRect.s32X,
+	// stParam.stCropCfg.stCropRect.s32Y, 			stParam.stCropCfg.stCropRect.u32Width,
+	// stParam.stCropCfg.stCropRect.u32Height);
 	ret = RK_MPI_VENC_SetChnParam(venc_chn, &stParam);
 	if (RK_SUCCESS != ret) {
 		LOG_ERROR("RK_MPI_VENC_SetChnParam to venc failed with %#x\n", ret);

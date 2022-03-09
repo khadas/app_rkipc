@@ -37,13 +37,15 @@ int rk_region_clip_set_all() {
 		if (region_clip_data.enabled == -1)
 			continue;
 		snprintf(entry, 127, "region_clip.%d:position_x", id);
-		region_clip_data.position_x = DOWNALIGNTO16((int)(rk_param_get_int(entry, -1) *
-									(double)video_width / (double)normalized_screen_width));
+		region_clip_data.position_x =
+		    DOWNALIGNTO16((int)(rk_param_get_int(entry, -1) * (double)video_width /
+		                        (double)normalized_screen_width));
 		if (region_clip_data.position_x < 0)
 			region_clip_data.position_x = 0;
 		snprintf(entry, 127, "region_clip.%d:position_y", id);
-		region_clip_data.position_y = DOWNALIGNTO16((int)(rk_param_get_int(entry, -1) *
-									(double)video_height / (double)normalized_screen_height));
+		region_clip_data.position_y =
+		    DOWNALIGNTO16((int)(rk_param_get_int(entry, -1) * (double)video_height /
+		                        (double)normalized_screen_height));
 		if (region_clip_data.position_y < 0)
 			region_clip_data.position_y = 0;
 		snprintf(entry, 127, "region_clip.%d:width", id);

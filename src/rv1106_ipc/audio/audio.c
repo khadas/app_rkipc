@@ -87,13 +87,15 @@ void *save_aenc_thread(void *ptr) {
 #endif
 				if (g_rtsplive && g_rtsp_session_0) {
 					pthread_mutex_lock(&g_rtsp_mutex);
-					rtsp_tx_audio(g_rtsp_session_0, buffer, pstStream.u32Len, pstStream.u32Seq);
+					rtsp_tx_audio(g_rtsp_session_0, buffer, pstStream.u32Len,
+					              pstStream.u64TimeStamp);
 					rtsp_do_event(g_rtsplive);
 					pthread_mutex_unlock(&g_rtsp_mutex);
 				}
 				if (g_rtsplive && g_rtsp_session_1) {
 					pthread_mutex_lock(&g_rtsp_mutex);
-					rtsp_tx_audio(g_rtsp_session_1, buffer, pstStream.u32Len, pstStream.u32Seq);
+					rtsp_tx_audio(g_rtsp_session_1, buffer, pstStream.u32Len,
+					              pstStream.u64TimeStamp);
 					rtsp_do_event(g_rtsplive);
 					pthread_mutex_unlock(&g_rtsp_mutex);
 				}

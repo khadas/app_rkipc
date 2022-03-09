@@ -328,7 +328,7 @@ int rk_osd_init() {
 				snprintf(entry, 127, "osd.%d:display_text", i);
 				const char *display_text = rk_param_get_string(entry, NULL);
 				LOG_DEBUG("display_text is %s\n", display_text);
-				LOG_DEBUG("strlen(display_text) is %d\n", strlen(display_text));
+				LOG_DEBUG("strlen(display_text) is %ld\n", strlen(display_text));
 #if 0
 				int ret = mbstowcs(osd_data.text.wch, display_text, strlen(display_text));
 				LOG_DEBUG("mbstowcs ret is %d\n", ret);
@@ -347,18 +347,22 @@ int rk_osd_init() {
 					perror("iconv_open error");
 					continue;
 				}
-				ret = iconv(cd, &display_text, (size_t *)&src_len, &tmp_out_buffer,
+				memcpy(entry, display_text, src_len); // iconv maybe change the char *
+				memset(entry + src_len, 0, 1);
+				char *tmp_in_buffer = (char *)entry;
+				ret = iconv(cd, &tmp_in_buffer, (size_t *)&src_len, &tmp_out_buffer,
 				            (size_t *)&out_len);
 				if (ret == -1)
 					perror("iconv error");
 				iconv_close(cd);
+				osd_data.text.wch[abs(out_len) / 4] = '\0';
 				LOG_DEBUG("out_len is %d\n", out_len);
-				// osd_data.text.wch[???] = '\0';
+				LOG_DEBUG("wcslen(osd_data.text.wch) is %ld\n", wcslen(osd_data.text.wch));
 				// for(int i=0;i< strlen(display_text); i++) {
 				// 	LOG_INFO("111 display_text [%02x]\n",display_text[i]);
 				// }
-				// for(int i=0;i< wcslen(osd_data.text.wch); i++) {
-				// 	LOG_INFO("222 osd_data.text.wch [%02x]\n",osd_data.text.wch[i]);
+				// for (int i = 0; i < wcslen(osd_data.text.wch); i++) {
+				// 	LOG_INFO("222 osd_data.text.wch [%02x]\n", osd_data.text.wch[i]);
 				// }
 #endif
 				osd_data.width = UPALIGNTO16(wcslen(osd_data.text.wch) * osd_data.text.font_size);
