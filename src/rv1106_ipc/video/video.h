@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 #include "common.h"
 #include "isp.h"
-//#include "osd.h"
+#include "osd.h"
 //#include "roi.h"
 #include "region_clip.h"
 #include "rockiva.h"

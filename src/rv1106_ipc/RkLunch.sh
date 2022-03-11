@@ -85,6 +85,8 @@ echo "/data/core-%p-%e" > /proc/sys/kernel/core_pattern
 
 echo 0 > sys/devices/platform/rkcif-mipi-lvds/is_use_dummybuf
 
+echo 1 > /proc/sys/vm/overcommit_memory
+
 # cpu
 # echo performance > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
 # echo userspce > /sys/devices/system/cpu/cpufreq/policy4/scaling_governor
