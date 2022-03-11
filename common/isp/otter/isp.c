@@ -890,17 +890,17 @@ int rk_isp_set_dehaze(int cam_id, const char *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
 	char entry[128] = {'\0'};
-	adehaze_sw_V2_t attr;
-	memset(&attr, 0, sizeof(attr));
-	attr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
-	if (!strcmp(value, "close")) {
-		attr.mode = DEHAZE_API_BYPASS;
-	} else if (!strcmp(value, "open")) {
-		attr.mode = DEHAZE_API_MANUAL;
-	} else if (!strcmp(value, "auto")) {
-		attr.mode = DEHAZE_API_DEHAZE_AUTO;
-	}
-	ret = rk_aiq_user_api2_adehaze_setSwAttrib(rkipc_aiq_get_ctx(cam_id), attr);
+	// adehaze_sw_V2_t attr;
+	// memset(&attr, 0, sizeof(attr));
+	// attr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
+	// if (!strcmp(value, "close")) {
+	// 	attr.mode = DEHAZE_API_BYPASS;
+	// } else if (!strcmp(value, "open")) {
+	// 	attr.mode = DEHAZE_API_MANUAL;
+	// } else if (!strcmp(value, "auto")) {
+	// 	attr.mode = DEHAZE_API_DEHAZE_AUTO;
+	// }
+	// ret = rk_aiq_user_api2_adehaze_setSwAttrib(rkipc_aiq_get_ctx(cam_id), attr);
 	snprintf(entry, 127, "isp.%d.enhancement:dehaze", cam_id);
 	rk_param_set_string(entry, value);
 
@@ -1039,13 +1039,14 @@ int rk_isp_get_dehaze_level(int cam_id, int *value) {
 
 int rk_isp_set_dehaze_level(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	adehaze_sw_V2_t attr;
+	int ret;
+	// adehaze_sw_V2_t attr;
 
-	attr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
-	attr.sync.done = false;
-	attr.mode = DEHAZE_API_DEHAZE_MANUAL;
-	attr.stDehazeManu.level = value;
-	int ret = rk_aiq_user_api2_adehaze_setSwAttrib(rkipc_aiq_get_ctx(cam_id), attr);
+	// attr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
+	// attr.sync.done = false;
+	// attr.mode = DEHAZE_API_DEHAZE_MANUAL;
+	// attr.stDehazeManu.level = value;
+	// int ret = rk_aiq_user_api2_adehaze_setSwAttrib(rkipc_aiq_get_ctx(cam_id), attr);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.enhancement:dehaze_level", cam_id);
 	rk_param_set_int(entry, value);
