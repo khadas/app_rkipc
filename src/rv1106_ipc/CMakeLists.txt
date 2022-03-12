@@ -16,7 +16,7 @@ include_directories(${PROJECT_SOURCE_DIR}/./include
 aux_source_directory(./ SRCS)
 aux_source_directory(audio SRCS)
 aux_source_directory(video SRCS)
-aux_source_directory(${PROJECT_SOURCE_DIR}/common/isp/otter SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/isp/rv1106 SRCS)
 aux_source_directory(server SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/ SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/socket_server SRCS)
@@ -32,7 +32,7 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/common/event SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/region_clip SRCS)
 
 include_directories(audio
-					${PROJECT_SOURCE_DIR}/common/isp/otter
+					${PROJECT_SOURCE_DIR}/common/isp/rv1106
 					video
 					server
 					${PROJECT_SOURCE_DIR}/common
