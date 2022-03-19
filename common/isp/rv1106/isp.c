@@ -926,7 +926,7 @@ int rk_isp_set_gray_scale_mode(int cam_id, const char *value) {
 		attr.param.full_range = false;
 	else
 		attr.param.full_range = true;
-	rk_aiq_user_api2_acsm_SetAttrib(rkipc_aiq_get_ctx(cam_id), attr);
+	rk_aiq_user_api2_acsm_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	snprintf(entry, 127, "isp.%d.enhancement:gray_scale_mode", cam_id);
 	rk_param_set_string(entry, value);
 
