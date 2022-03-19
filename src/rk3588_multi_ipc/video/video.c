@@ -765,6 +765,7 @@ int rkipc_avs_init() {
 	memset(&stAvsOutAttr, 0, sizeof(stAvsOutAttr));
 	memset(&stAvsChnAttr[0], 0, sizeof(stAvsChnAttr[0]));
 	stAvsModParam.u32WorkingSetSize = 67 * 1024;
+	stAvsModParam.enMBSource = 2;
 	stAvsGrpAttr.enMode = rk_param_get_int("avs:avs_mode", 0);
 #if 0
 	const char *lut_file_path = "/usr/share/avs_mesh/";
