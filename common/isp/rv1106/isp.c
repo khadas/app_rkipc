@@ -618,7 +618,7 @@ int rk_isp_get_hdr_level(int cam_id, int *value) {
 int rk_isp_set_hdr_level(int cam_id, int value) {
 	int ret;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	LOG_ERROR("ISP3.0 do not support tmo api\n");
+	rk_aiq_uapi2_setDrcGain(rkipc_aiq_get_ctx(cam_id), (float)value, 0.1, 16); // Gain: [1, 8]
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.blc:hdr_level", cam_id);
 	rk_param_set_int(entry, value);
