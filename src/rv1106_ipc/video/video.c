@@ -461,7 +461,7 @@ int rkipc_pipe_0_init() {
 	int ret;
 	int video_width = rk_param_get_int("video.0:width", -1);
 	int video_height = rk_param_get_int("video.0:height", -1);
-	int buf_cnt = 4;
+	int buf_cnt = 3;
 
 	// VI
 	VI_CHN_ATTR_S vi_chn_attr;
@@ -573,8 +573,8 @@ int rkipc_pipe_0_init() {
 	venc_chn_attr.stVencAttr.u32PicHeight = video_height;
 	venc_chn_attr.stVencAttr.u32VirWidth = video_width;
 	venc_chn_attr.stVencAttr.u32VirHeight = video_height;
-	venc_chn_attr.stVencAttr.u32StreamBufCnt = 3;
-	venc_chn_attr.stVencAttr.u32BufSize = video_width * video_height * 3 / 2;
+	venc_chn_attr.stVencAttr.u32StreamBufCnt = 4;
+	venc_chn_attr.stVencAttr.u32BufSize = video_width * video_height * 1 / 2;
 	// venc_chn_attr.stVencAttr.u32Depth = 1;
 	ret = RK_MPI_VENC_CreateChn(VIDEO_PIPE_0, &venc_chn_attr);
 	if (ret) {
@@ -677,7 +677,7 @@ int rkipc_pipe_1_init() {
 	int ret;
 	int video_width = rk_param_get_int("video.1:width", 1920);
 	int video_height = rk_param_get_int("video.1:height", 1080);
-	int buf_cnt = 4;
+	int buf_cnt = 3;
 
 	// VI
 	VI_CHN_ATTR_S vi_chn_attr;
@@ -793,8 +793,8 @@ int rkipc_pipe_1_init() {
 	venc_chn_attr.stVencAttr.u32PicHeight = video_height;
 	venc_chn_attr.stVencAttr.u32VirWidth = video_width;
 	venc_chn_attr.stVencAttr.u32VirHeight = video_height;
-	venc_chn_attr.stVencAttr.u32StreamBufCnt = 3;
-	venc_chn_attr.stVencAttr.u32BufSize = video_width * video_height * 3 / 2;
+	venc_chn_attr.stVencAttr.u32StreamBufCnt = 6;
+	venc_chn_attr.stVencAttr.u32BufSize = video_width * video_height * 1 / 2;
 	// venc_chn_attr.stVencAttr.u32Depth = 1;
 	ret = RK_MPI_VENC_CreateChn(VIDEO_PIPE_1, &venc_chn_attr);
 	if (ret) {
