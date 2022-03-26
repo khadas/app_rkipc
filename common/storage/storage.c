@@ -934,7 +934,7 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 				}
 			}
 		}
-		usleep(10000);
+		usleep(1000 * 1000);
 	}
 
 file_scan_out:
@@ -1116,7 +1116,7 @@ static void *rkipc_storage_msg_rec_msg_thread(void *arg) {
 
 	prctl(PR_SET_NAME, "rkipc_storage_msg_rec_msg_thread", 0, 0, 0);
 	while (msgBuffer->quit == 0) {
-		rkipc_tmsg_element *elm = rkipc_storage_msg_get_msg_from_buffer_timeout(msgBuffer, 50);
+		rkipc_tmsg_element *elm = rkipc_storage_msg_get_msg_from_buffer_timeout(msgBuffer, 1000);
 
 		if (elm) {
 			if (msgBuffer->rec_msg_cb)
