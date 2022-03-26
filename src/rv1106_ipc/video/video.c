@@ -296,6 +296,7 @@ static void *rkipc_get_jpeg(void *arg) {
 			fwrite(data, 1, stFrame.pstPack->u32Len, fp);
 			fflush(fp);
 			fclose(fp);
+			take_photo_one = 0;
 			// 7.release the frame
 			ret = RK_MPI_VENC_ReleaseStream(JPEG_VENC_CHN, &stFrame);
 			if (ret != RK_SUCCESS) {
@@ -595,8 +596,8 @@ int rkipc_pipe_0_init() {
 	venc_chn_attr.stVencAttr.u32PicHeight = video_height;
 	venc_chn_attr.stVencAttr.u32VirWidth = video_width;
 	venc_chn_attr.stVencAttr.u32VirHeight = video_height;
-	venc_chn_attr.stVencAttr.u32StreamBufCnt = 4;
-	venc_chn_attr.stVencAttr.u32BufSize = video_width * video_height * 3 / 4;
+	venc_chn_attr.stVencAttr.u32StreamBufCnt = rk_param_get_int("video.0:buffer_count", 4);
+	venc_chn_attr.stVencAttr.u32BufSize = rk_param_get_int("video.0:buffer_size", 1843200);
 	// venc_chn_attr.stVencAttr.u32Depth = 1;
 	ret = RK_MPI_VENC_CreateChn(VIDEO_PIPE_0, &venc_chn_attr);
 	if (ret) {
@@ -827,8 +828,8 @@ int rkipc_pipe_1_init() {
 	venc_chn_attr.stVencAttr.u32PicHeight = video_height;
 	venc_chn_attr.stVencAttr.u32VirWidth = video_width;
 	venc_chn_attr.stVencAttr.u32VirHeight = video_height;
-	venc_chn_attr.stVencAttr.u32StreamBufCnt = 4;
-	venc_chn_attr.stVencAttr.u32BufSize = video_width * video_height * 3 / 4;
+	venc_chn_attr.stVencAttr.u32StreamBufCnt = rk_param_get_int("video.1:buffer_count", 4);
+	venc_chn_attr.stVencAttr.u32BufSize = rk_param_get_int("video.1:buffer_size", 202752);
 	// venc_chn_attr.stVencAttr.u32Depth = 1;
 	ret = RK_MPI_VENC_CreateChn(VIDEO_PIPE_1, &venc_chn_attr);
 	if (ret) {
@@ -1164,8 +1165,8 @@ int rkipc_pipe_3_init() {
 	jpeg_chn_attr.stVencAttr.u32PicHeight = video_height;
 	jpeg_chn_attr.stVencAttr.u32VirWidth = video_width;
 	jpeg_chn_attr.stVencAttr.u32VirHeight = video_height;
-	jpeg_chn_attr.stVencAttr.u32StreamBufCnt = 2;
-	jpeg_chn_attr.stVencAttr.u32BufSize = video_width * video_height * 3 / 2;
+	jpeg_chn_attr.stVencAttr.u32StreamBufCnt = 1;
+	jpeg_chn_attr.stVencAttr.u32BufSize = rk_param_get_int("video.source:jpeg_buffer_size", 204800);
 
 	jpeg_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_MJPEGCBR;
 	jpeg_chn_attr.stRcAttr.stMjpegCbr.u32BitRate = rk_param_get_int("video.0:max_rate", -1);
