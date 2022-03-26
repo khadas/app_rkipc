@@ -19,15 +19,15 @@ int rk_param_dump() {
 	const char *keys[32];
 	int section_keys;
 	int section_num = iniparser_getnsec(g_ini_d_);
-	LOG_INFO("section_num is %d\n", section_num);
+	LOG_DEBUG("section_num is %d\n", section_num);
 
 	for (int i = 0; i < section_num; i++) {
 		section_name = iniparser_getsecname(g_ini_d_, i);
-		LOG_INFO("section_name is %s\n", section_name);
+		LOG_DEBUG("section_name is %s\n", section_name);
 		section_keys = iniparser_getsecnkeys(g_ini_d_, section_name);
 		for (int j = 0; j < section_keys; j++) {
 			iniparser_getseckeys(g_ini_d_, section_name, keys);
-			LOG_INFO("%s = %s\n", keys[j], iniparser_getstring(g_ini_d_, keys[j], ""));
+			LOG_DEBUG("%s = %s\n", keys[j], iniparser_getstring(g_ini_d_, keys[j], ""));
 		}
 	}
 
@@ -89,7 +89,7 @@ int rk_param_set_string(const char *entry, const char *val) {
 }
 
 int rk_param_init(char *ini_path) {
-	LOG_INFO("%s\n", __func__);
+	LOG_DEBUG("%s\n", __func__);
 	pthread_mutex_lock(&g_param_mutex);
 	g_ini_d_ = NULL;
 	if (ini_path)

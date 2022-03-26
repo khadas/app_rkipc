@@ -570,9 +570,9 @@ static int rkipc_storage_repair(rkipc_storage_handle *pHandle, rkipc_str_dev_att
 			snprintf(file, 3 * RKIPC_MAX_FILE_PATH_LEN, "%s/%s/%s", dev_attr->mount_path,
 			         dev_attr->folder_attr[i].folder_path, current->filename);
 			if ((current->size == 0) || (repair_mp4(file) == REPA_FAIL)) {
-				LOG_ERROR("Delete %s file. %ld", file, current->size);
+				LOG_ERROR("Delete %s file. %ld\n", file, current->size);
 				if (remove(file))
-					LOG_ERROR("Delete %s file error.", file);
+					LOG_ERROR("Delete %s file error\n", file);
 				folder->file_list_first = current->next;
 				free(current);
 				if (folder->file_list_first == NULL)
@@ -620,11 +620,11 @@ static void *rkipc_storage_file_monitor_thread(void *arg) {
 		LOG_ERROR("invalid pHandle");
 		return NULL;
 	}
-	LOG_INFO("rkipc_storage_file_monitor_thread\n");
+	LOG_DEBUG("rkipc_storage_file_monitor_thread\n");
 	prctl(PR_SET_NAME, "rkipc_storage_file_monitor_thread", 0, 0, 0);
 	fd = inotify_init();
 	if (fd < 0) {
-		LOG_ERROR("inotify_init failed");
+		LOG_ERROR("inotify_init failed\n");
 		return NULL;
 	}
 
@@ -792,7 +792,7 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 	         pHandle->dev_sta.dev_type, pHandle->dev_sta.dev_attr_1);
 
 	if (pHandle->dev_sta.mount_status != DISK_UNMOUNTED) {
-		LOG_INFO("devAttr.folder_num = %d\n", devAttr.folder_num);
+		LOG_DEBUG("devAttr.folder_num = %d\n", devAttr.folder_num);
 		pHandle->dev_sta.folder_num = devAttr.folder_num;
 		pHandle->dev_sta.folder =
 		    (rkipc_str_folder *)malloc(sizeof(rkipc_str_folder) * devAttr.folder_num);
@@ -805,7 +805,7 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 		for (i = 0; i < pHandle->dev_sta.folder_num; i++) {
 			sprintf(pHandle->dev_sta.folder[i].cpath, "%s/%s", devAttr.mount_path,
 			        devAttr.folder_attr[i].folder_path);
-			LOG_INFO("%s\n", pHandle->dev_sta.folder[i].cpath);
+			LOG_DEBUG("%s\n", pHandle->dev_sta.folder[i].cpath);
 			pthread_mutex_init(&(pHandle->dev_sta.folder[i].mutex), NULL);
 			if (rkipc_storage_create_folder(pHandle->dev_sta.folder[i].cpath)) {
 				LOG_ERROR("CreateFolder failed\n");
@@ -1353,8 +1353,8 @@ static int rkipc_storage_para_init(rkipc_storage_handle *pstHandle,
 		if (pstDevAttr->folder_attr) {
 			sprintf(pstHandle->dev_attr.mount_path, pstDevAttr->mount_path);
 			sprintf(pstHandle->dev_attr.dev_path, pstDevAttr->dev_path);
-			LOG_INFO(" pstHandle->dev_attr mount path is %s, dev_path is %s\n",
-			         pstHandle->dev_attr.mount_path, pstHandle->dev_attr.dev_path);
+			LOG_DEBUG(" pstHandle->dev_attr mount path is %s, dev_path is %s\n",
+			          pstHandle->dev_attr.mount_path, pstHandle->dev_attr.dev_path);
 			pstHandle->dev_attr.auto_delete = pstDevAttr->auto_delete;
 			pstHandle->dev_attr.free_size_del_min = pstDevAttr->free_size_del_min;
 			pstHandle->dev_attr.free_size_del_max = pstDevAttr->free_size_del_max;
@@ -1381,12 +1381,12 @@ static int rkipc_storage_para_init(rkipc_storage_handle *pstHandle,
 			}
 
 			for (i = 0; i < pstDevAttr->folder_num; i++) {
-				LOG_INFO("DevAttr set:  AutoDel--%d, FreeSizeDel--%d~%d, Path--%s/%s, "
-				         "Limit--%d\n",
-				         pstHandle->dev_attr.auto_delete, pstHandle->dev_attr.free_size_del_min,
-				         pstHandle->dev_attr.free_size_del_max, pstHandle->dev_attr.mount_path,
-				         pstHandle->dev_attr.folder_attr[i].folder_path,
-				         pstHandle->dev_attr.folder_attr[i].limit);
+				LOG_DEBUG("DevAttr set:  AutoDel--%d, FreeSizeDel--%d~%d, Path--%s/%s, "
+				          "Limit--%d\n",
+				          pstHandle->dev_attr.auto_delete, pstHandle->dev_attr.free_size_del_min,
+				          pstHandle->dev_attr.free_size_del_max, pstHandle->dev_attr.mount_path,
+				          pstHandle->dev_attr.folder_attr[i].folder_path,
+				          pstHandle->dev_attr.folder_attr[i].limit);
 			}
 
 			LOG_DEBUG("Set user-defined device attributes done.\n");
@@ -1462,7 +1462,6 @@ static int rkipc_storage_para_deinit(rkipc_storage_handle *pHandle) {
 
 static int rkipc_storage_auto_delete_init(rkipc_storage_handle *pstHandle) {
 	rkipc_str_dev_attr dev_attr;
-	LOG_INFO("rkipc_storage_auto_delete_init\n");
 	RKIPC_CHECK_POINTER(pstHandle, RKIPC_STORAGE_FAIL);
 	dev_attr = rkipc_storage_get_param(pstHandle);
 	LOG_INFO("mountpath:%s,devpath:%s,devtype:%s,devattr:%s\n", dev_attr.mount_path,
@@ -1898,7 +1897,7 @@ static void *rk_storage_record(void *arg) {
 }
 
 static int rk_storage_muxer_init_by_id(int id) {
-	LOG_INFO("begin\n");
+	LOG_DEBUG("begin\n");
 	char entry[128] = {'\0'};
 	const char *mount_path = NULL;
 	const char *folder_name = NULL;
@@ -1951,7 +1950,7 @@ static int rk_storage_muxer_init_by_id(int id) {
 	strcat(rk_storage_muxer_group[id].record_path, mount_path);
 	strcat(rk_storage_muxer_group[id].record_path, "/");
 	strcat(rk_storage_muxer_group[id].record_path, folder_name);
-	LOG_INFO("%d: record_path is %s\n", id, rk_storage_muxer_group[id].record_path);
+	LOG_DEBUG("%d: record_path is %s\n", id, rk_storage_muxer_group[id].record_path);
 	// create record_path if no exit
 	DIR *d = opendir(rk_storage_muxer_group[id].record_path);
 	if (d == NULL) {
@@ -1970,7 +1969,7 @@ static int rk_storage_muxer_init_by_id(int id) {
 
 	snprintf(entry, 127, "storage.%d:enable", id);
 	if (rk_param_get_int(entry, 0) == 0) {
-		LOG_INFO("storage[%d]:enable is 0\n", id);
+		LOG_DEBUG("storage[%d]:enable is 0\n", id);
 		return 0;
 	}
 
@@ -1990,11 +1989,11 @@ static int rk_storage_muxer_init_by_id(int id) {
 }
 
 int rk_storage_muxer_deinit_by_id(int id) {
-	LOG_INFO("begin\n");
+	LOG_DEBUG("begin\n");
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "storage.%d:enable", id);
 	if (rk_param_get_int(entry, 0) == 0) {
-		LOG_INFO("storage[%d]:enable is 0\n", id);
+		LOG_DEBUG("storage[%d]:enable is 0\n", id);
 		return 0;
 	}
 	rk_storage_muxer_group[id].g_record_run_ = 0;
@@ -2004,7 +2003,7 @@ int rk_storage_muxer_deinit_by_id(int id) {
 		rk_signal_destroy(rk_storage_muxer_group[id].g_storage_signal);
 		rk_storage_muxer_group[id].g_storage_signal = NULL;
 	}
-	LOG_INFO("end\n");
+	LOG_DEBUG("end\n");
 
 	return 0;
 }
@@ -2027,7 +2026,7 @@ int rk_storage_init() {
 	//                                   phandle->dev_attr.mount_path);
 	// }
 	for (int i = 0; i < STORAGE_NUM; i++) {
-		LOG_INFO("i:%d\n", i);
+		LOG_DEBUG("i:%d\n", i);
 		rk_storage_muxer_init_by_id(i);
 	}
 

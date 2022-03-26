@@ -22,7 +22,7 @@
 enum { LOG_ERROR, LOG_WARN, LOG_INFO, LOG_DEBUG };
 
 int enable_minilog = 0;
-int rkipc_log_level = LOG_DEBUG;
+int rkipc_log_level = LOG_INFO;
 
 static int g_main_run_ = 1;
 char *rkipc_ini_path_ = NULL;
@@ -84,7 +84,7 @@ void rkipc_get_opt(int argc, char *argv[]) {
 }
 
 int main(int argc, char **argv) {
-	LOG_INFO("main begin\n");
+	LOG_DEBUG("main begin\n");
 	signal(SIGINT, sig_proc);
 
 	rkipc_get_opt(argc, argv);

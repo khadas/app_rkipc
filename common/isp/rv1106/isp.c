@@ -192,12 +192,12 @@ int rk_isp_set_frame_rate(int cam_id, int value) {
 	int ret;
 	char entry[128] = {'\0'};
 	Uapi_ExpSwAttrV2_t expSwAttr;
-	LOG_INFO("start %d\n", value);
+	LOG_DEBUG("start %d\n", value);
 	ret = rk_aiq_user_api2_ae_getExpSwAttr(rkipc_aiq_get_ctx(cam_id), &expSwAttr);
 	expSwAttr.stAuto.stFrmRate.isFpsFix = true;
 	expSwAttr.stAuto.stFrmRate.FpsValue = value;
 	ret = rk_aiq_user_api2_ae_setExpSwAttr(rkipc_aiq_get_ctx(cam_id), expSwAttr);
-	LOG_INFO("end, %d\n", value);
+	LOG_DEBUG("end, %d\n", value);
 
 	snprintf(entry, 127, "isp.%d.adjustment:fps", cam_id);
 	rk_param_set_int(entry, value);
@@ -1294,20 +1294,19 @@ int rk_isp_af_focus_once(int cam_id) {
 int rk_isp_set_from_ini(int cam_id) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret = 0;
-	LOG_INFO("start\n");
+	LOG_DEBUG("start\n");
 	rk_isp_set_frame_rate(cam_id, rk_param_get_int("isp.0.adjustment:fps", 30));
 	// rk_isp_set_contrast(cam_id, rk_param_get_int("isp.0.adjustment:contrast", 50));
 	// rk_isp_set_brightness(cam_id, rk_param_get_int("isp.0.adjustment:brightness", 50));
 	// rk_isp_set_saturation(cam_id, rk_param_get_int("isp.0.adjustment:saturation", 50));
 	// rk_isp_set_sharpness(cam_id, rk_param_get_int("isp.0.adjustment:sharpness", 50));
 	// rk_isp_set_hue(cam_id, rk_param_get_int("isp.0.adjustment:hue", 50));
-	LOG_INFO("end\n");
+	LOG_DEBUG("end\n");
 
 	return ret;
 }
 
 int rk_isp_init(int cam_id, char *iqfile_path) {
-	LOG_INFO("cam_id is %d\n", cam_id);
 	int ret;
 	rkipc_aiq_use_group = 0;
 	if (iqfile_path)

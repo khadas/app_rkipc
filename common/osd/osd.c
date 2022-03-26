@@ -261,7 +261,7 @@ static void *osd_time_server(void *arg) {
 }
 
 int rk_osd_init() {
-	LOG_INFO("%s\n", __func__);
+	LOG_DEBUG("%s\n", __func__);
 	pthread_mutex_lock(&g_osd_mutex);
 	if (g_osd_signal)
 		rk_signal_destroy(g_osd_signal);
@@ -279,7 +279,7 @@ int rk_osd_init() {
 	int normalized_screen_height = rk_param_get_int("osd.common:normalized_screen_height", -1);
 	g_x_rate = (double)video_width / (double)normalized_screen_width;
 	g_y_rate = (double)video_height / (double)normalized_screen_height;
-	LOG_INFO("g_x_rate is %lf, g_y_rate is %lf\n", g_x_rate, g_y_rate);
+	LOG_DEBUG("g_x_rate is %lf, g_y_rate is %lf\n", g_x_rate, g_y_rate);
 
 	for (int i = 0; i < MAX_OSD_NUM; i++) {
 		snprintf(entry, 127, "osd.%d:type", i);
@@ -316,7 +316,7 @@ int rk_osd_init() {
 			// osd_data.text.font_color = 0xfff799;
 			sscanf(rk_param_get_string("osd.common:font_color", NULL), "%x",
 			       &osd_data.text.font_color);
-			LOG_INFO("osd_data.text.font_color is %x\n", osd_data.text.font_color);
+			LOG_DEBUG("osd_data.text.font_color is %x\n", osd_data.text.font_color);
 			osd_data.text.color_inverse = 1;
 			osd_data.text.font_path = rk_param_get_string("osd.common:font_path", NULL);
 			if (!g_osd_font_already_set) {
@@ -385,7 +385,7 @@ int rk_osd_init() {
 }
 
 int rk_osd_deinit() {
-	LOG_INFO("begin\n");
+	LOG_DEBUG("begin\n");
 	pthread_mutex_lock(&g_osd_mutex);
 	const char *osd_type;
 	char entry[128] = {'\0'};
@@ -417,7 +417,7 @@ int rk_osd_deinit() {
 	}
 	destroy_font();
 	g_osd_font_already_set = 0;
-	LOG_INFO("over\n");
+	LOG_DEBUG("over\n");
 	pthread_mutex_unlock(&g_osd_mutex);
 
 	return 0;

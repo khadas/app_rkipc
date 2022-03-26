@@ -345,7 +345,7 @@ static void *rkipc_get_vpss_bgr(void *arg) {
 }
 
 int rkipc_rtsp_init() {
-	LOG_INFO("start\n");
+	LOG_DEBUG("start\n");
 	g_rtsplive = create_rtsp_demo(554);
 	g_rtsp_session_0 = rtsp_new_session(g_rtsplive, RTSP_URL_0);
 	g_rtsp_session_1 = rtsp_new_session(g_rtsplive, RTSP_URL_1);
@@ -377,13 +377,13 @@ int rkipc_rtsp_init() {
 	rtsp_sync_video_ts(g_rtsp_session_0, rtsp_get_reltime(), rtsp_get_ntptime());
 	rtsp_sync_video_ts(g_rtsp_session_1, rtsp_get_reltime(), rtsp_get_ntptime());
 	// rtsp_sync_video_ts(g_rtsp_session_2, rtsp_get_reltime(), rtsp_get_ntptime());
-	LOG_INFO("end\n");
+	LOG_DEBUG("end\n");
 
 	return 0;
 }
 
 int rkipc_rtsp_deinit() {
-	LOG_INFO("%s\n", __func__);
+	LOG_DEBUG("%s\n", __func__);
 	if (g_rtsplive)
 		rtsp_del_demo(g_rtsplive);
 	g_rtsplive = NULL;
@@ -409,7 +409,7 @@ int rkipc_rtmp_deinit() {
 }
 
 int rkipc_vi_dev_init() {
-	LOG_INFO("%s\n", __func__);
+	LOG_DEBUG("%s\n", __func__);
 	int ret = 0;
 	VI_DEV_ATTR_S stDevAttr;
 	VI_DEV_BIND_PIPE_S stBindPipe;
@@ -481,18 +481,19 @@ int rkipc_pipe_0_init() {
 	}
 
 	VI_CHN_BUF_WRAP_S stViWrap;
-    memset(&stViWrap, 0, sizeof(VI_CHN_BUF_WRAP_S));
-    if (enable_wrap) {
-        if (buffer_line < 128 || buffer_line > video_height) {
-            LOG_ERROR("wrap mode buffer line must between [128, H]\n");
-            return -1;
-        }
-        stViWrap.bEnable = enable_wrap;
-        stViWrap.u32BufLine = buffer_line;
-        stViWrap.u32WrapBufferSize = stViWrap.u32BufLine * video_width * 3 / 2;
-        LOG_INFO("set vi channel wrap line: %d, wrapBuffSize = %d\n", stViWrap.u32BufLine, stViWrap.u32WrapBufferSize);
-        RK_MPI_VI_SetChnWrapBufAttr(pipe_id_, VIDEO_PIPE_0, &stViWrap);
-    }
+	memset(&stViWrap, 0, sizeof(VI_CHN_BUF_WRAP_S));
+	if (enable_wrap) {
+		if (buffer_line < 128 || buffer_line > video_height) {
+			LOG_ERROR("wrap mode buffer line must between [128, H]\n");
+			return -1;
+		}
+		stViWrap.bEnable = enable_wrap;
+		stViWrap.u32BufLine = buffer_line;
+		stViWrap.u32WrapBufferSize = stViWrap.u32BufLine * video_width * 3 / 2;
+		LOG_INFO("set vi channel wrap line: %d, wrapBuffSize = %d\n", stViWrap.u32BufLine,
+		         stViWrap.u32WrapBufferSize);
+		RK_MPI_VI_SetChnWrapBufAttr(pipe_id_, VIDEO_PIPE_0, &stViWrap);
+	}
 
 	ret = RK_MPI_VI_EnableChn(pipe_id_, VIDEO_PIPE_0);
 	if (ret) {
@@ -645,11 +646,16 @@ int rkipc_pipe_0_init() {
 	RK_MPI_VENC_SetRcParam(VIDEO_PIPE_0, &venc_rc_param);
 
 	VENC_CHN_BUF_WRAP_S stVencChnBufWrap;
-    memset(&stVencChnBufWrap, 0, sizeof(stVencChnBufWrap));
+	memset(&stVencChnBufWrap, 0, sizeof(stVencChnBufWrap));
 	if (enable_wrap) {
 		stVencChnBufWrap.bEnable = enable_wrap;
-        RK_MPI_VENC_SetChnBufWrapAttr(VIDEO_PIPE_0, &stVencChnBufWrap);
-    }
+		RK_MPI_VENC_SetChnBufWrapAttr(VIDEO_PIPE_0, &stVencChnBufWrap);
+	}
+
+	VENC_CHN_REF_BUF_SHARE_S stVencChnRefBufShare;
+	memset(&stVencChnRefBufShare, 0, sizeof(VENC_CHN_REF_BUF_SHARE_S));
+	stVencChnRefBufShare.bEnable = rk_param_get_int("video.0:enable_refer_buffer_share", 0);
+	RK_MPI_VENC_SetChnRefBufShareAttr(VIDEO_PIPE_0, &stVencChnRefBufShare);
 
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
@@ -870,6 +876,11 @@ int rkipc_pipe_1_init() {
 		return -1;
 	}
 	RK_MPI_VENC_SetRcParam(VIDEO_PIPE_1, &venc_rc_param);
+
+	VENC_CHN_REF_BUF_SHARE_S stVencChnRefBufShare;
+	memset(&stVencChnRefBufShare, 0, sizeof(VENC_CHN_REF_BUF_SHARE_S));
+	stVencChnRefBufShare.bEnable = rk_param_get_int("video.1:enable_refer_buffer_share", 0);
+	RK_MPI_VENC_SetChnRefBufShareAttr(VIDEO_PIPE_1, &stVencChnRefBufShare);
 
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
@@ -1174,10 +1185,10 @@ int rkipc_pipe_3_init() {
 	RK_MPI_VENC_SetJpegParam(JPEG_VENC_CHN, &stJpegParam);
 
 	VENC_COMBO_ATTR_S stComboAttr;
-    memset(&stComboAttr, 0, sizeof(VENC_COMBO_ATTR_S));
-    stComboAttr.bEnable = RK_TRUE;
-    stComboAttr.s32ChnId = VIDEO_PIPE_0;
-    RK_MPI_VENC_SetComboAttr(JPEG_VENC_CHN, &stComboAttr);
+	memset(&stComboAttr, 0, sizeof(VENC_COMBO_ATTR_S));
+	stComboAttr.bEnable = RK_TRUE;
+	stComboAttr.s32ChnId = VIDEO_PIPE_0;
+	RK_MPI_VENC_SetComboAttr(JPEG_VENC_CHN, &stComboAttr);
 
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
@@ -1933,21 +1944,21 @@ int rkipc_osd_bmp_change(int id, osd_data_s *osd_data) {
 int rkipc_osd_init() {
 	rk_osd_cover_create_callback_register(rkipc_osd_cover_create);
 	rk_osd_cover_destroy_callback_register(rkipc_osd_cover_destroy);
-	// rk_osd_bmp_create_callback_register(rkipc_osd_bmp_create);
-	// rk_osd_bmp_destroy_callback_register(rkipc_osd_bmp_destroy);
-	// rk_osd_bmp_change_callback_register(rkipc_osd_bmp_change);
-	// rk_osd_init();
+	rk_osd_bmp_create_callback_register(rkipc_osd_bmp_create);
+	rk_osd_bmp_destroy_callback_register(rkipc_osd_bmp_destroy);
+	rk_osd_bmp_change_callback_register(rkipc_osd_bmp_change);
+	rk_osd_init();
 
 	return 0;
 }
 
 int rkipc_osd_deinit() {
-	// rk_osd_deinit();
+	rk_osd_deinit();
 	rk_osd_cover_create_callback_register(NULL);
 	rk_osd_cover_destroy_callback_register(NULL);
-	// rk_osd_bmp_create_callback_register(NULL);
-	// rk_osd_bmp_destroy_callback_register(NULL);
-	// rk_osd_bmp_change_callback_register(NULL);
+	rk_osd_bmp_create_callback_register(NULL);
+	rk_osd_bmp_destroy_callback_register(NULL);
+	rk_osd_bmp_change_callback_register(NULL);
 
 	return 0;
 }
@@ -2047,7 +2058,7 @@ int rk_take_photo() {
 // }
 
 int rk_video_init() {
-	LOG_INFO("begin\n");
+	LOG_DEBUG("begin\n");
 	int ret = 0;
 	enable_jpeg = rk_param_get_int("video.source:enable_jpeg", 1);
 	enable_venc_0 = rk_param_get_int("video.source:enable_venc_0", 1);
@@ -2076,14 +2087,14 @@ int rk_video_init() {
 		ret |= rkipc_pipe_3_init();
 	// if (g_enable_vo)
 	// 	ret |= rkipc_pipe_vpss_vo_init();
-	ret |= rkipc_osd_init();
+	// ret |= rkipc_osd_init();
 	// rk_roi_set_callback_register(rk_roi_set);
 	// ret |= rk_roi_set_all();
 	// rk_region_clip_set_callback_register(rk_region_clip_set);
 	// rk_region_clip_set_all();
 	if (enable_npu)
 		ret |= rkipc_vpss_bgr_init();
-	LOG_INFO("over\n");
+	LOG_DEBUG("over\n");
 
 	return ret;
 }

@@ -17,7 +17,7 @@ static VideoParam g_video_param;
 int rk_rtmp_init(int id, const char *rtmp_url) {
 	int ret = 0;
 	char entry[128] = {'\0'};
-	LOG_INFO("begin\n");
+	LOG_DEBUG("begin\n");
 
 	// set g_video_param
 	memset(&g_video_param, 0, sizeof(g_video_param));
@@ -62,10 +62,10 @@ int rk_rtmp_init(int id, const char *rtmp_url) {
 }
 
 int rk_rtmp_deinit(int id) {
-	LOG_INFO("begin\n");
+	LOG_DEBUG("begin\n");
 	rkmuxer_deinit(id + 3);
 	g_rtmp_enable[id] = 0;
-	LOG_INFO("end\n");
+	LOG_DEBUG("end\n");
 
 	return 0;
 }

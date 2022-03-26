@@ -10,9 +10,9 @@
 #endif
 #define LOG_TAG "system.c"
 
-void rk_system_init() { LOG_INFO("%s\n", __func__); }
+void rk_system_init() { LOG_DEBUG("%s\n", __func__); }
 
-void rk_system_deinit() { LOG_INFO("%s\n", __func__); }
+void rk_system_deinit() { LOG_DEBUG("%s\n", __func__); }
 
 int rk_system_get_deivce_name(const char **value) {
 	*value = rk_param_get_string("system.device_info:deivce_name", NULL);
