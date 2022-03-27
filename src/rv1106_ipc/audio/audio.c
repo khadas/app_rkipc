@@ -313,6 +313,13 @@ int rkipc_audio_vqe_init() {
 	stAiVqeConfig.enCfgMode = AIO_VQE_CONFIG_LOAD_FILE;
 	memcpy(stAiVqeConfig.aCfgFile, "/oem/usr/share/vqefiles/config_aivqe.json",
 	       strlen("/oem/usr/share/vqefiles/config_aivqe.json"));
+
+	const char *vqe_cfg =
+	    rk_param_get_string("audio.0:vqe_cfg", "/oem/usr/share/vqefiles/config_aivqe.json");
+	memcpy(stAiVqeConfig.aCfgFile, vqe_cfg, strlen(vqe_cfg) + 1);
+	memset(stAiVqeConfig.aCfgFile + strlen(vqe_cfg) + 1, '\0', sizeof(char));
+	LOG_INFO("stAiVqeConfig.aCfgFile = %s\n", stAiVqeConfig.aCfgFile);
+
 	stAiVqeConfig.s32WorkSampleRate = rk_param_get_int("audio.0:sample_rate", 16000);
 	stAiVqeConfig.s32FrameSample =
 	    rk_param_get_int("audio.0:sample_rate", 16000) * vqe_gap_ms / 1000;
