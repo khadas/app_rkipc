@@ -46,7 +46,7 @@ rtsp_demo_handle g_rtsplive = NULL;
 rtsp_session_handle g_rtsp_session_0, g_rtsp_session_1, g_rtsp_session_2;
 static int take_photo_one = 0;
 static int enable_jpeg, enable_venc_0, enable_venc_1, enable_venc_2;
-static int g_enable_vo, g_vo_dev_id, g_vi_chn_id, enable_npu;
+static int g_enable_vo, g_vo_dev_id, g_vi_chn_id, enable_npu, enable_wrap;
 static int g_video_run_ = 1;
 static int pipe_id_ = 0;
 static int dev_id_ = 0;
@@ -462,7 +462,6 @@ int rkipc_pipe_0_init() {
 	int ret;
 	int video_width = rk_param_get_int("video.0:width", -1);
 	int video_height = rk_param_get_int("video.0:height", -1);
-	int enable_wrap = rk_param_get_int("video.source:enable_wrap", 0);
 	int buffer_line = rk_param_get_int("video.source:buffer_line", 128);
 	int buf_cnt = 2;
 
@@ -1184,6 +1183,13 @@ int rkipc_pipe_3_init() {
 	memset(&stJpegParam, 0, sizeof(stJpegParam));
 	stJpegParam.u32Qfactor = 95;
 	RK_MPI_VENC_SetJpegParam(JPEG_VENC_CHN, &stJpegParam);
+
+	VENC_CHN_BUF_WRAP_S stVencChnBufWrap;
+	memset(&stVencChnBufWrap, 0, sizeof(stVencChnBufWrap));
+	if (enable_wrap) {
+		stVencChnBufWrap.bEnable = enable_wrap;
+		RK_MPI_VENC_SetChnBufWrapAttr(JPEG_VENC_CHN, &stVencChnBufWrap);
+	}
 
 	VENC_COMBO_ATTR_S stComboAttr;
 	memset(&stComboAttr, 0, sizeof(VENC_COMBO_ATTR_S));
@@ -2072,8 +2078,10 @@ int rk_video_init() {
 	g_enable_vo = rk_param_get_int("video.source:enable_vo", 1);
 	g_vo_dev_id = rk_param_get_int("video.source:vo_dev_id", 3);
 	enable_npu = rk_param_get_int("video.source:enable_npu", 0);
-	LOG_INFO("g_vi_chn_id is %d, g_enable_vo is %d, g_vo_dev_id is %d, enable_npu is %d\n",
-	         g_vi_chn_id, g_enable_vo, g_vo_dev_id, enable_npu);
+	enable_wrap = rk_param_get_int("video.source:enable_wrap", 0);
+	LOG_INFO("g_vi_chn_id is %d, g_enable_vo is %d, g_vo_dev_id is %d, enable_npu is %d, "
+	         "enable_wrap is %d\n",
+	         g_vi_chn_id, g_enable_vo, g_vo_dev_id, enable_npu, enable_wrap);
 	g_video_run_ = 1;
 	ret |= rkipc_vi_dev_init();
 	ret |= rkipc_rtsp_init();
