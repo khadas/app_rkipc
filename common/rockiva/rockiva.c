@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 #include "common.h"
-#include "rockiva_ba_api.h"
+#include "rockiva/rockiva_ba_api.h"
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -10,7 +10,7 @@
 #define LOG_TAG "rockiva.c"
 
 RockIvaHandle rkba_handle;
-RockIvaBaTaskInitParam initParams;
+RockIvaBaTaskParams initParams;
 RockIvaInitParam globalParams;
 int rockit_run_flag = 0;
 

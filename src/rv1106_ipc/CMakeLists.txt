@@ -77,6 +77,3 @@ install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-uclibcgnueabihf/li
 install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-uclibcgnueabihf/libz.so DESTINATION lib)
 install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-uclibcgnueabihf/libiconv.so.2 DESTINATION lib)
 install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-uclibcgnueabihf/libiconv.so DESTINATION lib)
-install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-uclibcgnueabihf/librknnrt.so DESTINATION lib)
-install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-uclibcgnueabihf/librockiva.so DESTINATION lib)
-install(FILES ${PROJECT_SOURCE_DIR}/common/rockiva/object_detection_ipc_pfcd.data DESTINATION lib)
