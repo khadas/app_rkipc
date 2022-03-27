@@ -2096,7 +2096,7 @@ int rk_video_init() {
 		ret |= rkipc_pipe_3_init();
 	// if (g_enable_vo)
 	// 	ret |= rkipc_pipe_vpss_vo_init();
-	// ret |= rkipc_osd_init();
+	ret |= rkipc_osd_init();
 	// rk_roi_set_callback_register(rk_roi_set);
 	// ret |= rk_roi_set_all();
 	// rk_region_clip_set_callback_register(rk_region_clip_set);
