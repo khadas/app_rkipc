@@ -52,7 +52,7 @@ static const char *tmp_smart;
 static const char *tmp_tsvc;
 static const char *tmp_rc_quality;
 static pthread_t vi_thread_1, venc_thread_0, venc_thread_1, venc_thread_2, jpeg_venc_thread_id,
-    vpss_thread_rgb;
+    vpss_thread_rgb, cycle_snapshot_thread_id;
 
 static MPP_CHN_S vi_chn, vpss_bgr_chn, vpss_rotate_chn, vo_chn, vpss_out_chn[4], venc_chn;
 static VO_DEV VoLayer = RK3588_VOP_LAYER_CLUSTER0;
@@ -323,6 +323,7 @@ static void *rkipc_get_venc_1(void *arg) {
 
 static void *rkipc_get_jpeg(void *arg) {
 	LOG_DEBUG("#Start %s thread, arg:%p\n", __func__, arg);
+	prctl(PR_SET_NAME, "rkipc_get_jpeg", 0, 0, 0);
 	VENC_STREAM_S stFrame;
 	VI_CHN_STATUS_S stChnStatus;
 	int loopCount = 0;
@@ -373,6 +374,23 @@ static void *rkipc_get_jpeg(void *arg) {
 	}
 	if (stFrame.pstPack)
 		free(stFrame.pstPack);
+
+	return 0;
+}
+
+static void *rkipc_cycle_snapshot(void *arg) {
+	LOG_DEBUG("#Start %s thread, arg:%p\n", __func__, arg);
+	prctl(PR_SET_NAME, "rkipc_cycle_snapshot", 0, 0, 0);
+	int snapshot_interval_ms = rk_param_get_int("video.source:snapshot_interval_ms", 1000);
+	const char *mount_path = rk_param_get_string("storage:mount_path", "/userdata");
+	char cmd[128] = {'\0'};
+	snprintf(cmd, 127, "rm /%s/*.jpeg", mount_path);
+
+	while (g_video_run_) {
+		usleep(snapshot_interval_ms * 1000);
+		system(cmd);
+		rk_take_photo();
+	}
 
 	return 0;
 }
@@ -1310,6 +1328,8 @@ int rkipc_pipe_3_init() {
 	                           &stRecvParam); // must, for no streams callback running failed
 
 	pthread_create(&jpeg_venc_thread_id, NULL, rkipc_get_jpeg, NULL);
+	if (rk_param_get_int("video.source:enable_cycle_snapshot", 0))
+		pthread_create(&cycle_snapshot_thread_id, NULL, rkipc_cycle_snapshot, NULL);
 
 	return ret;
 }
@@ -2228,6 +2248,8 @@ int rk_video_deinit() {
 		ret |= rkipc_pipe_1_deinit();
 	}
 	if (enable_jpeg) {
+		if (rk_param_get_int("video.source:enable_cycle_snapshot", 0))
+			pthread_join(cycle_snapshot_thread_id, NULL);
 		pthread_join(jpeg_venc_thread_id, NULL);
 		ret |= rkipc_pipe_3_deinit();
 	}
