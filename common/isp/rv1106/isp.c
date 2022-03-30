@@ -1,6 +1,6 @@
 #include "common.h"
 
-#include <rk_aiq_user_api2_acsm.h>
+#include <rk_aiq_user_api2_acgc.h>
 #include <rk_aiq_user_api2_camgroup.h>
 #include <rk_aiq_user_api2_imgproc.h>
 #include <rk_aiq_user_api2_sysctl.h>
@@ -290,10 +290,14 @@ int rk_isp_set_sharpness(int cam_id, int value) {
 	int ret = 0;
 	float fPercent = 0.0f;
 	fPercent = value / 100.0f;
-	rk_aiq_sharp_strength_v4_t sharpV4Strenght;
-	sharpV4Strenght.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
-	sharpV4Strenght.percent = fPercent;
-	ret = rk_aiq_user_api2_asharpV4_SetStrength(rkipc_aiq_get_ctx(cam_id), &sharpV4Strenght);
+	rk_aiq_sharp_strength_v33_t sharpV33Strength;
+	sharpV33Strength.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
+	sharpV33Strength.percent = fPercent;
+	//ret = rk_aiq_user_api2_asharpV33_SetStrength(rkipc_aiq_get_ctx(cam_id), &sharpV33Strength);
+	if (ret) {
+		LOG_ERROR("rk_isp_set_sharpness failed %d", ret);
+		return ret;
+	}
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.adjustment:sharpness", cam_id);
 	rk_param_set_int(entry, value);
@@ -890,17 +894,21 @@ int rk_isp_set_dehaze(int cam_id, const char *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
 	char entry[128] = {'\0'};
-	// adehaze_sw_V2_t attr;
-	// memset(&attr, 0, sizeof(attr));
-	// attr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
-	// if (!strcmp(value, "close")) {
-	// 	attr.mode = DEHAZE_API_BYPASS;
-	// } else if (!strcmp(value, "open")) {
-	// 	attr.mode = DEHAZE_API_MANUAL;
-	// } else if (!strcmp(value, "auto")) {
-	// 	attr.mode = DEHAZE_API_DEHAZE_AUTO;
-	// }
-	// ret = rk_aiq_user_api2_adehaze_setSwAttrib(rkipc_aiq_get_ctx(cam_id), attr);
+	adehaze_sw_v12_t attr;
+	memset(&attr, 0, sizeof(attr));
+
+	ret = rk_aiq_user_api2_adehaze_v12_getSwAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
+	if (ret)
+		LOG_ERROR("dehaze get SwAttrib failed %d", ret);
+
+	if (!strcmp(value, "close")) {
+	 	attr.mode = DEHAZE_API_AUTO;
+	} else if (!strcmp(value, "open")) {
+	 	attr.mode = DEHAZE_API_MANUAL;
+	} else if (!strcmp(value, "auto")) {
+	 	attr.mode = DEHAZE_API_AUTO;
+	}
+	ret = rk_aiq_user_api2_adehaze_v12_setSwAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	snprintf(entry, 127, "isp.%d.enhancement:dehaze", cam_id);
 	rk_param_set_string(entry, value);
 
@@ -920,13 +928,13 @@ int rk_isp_set_gray_scale_mode(int cam_id, const char *value) {
 	int ret;
 	char entry[128] = {'\0'};
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	rk_aiq_uapi_acsm_attrib_t attr;
-	rk_aiq_user_api2_acsm_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
+	rk_aiq_uapi_acgc_attrib_t attr;
+	rk_aiq_user_api2_acgc_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	if (!strcmp(value, "[16-235]"))
-		attr.param.full_range = false;
+		attr.param.cgc_yuv_limit = false;
 	else
-		attr.param.full_range = true;
-	rk_aiq_user_api2_acsm_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
+		attr.param.cgc_yuv_limit = true;
+	rk_aiq_user_api2_acgc_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	snprintf(entry, 127, "isp.%d.enhancement:gray_scale_mode", cam_id);
 	rk_param_set_string(entry, value);
 
@@ -945,13 +953,13 @@ int rk_isp_get_distortion_correction(int cam_id, const char **value) {
 int rk_isp_set_distortion_correction(int cam_id, const char *value) {
 	int ret;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	rk_aiq_ldch_attrib_t ldchAttr;
-	ret = rk_aiq_user_api2_aldch_GetAttrib(rkipc_aiq_get_ctx(cam_id), &ldchAttr);
+	rk_aiq_ldch_v21_attrib_t ldchAttr;
+	ret = rk_aiq_user_api2_aldch_v21_GetAttrib(rkipc_aiq_get_ctx(cam_id), &ldchAttr);
 	if (!strcmp(value, "close"))
 		ldchAttr.en = false;
 	else
 		ldchAttr.en = true;
-	ret = rk_aiq_user_api2_aldch_SetAttrib(rkipc_aiq_get_ctx(cam_id), &ldchAttr);
+	ret = rk_aiq_user_api2_aldch_v21_SetAttrib(rkipc_aiq_get_ctx(cam_id), &ldchAttr);
 
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.enhancement:distortion_correction", cam_id);
@@ -1040,13 +1048,8 @@ int rk_isp_get_dehaze_level(int cam_id, int *value) {
 int rk_isp_set_dehaze_level(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
-	// adehaze_sw_V2_t attr;
-
-	// attr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
-	// attr.sync.done = false;
-	// attr.mode = DEHAZE_API_DEHAZE_MANUAL;
-	// attr.stDehazeManu.level = value;
-	// int ret = rk_aiq_user_api2_adehaze_setSwAttrib(rkipc_aiq_get_ctx(cam_id), attr);
+	
+	ret = rk_aiq_uapi2_setMDehazeStrth(rkipc_aiq_get_ctx(cam_id), value);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.enhancement:dehaze_level", cam_id);
 	rk_param_set_int(entry, value);
@@ -1086,12 +1089,12 @@ int rk_isp_get_ldch_level(int cam_id, int *value) {
 int rk_isp_set_ldch_level(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret = 0;
-	rk_aiq_ldch_attrib_t ldchAttr;
+	rk_aiq_ldch_v21_attrib_t ldchAttr;
 
 	value = value < 0 ? 0 : value;
-	ret = rk_aiq_user_api2_aldch_GetAttrib(rkipc_aiq_get_ctx(cam_id), &ldchAttr);
+	ret = rk_aiq_user_api2_aldch_v21_GetAttrib(rkipc_aiq_get_ctx(cam_id), &ldchAttr);
 	ldchAttr.correct_level = (int)(value * 2.53 + 2); // [0, 100] -> [2 , 255]
-	ret = rk_aiq_user_api2_aldch_SetAttrib(rkipc_aiq_get_ctx(cam_id), &ldchAttr);
+	ret = rk_aiq_user_api2_aldch_v21_SetAttrib(rkipc_aiq_get_ctx(cam_id), &ldchAttr);
 
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.enhancement:ldch_level", cam_id);
