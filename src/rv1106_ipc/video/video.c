@@ -305,6 +305,7 @@ static void *rkipc_get_jpeg(void *arg) {
 			loopCount++;
 		} else {
 			LOG_ERROR("RK_MPI_VENC_GetStream timeout %x\n", ret);
+			take_photo_one = 0;
 		}
 		// usleep(33 * 1000);
 	}
