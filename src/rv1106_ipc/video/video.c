@@ -672,6 +672,17 @@ int rkipc_pipe_0_init() {
 		return -1;
 	}
 
+	// VENC_RC_PARAM_S h265_RcParam;
+	// RK_MPI_VENC_GetRcParam(VIDEO_PIPE_0, &h265_RcParam);
+	// h265_RcParam.s32FirstFrameStartQp = 26;
+	// h265_RcParam.stParamH265.u32StepQp = 8;
+	// h265_RcParam.stParamH265.u32MaxQp = 51;
+	// h265_RcParam.stParamH265.u32MinQp = 10;
+	// h265_RcParam.stParamH265.u32MaxIQp = 46;
+	// h265_RcParam.stParamH265.u32MinIQp = 24;
+	// h265_RcParam.stParamH265.s32DeltIpQp = -4;
+	// RK_MPI_VENC_SetRcParam(VIDEO_PIPE_0, &h265_RcParam);
+
 	tmp_rc_quality = rk_param_get_string("video.0:rc_quality", NULL);
 	VENC_RC_PARAM_S venc_rc_param;
 	RK_MPI_VENC_GetRcParam(VIDEO_PIPE_0, &venc_rc_param);
@@ -1870,6 +1881,11 @@ int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32Layer = id;
 	stMppChn.enModId = RK_ID_VENC;
 	stMppChn.s32DevId = 0;
+
+	// stRgnChnAttr.unChnAttr.stOverlayChn.stQpInfo.bEnable = true;
+	// stRgnChnAttr.unChnAttr.stOverlayChn.stQpInfo.bForceIntra = false;
+	// stRgnChnAttr.unChnAttr.stOverlayChn.stQpInfo.bAbsQp = false;
+	// stRgnChnAttr.unChnAttr.stOverlayChn.stQpInfo.s32Qp = -3;
 	if (enable_venc_0) {
 		stMppChn.s32ChnId = 0;
 		ret = RK_MPI_RGN_AttachToChn(RgnHandle, &stMppChn, &stRgnChnAttr);
