@@ -51,7 +51,7 @@ post_chk()
 		cd $default_ko_dir && sh insmod_ko.sh && cd -
 	fi
 
-	ifconfig eth0 up && udhcpc -i eth0 -b || ifconfig eth1 up && udhcpc -i eth1 -b
+	ifconfig eth0 up && udhcpc -i eth0 -b &
 	ifconfig wlan0 up && wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant.conf &
 	check_linker /userdata   /usr/www/userdata
 	check_linker /media/usb0 /usr/www/usb0
