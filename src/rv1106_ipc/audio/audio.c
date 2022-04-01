@@ -29,6 +29,8 @@ extern pthread_mutex_t g_rtsp_mutex;
 extern rtsp_demo_handle g_rtsplive;
 extern rtsp_session_handle g_rtsp_session_0, g_rtsp_session_1, g_rtsp_session_2;
 
+static void *ai_get_detect_result(void *arg);
+
 void *save_ai_thread(void *ptr) {
 	RK_S32 ret = 0;
 	RK_S32 s32MilliSec = -1;
@@ -164,6 +166,19 @@ int rkipc_ai_init() {
 		LOG_ERROR("ai enable fail, reason = %d\n", ret);
 		return RK_FAILURE;
 	}
+
+	// aed bcd vqe
+	enable_aed = rk_param_get_int("audio.0:enable_aed", 0);
+	enable_bcd = rk_param_get_int("audio.0:enable_bcd", 0);
+	enable_vqe = rk_param_get_int("audio.0:enable_vqe", 0);
+	if (enable_aed)
+		rkipc_audio_aed_init();
+	if (enable_bcd)
+		rkipc_audio_bcd_init();
+	if (enable_vqe)
+		rkipc_audio_vqe_init();
+	if (enable_aed || enable_bcd)
+		pthread_create(&ai_get_detect_result_tid, RK_NULL, ai_get_detect_result, NULL);
 
 	ret = RK_MPI_AI_EnableChn(ai_dev_id, ai_chn_id);
 	if (ret != 0) {
@@ -372,6 +387,7 @@ int rkipc_audio_init() {
 	LOG_INFO("%s\n", __func__);
 	int ret = rkipc_ai_init();
 	ret |= rkipc_aenc_init();
+
 	// bind ai to aenc
 	ai_chn.enModId = RK_ID_AI;
 	ai_chn.s32DevId = ai_dev_id;
@@ -390,18 +406,6 @@ int rkipc_audio_init() {
 	rtsp_set_audio(g_rtsp_session_1, RTSP_CODEC_ID_AUDIO_G711A, NULL, 0);
 	rtsp_sync_audio_ts(g_rtsp_session_0, rtsp_get_reltime(), rtsp_get_ntptime());
 	rtsp_sync_audio_ts(g_rtsp_session_1, rtsp_get_reltime(), rtsp_get_ntptime());
-	// aed bcd vqe
-	enable_aed = rk_param_get_int("audio.0:enable_aed", 0);
-	enable_bcd = rk_param_get_int("audio.0:enable_bcd", 0);
-	enable_vqe = rk_param_get_int("audio.0:enable_vqe", 0);
-	if (enable_aed)
-		rkipc_audio_aed_init();
-	if (enable_bcd)
-		rkipc_audio_bcd_init();
-	if (enable_vqe)
-		rkipc_audio_vqe_init();
-	if (enable_aed || enable_bcd)
-		pthread_create(&ai_get_detect_result_tid, RK_NULL, ai_get_detect_result, NULL);
 
 	return ret;
 }
