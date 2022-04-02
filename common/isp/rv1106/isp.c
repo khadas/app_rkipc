@@ -223,7 +223,7 @@ int rk_isp_set_contrast(int cam_id, int value) {
 	acp_attrib_t attrib;
 	ret = rk_aiq_user_api2_acp_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
 	attrib.contrast = value * 2.55; // value[0,255]
-	ret |= rk_aiq_user_api2_acp_SetAttrib(rkipc_aiq_get_ctx(cam_id), attrib);
+	ret |= rk_aiq_user_api2_acp_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
 	snprintf(entry, 127, "isp.%d.adjustment:contrast", cam_id);
 	rk_param_set_int(entry, value);
 
@@ -246,7 +246,7 @@ int rk_isp_set_brightness(int cam_id, int value) {
 	acp_attrib_t attrib;
 	ret = rk_aiq_user_api2_acp_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
 	attrib.brightness = value * 2.55; // value[0,255]
-	ret |= rk_aiq_user_api2_acp_SetAttrib(rkipc_aiq_get_ctx(cam_id), attrib);
+	ret |= rk_aiq_user_api2_acp_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
 	snprintf(entry, 127, "isp.%d.adjustment:brightness", cam_id);
 	rk_param_set_int(entry, value);
 
@@ -269,7 +269,7 @@ int rk_isp_set_saturation(int cam_id, int value) {
 	acp_attrib_t attrib;
 	ret = rk_aiq_user_api2_acp_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
 	attrib.saturation = value * 2.55; // value[0,255]
-	ret |= rk_aiq_user_api2_acp_SetAttrib(rkipc_aiq_get_ctx(cam_id), attrib);
+	ret |= rk_aiq_user_api2_acp_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
 	snprintf(entry, 127, "isp.%d.adjustment:saturation", cam_id);
 	rk_param_set_int(entry, value);
 
@@ -293,7 +293,7 @@ int rk_isp_set_sharpness(int cam_id, int value) {
 	rk_aiq_sharp_strength_v33_t sharpV33Strength;
 	sharpV33Strength.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
 	sharpV33Strength.percent = fPercent;
-	//ret = rk_aiq_user_api2_asharpV33_SetStrength(rkipc_aiq_get_ctx(cam_id), &sharpV33Strength);
+	ret = rk_aiq_user_api2_asharpV33_SetStrength(rkipc_aiq_get_ctx(cam_id), &sharpV33Strength);
 	if (ret) {
 		LOG_ERROR("rk_isp_set_sharpness failed %d", ret);
 		return ret;
@@ -321,7 +321,7 @@ int rk_isp_set_hue(int cam_id, int value) {
 	acp_attrib_t attrib;
 	ret = rk_aiq_user_api2_acp_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
 	attrib.hue = value * 2.55; // value[0,255]
-	ret |= rk_aiq_user_api2_acp_SetAttrib(rkipc_aiq_get_ctx(cam_id), attrib);
+	ret |= rk_aiq_user_api2_acp_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
 	snprintf(entry, 127, "isp.%d.adjustment:hue", cam_id);
 	rk_param_set_int(entry, value);
 
@@ -470,7 +470,7 @@ int rk_isp_set_night_to_day(int cam_id, const char *value) {
 		attr.mode = RK_AIQ_IE_EFFECT_BW;
 	else
 		attr.mode = RK_AIQ_IE_EFFECT_NONE;
-	rk_aiq_user_api2_aie_SetAttrib(rkipc_aiq_get_ctx(cam_id), attr);
+	rk_aiq_user_api2_aie_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.night_to_day:night_to_day", cam_id);
 	rk_param_set_string(entry, value);
@@ -981,8 +981,8 @@ int rk_isp_set_spatial_denoise_level(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret = 0;
 	const char *noise_reduce_mode;
-	rk_aiq_ynr_strength_v3_t ynrStrenght;
-	rk_aiq_bayer2dnr_strength_v2_t bayer2dnrV2Strenght;
+	rk_aiq_ynr_strength_v22_t ynrStrength;
+	rk_aiq_bayer2dnr_strength_v23_t bayer2dnrV23Strength;
 
 	rk_isp_get_noise_reduce_mode(cam_id, &noise_reduce_mode);
 	LOG_DEBUG("noise_reduce_mode is %s, value is %d\n", noise_reduce_mode, value);
@@ -990,13 +990,15 @@ int rk_isp_set_spatial_denoise_level(int cam_id, int value) {
 		value = 50;
 		LOG_DEBUG("noise_reduce_mode is %s, value is %d\n", noise_reduce_mode, value);
 	}
-	ynrStrenght.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
-	ynrStrenght.percent = value / 100.0;
-	ret = rk_aiq_user_api2_aynrV3_SetStrength(rkipc_aiq_get_ctx(cam_id), &ynrStrenght);
-	bayer2dnrV2Strenght.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
-	bayer2dnrV2Strenght.percent = value / 100.0;
+	ynrStrength.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
+	ynrStrength.percent = value / 100.0;
+	ynrStrength.strength_enable = true;
+	ret = rk_aiq_user_api2_aynrV22_SetStrength(rkipc_aiq_get_ctx(cam_id), &ynrStrength);
+	bayer2dnrV23Strength.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
+	bayer2dnrV23Strength.percent = value / 100.0;
+	bayer2dnrV23Strength.strength_enable = true;
 	ret =
-	    rk_aiq_user_api2_abayer2dnrV2_SetStrength(rkipc_aiq_get_ctx(cam_id), &bayer2dnrV2Strenght);
+	    rk_aiq_user_api2_abayer2dnrV23_GetStrength(rkipc_aiq_get_ctx(cam_id), &bayer2dnrV23Strength);
 
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.enhancement:spatial_denoise_level", cam_id);
@@ -1018,7 +1020,7 @@ int rk_isp_set_temporal_denoise_level(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret = 0;
 	const char *noise_reduce_mode;
-	rk_aiq_bayertnr_strength_v2_t bayertnrV2Strenght;
+	rk_aiq_bayertnr_strength_v23_t bayertnrV23Strength;
 
 	rk_isp_get_noise_reduce_mode(cam_id, &noise_reduce_mode);
 	LOG_DEBUG("noise_reduce_mode is %s, value is %d\n", noise_reduce_mode, value);
@@ -1026,9 +1028,10 @@ int rk_isp_set_temporal_denoise_level(int cam_id, int value) {
 		value = 50;
 		LOG_DEBUG("noise_reduce_mode is %s, value is %d\n", noise_reduce_mode, value);
 	}
-	bayertnrV2Strenght.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
-	bayertnrV2Strenght.percent = value / 100.0;
-	ret = rk_aiq_user_api2_abayertnrV2_SetStrength(rkipc_aiq_get_ctx(cam_id), &bayertnrV2Strenght);
+	bayertnrV23Strength.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
+	bayertnrV23Strength.percent = value / 100.0;
+	bayertnrV23Strength.strength_enable = true;
+	ret = rk_aiq_user_api2_abayertnrV23_SetStrength(rkipc_aiq_get_ctx(cam_id), &bayertnrV23Strength);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.enhancement:temporal_denoise_level", cam_id);
 	rk_param_set_int(entry, value);
@@ -1163,7 +1166,7 @@ int rk_isp_set_image_flip(int cam_id, const char *value) {
 		mirror = 1;
 		flip = 1;
 	}
-	// rk_aiq_uapi2_setMirroFlip(rkipc_aiq_get_ctx(cam_id), mirror, flip, 4); // skip 4 frame
+	rk_aiq_uapi2_setMirrorFlip(rkipc_aiq_get_ctx(cam_id), mirror, flip, 4); // skip 4 frame
 	snprintf(entry, 127, "isp.%d.video_adjustment:image_flip", cam_id);
 	rk_param_set_string(entry, value);
 
