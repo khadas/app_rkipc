@@ -46,7 +46,7 @@ rtsp_demo_handle g_rtsplive = NULL;
 rtsp_session_handle g_rtsp_session_0, g_rtsp_session_1, g_rtsp_session_2;
 static int take_photo_one = 0;
 static int enable_jpeg, enable_venc_0, enable_venc_1, enable_venc_2;
-static int g_enable_vo, g_vo_dev_id, g_vi_chn_id, enable_npu, enable_wrap;
+static int g_enable_vo, g_vo_dev_id, g_vi_chn_id, enable_npu, enable_wrap, enable_osd;
 static int g_video_run_ = 1;
 static int pipe_id_ = 0;
 static int dev_id_ = 0;
@@ -2080,9 +2080,10 @@ int rk_video_init() {
 	g_vo_dev_id = rk_param_get_int("video.source:vo_dev_id", 3);
 	enable_npu = rk_param_get_int("video.source:enable_npu", 0);
 	enable_wrap = rk_param_get_int("video.source:enable_wrap", 0);
+	enable_osd = rk_param_get_int("osd.common:enable_osd", 0);
 	LOG_INFO("g_vi_chn_id is %d, g_enable_vo is %d, g_vo_dev_id is %d, enable_npu is %d, "
-	         "enable_wrap is %d\n",
-	         g_vi_chn_id, g_enable_vo, g_vo_dev_id, enable_npu, enable_wrap);
+	         "enable_wrap is %d, enable_osd is %d\n",
+	         g_vi_chn_id, g_enable_vo, g_vo_dev_id, enable_npu, enable_wrap, enable_osd);
 	g_video_run_ = 1;
 	ret |= rkipc_vi_dev_init();
 	ret |= rkipc_rtsp_init();
@@ -2097,7 +2098,8 @@ int rk_video_init() {
 		ret |= rkipc_pipe_3_init();
 	// if (g_enable_vo)
 	// 	ret |= rkipc_pipe_vpss_vo_init();
-	ret |= rkipc_osd_init();
+	if (enable_osd)
+		ret |= rkipc_osd_init();
 	// rk_roi_set_callback_register(rk_roi_set);
 	// ret |= rk_roi_set_all();
 	// rk_region_clip_set_callback_register(rk_region_clip_set);
@@ -2117,7 +2119,8 @@ int rk_video_deinit() {
 		ret |= rkipc_vpss_bgr_deinit();
 	// rk_region_clip_set_callback_register(NULL);
 	// rk_roi_set_callback_register(NULL);
-	ret |= rkipc_osd_deinit();
+	if (enable_osd)
+		ret |= rkipc_osd_deinit();
 	// if (g_enable_vo)
 	// 	ret |= rkipc_pipe_vi_vo_deinit();
 	if (enable_venc_0) {
