@@ -1,8 +1,8 @@
 // Copyright 2021 Rockchip Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+#include "rockiva.h"
 #include "common.h"
-#include "rockiva/rockiva_ba_api.h"
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -13,27 +13,114 @@ RockIvaHandle rkba_handle;
 RockIvaBaTaskParams initParams;
 RockIvaInitParam globalParams;
 int rockit_run_flag = 0;
+rknn_list *rknn_list_;
+
+void create_rknn_list(rknn_list **s) {
+	if (*s != NULL)
+		return;
+	*s = (rknn_list *)malloc(sizeof(rknn_list));
+	(*s)->top = NULL;
+	(*s)->size = 0;
+	printf("create rknn_list success\n");
+}
+
+void destory_rknn_list(rknn_list **s) {
+	Node *t = NULL;
+	if (*s == NULL)
+		return;
+	while ((*s)->top) {
+		t = (*s)->top;
+		(*s)->top = t->next;
+		free(t);
+	}
+	free(*s);
+	*s = NULL;
+}
+
+void rknn_list_push(rknn_list *s, long timeval, RockIvaBaResult ba_result) {
+	Node *t = NULL;
+	t = (Node *)malloc(sizeof(Node));
+	t->timeval = timeval;
+	t->ba_result = ba_result;
+	if (s->top == NULL) {
+		s->top = t;
+		t->next = NULL;
+	} else {
+		t->next = s->top;
+		s->top = t;
+	}
+	s->size++;
+}
+
+void rknn_list_pop(rknn_list *s, long *timeval, RockIvaBaResult *ba_result) {
+	Node *t = NULL;
+	if (s == NULL || s->top == NULL)
+		return;
+	t = s->top;
+	*timeval = t->timeval;
+	*ba_result = t->ba_result;
+	s->top = t->next;
+	free(t);
+	s->size--;
+}
+
+void rknn_list_drop(rknn_list *s) {
+	Node *t = NULL;
+	if (s == NULL || s->top == NULL)
+		return;
+	t = s->top;
+	s->top = t->next;
+	free(t);
+	s->size--;
+}
+
+int rknn_list_size(rknn_list *s) {
+	if (s == NULL)
+		return -1;
+	return s->size;
+}
+
+int rkipc_rknn_object_get(RockIvaBaResult *ba_result) {
+	int ret = 0;
+	long time_before;
+	if (rknn_list_size(rknn_list_)) {
+		rknn_list_pop(rknn_list_, &time_before, ba_result);
+		LOG_DEBUG("ba_result->objNum is %d\n", ba_result->objNum);
+		ret = 0;
+	} else {
+		ret = -1; // no update
+	}
+
+	return ret;
+}
 
 void rkba_callback(const RockIvaBaResult *result, const RockIvaExecuteStatus status,
                    void *userData) {
-	if (result->objNum)
-		// LOG_INFO("status is %d, frame %d, result->objNum is %d\n", status, result->frameId,
-		//          result->objNum);
-		for (int i = 0; i < result->objNum; i++) {
-			LOG_INFO(
-			    "topLeft:[%d,%d], bottomRight:[%d,%d],"
-			    "objId is %d, frameId is %d, score is %d, type is %d\n",
-			    result->triggerObjects[i].objInfo.rect.topLeft.x,
-			    result->triggerObjects[i].objInfo.rect.topLeft.y,
-			    result->triggerObjects[i].objInfo.rect.bottomRight.x,
-			    result->triggerObjects[i].objInfo.rect.bottomRight.y,
-			    result->triggerObjects[i].objInfo.objId, result->triggerObjects[i].objInfo.frameId,
-			    result->triggerObjects[i].objInfo.score, result->triggerObjects[i].objInfo.type);
-			// LOG_INFO("triggerRules is %d, ruleID is %d, triggerType is %d\n",
-			//          result->triggerObjects[i].triggerRules,
-			//          result->triggerObjects[i].firstTrigger.ruleID,
-			//          result->triggerObjects[i].firstTrigger.triggerType);
-		}
+	if (result->objNum == 0)
+		return;
+
+	// LOG_INFO("status is %d, frame %d, result->objNum is %d\n", status, result->frameId,
+	//          result->objNum);
+	rknn_list_push(rknn_list_, rkipc_get_curren_time_ms(), *result);
+	int size = rknn_list_size(rknn_list_);
+	if (size >= MAX_RKNN_LIST_NUM)
+		rknn_list_drop(rknn_list_);
+	LOG_DEBUG("size is %d\n", size);
+	for (int i = 0; i < result->objNum; i++) {
+		LOG_DEBUG("topLeft:[%d,%d], bottomRight:[%d,%d],"
+		          "objId is %d, frameId is %d, score is %d, type is %d\n",
+		          result->triggerObjects[i].objInfo.rect.topLeft.x,
+		          result->triggerObjects[i].objInfo.rect.topLeft.y,
+		          result->triggerObjects[i].objInfo.rect.bottomRight.x,
+		          result->triggerObjects[i].objInfo.rect.bottomRight.y,
+		          result->triggerObjects[i].objInfo.objId,
+		          result->triggerObjects[i].objInfo.frameId,
+		          result->triggerObjects[i].objInfo.score, result->triggerObjects[i].objInfo.type);
+		// LOG_INFO("triggerRules is %d, ruleID is %d, triggerType is %d\n",
+		//          result->triggerObjects[i].triggerRules,
+		//          result->triggerObjects[i].firstTrigger.ruleID,
+		//          result->triggerObjects[i].firstTrigger.triggerType);
+	}
 
 	// if (status == ROCKIVA_SUCCESS) {
 	//     CachedImageMem *cached_image_mem = get_image_from_cache(result->frameId);
@@ -64,7 +151,6 @@ void rkba_callback(const RockIvaBaResult *result, const RockIvaExecuteStatus sta
 	//         write_image(image, out_img_path);
 	//         release_image(cached_image_mem);
 	//     }
-	// }
 }
 
 int rkipc_rockiva_init() {
@@ -163,45 +249,45 @@ int rkipc_rockiva_init() {
 	int ri_h = rk_param_get_int("event.regional_invasion:height", 256);
 
 #if 1
-	initParams.baRules.areaOutRule[0].ruleEnable =
+	initParams.baRules.areaInBreakRule[0].ruleEnable =
 	    rk_param_get_int("event.regional_invasion:enabled", 0);
-	initParams.baRules.areaOutRule[0].sense =
+	initParams.baRules.areaInBreakRule[0].sense =
 	    rk_param_get_int("event.regional_invasion:sensitivity_level", 50); // [1, 100]
-	initParams.baRules.areaOutRule[0].alertTime =
+	initParams.baRules.areaInBreakRule[0].alertTime =
 	    rk_param_get_int("event.regional_invasion:time_threshold", 1) * 1000; // ms
-	initParams.baRules.areaOutRule[0].minObjSize[2].height =
+	initParams.baRules.areaInBreakRule[0].minObjSize[2].height =
 	    web_height / 100 * rk_param_get_int("event.regional_invasion:proportion", 5);
-	initParams.baRules.areaOutRule[0].minObjSize[2].width =
+	initParams.baRules.areaInBreakRule[0].minObjSize[2].width =
 	    web_width / 100 * rk_param_get_int("event.regional_invasion:proportion", 5);
-	initParams.baRules.areaOutRule[0].event = ROCKIVA_BA_TRIP_EVENT_STAY;
-	initParams.baRules.areaOutRule[0].ruleID = 0;
-	initParams.baRules.areaOutRule[0].objType = ROCKIVA_BA_RULE_OBJ_FULL;
-	initParams.baRules.areaOutRule[0].area.pointNum = 4;
-	initParams.baRules.areaOutRule[0].area.points[0].x =
+	initParams.baRules.areaInBreakRule[0].event = ROCKIVA_BA_TRIP_EVENT_STAY;
+	initParams.baRules.areaInBreakRule[0].ruleID = 0;
+	initParams.baRules.areaInBreakRule[0].objType = ROCKIVA_BA_RULE_OBJ_FULL;
+	initParams.baRules.areaInBreakRule[0].area.pointNum = 4;
+	initParams.baRules.areaInBreakRule[0].area.points[0].x =
 	    ROCKIVA_PIXEL_RATION_CONVERT(web_width, ri_x);
-	initParams.baRules.areaOutRule[0].area.points[0].y =
+	initParams.baRules.areaInBreakRule[0].area.points[0].y =
 	    ROCKIVA_PIXEL_RATION_CONVERT(web_height, ri_y);
-	initParams.baRules.areaOutRule[0].area.points[1].x =
+	initParams.baRules.areaInBreakRule[0].area.points[1].x =
 	    ROCKIVA_PIXEL_RATION_CONVERT(web_width, ri_x + ri_w);
-	initParams.baRules.areaOutRule[0].area.points[1].y =
+	initParams.baRules.areaInBreakRule[0].area.points[1].y =
 	    ROCKIVA_PIXEL_RATION_CONVERT(web_height, ri_y);
-	initParams.baRules.areaOutRule[0].area.points[2].x =
+	initParams.baRules.areaInBreakRule[0].area.points[2].x =
 	    ROCKIVA_PIXEL_RATION_CONVERT(web_width, ri_x + ri_w);
-	initParams.baRules.areaOutRule[0].area.points[2].y =
+	initParams.baRules.areaInBreakRule[0].area.points[2].y =
 	    ROCKIVA_PIXEL_RATION_CONVERT(web_height, ri_y + ri_h);
-	initParams.baRules.areaOutRule[0].area.points[3].x =
+	initParams.baRules.areaInBreakRule[0].area.points[3].x =
 	    ROCKIVA_PIXEL_RATION_CONVERT(web_width, ri_x);
-	initParams.baRules.areaOutRule[0].area.points[3].y =
+	initParams.baRules.areaInBreakRule[0].area.points[3].y =
 	    ROCKIVA_PIXEL_RATION_CONVERT(web_height, ri_y + ri_h);
 	LOG_INFO("(%d,%d), (%d,%d), (%d,%d), (%d,%d)\n",
-	         initParams.baRules.areaOutRule[0].area.points[0].x,
-	         initParams.baRules.areaOutRule[0].area.points[0].y,
-	         initParams.baRules.areaOutRule[0].area.points[1].x,
-	         initParams.baRules.areaOutRule[0].area.points[1].y,
-	         initParams.baRules.areaOutRule[0].area.points[2].x,
-	         initParams.baRules.areaOutRule[0].area.points[2].y,
-	         initParams.baRules.areaOutRule[0].area.points[3].x,
-	         initParams.baRules.areaOutRule[0].area.points[3].y);
+	         initParams.baRules.areaInBreakRule[0].area.points[0].x,
+	         initParams.baRules.areaInBreakRule[0].area.points[0].y,
+	         initParams.baRules.areaInBreakRule[0].area.points[1].x,
+	         initParams.baRules.areaInBreakRule[0].area.points[1].y,
+	         initParams.baRules.areaInBreakRule[0].area.points[2].x,
+	         initParams.baRules.areaInBreakRule[0].area.points[2].y,
+	         initParams.baRules.areaInBreakRule[0].area.points[3].x,
+	         initParams.baRules.areaInBreakRule[0].area.points[3].y);
 	initParams.aiConfig.detectResultMode = 0;
 #else
 	initParams.baRules.areaInBreakRule[0].ruleEnable =
@@ -252,6 +338,7 @@ int rkipc_rockiva_init() {
 		return -1;
 	}
 	LOG_INFO("ROCKIVA_BA_Init success\n");
+	create_rknn_list(&rknn_list_);
 	rockit_run_flag = 1;
 	LOG_INFO("end\n");
 
@@ -264,6 +351,7 @@ int rkipc_rockiva_deinit() {
 	ROCKIVA_BA_Release(rkba_handle);
 	LOG_INFO("ROCKIVA_BA_Release over\n");
 	ROCKIVA_Release(rkba_handle);
+	destory_rknn_list(&rknn_list_);
 	LOG_INFO("end\n");
 
 	return 0;

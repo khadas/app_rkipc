@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/prctl.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
@@ -38,3 +39,5 @@ void rk_signal_destroy(void *sem);
 int rk_signal_wait(void *sem, int timeout);
 void rk_signal_give(void *sem);
 void rk_signal_reset(void *sem);
+
+long rkipc_get_curren_time_ms();

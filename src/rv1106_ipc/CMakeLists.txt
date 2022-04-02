@@ -62,7 +62,7 @@ add_definitions(-Os)
 # link_libraries(asan)
 
 add_executable(${PROJECT_NAME} ${SRCS})
-target_link_libraries(${PROJECT_NAME} pthread rockit rkaiq rtsp wpa_client m rkmuxer rkfsmk freetype rockiva iconv)
+target_link_libraries(${PROJECT_NAME} pthread rockit rkaiq rtsp wpa_client m rkmuxer rkfsmk freetype rockiva iconv rga)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 install(FILES rkipc.ini DESTINATION share)

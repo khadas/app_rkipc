@@ -903,11 +903,11 @@ int rk_isp_set_dehaze(int cam_id, const char *value) {
 		LOG_ERROR("dehaze get SwAttrib failed %d", ret);
 
 	if (!strcmp(value, "close")) {
-	 	attr.mode = DEHAZE_API_AUTO;
+		attr.mode = DEHAZE_API_AUTO;
 	} else if (!strcmp(value, "open")) {
-	 	attr.mode = DEHAZE_API_MANUAL;
+		attr.mode = DEHAZE_API_MANUAL;
 	} else if (!strcmp(value, "auto")) {
-	 	attr.mode = DEHAZE_API_AUTO;
+		attr.mode = DEHAZE_API_AUTO;
 	}
 	ret = rk_aiq_user_api2_adehaze_v12_setSwAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	snprintf(entry, 127, "isp.%d.enhancement:dehaze", cam_id);
@@ -998,8 +998,8 @@ int rk_isp_set_spatial_denoise_level(int cam_id, int value) {
 	bayer2dnrV23Strength.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
 	bayer2dnrV23Strength.percent = value / 100.0;
 	bayer2dnrV23Strength.strength_enable = true;
-	ret =
-	    rk_aiq_user_api2_abayer2dnrV23_GetStrength(rkipc_aiq_get_ctx(cam_id), &bayer2dnrV23Strength);
+	ret = rk_aiq_user_api2_abayer2dnrV23_GetStrength(rkipc_aiq_get_ctx(cam_id),
+	                                                 &bayer2dnrV23Strength);
 
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.enhancement:spatial_denoise_level", cam_id);
@@ -1032,7 +1032,8 @@ int rk_isp_set_temporal_denoise_level(int cam_id, int value) {
 	bayertnrV23Strength.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
 	bayertnrV23Strength.percent = value / 100.0;
 	bayertnrV23Strength.strength_enable = true;
-	ret = rk_aiq_user_api2_abayertnrV23_SetStrength(rkipc_aiq_get_ctx(cam_id), &bayertnrV23Strength);
+	ret =
+	    rk_aiq_user_api2_abayertnrV23_SetStrength(rkipc_aiq_get_ctx(cam_id), &bayertnrV23Strength);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.enhancement:temporal_denoise_level", cam_id);
 	rk_param_set_int(entry, value);
@@ -1052,7 +1053,7 @@ int rk_isp_get_dehaze_level(int cam_id, int *value) {
 int rk_isp_set_dehaze_level(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
-	
+
 	ret = rk_aiq_uapi2_setMDehazeStrth(rkipc_aiq_get_ctx(cam_id), value);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.enhancement:dehaze_level", cam_id);

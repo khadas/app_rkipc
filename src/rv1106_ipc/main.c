@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
 		rkipc_rockiva_init();
 
 	while (g_main_run_) {
-		usleep(100 * 1000 * 1000);
+		usleep(1000 * 1000);
 	}
 
 	// deinit

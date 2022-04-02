@@ -124,6 +124,125 @@ void *save_aenc_thread(void *ptr) {
 	return RK_NULL;
 }
 
+int rkipc_audio_aed_init() {
+	int result;
+	AI_AED_CONFIG_S ai_aed_config;
+
+	ai_aed_config.fSnrDB = 10.0f;
+	ai_aed_config.fLsdDB = -25.0f;
+	ai_aed_config.s32Policy = 1;
+	result = RK_MPI_AI_SetAedAttr(ai_dev_id, ai_chn_id, &ai_aed_config);
+	if (result != RK_SUCCESS) {
+		LOG_ERROR("RK_MPI_AI_SetAedAttr(%d,%d) failed with %#x\n", ai_dev_id, ai_chn_id, result);
+		return result;
+	}
+	LOG_INFO("RK_MPI_AI_SetAedAttr(%d,%d) success\n", ai_dev_id, ai_chn_id);
+	result = RK_MPI_AI_EnableAed(ai_dev_id, ai_chn_id);
+	if (result != RK_SUCCESS) {
+		LOG_ERROR("RK_MPI_AI_EnableAed(%d,%d) failed with %#x\n", ai_dev_id, ai_chn_id, result);
+		return result;
+	}
+	LOG_INFO("RK_MPI_AI_EnableAed(%d,%d) success\n", ai_dev_id, ai_chn_id);
+
+	return result;
+}
+
+void test_bcd_callback() { LOG_INFO("baby cry callback successed\n"); }
+
+int rkipc_audio_bcd_init() {
+	int result;
+	AI_BCD_CONFIG_S ai_bcd_config;
+
+	ai_bcd_config.sUserMode = 1;
+	ai_bcd_config.sBypass = 0;
+	ai_bcd_config.sAlarmThreshold = 80;
+	ai_bcd_config.sTimeLimit = 1000;
+	ai_bcd_config.sTimeLimitThresholdCount = 20;
+	ai_bcd_config.sIntervalTime = 0;
+	ai_bcd_config.cbBcd = test_bcd_callback;
+	result = RK_MPI_AI_SetBcdAttr(ai_dev_id, ai_chn_id, &ai_bcd_config);
+	if (result != RK_SUCCESS) {
+		LOG_ERROR("RK_MPI_AI_SetBcdAttr(%d,%d) failed with %#x\n", ai_dev_id, ai_chn_id, result);
+		return result;
+	}
+	LOG_INFO("RK_MPI_AI_SetBcdAttr(%d,%d) success\n", ai_dev_id, ai_chn_id);
+	result = RK_MPI_AI_EnableBcd(ai_dev_id, ai_chn_id);
+	if (result != RK_SUCCESS) {
+		LOG_ERROR("RK_MPI_AI_EnableBcd(%d,%d) failed with %#x\n", ai_dev_id, ai_chn_id, result);
+		return result;
+	}
+	LOG_INFO("RK_MPI_AI_EnableBcd(%d,%d) success\n", ai_dev_id, ai_chn_id);
+
+	return result;
+}
+
+int rkipc_audio_vqe_init() {
+	int result;
+	AI_VQE_CONFIG_S stAiVqeConfig;
+	int vqe_gap_ms = 16;
+	if (vqe_gap_ms != 16 && vqe_gap_ms != 10) {
+		RK_LOGE("Invalid gap: %d, just supports 16ms or 10ms for AI VQE", vqe_gap_ms);
+		return RK_FAILURE;
+	}
+	memset(&stAiVqeConfig, 0, sizeof(AI_VQE_CONFIG_S));
+	stAiVqeConfig.enCfgMode = AIO_VQE_CONFIG_LOAD_FILE;
+	memcpy(stAiVqeConfig.aCfgFile, "/oem/usr/share/vqefiles/config_aivqe.json",
+	       strlen("/oem/usr/share/vqefiles/config_aivqe.json"));
+
+	const char *vqe_cfg =
+	    rk_param_get_string("audio.0:vqe_cfg", "/oem/usr/share/vqefiles/config_aivqe.json");
+	memcpy(stAiVqeConfig.aCfgFile, vqe_cfg, strlen(vqe_cfg) + 1);
+	memset(stAiVqeConfig.aCfgFile + strlen(vqe_cfg) + 1, '\0', sizeof(char));
+	LOG_INFO("stAiVqeConfig.aCfgFile = %s\n", stAiVqeConfig.aCfgFile);
+
+	stAiVqeConfig.s32WorkSampleRate = rk_param_get_int("audio.0:sample_rate", 16000);
+	stAiVqeConfig.s32FrameSample =
+	    rk_param_get_int("audio.0:sample_rate", 16000) * vqe_gap_ms / 1000;
+	result = RK_MPI_AI_SetVqeAttr(ai_dev_id, ai_chn_id, 0, 0, &stAiVqeConfig);
+	if (result != RK_SUCCESS) {
+		LOG_ERROR("RK_MPI_AI_SetVqeAttr(%d,%d) failed with %#x", ai_dev_id, ai_chn_id, result);
+		return result;
+	}
+	LOG_INFO("RK_MPI_AI_SetVqeAttr(%d,%d) success\n", ai_dev_id, ai_chn_id);
+	result = RK_MPI_AI_EnableVqe(ai_dev_id, ai_chn_id);
+	if (result != RK_SUCCESS) {
+		LOG_ERROR("RK_MPI_AI_EnableVqe(%d,%d) failed with %#x", ai_dev_id, ai_chn_id, result);
+		return result;
+	}
+	LOG_INFO("RK_MPI_AI_EnableVqe(%d,%d) success\n", ai_dev_id, ai_chn_id);
+
+	return result;
+}
+
+static void *ai_get_detect_result(void *arg) {
+	printf("#Start %s thread, arg:%p\n", __func__, arg);
+	prctl(PR_SET_NAME, "ai_get_detect_result", 0, 0, 0);
+	int result;
+
+	while (g_audio_run_) {
+		usleep(1000 * 1000);
+		AI_AED_RESULT_S aed_result;
+		AI_BCD_RESULT_S bcd_result;
+		memset(&aed_result, 0, sizeof(aed_result));
+		memset(&bcd_result, 0, sizeof(bcd_result));
+		if (enable_aed) {
+			result = RK_MPI_AI_GetAedResult(ai_dev_id, ai_chn_id, &aed_result);
+			if (result == 0) {
+				RK_LOGD("aed_result: %d, %d", aed_result.bAcousticEventDetected,
+				        aed_result.bLoudSoundDetected);
+			}
+		}
+		if (enable_bcd) {
+			result = RK_MPI_AI_GetBcdResult(ai_dev_id, ai_chn_id, &bcd_result);
+			if (result == 0) {
+				RK_LOGD("bcd_result: %d", bcd_result.bBabyCryDetected);
+			}
+		}
+	}
+
+	return 0;
+}
+
 int rkipc_ai_init() {
 	int ret;
 	AUDIO_DEV aiDevId = ai_dev_id;
@@ -260,125 +379,6 @@ int rkipc_aenc_deinit() {
 	if (ret)
 		LOG_ERROR("RK_MPI_AI_DisableChn fail\n");
 	LOG_INFO("RK_MPI_AI_DisableChn success\n");
-
-	return 0;
-}
-
-int rkipc_audio_aed_init() {
-	int result;
-	AI_AED_CONFIG_S ai_aed_config;
-
-	ai_aed_config.fSnrDB = 10.0f;
-	ai_aed_config.fLsdDB = -25.0f;
-	ai_aed_config.s32Policy = 1;
-	result = RK_MPI_AI_SetAedAttr(ai_dev_id, ai_chn_id, &ai_aed_config);
-	if (result != RK_SUCCESS) {
-		LOG_ERROR("RK_MPI_AI_SetAedAttr(%d,%d) failed with %#x\n", ai_dev_id, ai_chn_id, result);
-		return result;
-	}
-	LOG_INFO("RK_MPI_AI_SetAedAttr(%d,%d) success\n", ai_dev_id, ai_chn_id);
-	result = RK_MPI_AI_EnableAed(ai_dev_id, ai_chn_id);
-	if (result != RK_SUCCESS) {
-		LOG_ERROR("RK_MPI_AI_EnableAed(%d,%d) failed with %#x\n", ai_dev_id, ai_chn_id, result);
-		return result;
-	}
-	LOG_INFO("RK_MPI_AI_EnableAed(%d,%d) success\n", ai_dev_id, ai_chn_id);
-
-	return result;
-}
-
-void test_bcd_callback() { LOG_INFO("baby cry callback successed\n"); }
-
-int rkipc_audio_bcd_init() {
-	int result;
-	AI_BCD_CONFIG_S ai_bcd_config;
-
-	ai_bcd_config.sUserMode = 1;
-	ai_bcd_config.sBypass = 0;
-	ai_bcd_config.sAlarmThreshold = 80;
-	ai_bcd_config.sTimeLimit = 1000;
-	ai_bcd_config.sTimeLimitThresholdCount = 20;
-	ai_bcd_config.sIntervalTime = 0;
-	ai_bcd_config.cbBcd = test_bcd_callback;
-	result = RK_MPI_AI_SetBcdAttr(ai_dev_id, ai_chn_id, &ai_bcd_config);
-	if (result != RK_SUCCESS) {
-		LOG_ERROR("RK_MPI_AI_SetBcdAttr(%d,%d) failed with %#x\n", ai_dev_id, ai_chn_id, result);
-		return result;
-	}
-	LOG_INFO("RK_MPI_AI_SetBcdAttr(%d,%d) success\n", ai_dev_id, ai_chn_id);
-	result = RK_MPI_AI_EnableBcd(ai_dev_id, ai_chn_id);
-	if (result != RK_SUCCESS) {
-		LOG_ERROR("RK_MPI_AI_EnableBcd(%d,%d) failed with %#x\n", ai_dev_id, ai_chn_id, result);
-		return result;
-	}
-	LOG_INFO("RK_MPI_AI_EnableBcd(%d,%d) success\n", ai_dev_id, ai_chn_id);
-
-	return result;
-}
-
-int rkipc_audio_vqe_init() {
-	int result;
-	AI_VQE_CONFIG_S stAiVqeConfig;
-	int vqe_gap_ms = 16;
-	if (vqe_gap_ms != 16 && vqe_gap_ms != 10) {
-		RK_LOGE("Invalid gap: %d, just supports 16ms or 10ms for AI VQE", vqe_gap_ms);
-		return RK_FAILURE;
-	}
-	memset(&stAiVqeConfig, 0, sizeof(AI_VQE_CONFIG_S));
-	stAiVqeConfig.enCfgMode = AIO_VQE_CONFIG_LOAD_FILE;
-	memcpy(stAiVqeConfig.aCfgFile, "/oem/usr/share/vqefiles/config_aivqe.json",
-	       strlen("/oem/usr/share/vqefiles/config_aivqe.json"));
-
-	const char *vqe_cfg =
-	    rk_param_get_string("audio.0:vqe_cfg", "/oem/usr/share/vqefiles/config_aivqe.json");
-	memcpy(stAiVqeConfig.aCfgFile, vqe_cfg, strlen(vqe_cfg) + 1);
-	memset(stAiVqeConfig.aCfgFile + strlen(vqe_cfg) + 1, '\0', sizeof(char));
-	LOG_INFO("stAiVqeConfig.aCfgFile = %s\n", stAiVqeConfig.aCfgFile);
-
-	stAiVqeConfig.s32WorkSampleRate = rk_param_get_int("audio.0:sample_rate", 16000);
-	stAiVqeConfig.s32FrameSample =
-	    rk_param_get_int("audio.0:sample_rate", 16000) * vqe_gap_ms / 1000;
-	result = RK_MPI_AI_SetVqeAttr(ai_dev_id, ai_chn_id, 0, 0, &stAiVqeConfig);
-	if (result != RK_SUCCESS) {
-		LOG_ERROR("RK_MPI_AI_SetVqeAttr(%d,%d) failed with %#x", ai_dev_id, ai_chn_id, result);
-		return result;
-	}
-	LOG_INFO("RK_MPI_AI_SetVqeAttr(%d,%d) success\n", ai_dev_id, ai_chn_id);
-	result = RK_MPI_AI_EnableVqe(ai_dev_id, ai_chn_id);
-	if (result != RK_SUCCESS) {
-		LOG_ERROR("RK_MPI_AI_EnableVqe(%d,%d) failed with %#x", ai_dev_id, ai_chn_id, result);
-		return result;
-	}
-	LOG_INFO("RK_MPI_AI_EnableVqe(%d,%d) success\n", ai_dev_id, ai_chn_id);
-
-	return result;
-}
-
-static void *ai_get_detect_result(void *arg) {
-	printf("#Start %s thread, arg:%p\n", __func__, arg);
-	prctl(PR_SET_NAME, "ai_get_detect_result", 0, 0, 0);
-	int result;
-
-	while (g_audio_run_) {
-		usleep(1000 * 1000);
-		AI_AED_RESULT_S aed_result;
-		AI_BCD_RESULT_S bcd_result;
-		memset(&aed_result, 0, sizeof(aed_result));
-		memset(&bcd_result, 0, sizeof(bcd_result));
-		if (enable_aed) {
-			result = RK_MPI_AI_GetAedResult(ai_dev_id, ai_chn_id, &aed_result);
-			if (result == 0) {
-				RK_LOGD("aed_result: %d, %d", aed_result.bAcousticEventDetected,
-				        aed_result.bLoudSoundDetected);
-			}
-		}
-		if (enable_bcd) {
-			result = RK_MPI_AI_GetBcdResult(ai_dev_id, ai_chn_id, &bcd_result);
-			if (result == 0) {
-				RK_LOGD("bcd_result: %d", bcd_result.bBabyCryDetected);
-			}
-		}
-	}
 
 	return 0;
 }

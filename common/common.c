@@ -103,3 +103,17 @@ void rk_signal_give(void *sem) {
  * @param signal 信号量句柄
  */
 void rk_signal_reset(void *sem) { rk_signal_give(sem); }
+
+long rkipc_get_curren_time_ms() {
+	long msec = 0;
+	char str[20] = {0};
+	struct timeval stuCurrentTime;
+
+	gettimeofday(&stuCurrentTime, NULL);
+	sprintf(str, "%ld%03ld", stuCurrentTime.tv_sec, (stuCurrentTime.tv_usec) / 1000);
+	for (size_t i = 0; i < strlen(str); i++) {
+		msec = msec * 10 + (str[i] - '0');
+	}
+
+	return msec;
+}
