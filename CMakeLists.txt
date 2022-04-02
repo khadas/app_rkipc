@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 project(rkipc)
 
 option(COMPILE_FOR_RV1106_IPC "compile for rv1106 ipc" OFF)
+option(COMPILE_FOR_RV1106_BATTERY_IPC "compile for rv1106 battery ipc" OFF)
 option(COMPILE_FOR_RV1126_RKMEDIA "compile for rv1126 ipc rkmedia" OFF)
 option(COMPILE_FOR_RV1126_ROCKIT "compile for rv1126 ipc rockit" OFF)
 option(COMPILE_FOR_RV1126_BATTERY_IPC "compile for rv1126 battery ipc" OFF)
@@ -19,6 +20,10 @@ endif()
 
 if(COMPILE_FOR_RV1106_IPC)
   add_subdirectory(src/rv1106_ipc)
+endif()
+
+if(COMPILE_FOR_RV1106_BATTERY_IPC)
+  add_subdirectory(src/rv1106_battery_ipc)
 endif()
 
 if(COMPILE_FOR_RV1126_RKMEDIA)
