@@ -293,6 +293,7 @@ int rk_isp_set_sharpness(int cam_id, int value) {
 	rk_aiq_sharp_strength_v33_t sharpV33Strength;
 	sharpV33Strength.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
 	sharpV33Strength.percent = fPercent;
+	sharpV33Strength.strength_enable = true;
 	ret = rk_aiq_user_api2_asharpV33_SetStrength(rkipc_aiq_get_ctx(cam_id), &sharpV33Strength);
 	if (ret) {
 		LOG_ERROR("rk_isp_set_sharpness failed %d", ret);
