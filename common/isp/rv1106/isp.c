@@ -1,4 +1,6 @@
 #include "common.h"
+#include "video.h"
+#include "isp.h"
 
 #include <rk_aiq_user_api2_acgc.h>
 #include <rk_aiq_user_api2_camgroup.h>
@@ -548,14 +550,14 @@ int rk_isp_set_hdr(int cam_id, const char *value) {
 	LOG_INFO("cam_id is %d, value is %s, old_value is %s\n", cam_id, value, old_value);
 	snprintf(entry, 127, "isp.%d.blc:hdr", cam_id);
 	if (strcmp(value, old_value)) {
-		pipe_id = rk_param_get_int("video.source:camera_id", 0);
-		vi_chn_id = rk_param_get_int("video.source:vi_chn_id", 0);
-		RK_MPI_VI_PauseChn(pipe_id, vi_chn_id);
-		rk_isp_deinit(pipe_id);
+		RK_MPI_VI_PauseChn(0, 0);
+		RK_MPI_VI_PauseChn(0, 1);
+		rk_isp_deinit(0);
 		rk_param_set_string(entry, value);
 		// usleep(100 * 1000);
-		rk_isp_init(pipe_id, g_iq_file_dir_);
-		RK_MPI_VI_ResumeChn(pipe_id, vi_chn_id);
+		rk_isp_init(0, g_iq_file_dir_);
+		RK_MPI_VI_ResumeChn(0, 0);
+		RK_MPI_VI_ResumeChn(0, 1);
 	}
 
 	return ret;
