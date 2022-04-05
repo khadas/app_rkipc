@@ -1,6 +1,6 @@
+#include "isp.h"
 #include "common.h"
 #include "video.h"
-#include "isp.h"
 
 #include <rk_aiq_user_api2_acgc.h>
 #include <rk_aiq_user_api2_camgroup.h>

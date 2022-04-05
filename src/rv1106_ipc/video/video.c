@@ -324,6 +324,12 @@ static void *rkipc_get_jpeg(void *arg) {
 	const char *file_path = rk_param_get_string("storage:file_path", "/userdata");
 	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
 
+	// drop first frame
+	ret = RK_MPI_VENC_GetStream(JPEG_VENC_CHN, &stFrame, 1000);
+	if (ret == RK_SUCCESS)
+		RK_MPI_VENC_ReleaseStream(JPEG_VENC_CHN, &stFrame);
+	else
+		LOG_ERROR("RK_MPI_VENC_GetStream timeout %x\n", ret);
 	while (g_video_run_) {
 		usleep(300 * 1000);
 		if (!take_photo_one)
@@ -395,8 +401,9 @@ static void *rkipc_get_vpss_bgr(void *arg) {
 			if (rkipc_get_curren_time_ms() - last_nn_time > interval_ms) {
 				last_nn_time = rkipc_get_curren_time_ms();
 				rkipc_rockiva_write_rgb888_frame_by_fd(frame.stVFrame.u32Width,
-			                                       frame.stVFrame.u32Height, loopCount, fd);
-				// LOG_DEBUG("nn time-consuming is %ld\n",(rkipc_get_curren_time_ms() - last_nn_time));
+				                                       frame.stVFrame.u32Height, loopCount, fd);
+				// LOG_DEBUG("nn time-consuming is %ld\n",(rkipc_get_curren_time_ms() -
+				// last_nn_time));
 			}
 
 			ret = RK_MPI_VPSS_ReleaseChnFrame(VPSS_BGR, 0, &frame);
@@ -1264,7 +1271,6 @@ int rkipc_pipe_3_init() {
 	stRecvParam.s32RecvPicNum = 1;
 	RK_MPI_VENC_StartRecvFrame(JPEG_VENC_CHN,
 	                           &stRecvParam); // must, for no streams callback running failed
-	RK_MPI_VENC_StopRecvFrame(JPEG_VENC_CHN);
 
 	pthread_create(&jpeg_venc_thread_id, NULL, rkipc_get_jpeg, NULL);
 
@@ -2096,8 +2102,8 @@ int rk_video_init() {
 	enable_jpeg = rk_param_get_int("video.source:enable_jpeg", 1);
 	enable_venc_0 = rk_param_get_int("video.source:enable_venc_0", 1);
 	enable_venc_1 = rk_param_get_int("video.source:enable_venc_1", 1);
-	LOG_INFO("enable_jpeg is %d, enable_venc_0 is %d, enable_venc_1 is %d\n",
-	         enable_jpeg, enable_venc_0, enable_venc_1);
+	LOG_INFO("enable_jpeg is %d, enable_venc_0 is %d, enable_venc_1 is %d\n", enable_jpeg,
+	         enable_venc_0, enable_venc_1);
 
 	g_vi_chn_id = rk_param_get_int("video.source:vi_chn_id", 0);
 	g_enable_vo = rk_param_get_int("video.source:enable_vo", 1);
