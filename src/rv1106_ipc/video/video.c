@@ -428,10 +428,11 @@ static void *rkipc_get_vpss_bgr(void *arg) {
 	int32_t loopCount = 0;
 	int ret = 0;
 	int npu_fps = rk_param_get_int("video.source:npu_fps", 10);
-	int time_ms = 1000 / npu_fps;
-	LOG_INFO("npu_fps is %d, time_ms is %d\n", npu_fps, time_ms);
+	int interval_ms = 1000 / npu_fps;
+	long last_nn_time;
+	LOG_INFO("npu_fps is %d, interval_ms is %d\n", npu_fps, interval_ms);
+
 	while (g_video_run_) {
-		usleep(time_ms);
 		ret = RK_MPI_VPSS_GetChnFrame(VPSS_BGR, 0, &frame, 1000);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(frame.stVFrame.pMbBlk);
@@ -447,10 +448,12 @@ static void *rkipc_get_vpss_bgr(void *arg) {
 			// 	fclose(fp);
 			// 	exit(1);
 			// }
-			// long nn_brfore_time = rkipc_get_curren_time_ms();
-			rkipc_rockiva_write_rgb888_frame_by_fd(frame.stVFrame.u32Width,
+			if (rkipc_get_curren_time_ms() - last_nn_time > interval_ms) {
+				last_nn_time = rkipc_get_curren_time_ms();
+				rkipc_rockiva_write_rgb888_frame_by_fd(frame.stVFrame.u32Width,
 			                                       frame.stVFrame.u32Height, loopCount, fd);
-			// LOG_INFO("nn time-consuming is %ld\n",(rkipc_get_curren_time_ms() - nn_brfore_time));
+				// LOG_DEBUG("nn time-consuming is %ld\n",(rkipc_get_curren_time_ms() - last_nn_time));
+			}
 
 			ret = RK_MPI_VPSS_ReleaseChnFrame(VPSS_BGR, 0, &frame);
 			if (ret != RK_SUCCESS)
