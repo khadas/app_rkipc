@@ -103,7 +103,6 @@ graph LR
 	VI_0-->VENC_0-->MUXER
 	VENC_0-->RTSP_RTMP_0
 	VI_1-->VENC_1-->RTSP_RTMP_1
-	VI_1-->VO
 	VI_1-->VPSS-->NPU
 ```
 

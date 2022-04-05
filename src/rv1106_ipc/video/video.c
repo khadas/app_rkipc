@@ -1,12 +1,6 @@
-// Copyright 2021 Rockchip Electronics Co., Ltd. All rights reserved.
+// Copyright 2022 Rockchip Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-
-//
-// vi(fbcpath) → vpss → venc_0(fbc) → rtsp/rtmp/vo
-//             		  → venc_1(fbc)
-//             		  → venc_2(fbc)
-//             		  → venc_3(nv12 jpeg) → jpeg
 
 #include "video.h"
 #include "rockiva.h"
@@ -46,7 +40,7 @@ pthread_mutex_t g_rtsp_mutex = PTHREAD_MUTEX_INITIALIZER;
 rtsp_demo_handle g_rtsplive = NULL;
 rtsp_session_handle g_rtsp_session_0, g_rtsp_session_1, g_rtsp_session_2;
 static int take_photo_one = 0;
-static int enable_jpeg, enable_venc_0, enable_venc_1, enable_venc_2;
+static int enable_jpeg, enable_venc_0, enable_venc_1;
 static int g_enable_vo, g_vo_dev_id, g_vi_chn_id, enable_npu, enable_wrap, enable_osd;
 static int g_video_run_ = 1;
 static int pipe_id_ = 0;
@@ -320,56 +314,6 @@ static void *rkipc_get_venc_1(void *arg) {
 	return 0;
 }
 
-static void *rkipc_get_venc_2(void *arg) {
-	printf("#Start %s thread, arg:%p\n", __func__, arg);
-	VENC_STREAM_S stFrame;
-	VI_CHN_STATUS_S stChnStatus;
-	int loopCount = 0;
-	int ret = 0;
-	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
-
-	while (g_video_run_) {
-		// 5.get the frame
-		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_2, &stFrame, 1000);
-		if (ret == RK_SUCCESS) {
-			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
-			// LOG_INFO("Count:%d, Len:%d, PTS is %" PRId64", enH264EType is %d\n", loopCount,
-			// stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
-			// stFrame.pstPack->DataType.enH264EType);
-			if (g_rtsplive && g_rtsp_session_2) {
-				pthread_mutex_lock(&g_rtsp_mutex);
-				rtsp_tx_video(g_rtsp_session_2, data, stFrame.pstPack->u32Len,
-				              stFrame.pstPack->u64PTS);
-				rtsp_do_event(g_rtsplive);
-				pthread_mutex_unlock(&g_rtsp_mutex);
-			}
-			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
-			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
-				rk_storage_write_video_frame(2, data, stFrame.pstPack->u32Len,
-				                             stFrame.pstPack->u64PTS, 1);
-				rk_rtmp_write_video_frame(2, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
-				                          1);
-			} else {
-				rk_storage_write_video_frame(2, data, stFrame.pstPack->u32Len,
-				                             stFrame.pstPack->u64PTS, 0);
-				rk_rtmp_write_video_frame(2, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
-				                          0);
-			}
-			// 7.release the frame
-			ret = RK_MPI_VENC_ReleaseStream(VIDEO_PIPE_2, &stFrame);
-			if (ret != RK_SUCCESS)
-				LOG_ERROR("RK_MPI_VENC_ReleaseStream fail %x\n", ret);
-			loopCount++;
-		} else {
-			LOG_ERROR("RK_MPI_VENC_GetStream timeout %x\n", ret);
-		}
-	}
-	if (stFrame.pstPack)
-		free(stFrame.pstPack);
-
-	return 0;
-}
-
 static void *rkipc_get_jpeg(void *arg) {
 	printf("#Start %s thread, arg:%p\n", __func__, arg);
 	VENC_STREAM_S stFrame;
@@ -489,17 +433,8 @@ int rkipc_rtsp_init() {
 	else
 		LOG_ERROR("1 tmp_output_data_type is %s, not support\n", tmp_output_data_type);
 
-	// tmp_output_data_type = rk_param_get_string("video.2:output_data_type", "H.264");
-	// if (!strcmp(tmp_output_data_type, "H.264"))
-	// 	rtsp_set_video(g_rtsp_session_2, RTSP_CODEC_ID_VIDEO_H264, NULL, 0);
-	// else if (!strcmp(tmp_output_data_type, "H.265"))
-	// 	rtsp_set_video(g_rtsp_session_2, RTSP_CODEC_ID_VIDEO_H265, NULL, 0);
-	// else
-	// 	LOG_ERROR("2 tmp_output_data_type is %s, not support\n", tmp_output_data_type);
-
 	rtsp_sync_video_ts(g_rtsp_session_0, rtsp_get_reltime(), rtsp_get_ntptime());
 	rtsp_sync_video_ts(g_rtsp_session_1, rtsp_get_reltime(), rtsp_get_ntptime());
-	// rtsp_sync_video_ts(g_rtsp_session_2, rtsp_get_reltime(), rtsp_get_ntptime());
 	LOG_DEBUG("end\n");
 
 	return 0;
@@ -1847,27 +1782,6 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 		}
 		LOG_INFO("RK_MPI_RGN_AttachToChn to venc0 success\n");
 	}
-	// if (enable_venc_2) {
-	// 	stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X =
-	// 	    UPALIGNTO16(osd_data->origin_x * rk_param_get_int("video.2:width", 1) /
-	// 	                rk_param_get_int("video.0:width", 1));
-	// 	stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y =
-	// 	    UPALIGNTO16(osd_data->origin_y * rk_param_get_int("video.2:height", 1) /
-	// 	                rk_param_get_int("video.0:height", 1));
-	// 	stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width =
-	// 	    UPALIGNTO16(osd_data->width * rk_param_get_int("video.2:width", 1) /
-	// 	                rk_param_get_int("video.0:width", 1));
-	// 	stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height =
-	// 	    UPALIGNTO16(osd_data->height * rk_param_get_int("video.2:height", 1) /
-	// 	                rk_param_get_int("video.0:height", 1));
-	// 	stCoverChn.s32ChnId = 2;
-	// 	ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
-	// 	if (RK_SUCCESS != ret) {
-	// 		LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) failed with %#x\n", coverHandle, ret);
-	// 		return RK_FAILURE;
-	// 	}
-	// 	LOG_INFO("RK_MPI_RGN_AttachToChn to venc0 success\n");
-	// }
 
 	return ret;
 }
@@ -1897,15 +1811,6 @@ int rkipc_osd_cover_destroy(int id) {
 			return RK_FAILURE;
 		}
 		LOG_INFO("RK_MPI_RGN_DetachFromChn to venc1 success\n");
-	}
-	if (enable_venc_2) {
-		stMppChn.s32ChnId = 2;
-		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
-		if (RK_SUCCESS != ret) {
-			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc2 failed with %#x\n", RgnHandle, ret);
-			return RK_FAILURE;
-		}
-		LOG_INFO("RK_MPI_RGN_DetachFromChn to venc2 success\n");
 	}
 
 	// destory region
@@ -1979,21 +1884,6 @@ int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 		}
 		LOG_INFO("RK_MPI_RGN_AttachToChn to venc1 success\n");
 	}
-	if (enable_venc_2) {
-		stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32X =
-		    UPALIGNTO16(osd_data->origin_x * rk_param_get_int("video.2:width", 1) /
-		                rk_param_get_int("video.0:width", 1));
-		stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32Y =
-		    UPALIGNTO16(osd_data->origin_y * rk_param_get_int("video.2:height", 1) /
-		                rk_param_get_int("video.0:height", 1));
-		stMppChn.s32ChnId = 2;
-		ret = RK_MPI_RGN_AttachToChn(RgnHandle, &stMppChn, &stRgnChnAttr);
-		if (RK_SUCCESS != ret) {
-			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc2 failed with %#x\n", RgnHandle, ret);
-			return RK_FAILURE;
-		}
-		LOG_INFO("RK_MPI_RGN_AttachToChn to venc2 success\n");
-	}
 
 	// set bitmap
 	stBitmap.enPixelFormat = RK_FMT_ARGB8888;
@@ -2034,15 +1924,6 @@ int rkipc_osd_bmp_destroy(int id) {
 			return RK_FAILURE;
 		}
 		LOG_INFO("RK_MPI_RGN_DetachFromChn to venc1 success\n");
-	}
-	if (enable_venc_2) {
-		stMppChn.s32ChnId = 2;
-		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
-		if (RK_SUCCESS != ret) {
-			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc2 failed with %#x\n", RgnHandle, ret);
-			return RK_FAILURE;
-		}
-		LOG_INFO("RK_MPI_RGN_DetachFromChn to venc2 success\n");
 	}
 
 	// destory region
@@ -2197,9 +2078,8 @@ int rk_video_init() {
 	enable_jpeg = rk_param_get_int("video.source:enable_jpeg", 1);
 	enable_venc_0 = rk_param_get_int("video.source:enable_venc_0", 1);
 	enable_venc_1 = rk_param_get_int("video.source:enable_venc_1", 1);
-	enable_venc_2 = rk_param_get_int("video.source:enable_venc_2", 1);
-	LOG_INFO("enable_jpeg is %d, enable_venc_0 is %d, enable_venc_1 is %d, enable_venc_2 is %d\n",
-	         enable_jpeg, enable_venc_0, enable_venc_1, enable_venc_2);
+	LOG_INFO("enable_jpeg is %d, enable_venc_0 is %d, enable_venc_1 is %d\n",
+	         enable_jpeg, enable_venc_0, enable_venc_1);
 
 	g_vi_chn_id = rk_param_get_int("video.source:vi_chn_id", 0);
 	g_enable_vo = rk_param_get_int("video.source:enable_vo", 1);
@@ -2218,8 +2098,6 @@ int rk_video_init() {
 		ret |= rkipc_pipe_0_init();
 	if (enable_venc_1)
 		ret |= rkipc_pipe_1_init();
-	// if (enable_venc_2)
-	// 	ret |= rkipc_pipe_2_init();
 	if (enable_jpeg)
 		ret |= rkipc_pipe_3_init();
 	// if (g_enable_vo)
@@ -2257,10 +2135,6 @@ int rk_video_deinit() {
 		pthread_join(venc_thread_1, NULL);
 		ret |= rkipc_pipe_1_deinit();
 	}
-	// if (enable_venc_2) {
-	// 	pthread_join(venc_thread_2, NULL);
-	// 	ret |= rkipc_pipe_2_deinit();
-	// }
 	if (enable_jpeg) {
 		pthread_join(jpeg_venc_thread_id, NULL);
 		ret |= rkipc_pipe_3_deinit();
