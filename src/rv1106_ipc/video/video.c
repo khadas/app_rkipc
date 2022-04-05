@@ -1884,6 +1884,15 @@ int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 		}
 		LOG_INFO("RK_MPI_RGN_AttachToChn to venc1 success\n");
 	}
+	if (enable_jpeg) {
+		stMppChn.s32ChnId = JPEG_VENC_CHN;
+		ret = RK_MPI_RGN_AttachToChn(RgnHandle, &stMppChn, &stRgnChnAttr);
+		if (RK_SUCCESS != ret) {
+			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to jpeg failed with %#x\n", RgnHandle, ret);
+			return RK_FAILURE;
+		}
+		LOG_INFO("RK_MPI_RGN_AttachToChn to jpeg success\n");
+	}
 
 	// set bitmap
 	stBitmap.enPixelFormat = RK_FMT_ARGB8888;
@@ -1924,6 +1933,15 @@ int rkipc_osd_bmp_destroy(int id) {
 			return RK_FAILURE;
 		}
 		LOG_INFO("RK_MPI_RGN_DetachFromChn to venc1 success\n");
+	}
+	if (enable_jpeg) {
+		stMppChn.s32ChnId = JPEG_VENC_CHN;
+		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
+		if (RK_SUCCESS != ret) {
+			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to jpeg failed with %#x\n", RgnHandle, ret);
+			return RK_FAILURE;
+		}
+		LOG_INFO("RK_MPI_RGN_DetachFromChn to jpeg success\n");
 	}
 
 	// destory region
