@@ -75,15 +75,15 @@ post_chk()
 	check_linker /mnt/sdcard /usr/www/sdcard
 
 	if [ ! -f "/oem/usr/share/rkipc.ini" ]; then
-		media-ctl -p -d /dev/media1 | grep 2880x1616
+		lsmod | grep sc530ai
 		if [ $? -eq 0 ] ;then
 			ln -s -f /oem/usr/share/rkipc-500w.ini /oem/usr/share/rkipc.ini
 		fi
-		media-ctl -p -d /dev/media1 | grep 2560x1440
+		lsmod | grep sc4336
 		if [ $? -eq 0 ] ;then
 			ln -s -f /oem/usr/share/rkipc-400w.ini /oem/usr/share/rkipc.ini
 		fi
-		media-ctl -p -d /dev/media1 | grep 2304x1296
+		lsmod | grep sc3336
 		if [ $? -eq 0 ] ;then
 			ln -s -f /oem/usr/share/rkipc-300w.ini /oem/usr/share/rkipc.ini
 		fi
