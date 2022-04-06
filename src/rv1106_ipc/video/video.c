@@ -180,7 +180,7 @@ static void *rkipc_get_vi_1(void *arg) {
 	VI_CHN_STATUS_S stChnStatus;
 	int loopCount = 0;
 	int ret = 0;
-	int line_pixel = 6;
+	int line_pixel = 2;
 	long last_ba_result_time;
 	RockIvaBaResult ba_result;
 	im_handle_param_t param;
@@ -1159,8 +1159,8 @@ int rkipc_vpss_bgr_init() {
 	stVpssChnAttr[0].enChnMode = VPSS_CHN_MODE_USER;
 	stVpssChnAttr[0].enDynamicRange = DYNAMIC_RANGE_SDR8;
 	stVpssChnAttr[0].enPixelFormat = RK_FMT_BGR888;
-	stVpssChnAttr[0].stFrameRate.s32SrcFrameRate = 30;
-	stVpssChnAttr[0].stFrameRate.s32DstFrameRate = 10;
+	stVpssChnAttr[0].stFrameRate.s32SrcFrameRate = rk_param_get_int("isp.0.adjustment:fps", 30);
+	stVpssChnAttr[0].stFrameRate.s32DstFrameRate = rk_param_get_int("video.source:npu_fps", 10);
 	stVpssChnAttr[0].u32Width = 512;
 	stVpssChnAttr[0].u32Height = 288;
 	stVpssChnAttr[0].u32Depth = 1;
