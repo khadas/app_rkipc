@@ -181,6 +181,7 @@ static void *rkipc_get_vi_1(void *arg) {
 	int loopCount = 0;
 	int ret = 0;
 	int line_pixel = 6;
+	long last_ba_result_time;
 	RockIvaBaResult ba_result;
 	im_handle_param_t param;
 	RockIvaBaObjectInfo *object;
@@ -199,12 +200,15 @@ static void *rkipc_get_vi_1(void *arg) {
 			          stViFrame.stVFrame.u64PTS / 1000);
 
 			ret = rkipc_rknn_object_get(&ba_result);
-			if (!ret && ba_result.objNum) {
+			if ((!ret && ba_result.objNum) ||
+			    ((ret == -1) && (rkipc_get_curren_time_ms() - last_ba_result_time < 300))) {
 				// LOG_INFO("ret is %d, ba_result.objNum is %d\n", ret, ba_result.objNum);
 				handle = importbuffer_fd(fd, &param);
 				src = wrapbuffer_handle_t(handle, stViFrame.stVFrame.u32Width,
 				                          stViFrame.stVFrame.u32Height, stViFrame.stVFrame.u32Width,
 				                          stViFrame.stVFrame.u32Height, RK_FORMAT_YCbCr_420_SP);
+				if (!ret)
+					last_ba_result_time = rkipc_get_curren_time_ms();
 				for (int i = 0; i < ba_result.objNum; i++) {
 					int x, y, w, h;
 					object = &ba_result.triggerObjects[i];
