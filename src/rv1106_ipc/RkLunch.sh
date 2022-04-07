@@ -77,20 +77,20 @@ post_chk()
 	if [ ! -f "/oem/usr/share/rkipc.ini" ]; then
 		lsmod | grep sc530ai
 		if [ $? -eq 0 ] ;then
-			ln -s -f /oem/usr/share/rkipc-500w.ini /oem/usr/share/rkipc.ini
+			ln -s -f /oem/usr/share/rkipc-500w.ini /userdata/rkipc-factory-config.ini
 		fi
 		lsmod | grep sc4336
 		if [ $? -eq 0 ] ;then
-			ln -s -f /oem/usr/share/rkipc-400w.ini /oem/usr/share/rkipc.ini
+			ln -s -f /oem/usr/share/rkipc-400w.ini /userdata/rkipc-factory-config.ini
 		fi
 		lsmod | grep sc3336
 		if [ $? -eq 0 ] ;then
-			ln -s -f /oem/usr/share/rkipc-300w.ini /oem/usr/share/rkipc.ini
+			ln -s -f /oem/usr/share/rkipc-300w.ini /userdata/rkipc-factory-config.ini
 		fi
 	fi
 	# if /data/rkipc not exist, cp /usr/share
 	rkipc_ini=/userdata/rkipc.ini
-	default_rkipc_ini=/oem/usr/share/rkipc.ini
+	default_rkipc_ini=/userdata/rkipc-factory-config.ini
 	if [ ! -f "$default_rkipc_ini" ];then
 		echo "Error: not found rkipc.ini !!!"
 		exit -1
