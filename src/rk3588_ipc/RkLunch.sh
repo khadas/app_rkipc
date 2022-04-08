@@ -78,7 +78,12 @@ post_chk()
 	if [ ! -f "$rkipc_ini" ]; then
 		cp $default_rkipc_ini $rkipc_ini -f
 	fi
-	rkipc &
+
+	if [ -d "/oem/usr/share/iqfiles" ];then
+		rkipc -a /oem/usr/share/iqfiles &
+	else
+		rkipc &
+	fi
 }
 
 rcS
