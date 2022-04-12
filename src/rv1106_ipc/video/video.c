@@ -967,22 +967,24 @@ int rkipc_pipe_1_init() {
 	RK_MPI_VENC_StartRecvFrame(VIDEO_PIPE_1, &stRecvParam);
 	pthread_create(&venc_thread_1, NULL, rkipc_get_venc_1, NULL);
 
-#if 1
-	pthread_create(&vi_thread_1, NULL, rkipc_get_vi_1, NULL);
-#else
-	// bind
-	vi_chn.enModId = RK_ID_VI;
-	vi_chn.s32DevId = 0;
-	vi_chn.s32ChnId = VIDEO_PIPE_1;
-	venc_chn.enModId = RK_ID_VENC;
-	venc_chn.s32DevId = 0;
-	venc_chn.s32ChnId = VIDEO_PIPE_1;
-	ret = RK_MPI_SYS_Bind(&vi_chn, &venc_chn);
-	if (ret)
-		LOG_ERROR("Bind VI and VENC error! ret=%#x\n", ret);
-	else
-		LOG_INFO("Bind VI and VENC success\n");
-#endif
+	if (enable_npu) {
+		// vi-draw-venc
+		pthread_create(&vi_thread_1, NULL, rkipc_get_vi_1, NULL);
+	} else {
+		// bind
+		vi_chn.enModId = RK_ID_VI;
+		vi_chn.s32DevId = 0;
+		vi_chn.s32ChnId = VIDEO_PIPE_1;
+		venc_chn.enModId = RK_ID_VENC;
+		venc_chn.s32DevId = 0;
+		venc_chn.s32ChnId = VIDEO_PIPE_1;
+		ret = RK_MPI_SYS_Bind(&vi_chn, &venc_chn);
+		if (ret)
+			LOG_ERROR("Bind VI and VENC error! ret=%#x\n", ret);
+		else
+			LOG_INFO("Bind VI and VENC success\n");
+	}
+
 	if (!g_enable_vo)
 		return 0;
 #if HAS_VO
