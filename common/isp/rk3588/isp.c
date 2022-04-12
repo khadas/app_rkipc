@@ -137,7 +137,7 @@ int isp_camera_group_init(int cam_group_id, rk_aiq_working_mode_t WDRMode, bool 
                           const char *iq_file_dir) {
 	int ret;
 	rk_aiq_static_info_t aiq_static_info;
-	char sensor_name_array[6][128];
+	char sensor_name_array[MAX_AIQ_CTX][128];
 	rk_aiq_camgroup_instance_cfg_t camgroup_cfg;
 	memset(&camgroup_cfg, 0, sizeof(camgroup_cfg));
 

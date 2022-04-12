@@ -105,6 +105,7 @@ int main(int argc, char **argv) {
 	rk_isp_init(4, rkipc_iq_file_path_);
 	rk_isp_init(5, rkipc_iq_file_path_);
 	// rk_isp_init(6, rkipc_iq_file_path_);
+	// rk_isp_init(7, rkipc_iq_file_path_);
 #endif
 	// rk_isp_group_set_frame_rate(0, rk_param_get_int("isp.0.adjustment:fps", 30));
 	RK_MPI_SYS_Init();

@@ -9,7 +9,7 @@
 #endif
 #define LOG_TAG "video.c"
 
-#define MAX_RKIPC_SENSOR_NUM 6
+#define MAX_RKIPC_SENSOR_NUM 8
 #define MAX_RKIPC_VENC_NUM 4
 // venc 0 8192*2700
 #define VIDEO_PIPE_0 0
@@ -795,6 +795,7 @@ int rkipc_avs_init() {
 	stAvsGrpAttr.stOutAttr.stCenter.s32Y = rk_param_get_int("avs:center_y", 2080);
 	stAvsGrpAttr.stOutAttr.stFOV.u32FOVX = rk_param_get_int("avs:fov_x", 28000);
 	stAvsGrpAttr.stOutAttr.stFOV.u32FOVY = rk_param_get_int("avs:fov_y", 9500);
+	stAvsGrpAttr.stOutAttr.fStitchDistance = rk_param_get_int("avs:stitch_distance", 5);
 	stAvsGrpAttr.stOutAttr.stORIRotation.s32Roll = 0;
 	stAvsGrpAttr.stOutAttr.stORIRotation.s32Pitch = 0;
 	stAvsGrpAttr.stOutAttr.stORIRotation.s32Yaw = 0;
