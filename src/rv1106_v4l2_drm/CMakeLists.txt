@@ -26,7 +26,7 @@ include_directories(audio
 
 link_directories(${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-uclibcgnueabihf)
 
-add_definitions(-DISP_HW_V30)
+add_definitions(-DISP_HW_V32)
 add_definitions(-g -ggdb)
 #add_definitions(-Os)
 
