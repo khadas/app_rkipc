@@ -653,6 +653,8 @@ int rkipc_pipe_0_init() {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC4;
 	} else if (!strcmp(tmp_smart, "open")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
+		venc_chn_attr.stGopAttr.s32VirIdrLen = venc_chn_attr.stRcAttr.stH265Vbr.u32SrcFrameRateNum /
+		                                       venc_chn_attr.stRcAttr.stH265Vbr.u32SrcFrameRateDen;
 	} else {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
 	}
