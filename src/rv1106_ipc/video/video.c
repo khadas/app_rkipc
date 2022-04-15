@@ -196,16 +196,15 @@ static void *rkipc_get_vi_1(void *arg) {
 		// 5.get the frame
 		ret = RK_MPI_VI_GetChnFrame(pipe_id_, VIDEO_PIPE_1, &stViFrame, 1000);
 		if (ret == RK_SUCCESS) {
-			void *data = RK_MPI_MB_Handle2VirAddr(stViFrame.stVFrame.pMbBlk);
-			int fd = RK_MPI_MB_Handle2Fd(stViFrame.stVFrame.pMbBlk);
-			LOG_DEBUG("data %p, fd is %d, loop:%d pts:%" PRId64 " ms\n", data, fd, loopCount,
+			uint64_t phy_data = RK_MPI_MB_Handle2PhysAddr(stViFrame.stVFrame.pMbBlk);
+			LOG_DEBUG("phy_data %p, loop:%d pts:%" PRId64 " ms\n", phy_data, loopCount,
 			          stViFrame.stVFrame.u64PTS / 1000);
 
 			ret = rkipc_rknn_object_get(&ba_result);
 			if ((!ret && ba_result.objNum) ||
 			    ((ret == -1) && (rkipc_get_curren_time_ms() - last_ba_result_time < 300))) {
 				// LOG_DEBUG("ret is %d, ba_result.objNum is %d\n", ret, ba_result.objNum);
-				handle = importbuffer_fd(fd, &param);
+				handle = importbuffer_physicaladdr(phy_data, &param);
 				src = wrapbuffer_handle_t(handle, stViFrame.stVFrame.u32Width,
 				                          stViFrame.stVFrame.u32Height, stViFrame.stVFrame.u32Width,
 				                          stViFrame.stVFrame.u32Height, RK_FORMAT_YCbCr_420_SP);
