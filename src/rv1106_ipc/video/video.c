@@ -2037,57 +2037,57 @@ int rk_take_photo() {
 	return 0;
 }
 
-// int rk_roi_set(roi_data_s *roi_data) {
-// 	// LOG_INFO("id is %d\n", id);
-// 	int ret = 0;
-// 	int venc_chn = 0;
-// 	VENC_ROI_ATTR_S pstRoiAttr;
-// 	pstRoiAttr.u32Index = roi_data->id;
-// 	pstRoiAttr.bEnable = roi_data->enabled;
-// 	pstRoiAttr.bAbsQp = RK_FALSE;
-// 	pstRoiAttr.bIntra = RK_FALSE;
-// 	pstRoiAttr.stRect.s32X = roi_data->position_x;
-// 	pstRoiAttr.stRect.s32Y = roi_data->position_y;
-// 	pstRoiAttr.stRect.u32Width = roi_data->width;
-// 	pstRoiAttr.stRect.u32Height = roi_data->height;
-// 	switch (roi_data->quality_level) {
-// 	case 6:
-// 		pstRoiAttr.s32Qp = -16;
-// 		break;
-// 	case 5:
-// 		pstRoiAttr.s32Qp = -14;
-// 		break;
-// 	case 4:
-// 		pstRoiAttr.s32Qp = -12;
-// 		break;
-// 	case 3:
-// 		pstRoiAttr.s32Qp = -10;
-// 		break;
-// 	case 2:
-// 		pstRoiAttr.s32Qp = -8;
-// 		break;
-// 	case 1:
-// 	default:
-// 		pstRoiAttr.s32Qp = -6;
-// 	}
+int rk_roi_set(roi_data_s *roi_data) {
+	// LOG_INFO("id is %d\n", id);
+	int ret = 0;
+	int venc_chn = 0;
+	VENC_ROI_ATTR_S pstRoiAttr;
+	pstRoiAttr.u32Index = roi_data->id;
+	pstRoiAttr.bEnable = roi_data->enabled;
+	pstRoiAttr.bAbsQp = RK_FALSE;
+	pstRoiAttr.bIntra = RK_FALSE;
+	pstRoiAttr.stRect.s32X = roi_data->position_x;
+	pstRoiAttr.stRect.s32Y = roi_data->position_y;
+	pstRoiAttr.stRect.u32Width = roi_data->width;
+	pstRoiAttr.stRect.u32Height = roi_data->height;
+	switch (roi_data->quality_level) {
+	case 6:
+		pstRoiAttr.s32Qp = -16;
+		break;
+	case 5:
+		pstRoiAttr.s32Qp = -14;
+		break;
+	case 4:
+		pstRoiAttr.s32Qp = -12;
+		break;
+	case 3:
+		pstRoiAttr.s32Qp = -10;
+		break;
+	case 2:
+		pstRoiAttr.s32Qp = -8;
+		break;
+	case 1:
+	default:
+		pstRoiAttr.s32Qp = -6;
+	}
 
-// 	if (!strcmp(roi_data->stream_type, "mainStream")) {
-// 		venc_chn = 0;
-// 	} else if (!strcmp(roi_data->stream_type, "subStream")) {
-// 		venc_chn = 1;
-// 	} else {
-// 		venc_chn = 2;
-// 	}
+	if (!strcmp(roi_data->stream_type, "mainStream")) {
+		venc_chn = 0;
+	} else if (!strcmp(roi_data->stream_type, "subStream")) {
+		venc_chn = 1;
+	} else {
+		venc_chn = 2;
+	}
 
-// 	ret = RK_MPI_VENC_SetRoiAttr(venc_chn, &pstRoiAttr);
-// 	if (RK_SUCCESS != ret) {
-// 		LOG_ERROR("RK_MPI_VENC_SetRoiAttr to venc0 failed with %#x\n", ret);
-// 		return RK_FAILURE;
-// 	}
-// 	LOG_INFO("RK_MPI_VENC_SetRoiAttr to venc0 success\n");
+	ret = RK_MPI_VENC_SetRoiAttr(venc_chn, &pstRoiAttr);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("RK_MPI_VENC_SetRoiAttr to venc0 failed with %#x\n", ret);
+		return RK_FAILURE;
+	}
+	LOG_INFO("RK_MPI_VENC_SetRoiAttr to venc0 success\n");
 
-// 	return ret;
-// }
+	return ret;
+}
 
 // int rk_region_clip_set(int venc_chn, region_clip_data_s *region_clip_data) {
 // 	int ret = 0;
@@ -2152,8 +2152,8 @@ int rk_video_init() {
 	// 	ret |= rkipc_pipe_vpss_vo_init();
 	if (enable_osd)
 		ret |= rkipc_osd_init();
-	// rk_roi_set_callback_register(rk_roi_set);
-	// ret |= rk_roi_set_all();
+	rk_roi_set_callback_register(rk_roi_set);
+	ret |= rk_roi_set_all();
 	// rk_region_clip_set_callback_register(rk_region_clip_set);
 	// rk_region_clip_set_all();
 	if (enable_npu)
@@ -2170,7 +2170,7 @@ int rk_video_deinit() {
 	if (enable_npu)
 		ret |= rkipc_vpss_bgr_deinit();
 	// rk_region_clip_set_callback_register(NULL);
-	// rk_roi_set_callback_register(NULL);
+	rk_roi_set_callback_register(NULL);
 	if (enable_osd)
 		ret |= rkipc_osd_deinit();
 	// if (g_enable_vo)
