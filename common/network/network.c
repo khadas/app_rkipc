@@ -16,6 +16,7 @@
 
 static char netmode[32];
 static rk_network_cb rk_cb;
+static int netlink_fd  = 0;
 
 static int readNlSock(int sockFd, char *bufPtr, int seqNum, int pId) {
 	struct nlmsghdr *nlHdr;
@@ -663,7 +664,7 @@ int rk_ethernet_power_set(const char *ifname, int powerswitch) {
 }
 
 int rk_network_get_cable_state() {
-	int fd, retval;
+	int fd, retval, status;
 	char buf[BUFLEN] = {0};
 	int len = BUFLEN;
 	struct sockaddr_nl addr;
@@ -671,13 +672,17 @@ int rk_network_get_cable_state() {
 	struct ifinfomsg *ifinfo;
 	// struct rtattr *attr;
 
+	system("killall -9 udhcpc");
+
 	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
+	netlink_fd = fd;
 	setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &len, sizeof(len));
 	memset(&addr, 0, sizeof(addr));
 	addr.nl_family = AF_NETLINK;
 	addr.nl_groups = RTNLGRP_LINK;
 	bind(fd, (struct sockaddr *)&addr, sizeof(addr));
 	while ((retval = read(fd, buf, BUFLEN)) > 0) {
+		LOG_INFO("read Cable state\n");
 		for (nh = (struct nlmsghdr *)buf; NLMSG_OK(nh, retval); nh = NLMSG_NEXT(nh, retval)) {
 			if (nh->nlmsg_type == NLMSG_DONE)
 				break;
@@ -686,13 +691,21 @@ int rk_network_get_cable_state() {
 			else if (nh->nlmsg_type != RTM_NEWLINK)
 				continue;
 			ifinfo = NLMSG_DATA(nh);
-			// LOG_INFO("\nCable State: %s\n",(ifinfo->ifi_flags & IFF_LOWER_UP) ?
-			// "on" : "off" );
+			LOG_INFO("\nCable State: %s\n",(ifinfo->ifi_flags & IFF_LOWER_UP) ?
+			 "on" : "off" );
+
 			if (ifinfo->ifi_flags & IFF_LOWER_UP) {
-				return 1;
+				status = 1;
+				system("udhcpc -T 1 -A 0 -b -q");
 			} else {
-				return 0;
-			} /*
+				status = 0;
+				system("ifconfig eth0 0.0.0.0");
+			}
+
+			if (rk_cb)
+				rk_cb(status);
+
+			/*
 			 attr = (struct rtattr*)(((char*)nh) + NLMSG_SPACE(sizeof(*ifinfo)));
 			 len = nh->nlmsg_len - NLMSG_SPACE(sizeof(*ifinfo));
 			 for (; RTA_OK(attr, len); attr = RTA_NEXT(attr, len)){
@@ -701,7 +714,8 @@ int rk_network_get_cable_state() {
 			         break;
 			     }
 			 }
-			 LOG_INFO("\n");*/
+			 LOG_INFO("\n");
+			 */
 		}
 	}
 
@@ -770,13 +784,13 @@ int rk_nic_state_get(const char *ifname) {
 
 static void *rk_net_proc() {
 	prctl(PR_SET_NAME, "rk_net_proc", 0, 0, 0);
-	int flag = 1;
 	int status = 0;
-	while (flag) {
-		status = rk_network_get_cable_state();
-		rk_cb(status);
-		sleep(10);
-	}
+
+	LOG_INFO("Creat rk_net_proc thread!\n");
+
+	status = rk_network_get_cable_state();
+
+	LOG_INFO("exit rk_net_proc thread!\n");
 
 	return NULL;
 }
@@ -790,11 +804,12 @@ void rk_network_init(rk_network_cb func) { // func_cb func
 	if (pthread_create(&Net_trd, &attr, rk_net_proc, NULL) != 0) {
 		LOG_INFO("Creat thread failed!\n");
 	}
-	rk_cb = func;
+	if (func)
+		rk_cb = func;
 }
 
 void rk_network_deinit() { // pthread_t pthid
-	pthread_exit(0);
+	close(netlink_fd);
 }
 
 int rk_wifi_power_get(int *on) {

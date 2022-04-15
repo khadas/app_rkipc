@@ -93,6 +93,7 @@ int main(int argc, char **argv) {
 	         rkipc_ini_path_, rkipc_iq_file_path_, rkipc_log_level);
 
 	// init
+	rk_network_init(NULL);
 	rk_param_init(rkipc_ini_path_);
 	rk_system_init();
 	if (rk_param_get_int("video.source:enable_aiq", 1))
@@ -124,6 +125,7 @@ int main(int argc, char **argv) {
 	if (rk_param_get_int("video.source:enable_npu", 0))
 		rkipc_rockiva_deinit();
 	rk_param_deinit();
+	rk_network_deinit();
 
 	return 0;
 }
