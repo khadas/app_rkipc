@@ -1179,7 +1179,7 @@ int rkipc_vpss_bgr_init() {
 	stVpssChnAttr[0].u32Width = 512;
 	stVpssChnAttr[0].u32Height = 288;
 	stVpssChnAttr[0].u32Depth = 1;
-	stVpssChnAttr[0].u32FrameBufCnt = 2;
+	stVpssChnAttr[0].u32FrameBufCnt = 1;
 	ret = RK_MPI_VPSS_SetChnAttr(VpssGrp, VpssChn[0], &stVpssChnAttr[0]);
 	if (ret != RK_SUCCESS)
 		LOG_ERROR("RK_MPI_VPSS_SetChnAttr error! ret is %#x\n", ret);
