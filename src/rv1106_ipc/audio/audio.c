@@ -48,7 +48,7 @@ void *save_ai_thread(void *ptr) {
 		if (ret == 0) {
 			void *data = RK_MPI_MB_Handle2VirAddr(frame.pMbBlk);
 			RK_U32 len = RK_MPI_MB_GetSize(frame.pMbBlk);
-			LOG_INFO("data = %p, len = %d\n", data, len);
+			LOG_DEBUG("data = %p, len = %d\n", data, len);
 			RK_MPI_AI_ReleaseFrame(ai_dev_id, ai_chn_id, &frame, RK_NULL);
 		}
 	}
@@ -136,13 +136,13 @@ int rkipc_audio_aed_init() {
 		LOG_ERROR("RK_MPI_AI_SetAedAttr(%d,%d) failed with %#x\n", ai_dev_id, ai_chn_id, result);
 		return result;
 	}
-	LOG_INFO("RK_MPI_AI_SetAedAttr(%d,%d) success\n", ai_dev_id, ai_chn_id);
+	LOG_DEBUG("RK_MPI_AI_SetAedAttr(%d,%d) success\n", ai_dev_id, ai_chn_id);
 	result = RK_MPI_AI_EnableAed(ai_dev_id, ai_chn_id);
 	if (result != RK_SUCCESS) {
 		LOG_ERROR("RK_MPI_AI_EnableAed(%d,%d) failed with %#x\n", ai_dev_id, ai_chn_id, result);
 		return result;
 	}
-	LOG_INFO("RK_MPI_AI_EnableAed(%d,%d) success\n", ai_dev_id, ai_chn_id);
+	LOG_DEBUG("RK_MPI_AI_EnableAed(%d,%d) success\n", ai_dev_id, ai_chn_id);
 
 	return result;
 }
@@ -165,13 +165,13 @@ int rkipc_audio_bcd_init() {
 		LOG_ERROR("RK_MPI_AI_SetBcdAttr(%d,%d) failed with %#x\n", ai_dev_id, ai_chn_id, result);
 		return result;
 	}
-	LOG_INFO("RK_MPI_AI_SetBcdAttr(%d,%d) success\n", ai_dev_id, ai_chn_id);
+	LOG_DEBUG("RK_MPI_AI_SetBcdAttr(%d,%d) success\n", ai_dev_id, ai_chn_id);
 	result = RK_MPI_AI_EnableBcd(ai_dev_id, ai_chn_id);
 	if (result != RK_SUCCESS) {
 		LOG_ERROR("RK_MPI_AI_EnableBcd(%d,%d) failed with %#x\n", ai_dev_id, ai_chn_id, result);
 		return result;
 	}
-	LOG_INFO("RK_MPI_AI_EnableBcd(%d,%d) success\n", ai_dev_id, ai_chn_id);
+	LOG_DEBUG("RK_MPI_AI_EnableBcd(%d,%d) success\n", ai_dev_id, ai_chn_id);
 
 	return result;
 }
@@ -203,13 +203,13 @@ int rkipc_audio_vqe_init() {
 		LOG_ERROR("RK_MPI_AI_SetVqeAttr(%d,%d) failed with %#x", ai_dev_id, ai_chn_id, result);
 		return result;
 	}
-	LOG_INFO("RK_MPI_AI_SetVqeAttr(%d,%d) success\n", ai_dev_id, ai_chn_id);
+	LOG_DEBUG("RK_MPI_AI_SetVqeAttr(%d,%d) success\n", ai_dev_id, ai_chn_id);
 	result = RK_MPI_AI_EnableVqe(ai_dev_id, ai_chn_id);
 	if (result != RK_SUCCESS) {
 		LOG_ERROR("RK_MPI_AI_EnableVqe(%d,%d) failed with %#x", ai_dev_id, ai_chn_id, result);
 		return result;
 	}
-	LOG_INFO("RK_MPI_AI_EnableVqe(%d,%d) success\n", ai_dev_id, ai_chn_id);
+	LOG_DEBUG("RK_MPI_AI_EnableVqe(%d,%d) success\n", ai_dev_id, ai_chn_id);
 
 	return result;
 }
@@ -325,14 +325,14 @@ int rkipc_ai_deinit() {
 		LOG_ERROR("ai disable channel fail, reason = %d\n", ret);
 		return RK_FAILURE;
 	}
-	LOG_INFO("RK_MPI_AI_DisableChn success\n");
+	LOG_DEBUG("RK_MPI_AI_DisableChn success\n");
 
 	ret = RK_MPI_AI_Disable(ai_dev_id);
 	if (ret != 0) {
 		LOG_ERROR("ai disable fail, reason = %d\n", ret);
 		return RK_FAILURE;
 	}
-	LOG_INFO("RK_MPI_AI_Disable success\n");
+	LOG_DEBUG("RK_MPI_AI_Disable success\n");
 
 	return 0;
 }
@@ -366,7 +366,7 @@ int rkipc_aenc_init() {
 		LOG_ERROR("create aenc chn %d err:0x%x\n", aenc_chn_id, ret);
 		return RK_FAILURE;
 	}
-	LOG_INFO("create aenc chn %d success\n", aenc_chn_id);
+	LOG_DEBUG("create aenc chn %d success\n", aenc_chn_id);
 
 	pthread_create(&save_aenc_tid, RK_NULL, save_aenc_thread, NULL);
 
@@ -378,13 +378,13 @@ int rkipc_aenc_deinit() {
 	int ret = RK_MPI_AENC_DestroyChn(aenc_chn_id);
 	if (ret)
 		LOG_ERROR("RK_MPI_AI_DisableChn fail\n");
-	LOG_INFO("RK_MPI_AI_DisableChn success\n");
+	LOG_DEBUG("RK_MPI_AI_DisableChn success\n");
 
 	return 0;
 }
 
 int rkipc_audio_init() {
-	LOG_INFO("%s\n", __func__);
+	LOG_DEBUG("%s\n", __func__);
 	int ret = rkipc_ai_init();
 	ret |= rkipc_aenc_init();
 
@@ -401,7 +401,7 @@ int rkipc_audio_init() {
 	if (ret != RK_SUCCESS) {
 		LOG_ERROR("RK_MPI_SYS_Bind fail %x\n", ret);
 	}
-	LOG_INFO("RK_MPI_SYS_Bind success\n");
+	LOG_DEBUG("RK_MPI_SYS_Bind success\n");
 	rtsp_set_audio(g_rtsp_session_0, RTSP_CODEC_ID_AUDIO_G711A, NULL, 0);
 	rtsp_set_audio(g_rtsp_session_1, RTSP_CODEC_ID_AUDIO_G711A, NULL, 0);
 	rtsp_sync_audio_ts(g_rtsp_session_0, rtsp_get_reltime(), rtsp_get_ntptime());
@@ -411,7 +411,7 @@ int rkipc_audio_init() {
 }
 
 int rkipc_audio_deinit() {
-	LOG_INFO("%s\n", __func__);
+	LOG_DEBUG("%s\n", __func__);
 	int ret;
 	g_audio_run_ = 0;
 	if (enable_aed || enable_bcd)
@@ -426,7 +426,7 @@ int rkipc_audio_deinit() {
 	if (ret != RK_SUCCESS) {
 		LOG_ERROR("RK_MPI_SYS_UnBind fail %x\n", ret);
 	}
-	LOG_INFO("RK_MPI_SYS_UnBind success\n");
+	LOG_DEBUG("RK_MPI_SYS_UnBind success\n");
 	ret |= rkipc_aenc_deinit();
 	ret |= rkipc_ai_deinit();
 
