@@ -40,7 +40,7 @@ pthread_mutex_t g_rtsp_mutex = PTHREAD_MUTEX_INITIALIZER;
 rtsp_demo_handle g_rtsplive = NULL;
 rtsp_session_handle g_rtsp_session_0, g_rtsp_session_1, g_rtsp_session_2;
 static int take_photo_one = 0;
-static int enable_jpeg, enable_venc_0, enable_venc_1;
+static int enable_jpeg, enable_venc_0, enable_venc_1, enable_rtsp, enable_rtmp;
 static int g_enable_vo, g_vo_dev_id, g_vi_chn_id, enable_npu, enable_wrap, enable_osd;
 static int g_video_run_ = 1;
 static int pipe_id_ = 0;
@@ -134,13 +134,15 @@ static void *rkipc_get_venc_0(void *arg) {
 			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
 				rk_storage_write_video_frame(0, data, stFrame.pstPack->u32Len,
 				                             stFrame.pstPack->u64PTS, 1);
-				rk_rtmp_write_video_frame(0, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
-				                          1);
+				if (enable_rtmp)
+					rk_rtmp_write_video_frame(0, data, stFrame.pstPack->u32Len,
+					                          stFrame.pstPack->u64PTS, 1);
 			} else {
 				rk_storage_write_video_frame(0, data, stFrame.pstPack->u32Len,
 				                             stFrame.pstPack->u64PTS, 0);
-				rk_rtmp_write_video_frame(0, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
-				                          0);
+				if (enable_rtmp)
+					rk_rtmp_write_video_frame(0, data, stFrame.pstPack->u32Len,
+					                          stFrame.pstPack->u64PTS, 0);
 			}
 			// 7.release the frame
 			ret = RK_MPI_VENC_ReleaseStream(VIDEO_PIPE_0, &stFrame);
@@ -295,13 +297,15 @@ static void *rkipc_get_venc_1(void *arg) {
 			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
 				rk_storage_write_video_frame(1, data, stFrame.pstPack->u32Len,
 				                             stFrame.pstPack->u64PTS, 1);
-				rk_rtmp_write_video_frame(1, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
-				                          1);
+				if (enable_rtmp)
+					rk_rtmp_write_video_frame(1, data, stFrame.pstPack->u32Len,
+					                          stFrame.pstPack->u64PTS, 1);
 			} else {
 				rk_storage_write_video_frame(1, data, stFrame.pstPack->u32Len,
 				                             stFrame.pstPack->u64PTS, 0);
-				rk_rtmp_write_video_frame(1, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
-				                          0);
+				if (enable_rtmp)
+					rk_rtmp_write_video_frame(1, data, stFrame.pstPack->u32Len,
+					                          stFrame.pstPack->u64PTS, 0);
 			}
 			// 7.release the frame
 			ret = RK_MPI_VENC_ReleaseStream(VIDEO_PIPE_1, &stFrame);
@@ -2126,8 +2130,11 @@ int rk_video_init() {
 	enable_jpeg = rk_param_get_int("video.source:enable_jpeg", 1);
 	enable_venc_0 = rk_param_get_int("video.source:enable_venc_0", 1);
 	enable_venc_1 = rk_param_get_int("video.source:enable_venc_1", 1);
-	LOG_DEBUG("enable_jpeg is %d, enable_venc_0 is %d, enable_venc_1 is %d\n", enable_jpeg,
-	         enable_venc_0, enable_venc_1);
+	enable_rtsp = rk_param_get_int("video.source:enable_rtsp", 1);
+	enable_rtmp = rk_param_get_int("video.source:enable_rtmp", 1);
+	LOG_INFO("enable_jpeg is %d, enable_venc_0 is %d, enable_venc_1 is %d, enable_rtsp is %d, "
+	         "enable_rtmp is %d\n",
+	         enable_jpeg, enable_venc_0, enable_venc_1, enable_rtsp, enable_rtmp);
 
 	g_vi_chn_id = rk_param_get_int("video.source:vi_chn_id", 0);
 	g_enable_vo = rk_param_get_int("video.source:enable_vo", 1);
@@ -2140,8 +2147,10 @@ int rk_video_init() {
 	         g_vi_chn_id, g_enable_vo, g_vo_dev_id, enable_npu, enable_wrap, enable_osd);
 	g_video_run_ = 1;
 	ret |= rkipc_vi_dev_init();
-	ret |= rkipc_rtsp_init();
-	ret |= rkipc_rtmp_init();
+	if (enable_rtsp)
+		ret |= rkipc_rtsp_init();
+	if (enable_rtmp)
+		ret |= rkipc_rtmp_init();
 	if (enable_venc_0)
 		ret |= rkipc_pipe_0_init();
 	if (enable_venc_1)
@@ -2188,8 +2197,10 @@ int rk_video_deinit() {
 		ret |= rkipc_pipe_3_deinit();
 	}
 	ret |= rkipc_vi_dev_deinit();
-	ret |= rkipc_rtmp_deinit();
-	ret |= rkipc_rtsp_deinit();
+	if (enable_rtmp)
+		ret |= rkipc_rtmp_deinit();
+	if (enable_rtsp)
+		ret |= rkipc_rtsp_deinit();
 
 	return ret;
 }

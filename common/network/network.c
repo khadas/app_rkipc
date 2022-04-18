@@ -16,7 +16,7 @@
 
 static char netmode[32];
 static rk_network_cb rk_cb;
-static int netlink_fd  = 0;
+static int netlink_fd = 0;
 
 static int readNlSock(int sockFd, char *bufPtr, int seqNum, int pId) {
 	struct nlmsghdr *nlHdr;
@@ -691,8 +691,7 @@ int rk_network_get_cable_state() {
 			else if (nh->nlmsg_type != RTM_NEWLINK)
 				continue;
 			ifinfo = NLMSG_DATA(nh);
-			LOG_INFO("\nCable State: %s\n",(ifinfo->ifi_flags & IFF_LOWER_UP) ?
-			 "on" : "off" );
+			LOG_INFO("\nCable State: %s\n", (ifinfo->ifi_flags & IFF_LOWER_UP) ? "on" : "off");
 
 			if (ifinfo->ifi_flags & IFF_LOWER_UP) {
 				status = 1;
