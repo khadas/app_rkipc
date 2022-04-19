@@ -98,7 +98,7 @@ static void sigterm_handler(int signo) {
 		return;
 	}
 
-	rk_tuya_low_power_enable();
+	// rk_tuya_low_power_enable();
 	int fd, size;
 	char buf[200];
 	// fd = open("/sys/kernel/debug/tcp_keepalive_param/tcp_param", O_RDONLY);
@@ -186,20 +186,22 @@ int main(int argc, char **argv) {
 	// init
 	rk_param_init(rkipc_ini_path_);
 	rk_isp_init(0, rkipc_iq_file_path_);
-	rk_isp_set_frame_rate(0, rk_param_get_int("isp.0.adjustment:fps", 30));
+	// rk_isp_set_frame_rate(0, rk_param_get_int("isp.0.adjustment:fps", 30));
 	rk_video_init();
-	rk_audio_init();
-	rk_tuya_init();
+	if (rk_param_get_int("audio.0:enable", 0))
+		rk_audio_init();
+	// rk_tuya_init();
 
 	while (g_main_run_) {
 		usleep(1000 * 1000);
 	}
 
 	// deinit
-	rk_tuya_deinit();
+	// rk_tuya_deinit();
 	rk_video_deinit();
 	rk_isp_deinit(0);
-	rk_audio_deinit();
+	if (rk_param_get_int("audio.0:enable", 0))
+		rk_audio_deinit();
 	rk_param_deinit();
 
 	return 0;

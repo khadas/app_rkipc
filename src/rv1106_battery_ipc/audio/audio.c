@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 #include "common.h"
 #include "log.h"
-#include "tuya_ipc.h"
+//#include "tuya_ipc.h"
 
 #include <rk_debug.h>
 #include <rk_mpi_aenc.h>
@@ -75,7 +75,7 @@ void *save_aenc_thread(void *ptr) {
 				// rkmuxer_write_audio_frame(buffer, pstStream.u32Len, pstStream.u64TimeStamp);
 				// fake 64ms
 				fake_time += 64000;
-				rk_tuya_push_audio(buffer, pstStream.u32Len, fake_time);
+				// rk_tuya_push_audio(buffer, pstStream.u32Len, fake_time);
 				// if (file) {
 				// 	fwrite(buffer, pstStream.u32Len, 1, file);
 				// 	fflush(file);
@@ -321,9 +321,9 @@ int rk_audio_init() {
 		LOG_ERROR("RK_MPI_SYS_Bind fail %x\n", ret);
 	}
 	LOG_INFO("RK_MPI_SYS_Bind success\n");
-	rk_tuya_ao_create_register(rk_ao_init);
-	rk_tuya_ao_write_register(rk_ao_write);
-	rk_tuya_ao_destroy_register(rk_ao_deinit);
+	// rk_tuya_ao_create_register(rk_ao_init);
+	// rk_tuya_ao_write_register(rk_ao_write);
+	// rk_tuya_ao_destroy_register(rk_ao_deinit);
 
 	return ret;
 }
@@ -339,9 +339,9 @@ int rk_audio_deinit() {
 	LOG_INFO("RK_MPI_SYS_UnBind success\n");
 	ret |= rk_aenc_deinit();
 	ret |= rk_ai_deinit();
-	rk_tuya_ao_create_register(NULL);
-	rk_tuya_ao_write_register(NULL);
-	rk_tuya_ao_destroy_register(NULL);
+	// rk_tuya_ao_create_register(NULL);
+	// rk_tuya_ao_write_register(NULL);
+	// rk_tuya_ao_destroy_register(NULL);
 
 	return ret;
 }

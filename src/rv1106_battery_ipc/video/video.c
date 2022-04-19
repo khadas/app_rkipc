@@ -6,7 +6,7 @@
 #include "isp.h"
 #include "rkbar_scan_api.h"
 #include "rtsp_demo.h"
-#include "tuya_ipc.h"
+//#include "tuya_ipc.h"
 
 #include <fcntl.h>
 #include <inttypes.h> // PRId64
@@ -49,6 +49,7 @@ static int g_video_run_ = 1;
 static int pipe_id_ = 0;
 static int dev_id_ = 0;
 static int g_rtmp_start = 0;
+static int enable_wrap = 1;
 static rtsp_demo_handle g_rtsplive = NULL;
 static rtsp_session_handle g_rtsp_session_0;
 static rtsp_session_handle g_rtsp_session_1;
@@ -89,12 +90,12 @@ static void *rkipc_get_venc_0(void *arg) {
 				              stFrame.pstPack->u64PTS);
 				rtsp_do_event(g_rtsplive);
 			}
-			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
-			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
-				rk_tuya_push_video(data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS, 1);
-			} else {
-				rk_tuya_push_video(data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS, 0);
-			}
+			// if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
+			//     (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
+			// 	rk_tuya_push_video(data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS, 1);
+			// } else {
+			// 	rk_tuya_push_video(data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS, 0);
+			// }
 
 			// 7.release the frame
 			ret = RK_MPI_VENC_ReleaseStream(VIDEO_PIPE_0, &stFrame);
@@ -194,7 +195,7 @@ int rkipc_pipe_0_init() {
 	int video_width = rk_param_get_int("video.0:width", 1920);
 	int video_height = rk_param_get_int("video.0:height", 1080);
 	const char *video_device_name = rk_param_get_string("video.0:src_node", "rkispp_scale0");
-	int buf_cnt = 3;
+	int buf_cnt = 2;
 	int ret = 0;
 
 	// VI init
@@ -209,6 +210,23 @@ int rkipc_pipe_0_init() {
 	vi_chn_attr.enPixelFormat = RK_FMT_YUV420SP;
 	vi_chn_attr.u32Depth = 1; // not bind, can get buffer
 	ret = RK_MPI_VI_SetChnAttr(pipe_id_, VIDEO_PIPE_0, &vi_chn_attr);
+
+	VI_CHN_BUF_WRAP_S stViWrap;
+	memset(&stViWrap, 0, sizeof(VI_CHN_BUF_WRAP_S));
+	if (rk_param_get_int("video.0:enable_wrap", 0)) {
+		int buffer_line = rk_param_get_int("video.0:buffer_line", video_height / 2);
+		if (buffer_line < 128 || buffer_line > video_height) {
+			LOG_ERROR("wrap mode buffer line must between [128, H]\n");
+			return -1;
+		}
+		stViWrap.bEnable = 1;
+		stViWrap.u32BufLine = buffer_line;
+		stViWrap.u32WrapBufferSize = stViWrap.u32BufLine * video_width * 3 / 2; // NV12
+		LOG_INFO("set vi channel wrap line: %d, wrapBuffSize = %d\n", stViWrap.u32BufLine,
+		         stViWrap.u32WrapBufferSize);
+		RK_MPI_VI_SetChnWrapBufAttr(pipe_id_, VIDEO_PIPE_0, &stViWrap);
+	}
+
 	ret |= RK_MPI_VI_EnableChn(pipe_id_, VIDEO_PIPE_0);
 	if (ret) {
 		LOG_ERROR("ERROR: create VI error! ret=%d\n", ret);
@@ -297,8 +315,10 @@ int rkipc_pipe_0_init() {
 		return -1;
 	}
 	g_smart = rk_param_get_string("video.0:smart", NULL);
-	if (!strcmp(g_rc_mode, "open")) {
+	if (!strcmp(g_smart, "open")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
+		venc_chn_attr.stGopAttr.s32VirIdrLen = venc_chn_attr.stRcAttr.stH265Vbr.u32SrcFrameRateNum /
+		                                       venc_chn_attr.stRcAttr.stH265Vbr.u32SrcFrameRateDen;
 	} else {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
 	}
@@ -309,14 +329,27 @@ int rkipc_pipe_0_init() {
 	venc_chn_attr.stVencAttr.u32PicHeight = video_height;
 	venc_chn_attr.stVencAttr.u32VirWidth = video_width;
 	venc_chn_attr.stVencAttr.u32VirHeight = video_height;
-	venc_chn_attr.stVencAttr.u32StreamBufCnt = buf_cnt;
-	venc_chn_attr.stVencAttr.u32BufSize = video_width * video_height * 3 / 2;
+	venc_chn_attr.stVencAttr.u32StreamBufCnt = rk_param_get_int("video.0:buffer_count", 4);
+	venc_chn_attr.stVencAttr.u32BufSize = rk_param_get_int("video.0:buffer_size", 1843200);
 	// venc_chn_attr.stVencAttr.u32Depth = 1;
 	ret = RK_MPI_VENC_CreateChn(VIDEO_PIPE_0, &venc_chn_attr);
 	if (ret) {
 		LOG_ERROR("ERROR: create VENC error! ret=%d\n", ret);
 		return -1;
 	}
+
+	VENC_CHN_BUF_WRAP_S stVencChnBufWrap;
+	memset(&stVencChnBufWrap, 0, sizeof(stVencChnBufWrap));
+	if (rk_param_get_int("video.0:enable_wrap", 0)) {
+		stVencChnBufWrap.bEnable = 1;
+		RK_MPI_VENC_SetChnBufWrapAttr(VIDEO_PIPE_0, &stVencChnBufWrap);
+	}
+
+	VENC_CHN_REF_BUF_SHARE_S stVencChnRefBufShare;
+	memset(&stVencChnRefBufShare, 0, sizeof(VENC_CHN_REF_BUF_SHARE_S));
+	stVencChnRefBufShare.bEnable = rk_param_get_int("video.0:enable_refer_buffer_share", 1);
+	RK_MPI_VENC_SetChnRefBufShareAttr(VIDEO_PIPE_0, &stVencChnRefBufShare);
+
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
 	RK_MPI_VENC_StartRecvFrame(VIDEO_PIPE_0, &stRecvParam);
@@ -368,6 +401,7 @@ int rkipc_pipe_0_deinit() {
 	return 0;
 }
 
+#if 0
 int rkipc_pipe_1_init() {
 	int video_width = rk_param_get_int("video.1:width", 1280);
 	int video_height = rk_param_get_int("video.1:height", 720);
@@ -573,6 +607,7 @@ int rkipc_pipe_1_deinit() {
 
 	return ret;
 }
+#endif
 
 static void *wait_key_event(void *arg) {
 	int key_fd;
@@ -627,7 +662,7 @@ static void *get_vi_send_rkbar(void *arg) {
 			continue;
 		}
 		capture_one = 0;
-		// rkbar
+		/*// rkbar
 		image_t *img = NULL;
 		img = (image_t *)malloc(sizeof(image_t));
 		img->width = rk_param_get_int("video.0:width", -1);
@@ -642,75 +677,76 @@ static void *get_vi_send_rkbar(void *arg) {
 		void *rkbar_hand = NULL;
 		ret = rkbar_init(&rkbar_hand);
 		if (ret == -1) {
-			LOG_INFO("rkbar init is err");
-			rkbar_deinit(rkbar_hand);
-			if (img->bin)
-				free(img->bin);
-			if (img)
-				free(img);
-			continue;
+		    LOG_INFO("rkbar init is err");
+		    rkbar_deinit(rkbar_hand);
+		    if (img->bin)
+		        free(img->bin);
+		    if (img)
+		        free(img);
+		    continue;
 		}
 		LOG_INFO("rkbar init is success");
 		while (retry_time) {
-			LOG_INFO("333 retry_time is %d\n", retry_time);
-			retry_time--;
-			ret = RK_MPI_VI_GetChnFrame(pipe_id_, VIDEO_PIPE_0, &vi_frame, 1000);
-			if (ret != RK_SUCCESS) {
-				LOG_ERROR("RK_MPI_VI_GetChnFrame timeout %#x\n", ret);
-				continue;
-			}
-			void *buffer = RK_MPI_MB_Handle2VirAddr(vi_frame.stVFrame.pMbBlk);
-			LOG_INFO("RK_MPI_VI_GetChnFrame ok:data %p pts:%" PRId64 " ms\n", buffer,
-			         vi_frame.stVFrame.u64PTS / 1000);
-			img->data = (uint8_t *)buffer;
-			ret = rkbar_scan(rkbar_hand, img);
-			if (ret <= 0) {
-				LOG_INFO("scan fail\n");
-				ret = RK_MPI_VI_ReleaseChnFrame(pipe_id_, VIDEO_PIPE_0, &vi_frame);
-				if (ret != RK_SUCCESS) {
-					LOG_ERROR("RK_MPI_VI_ReleaseChnFrame fail %x\n", ret);
-				}
-				continue;
-			}
-			ret = RK_MPI_VI_ReleaseChnFrame(pipe_id_, VIDEO_PIPE_0, &vi_frame);
-			if (ret != RK_SUCCESS) {
-				LOG_ERROR("RK_MPI_VI_ReleaseChnFrame fail %x\n", ret);
-			}
-			LOG_INFO("scan success\n");
-			retry_time = 0;
-			const char *test = rkbar_getresult(rkbar_hand);
-			char *data = (char *)malloc(strlen(test));
-			memcpy(data, test, strlen(test));
-			LOG_INFO("rkbar the decoding result is \" %s \" \n", data);
-			system("aplay /etc/qr_recognized.wav &");
+		    LOG_INFO("333 retry_time is %d\n", retry_time);
+		    retry_time--;
+		    ret = RK_MPI_VI_GetChnFrame(pipe_id_, VIDEO_PIPE_0, &vi_frame, 1000);
+		    if (ret != RK_SUCCESS) {
+		        LOG_ERROR("RK_MPI_VI_GetChnFrame timeout %#x\n", ret);
+		        continue;
+		    }
+		    void *buffer = RK_MPI_MB_Handle2VirAddr(vi_frame.stVFrame.pMbBlk);
+		    LOG_INFO("RK_MPI_VI_GetChnFrame ok:data %p pts:%" PRId64 " ms\n", buffer,
+		             vi_frame.stVFrame.u64PTS / 1000);
+		    img->data = (uint8_t *)buffer;
+		    ret = rkbar_scan(rkbar_hand, img);
+		    if (ret <= 0) {
+		        LOG_INFO("scan fail\n");
+		        ret = RK_MPI_VI_ReleaseChnFrame(pipe_id_, VIDEO_PIPE_0, &vi_frame);
+		        if (ret != RK_SUCCESS) {
+		            LOG_ERROR("RK_MPI_VI_ReleaseChnFrame fail %x\n", ret);
+		        }
+		        continue;
+		    }
+		    ret = RK_MPI_VI_ReleaseChnFrame(pipe_id_, VIDEO_PIPE_0, &vi_frame);
+		    if (ret != RK_SUCCESS) {
+		        LOG_ERROR("RK_MPI_VI_ReleaseChnFrame fail %x\n", ret);
+		    }
+		    LOG_INFO("scan success\n");
+		    retry_time = 0;
+		    const char *test = rkbar_getresult(rkbar_hand);
+		    char *data = (char *)malloc(strlen(test));
+		    memcpy(data, test, strlen(test));
+		    LOG_INFO("rkbar the decoding result is \" %s \" \n", data);
+		    system("aplay /etc/qr_recognized.wav &");
 
-			tuya_ipc_direct_connect(data, TUYA_IPC_DIRECT_CONNECT_QRCODE);
-			// connect wifi
-			char ssid[20], psk[20], cmd[100], wifi_ssid[20], wifi_psk[20];
-			sscanf(data, "%*[^:]:%[^,],%*[^:]:%[^,]", psk, ssid);
-			memset(wifi_ssid, 0, 20);
-			memset(wifi_psk, 0, 20);
-			memcpy(wifi_ssid, &ssid[1], strlen(ssid) - 2);
-			memcpy(wifi_psk, &psk[1], strlen(psk) - 2);
-			system("cp /etc/wpa_supplicant.conf /tmp");
-			sprintf(cmd, "s/SSID/%s/g", ssid);
-			LOG_INFO("cmd is %s\n", cmd);
-			system(cmd);
-			sprintf(cmd, "s/PASSWORD/%s/g", psk);
-			LOG_INFO("cmd is %s\n", cmd);
-			system(cmd);
-			system("wpa_supplicant -B -i wlan0 -c /tmp/wpa_supplicant.conf");
-			usleep(1000 * 1000);
-			system("udhcpc -i wlan0");
-			if (data)
-				free(data);
+		    //tuya_ipc_direct_connect(data, TUYA_IPC_DIRECT_CONNECT_QRCODE);
+		    // connect wifi
+		    char ssid[20], psk[20], cmd[100], wifi_ssid[20], wifi_psk[20];
+		    sscanf(data, "%*[^:]:%[^,],%*[^:]:%[^,]", psk, ssid);
+		    memset(wifi_ssid, 0, 20);
+		    memset(wifi_psk, 0, 20);
+		    memcpy(wifi_ssid, &ssid[1], strlen(ssid) - 2);
+		    memcpy(wifi_psk, &psk[1], strlen(psk) - 2);
+		    system("cp /etc/wpa_supplicant.conf /tmp");
+		    sprintf(cmd, "s/SSID/%s/g", ssid);
+		    LOG_INFO("cmd is %s\n", cmd);
+		    system(cmd);
+		    sprintf(cmd, "s/PASSWORD/%s/g", psk);
+		    LOG_INFO("cmd is %s\n", cmd);
+		    system(cmd);
+		    system("wpa_supplicant -B -i wlan0 -c /tmp/wpa_supplicant.conf");
+		    usleep(1000 * 1000);
+		    system("udhcpc -i wlan0");
+		    if (data)
+		        free(data);
 		}
 		// retry_time = 0, or connect success
 		rkbar_deinit(rkbar_hand);
 		if (img->bin)
-			free(img->bin);
+		    free(img->bin);
 		if (img)
-			free(img);
+		    free(img);
+		*/
 	}
 
 	return 0;
@@ -723,7 +759,7 @@ int rk_video_init() {
 	ret = RK_MPI_SYS_Init();
 	ret |= rkipc_vi_dev_init();
 	ret |= rkipc_pipe_0_init(); // for vi-venc-rtsp
-	ret |= rkipc_pipe_1_init(); // for vi-vo
+	// ret |= rkipc_pipe_1_init(); // for vi-vo
 	ret |= rkipc_rtsp_init();
 #if 1
 	pthread_t key_id;
@@ -742,7 +778,7 @@ int rk_video_deinit() {
 	int ret = 0;
 	ret |= rkipc_rtsp_deinit();
 	ret |= rkipc_pipe_0_deinit();
-	ret |= rkipc_pipe_1_deinit();
+	// ret |= rkipc_pipe_1_deinit();
 	ret |= rkipc_vi_dev_deinit();
 	ret |= RK_MPI_SYS_Exit();
 

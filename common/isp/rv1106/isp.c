@@ -1318,7 +1318,7 @@ int rk_isp_set_from_ini(int cam_id) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret = 0;
 	LOG_DEBUG("start\n");
-	rk_isp_set_frame_rate(cam_id, rk_param_get_int("isp.0.adjustment:fps", 30));
+	// rk_isp_set_frame_rate(cam_id, rk_param_get_int("isp.0.adjustment:fps", 30));
 	// rk_isp_set_contrast(cam_id, rk_param_get_int("isp.0.adjustment:contrast", 50));
 	// rk_isp_set_brightness(cam_id, rk_param_get_int("isp.0.adjustment:brightness", 50));
 	// rk_isp_set_saturation(cam_id, rk_param_get_int("isp.0.adjustment:saturation", 50));

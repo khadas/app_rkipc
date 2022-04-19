@@ -17,7 +17,6 @@ aux_source_directory(video SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/isp/rv1106 SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/ SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/param SRCS)
-aux_source_directory(${PROJECT_SOURCE_DIR}/common/tuya_ipc SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/vendor_storage SRCS)
 
 include_directories(audio
@@ -38,13 +37,7 @@ add_definitions(-g -ggdb)
 
 add_executable(${PROJECT_NAME} ${SRCS})
 
-add_library(mbedtls STATIC IMPORTED)
-add_library(tuya_ipc STATIC IMPORTED)
-set_target_properties(mbedtls PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-uclibcgnueabihf/libmbedtls.a)
-set_target_properties(tuya_ipc PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-uclibcgnueabihf/libtuya_ipc.a)
-set(LIBHWL_WF_SRC ${PROJECT_SOURCE_DIR}/common/tuya_ipc/hwl_wf.c)
-add_library(hwl_wf STATIC ${LIBHWL_WF_SRC})
-target_link_libraries(${PROJECT_NAME} m pthread rockit rkaiq rtsp tuya_ipc mbedtls hwl_wf rkbar)
+target_link_libraries(${PROJECT_NAME} m pthread rockit rkaiq rtsp )
 
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
-install(FILES rkipc.ini DESTINATION share)
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION root/usr/bin)
+install(FILES rkipc.ini DESTINATION root/usr/share)
