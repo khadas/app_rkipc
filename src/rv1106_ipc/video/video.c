@@ -181,7 +181,7 @@ static void *rkipc_get_vi_1(void *arg) {
 	int loopCount = 0;
 	int ret = 0;
 	int line_pixel = 2;
-	long last_ba_result_time;
+	long long last_ba_result_time;
 	RockIvaBaResult ba_result;
 	im_handle_param_t param;
 	RockIvaBaObjectInfo *object;
@@ -238,7 +238,7 @@ static void *rkipc_get_vi_1(void *arg) {
 					}
 					LOG_DEBUG("i is %d, x,y,w,h is %d,%d,%d,%d\n", i, x, y, w, h);
 					rga_nv12_border(src, x, y, w, h, line_pixel, 0x000000ff);
-					// LOG_INFO("draw rect time-consuming is %ld\n",(rkipc_get_curren_time_ms() -
+					// LOG_INFO("draw rect time-consuming is %lld\n",(rkipc_get_curren_time_ms() -
 					// last_ba_result_time));
 					// LOG_INFO("triggerRules is %d, ruleID is %d, triggerType is %d\n",
 					//          object->triggerRules,
@@ -383,7 +383,7 @@ static void *rkipc_get_vpss_bgr(void *arg) {
 	int ret = 0;
 	int npu_fps = rk_param_get_int("video.source:npu_fps", 10);
 	int interval_ms = 1000 / npu_fps;
-	long last_nn_time;
+	long long last_nn_time;
 	LOG_INFO("npu_fps is %d, interval_ms is %d\n", npu_fps, interval_ms);
 
 	while (g_video_run_) {
@@ -406,7 +406,7 @@ static void *rkipc_get_vpss_bgr(void *arg) {
 				last_nn_time = rkipc_get_curren_time_ms();
 				rkipc_rockiva_write_rgb888_frame_by_fd(frame.stVFrame.u32Width,
 				                                       frame.stVFrame.u32Height, loopCount, fd);
-				// LOG_DEBUG("nn time-consuming is %ld\n",(rkipc_get_curren_time_ms() -
+				// LOG_DEBUG("nn time-consuming is %lld\n",(rkipc_get_curren_time_ms() -
 				// last_nn_time));
 			}
 

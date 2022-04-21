@@ -104,8 +104,8 @@ void rk_signal_give(void *sem) {
  */
 void rk_signal_reset(void *sem) { rk_signal_give(sem); }
 
-long rkipc_get_curren_time_ms() {
-	long msec = 0;
+long long rkipc_get_curren_time_ms() {
+	long long msec = 0;
 	char str[20] = {0};
 	struct timeval stuCurrentTime;
 

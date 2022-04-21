@@ -37,7 +37,7 @@ void destory_rknn_list(rknn_list **s) {
 	*s = NULL;
 }
 
-void rknn_list_push(rknn_list *s, long timeval, RockIvaBaResult ba_result) {
+void rknn_list_push(rknn_list *s, long long timeval, RockIvaBaResult ba_result) {
 	Node *t = NULL;
 	t = (Node *)malloc(sizeof(Node));
 	t->timeval = timeval;
@@ -52,7 +52,7 @@ void rknn_list_push(rknn_list *s, long timeval, RockIvaBaResult ba_result) {
 	s->size++;
 }
 
-void rknn_list_pop(rknn_list *s, long *timeval, RockIvaBaResult *ba_result) {
+void rknn_list_pop(rknn_list *s, long long *timeval, RockIvaBaResult *ba_result) {
 	Node *t = NULL;
 	if (s == NULL || s->top == NULL)
 		return;
@@ -82,7 +82,7 @@ int rknn_list_size(rknn_list *s) {
 
 int rkipc_rknn_object_get(RockIvaBaResult *ba_result) {
 	int ret = 0;
-	long time_before;
+	long long time_before;
 	if (rknn_list_size(rknn_list_)) {
 		rknn_list_pop(rknn_list_, &time_before, ba_result);
 		LOG_DEBUG("ba_result->objNum is %d\n", ba_result->objNum);

@@ -10,7 +10,7 @@
 #define MAX_RKNN_LIST_NUM 10
 
 typedef struct node {
-	long timeval;
+	long long timeval;
 	RockIvaBaResult ba_result;
 	struct node *next;
 } Node;

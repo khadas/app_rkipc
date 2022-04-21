@@ -40,4 +40,4 @@ int rk_signal_wait(void *sem, int timeout);
 void rk_signal_give(void *sem);
 void rk_signal_reset(void *sem);
 
-long rkipc_get_curren_time_ms();
+long long rkipc_get_curren_time_ms();
