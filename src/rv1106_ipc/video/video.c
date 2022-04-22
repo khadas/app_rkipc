@@ -346,8 +346,8 @@ static void *rkipc_get_jpeg(void *arg) {
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
 			LOG_DEBUG("Count:%d, Len:%d, PTS is %" PRId64 ", enH264EType is %d\n", loopCount,
-			         stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
-			         stFrame.pstPack->DataType.enH264EType);
+			          stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
+			          stFrame.pstPack->DataType.enH264EType);
 			// save jpeg file
 			time_t t = time(NULL);
 			struct tm tm = *localtime(&t);
@@ -384,10 +384,6 @@ static void *rkipc_get_vpss_bgr(void *arg) {
 	VI_CHN_STATUS_S stChnStatus;
 	int32_t loopCount = 0;
 	int ret = 0;
-	int npu_fps = rk_param_get_int("video.source:npu_fps", 10);
-	int interval_ms = 1000 / npu_fps;
-	long long last_nn_time;
-	LOG_INFO("npu_fps is %d, interval_ms is %d\n", npu_fps, interval_ms);
 
 	while (g_video_run_) {
 		ret = RK_MPI_VPSS_GetChnFrame(VPSS_BGR, 0, &frame, 1000);
@@ -398,20 +394,17 @@ static void *rkipc_get_vpss_bgr(void *arg) {
 			// rkipc_rockiva_write_rgb888_frame(frame.stVFrame.u32Width, frame.stVFrame.u32Height,
 			//                                  data);
 			int32_t fd = RK_MPI_MB_Handle2Fd(frame.stVFrame.pMbBlk);
-			// if (loopCount == 100) {
-			// 	FILE *fp = fopen("/data/test.bgr", "wb");
-			// 	fwrite(data, 1, frame.stVFrame.u32Width * frame.stVFrame.u32Height * 3, fp);
-			// 	fflush(fp);
-			// 	fclose(fp);
-			// 	exit(1);
-			// }
-			if (rkipc_get_curren_time_ms() - last_nn_time > interval_ms) {
-				last_nn_time = rkipc_get_curren_time_ms();
-				rkipc_rockiva_write_rgb888_frame_by_fd(frame.stVFrame.u32Width,
-				                                       frame.stVFrame.u32Height, loopCount, fd);
-				// LOG_DEBUG("nn time-consuming is %lld\n",(rkipc_get_curren_time_ms() -
-				// last_nn_time));
-			}
+#if 0
+			FILE *fp = fopen("/data/test.bgr", "wb");
+			fwrite(data, 1, frame.stVFrame.u32Width * frame.stVFrame.u32Height * 3, fp);
+			fflush(fp);
+			fclose(fp);
+			exit(1);
+#endif
+			// long long last_nn_time = rkipc_get_curren_time_ms();
+			rkipc_rockiva_write_rgb888_frame_by_fd(frame.stVFrame.u32Width,
+			                                       frame.stVFrame.u32Height, loopCount, fd);
+			// LOG_DEBUG("nn time-consuming is %lld\n",(rkipc_get_curren_time_ms() - last_nn_time));
 
 			ret = RK_MPI_VPSS_ReleaseChnFrame(VPSS_BGR, 0, &frame);
 			if (ret != RK_SUCCESS)
@@ -583,7 +576,7 @@ int rkipc_pipe_0_init() {
 		return -1;
 	}
 	LOG_DEBUG("tmp_output_data_type is %s, tmp_rc_mode is %s, tmp_h264_profile is %s\n",
-	         tmp_output_data_type, tmp_rc_mode, tmp_h264_profile);
+	          tmp_output_data_type, tmp_rc_mode, tmp_h264_profile);
 	if (!strcmp(tmp_output_data_type, "H.264")) {
 		venc_chn_attr.stVencAttr.enType = RK_VIDEO_ID_AVC;
 		if (!strcmp(tmp_h264_profile, "high"))
@@ -828,7 +821,7 @@ int rkipc_pipe_1_init() {
 		return -1;
 	}
 	LOG_DEBUG("tmp_output_data_type is %s, tmp_rc_mode is %s, tmp_h264_profile is %s\n",
-	         tmp_output_data_type, tmp_rc_mode, tmp_h264_profile);
+	          tmp_output_data_type, tmp_rc_mode, tmp_h264_profile);
 	if (!strcmp(tmp_output_data_type, "H.264")) {
 		venc_chn_attr.stVencAttr.enType = RK_VIDEO_ID_AVC;
 		if (!strcmp(tmp_h264_profile, "high"))
@@ -1062,7 +1055,7 @@ int rkipc_pipe_1_init() {
 	stLayerAttr.stImageSize.u32Width = VoPubAttr.stSyncInfo.u16Hact;
 	stLayerAttr.stImageSize.u32Height = VoPubAttr.stSyncInfo.u16Vact;
 	LOG_DEBUG("stLayerAttr W=%d, H=%d\n", stLayerAttr.stDispRect.u32Width,
-	         stLayerAttr.stDispRect.u32Height);
+	          stLayerAttr.stDispRect.u32Height);
 
 	stLayerAttr.u32DispFrmRt = 25;
 	stLayerAttr.enPixFormat = RK_FMT_RGB888;
@@ -2142,8 +2135,8 @@ int rk_video_init() {
 	enable_wrap = rk_param_get_int("video.source:enable_wrap", 0);
 	enable_osd = rk_param_get_int("osd.common:enable_osd", 0);
 	LOG_DEBUG("g_vi_chn_id is %d, g_enable_vo is %d, g_vo_dev_id is %d, enable_npu is %d, "
-	         "enable_wrap is %d, enable_osd is %d\n",
-	         g_vi_chn_id, g_enable_vo, g_vo_dev_id, enable_npu, enable_wrap, enable_osd);
+	          "enable_wrap is %d, enable_osd is %d\n",
+	          g_vi_chn_id, g_enable_vo, g_vo_dev_id, enable_npu, enable_wrap, enable_osd);
 	g_video_run_ = 1;
 	ret |= rkipc_vi_dev_init();
 	if (enable_rtsp)
