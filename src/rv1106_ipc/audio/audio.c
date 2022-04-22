@@ -47,8 +47,7 @@ void *save_ai_thread(void *ptr) {
 		ret = RK_MPI_AI_GetFrame(ai_dev_id, ai_chn_id, &frame, RK_NULL, s32MilliSec);
 		if (ret == 0) {
 			void *data = RK_MPI_MB_Handle2VirAddr(frame.pMbBlk);
-			RK_U32 len = RK_MPI_MB_GetSize(frame.pMbBlk);
-			LOG_DEBUG("data = %p, len = %d\n", data, len);
+			LOG_DEBUG("data = %p, len = %d\n", data, frame.u32Len);
 			RK_MPI_AI_ReleaseFrame(ai_dev_id, ai_chn_id, &frame, RK_NULL);
 		}
 	}
@@ -311,6 +310,9 @@ int rkipc_ai_init() {
 	//     LOG_ERROR("ai enable resample fail, reason = %x, aoChn = %d\n", ret, ai_chn_id);
 	//     return RK_FAILURE;
 	// }
+
+	// RK_MPI_AI_SetVolume(ai_dev_id, rk_param_get_int("audio.0:volume", 50));
+	// RK_MPI_AI_SetTrackMode(ai_dev_id, AUDIO_TRACK_FRONT_LEFT);
 
 	// pthread_create(&save_ai_tid, RK_NULL, save_ai_thread, NULL);
 

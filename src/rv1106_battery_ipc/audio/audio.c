@@ -42,8 +42,7 @@ void *save_ai_thread(void *ptr) {
 		ret = RK_MPI_AI_GetFrame(ai_dev_id, ai_chn_id, &frame, RK_NULL, s32MilliSec);
 		if (ret == 0) {
 			void *data = RK_MPI_MB_Handle2VirAddr(frame.pMbBlk);
-			RK_U32 len = RK_MPI_MB_GetSize(frame.pMbBlk);
-			LOG_INFO("data = %p, len = %d\n", data, len);
+			LOG_INFO("data = %p, len = %d\n", data, frame.u32Len);
 			RK_MPI_AI_ReleaseFrame(ai_dev_id, ai_chn_id, &frame, RK_NULL);
 		}
 	}
