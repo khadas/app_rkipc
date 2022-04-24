@@ -2092,7 +2092,7 @@ int rk_video_set_smart(int stream_id, const char *value) {
 	return 0;
 }
 
-int rk_video_get_svc(int stream_id, const char **value) {
+int rk_video_get_tsvc(int stream_id, const char **value) {
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "video.%d:svc", stream_id);
 	*value = rk_param_get_string(entry, "close");
@@ -2100,7 +2100,7 @@ int rk_video_get_svc(int stream_id, const char **value) {
 	return 0;
 }
 
-int rk_video_set_svc(int stream_id, const char *value) {
+int rk_video_set_tsvc(int stream_id, const char *value) {
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "video.%d:svc", stream_id);
 	rk_param_set_string(entry, value);
