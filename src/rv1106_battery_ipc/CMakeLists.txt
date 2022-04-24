@@ -17,6 +17,7 @@ aux_source_directory(video SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/isp/rv1106 SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/ SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/param SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/tuya_ipc/5.5.29 SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/vendor_storage SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/rockiva SRCS)
 
@@ -28,8 +29,8 @@ include_directories(audio
 					${PROJECT_SOURCE_DIR}/common/param
 					${PROJECT_SOURCE_DIR}/common/rockiva
 					${PROJECT_SOURCE_DIR}/common/rkbar
-					${PROJECT_SOURCE_DIR}/common/tuya_ipc/include
-					${PROJECT_SOURCE_DIR}/common/tuya_ipc
+					${PROJECT_SOURCE_DIR}/common/tuya_ipc/5.5.29/include
+					${PROJECT_SOURCE_DIR}/common/tuya_ipc/5.5.29
 					${PROJECT_SOURCE_DIR}/common/vendor_storage)
 
 link_directories(${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-uclibcgnueabihf/)
@@ -39,7 +40,7 @@ add_definitions(-g -ggdb)
 
 add_executable(${PROJECT_NAME} ${SRCS})
 target_link_libraries(${PROJECT_NAME} libpthread.a librockit.a stdc++ librockchip_mpp.a librkaiq.a
-				librtsp.a librkaudio_detect.a libaec_bf_process.a libm.a librockiva.a librknnmrt.a librga.a)
+				librtsp.a librkaudio_detect.a libaec_bf_process.a libm.a librockiva.a librknnmrt.a librga.a tuya_iot rkbar)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION root/usr/bin)
 install(FILES rkipc.ini DESTINATION root/usr/share)

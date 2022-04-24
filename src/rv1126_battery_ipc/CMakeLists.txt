@@ -17,7 +17,7 @@ aux_source_directory(video SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/isp/rv1126 SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/ SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/param SRCS)
-aux_source_directory(${PROJECT_SOURCE_DIR}/common/tuya_ipc SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/tuya_ipc/4.1.1 SRCS)
 
 include_directories(audio
 					${PROJECT_SOURCE_DIR}/common/isp/rv1126
@@ -26,8 +26,8 @@ include_directories(audio
 					${PROJECT_SOURCE_DIR}/common/rtsp
 					${PROJECT_SOURCE_DIR}/common/param
 					${PROJECT_SOURCE_DIR}/common/rkbar
-					${PROJECT_SOURCE_DIR}/common/tuya_ipc/include
-					${PROJECT_SOURCE_DIR}/common/tuya_ipc)
+					${PROJECT_SOURCE_DIR}/common/tuya_ipc/4.1.1/include
+					${PROJECT_SOURCE_DIR}/common/tuya_ipc/4.1.1)
 
 link_directories(${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-gnueabihf/)
 
@@ -40,7 +40,7 @@ add_library(mbedtls STATIC IMPORTED)
 add_library(tuya_ipc STATIC IMPORTED)
 set_target_properties(mbedtls PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-gnueabihf/libmbedtls.a)
 set_target_properties(tuya_ipc PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-gnueabihf/libtuya_ipc.a)
-set(LIBHWL_WF_SRC ${PROJECT_SOURCE_DIR}/common/tuya_ipc/hwl_wf.c)
+set(LIBHWL_WF_SRC ${PROJECT_SOURCE_DIR}/common/tuya_ipc/4.1.1/hwl_wf.c)
 add_library(hwl_wf STATIC ${LIBHWL_WF_SRC})
 target_link_libraries(${PROJECT_NAME} m pthread rockit rkaiq rtsp tuya_ipc mbedtls hwl_wf rkbar vendor_storage)
 
