@@ -2406,6 +2406,7 @@ int rk_video_restart() {
 	ret = rk_storage_deinit();
 	ret |= rk_video_deinit();
 	ret |= rk_isp_deinit(0);
+	sleep(3);
 	ret |= rk_isp_init(0, rkipc_iq_file_path_);
 	ret |= rk_video_init();
 	ret |= rk_storage_init();
