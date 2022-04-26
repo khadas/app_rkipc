@@ -401,163 +401,163 @@ again:
 	return 0;
 }
 
-RKIPC_MAYBE_UNUSED static int rkipc_storage_file_list_save(rkipc_str_folder pst_folder,
-                                                           rkipc_str_folder_attr pst_folder_attr,
-                                                           char *mount_path) {
-	int i, len;
-	char dataFileName[RKIPC_MAX_FILE_PATH_LEN];
-	char jsonFileName[2 * RKIPC_MAX_FILE_PATH_LEN];
-	FILE *fp;
-	cJSON *folder = NULL;
-	cJSON *fileArray = NULL;
-	cJSON *info = NULL;
-	char *folderStr = NULL;
-	rkipc_str_file *tmp = pst_folder.file_list_first;
+// RKIPC_MAYBE_UNUSED static int rkipc_storage_file_list_save(rkipc_str_folder pst_folder,
+//                                                            rkipc_str_folder_attr pst_folder_attr,
+//                                                            char *mount_path) {
+// 	int i, len;
+// 	char dataFileName[RKIPC_MAX_FILE_PATH_LEN];
+// 	char jsonFileName[2 * RKIPC_MAX_FILE_PATH_LEN];
+// 	FILE *fp;
+// 	cJSON *folder = NULL;
+// 	cJSON *fileArray = NULL;
+// 	cJSON *info = NULL;
+// 	char *folderStr = NULL;
+// 	rkipc_str_file *tmp = pst_folder.file_list_first;
 
-	folder = cJSON_CreateObject();
-	cJSON_AddStringToObject(folder, JSON_KEY_FOLDER_NAME, pst_folder_attr.folder_path);
-	cJSON_AddNumberToObject(folder, JSON_KEY_FILE_NUMBER, pst_folder.file_num);
-	cJSON_AddNumberToObject(folder, JSON_KEY_TOTAL_SIZE, pst_folder.total_size);
-	cJSON_AddNumberToObject(folder, JSON_KEY_TOTAL_SPACE, pst_folder.total_space);
-	cJSON_AddItemToObject(folder, JSON_KEY_FILE_ARRAY, fileArray = cJSON_CreateArray());
-	for (i = 0; i < pst_folder.file_num && tmp != NULL; i++) {
-		cJSON_AddItemToArray(fileArray, info = cJSON_CreateObject());
-		cJSON_AddStringToObject(info, JSON_KEY_FILE_NAME, tmp->filename);
-		cJSON_AddNumberToObject(info, JSON_KEY_MODIFY_TIME, tmp->time);
-		cJSON_AddNumberToObject(info, JSON_KEY_FILE_SIZE, tmp->size);
-		cJSON_AddNumberToObject(info, JSON_KEY_FILE_SPACE, tmp->space);
-		tmp = tmp->next;
-	}
-	folderStr = cJSON_Print(folder);
-	cJSON_Delete(folder);
+// 	folder = cJSON_CreateObject();
+// 	cJSON_AddStringToObject(folder, JSON_KEY_FOLDER_NAME, pst_folder_attr.folder_path);
+// 	cJSON_AddNumberToObject(folder, JSON_KEY_FILE_NUMBER, pst_folder.file_num);
+// 	cJSON_AddNumberToObject(folder, JSON_KEY_TOTAL_SIZE, pst_folder.total_size);
+// 	cJSON_AddNumberToObject(folder, JSON_KEY_TOTAL_SPACE, pst_folder.total_space);
+// 	cJSON_AddItemToObject(folder, JSON_KEY_FILE_ARRAY, fileArray = cJSON_CreateArray());
+// 	for (i = 0; i < pst_folder.file_num && tmp != NULL; i++) {
+// 		cJSON_AddItemToArray(fileArray, info = cJSON_CreateObject());
+// 		cJSON_AddStringToObject(info, JSON_KEY_FILE_NAME, tmp->filename);
+// 		cJSON_AddNumberToObject(info, JSON_KEY_MODIFY_TIME, tmp->time);
+// 		cJSON_AddNumberToObject(info, JSON_KEY_FILE_SIZE, tmp->size);
+// 		cJSON_AddNumberToObject(info, JSON_KEY_FILE_SPACE, tmp->space);
+// 		tmp = tmp->next;
+// 	}
+// 	folderStr = cJSON_Print(folder);
+// 	cJSON_Delete(folder);
 
-	len = strlen(pst_folder_attr.folder_path);
-	strncpy(dataFileName, pst_folder_attr.folder_path, len);
-	dataFileName[len] = '\0';
-	sprintf(jsonFileName, "%s/.%s.json", mount_path, dataFileName);
-	LOG_DEBUG("Save fileList data in %s\n", jsonFileName);
+// 	len = strlen(pst_folder_attr.folder_path);
+// 	strncpy(dataFileName, pst_folder_attr.folder_path, len);
+// 	dataFileName[len] = '\0';
+// 	sprintf(jsonFileName, "%s/.%s.json", mount_path, dataFileName);
+// 	LOG_DEBUG("Save fileList data in %s\n", jsonFileName);
 
-	if ((fp = fopen(jsonFileName, "w+")) == NULL) {
-		LOG_ERROR("Open %s error!\n", jsonFileName);
-		free(folderStr);
-		return -1;
-	}
+// 	if ((fp = fopen(jsonFileName, "w+")) == NULL) {
+// 		LOG_ERROR("Open %s error!\n", jsonFileName);
+// 		free(folderStr);
+// 		return -1;
+// 	}
 
-	if (fwrite(folderStr, strlen(folderStr), 1, fp) != 1) {
-		LOG_ERROR("Write file error!\n");
-		fclose(fp);
-		free(folderStr);
-		return -1;
-	}
+// 	if (fwrite(folderStr, strlen(folderStr), 1, fp) != 1) {
+// 		LOG_ERROR("Write file error!\n");
+// 		fclose(fp);
+// 		free(folderStr);
+// 		return -1;
+// 	}
 
-	fclose(fp);
-	sync();
-	free(folderStr);
-	return 0;
-}
+// 	fclose(fp);
+// 	sync();
+// 	free(folderStr);
+// 	return 0;
+// }
 
-RKIPC_MAYBE_UNUSED static int rkipc_storage_file_list_load(rkipc_str_folder *pst_folder,
-                                                           rkipc_str_folder_attr pst_folder_attr,
-                                                           char *mount_path) {
-	int i, len;
-	long long lenStr;
-	char *str;
-	char dataFileName[RKIPC_MAX_FILE_PATH_LEN];
-	char jsonFileName[2 * RKIPC_MAX_FILE_PATH_LEN];
-	FILE *fp;
-	cJSON *value = NULL;
-	cJSON *folder = NULL;
-	cJSON *fileArray = NULL;
-	cJSON *info = NULL;
-	rkipc_str_file *tmp = NULL;
+// RKIPC_MAYBE_UNUSED static int rkipc_storage_file_list_load(rkipc_str_folder *pst_folder,
+//                                                            rkipc_str_folder_attr pst_folder_attr,
+//                                                            char *mount_path) {
+// 	int i, len;
+// 	long long lenStr;
+// 	char *str;
+// 	char dataFileName[RKIPC_MAX_FILE_PATH_LEN];
+// 	char jsonFileName[2 * RKIPC_MAX_FILE_PATH_LEN];
+// 	FILE *fp;
+// 	cJSON *value = NULL;
+// 	cJSON *folder = NULL;
+// 	cJSON *fileArray = NULL;
+// 	cJSON *info = NULL;
+// 	rkipc_str_file *tmp = NULL;
 
-	RKIPC_CHECK_POINTER(pst_folder, RKIPC_STORAGE_FAIL);
+// 	RKIPC_CHECK_POINTER(pst_folder, RKIPC_STORAGE_FAIL);
 
-	len = strlen(pst_folder_attr.folder_path);
-	strncpy(dataFileName, pst_folder_attr.folder_path, len);
-	dataFileName[len] = '\0';
-	sprintf(jsonFileName, "%s/.%s.json", mount_path, dataFileName);
-	LOG_DEBUG("Load fileList data from %s", jsonFileName);
+// 	len = strlen(pst_folder_attr.folder_path);
+// 	strncpy(dataFileName, pst_folder_attr.folder_path, len);
+// 	dataFileName[len] = '\0';
+// 	sprintf(jsonFileName, "%s/.%s.json", mount_path, dataFileName);
+// 	LOG_DEBUG("Load fileList data from %s", jsonFileName);
 
-	if ((fp = fopen(jsonFileName, "r")) == NULL) {
-		LOG_ERROR("Open %s error!", jsonFileName);
-		return -1;
-	}
+// 	if ((fp = fopen(jsonFileName, "r")) == NULL) {
+// 		LOG_ERROR("Open %s error!", jsonFileName);
+// 		return -1;
+// 	}
 
-	fseek(fp, 0, SEEK_END);
-	lenStr = ftell(fp);
-	str = (char *)malloc(lenStr + 1);
-	if (str == NULL) {
-		LOG_ERROR("malloc str failed!");
-		fclose(fp);
-		return -1;
-	}
+// 	fseek(fp, 0, SEEK_END);
+// 	lenStr = ftell(fp);
+// 	str = (char *)malloc(lenStr + 1);
+// 	if (str == NULL) {
+// 		LOG_ERROR("malloc str failed!");
+// 		fclose(fp);
+// 		return -1;
+// 	}
 
-	fseek(fp, 0, SEEK_SET);
-	if (fread(str, lenStr, 1, fp) != 1) {
-		LOG_ERROR("Read file error!");
-		fclose(fp);
-		free(str);
-		return -1;
-	}
-	str[lenStr] = '\0';
-	fclose(fp);
+// 	fseek(fp, 0, SEEK_SET);
+// 	if (fread(str, lenStr, 1, fp) != 1) {
+// 		LOG_ERROR("Read file error!");
+// 		fclose(fp);
+// 		free(str);
+// 		return -1;
+// 	}
+// 	str[lenStr] = '\0';
+// 	fclose(fp);
 
-	if ((folder = cJSON_Parse(str)) == NULL) {
-		LOG_ERROR("Parse error!");
-		free(str);
-		return -1;
-	}
-	free(str);
+// 	if ((folder = cJSON_Parse(str)) == NULL) {
+// 		LOG_ERROR("Parse error!");
+// 		free(str);
+// 		return -1;
+// 	}
+// 	free(str);
 
-	pthread_mutex_lock(&pst_folder->mutex);
-	value = cJSON_GetObjectItem(folder, JSON_KEY_FILE_NUMBER);
-	pst_folder->file_num = value->valuedouble;
-	value = cJSON_GetObjectItem(folder, JSON_KEY_TOTAL_SIZE);
-	pst_folder->total_size = value->valuedouble;
-	value = cJSON_GetObjectItem(folder, JSON_KEY_TOTAL_SPACE);
-	pst_folder->total_space = value->valuedouble;
-	if ((fileArray = cJSON_GetObjectItem(folder, JSON_KEY_FILE_ARRAY)) == NULL) {
-		LOG_ERROR("Get fileArray object item error!");
-		cJSON_Delete(folder);
-		pthread_mutex_unlock(&pst_folder->mutex);
-		return -1;
-	}
+// 	pthread_mutex_lock(&pst_folder->mutex);
+// 	value = cJSON_GetObjectItem(folder, JSON_KEY_FILE_NUMBER);
+// 	pst_folder->file_num = value->valuedouble;
+// 	value = cJSON_GetObjectItem(folder, JSON_KEY_TOTAL_SIZE);
+// 	pst_folder->total_size = value->valuedouble;
+// 	value = cJSON_GetObjectItem(folder, JSON_KEY_TOTAL_SPACE);
+// 	pst_folder->total_space = value->valuedouble;
+// 	if ((fileArray = cJSON_GetObjectItem(folder, JSON_KEY_FILE_ARRAY)) == NULL) {
+// 		LOG_ERROR("Get fileArray object item error!");
+// 		cJSON_Delete(folder);
+// 		pthread_mutex_unlock(&pst_folder->mutex);
+// 		return -1;
+// 	}
 
-	for (i = 0; i < pst_folder->file_num; i++) {
-		tmp = (rkipc_str_file *)malloc(sizeof(rkipc_str_file));
-		if (!tmp) {
-			LOG_ERROR("tmp malloc failed.");
-			cJSON_Delete(folder);
-			pthread_mutex_unlock(&pst_folder->mutex);
-			return -1;
-		}
+// 	for (i = 0; i < pst_folder->file_num; i++) {
+// 		tmp = (rkipc_str_file *)malloc(sizeof(rkipc_str_file));
+// 		if (!tmp) {
+// 			LOG_ERROR("tmp malloc failed.");
+// 			cJSON_Delete(folder);
+// 			pthread_mutex_unlock(&pst_folder->mutex);
+// 			return -1;
+// 		}
 
-		memset(tmp, 0, sizeof(rkipc_str_file));
-		info = cJSON_GetArrayItem(fileArray, i);
-		value = cJSON_GetObjectItem(info, JSON_KEY_FILE_NAME);
-		sprintf(tmp->filename, "%s", value->valuestring);
-		value = cJSON_GetObjectItem(info, JSON_KEY_FILE_SIZE);
-		tmp->size = value->valuedouble;
-		value = cJSON_GetObjectItem(info, JSON_KEY_FILE_SPACE);
-		tmp->space = value->valuedouble;
-		value = cJSON_GetObjectItem(info, JSON_KEY_MODIFY_TIME);
-		tmp->time = value->valuedouble;
-		tmp->next = NULL;
+// 		memset(tmp, 0, sizeof(rkipc_str_file));
+// 		info = cJSON_GetArrayItem(fileArray, i);
+// 		value = cJSON_GetObjectItem(info, JSON_KEY_FILE_NAME);
+// 		sprintf(tmp->filename, "%s", value->valuestring);
+// 		value = cJSON_GetObjectItem(info, JSON_KEY_FILE_SIZE);
+// 		tmp->size = value->valuedouble;
+// 		value = cJSON_GetObjectItem(info, JSON_KEY_FILE_SPACE);
+// 		tmp->space = value->valuedouble;
+// 		value = cJSON_GetObjectItem(info, JSON_KEY_MODIFY_TIME);
+// 		tmp->time = value->valuedouble;
+// 		tmp->next = NULL;
 
-		if (pst_folder->file_list_first) {
-			pst_folder->file_list_last->next = tmp;
-			pst_folder->file_list_last = tmp;
-		} else {
-			pst_folder->file_list_first = tmp;
-			pst_folder->file_list_last = tmp;
-		}
-	}
+// 		if (pst_folder->file_list_first) {
+// 			pst_folder->file_list_last->next = tmp;
+// 			pst_folder->file_list_last = tmp;
+// 		} else {
+// 			pst_folder->file_list_first = tmp;
+// 			pst_folder->file_list_last = tmp;
+// 		}
+// 	}
 
-	cJSON_Delete(folder);
-	pthread_mutex_unlock(&pst_folder->mutex);
-	return 0;
-}
+// 	cJSON_Delete(folder);
+// 	pthread_mutex_unlock(&pst_folder->mutex);
+// 	return 0;
+// }
 
 static int rkipc_storage_repair(rkipc_storage_handle *pHandle, rkipc_str_dev_attr *dev_attr) {
 	int i;
@@ -1738,93 +1738,93 @@ int rkipc_storage_format(void *pHandle, char *cFormat) {
 }
 
 // get quota ,response set quota by id
-int rkipc_storage_quota_get(int id, char **value) {
+// int rkipc_storage_quota_get(int id, char **value) {
 
-	cJSON *Array = NULL;
-	cJSON *sd_info = NULL;
-	Array = cJSON_CreateArray();
-	cJSON_AddItemToArray(Array, sd_info = cJSON_CreateObject());
-	cJSON_AddNumberToObject(sd_info, "iFreePictureQuota", 0);
-	cJSON_AddNumberToObject(sd_info, "iFreeVideoQuota", 0);
-	cJSON_AddNumberToObject(sd_info, "iPictureQuotaRatio", g_sd_dev_attr.folder_attr[1].limit);
-	cJSON_AddStringToObject(sd_info, "iTotalPictureVolume", g_sd_dev_attr.volume);
-	cJSON_AddStringToObject(sd_info, "iTotalVideoVolume", g_sd_dev_attr.volume);
-	cJSON_AddNumberToObject(sd_info, "iVideoQuotaRatio", g_sd_dev_attr.folder_attr[0].limit);
-	cJSON_AddNumberToObject(sd_info, "id", 0);
+// 	cJSON *Array = NULL;
+// 	cJSON *sd_info = NULL;
+// 	Array = cJSON_CreateArray();
+// 	cJSON_AddItemToArray(Array, sd_info = cJSON_CreateObject());
+// 	cJSON_AddNumberToObject(sd_info, "iFreePictureQuota", 0);
+// 	cJSON_AddNumberToObject(sd_info, "iFreeVideoQuota", 0);
+// 	cJSON_AddNumberToObject(sd_info, "iPictureQuotaRatio", g_sd_dev_attr.folder_attr[1].limit);
+// 	cJSON_AddStringToObject(sd_info, "iTotalPictureVolume", g_sd_dev_attr.volume);
+// 	cJSON_AddStringToObject(sd_info, "iTotalVideoVolume", g_sd_dev_attr.volume);
+// 	cJSON_AddNumberToObject(sd_info, "iVideoQuotaRatio", g_sd_dev_attr.folder_attr[0].limit);
+// 	cJSON_AddNumberToObject(sd_info, "id", 0);
 
-	*value = cJSON_Print(sd_info);
-	cJSON_Delete(sd_info);
+// 	*value = cJSON_Print(sd_info);
+// 	cJSON_Delete(sd_info);
 
-	return 0;
-}
+// 	return 0;
+// }
 
 // TODO
 int rkipc_storage_quota_set(int id, char *value) { return 0; }
 
 // get hdd_list
-int rkipc_storage_hdd_list_get(int id, char **value) {
-	int total_size;
-	int free_size;
-	rkipc_storage_handle *phandle = (rkipc_storage_handle *)g_sd_phandle;
-	rkipc_storage_get_capacity(g_sd_phandle, &total_size, &free_size);
-	char status[12];
-	if (phandle->dev_sta.mount_status == DISK_MOUNTED) {
-		strcpy(status, "mounted");
-	} else {
-		strcpy(status, "unmounted");
-	}
-	cJSON *Array = NULL;
-	cJSON *sd_info = NULL;
-	Array = cJSON_CreateArray();
-	cJSON_AddItemToArray(Array, sd_info = cJSON_CreateObject());
-	cJSON_AddNumberToObject(sd_info, "iFormatProg", 0);
-	cJSON_AddNumberToObject(sd_info, "iFormatStatus", 0);
-	cJSON_AddNumberToObject(sd_info, "iMediaSize", 0);
-	cJSON_AddNumberToObject(sd_info, "iFreeSize", free_size);
-	cJSON_AddNumberToObject(sd_info, "iTotalSize", total_size);
-	cJSON_AddNumberToObject(sd_info, "id", 0);
-	cJSON_AddStringToObject(sd_info, "sDev", "");
-	cJSON_AddStringToObject(sd_info, "sFormatErr", "");
-	cJSON_AddStringToObject(sd_info, "sMountPath", g_sd_dev_attr.mount_path);
-	cJSON_AddStringToObject(sd_info, "sName", "SD Card");
-	cJSON_AddStringToObject(sd_info, "sStatus", status);
-	cJSON_AddStringToObject(sd_info, "sType", "");
+// int rkipc_storage_hdd_list_get(int id, char **value) {
+// 	int total_size;
+// 	int free_size;
+// 	rkipc_storage_handle *phandle = (rkipc_storage_handle *)g_sd_phandle;
+// 	rkipc_storage_get_capacity(g_sd_phandle, &total_size, &free_size);
+// 	char status[12];
+// 	if (phandle->dev_sta.mount_status == DISK_MOUNTED) {
+// 		strcpy(status, "mounted");
+// 	} else {
+// 		strcpy(status, "unmounted");
+// 	}
+// 	cJSON *Array = NULL;
+// 	cJSON *sd_info = NULL;
+// 	Array = cJSON_CreateArray();
+// 	cJSON_AddItemToArray(Array, sd_info = cJSON_CreateObject());
+// 	cJSON_AddNumberToObject(sd_info, "iFormatProg", 0);
+// 	cJSON_AddNumberToObject(sd_info, "iFormatStatus", 0);
+// 	cJSON_AddNumberToObject(sd_info, "iMediaSize", 0);
+// 	cJSON_AddNumberToObject(sd_info, "iFreeSize", free_size);
+// 	cJSON_AddNumberToObject(sd_info, "iTotalSize", total_size);
+// 	cJSON_AddNumberToObject(sd_info, "id", 0);
+// 	cJSON_AddStringToObject(sd_info, "sDev", "");
+// 	cJSON_AddStringToObject(sd_info, "sFormatErr", "");
+// 	cJSON_AddStringToObject(sd_info, "sMountPath", g_sd_dev_attr.mount_path);
+// 	cJSON_AddStringToObject(sd_info, "sName", "SD Card");
+// 	cJSON_AddStringToObject(sd_info, "sStatus", status);
+// 	cJSON_AddStringToObject(sd_info, "sType", "");
 
-	*value = cJSON_Print(sd_info);
-	cJSON_Delete(sd_info);
+// 	*value = cJSON_Print(sd_info);
+// 	cJSON_Delete(sd_info);
 
-	return 0;
-}
+// 	return 0;
+// }
 
 // response set snap_plan by id
-int rkipc_storage_snap_plan_get(int id, char **value) {
-	cJSON *plan_info = NULL;
-	plan_info = cJSON_CreateObject();
-	cJSON_AddNumberToObject(plan_info, "iEnabled", 0);
-	cJSON_AddNumberToObject(plan_info, "iImageQuality", 10);
-	cJSON_AddNumberToObject(plan_info, "iShotInterval", 1000);
-	cJSON_AddNumberToObject(plan_info, "iShotNumber", 4);
-	cJSON_AddStringToObject(plan_info, "sImageType", "JPEG");
-	cJSON_AddStringToObject(plan_info, "sResolution", "2688*1520");
+// int rkipc_storage_snap_plan_get(int id, char **value) {
+// 	cJSON *plan_info = NULL;
+// 	plan_info = cJSON_CreateObject();
+// 	cJSON_AddNumberToObject(plan_info, "iEnabled", 0);
+// 	cJSON_AddNumberToObject(plan_info, "iImageQuality", 10);
+// 	cJSON_AddNumberToObject(plan_info, "iShotInterval", 1000);
+// 	cJSON_AddNumberToObject(plan_info, "iShotNumber", 4);
+// 	cJSON_AddStringToObject(plan_info, "sImageType", "JPEG");
+// 	cJSON_AddStringToObject(plan_info, "sResolution", "2688*1520");
 
-	*value = cJSON_Print(plan_info);
-	cJSON_Delete(plan_info);
+// 	*value = cJSON_Print(plan_info);
+// 	cJSON_Delete(plan_info);
 
-	return 0;
-}
+// 	return 0;
+// }
 
 // TODO
 int rkipc_storage_snap_plan_set(int id, char *value) { return 0; }
 
-int rkipc_storage_current_path_get(char **value) {
-	cJSON *path_info = NULL;
-	path_info = cJSON_CreateObject();
-	cJSON_AddStringToObject(path_info, "sMountPath", g_sd_dev_attr.mount_path);
-	*value = cJSON_Print(path_info);
-	cJSON_Delete(path_info);
+// int rkipc_storage_current_path_get(char **value) {
+// 	cJSON *path_info = NULL;
+// 	path_info = cJSON_CreateObject();
+// 	cJSON_AddStringToObject(path_info, "sMountPath", g_sd_dev_attr.mount_path);
+// 	*value = cJSON_Print(path_info);
+// 	cJSON_Delete(path_info);
 
-	return 0;
-}
+// 	return 0;
+// }
 
 // TODO
 int rkipc_storage_current_path_set(char *value) { return 0; }
@@ -1832,50 +1832,50 @@ int rkipc_storage_current_path_set(char *value) { return 0; }
 // int rkipc_storage_search(char *file_info);
 
 // delete
-char *rkipc_response_delete(int num, int id, char *name_list) {
-	int ret;
-	cJSON *del_info = NULL;
-	del_info = cJSON_CreateObject();
-	rkipc_storage_handle *phandle = (rkipc_storage_handle *)g_sd_phandle;
-	if (id == 0) {
-		for (int i = 0; i < num; i++) {
-			ret = rkipc_storage_file_list_del(&phandle->dev_sta.folder[0], &name_list[i]);
-			if (ret) {
-				LOG_ERROR("delete %s failed!\n", &name_list[i]);
-				cJSON_AddNumberToObject(del_info, "rst", 0);
-				char *out = cJSON_Print(del_info);
-				cJSON_Delete(del_info);
-				return out;
-			}
-		}
-	} else if (id == 1) {
-		for (int i = 0; i < num; i++) {
-			ret = rkipc_storage_file_list_del(&phandle->dev_sta.folder[1], &name_list[i]);
-			if (ret) {
-				LOG_ERROR("delete %s failed!\n", &name_list[i]);
-				cJSON_AddNumberToObject(del_info, "rst", 0);
-				char *out = cJSON_Print(del_info);
-				cJSON_Delete(del_info);
-				return out;
-			}
-		}
-	} else if (id == 2) {
-		for (int i = 0; i < num; i++) {
-			ret = rkipc_storage_file_list_del(&phandle->dev_sta.folder[2], &name_list[i]);
-			if (ret) {
-				LOG_ERROR("delete %s failed!\n", &name_list[i]);
-				cJSON_AddNumberToObject(del_info, "rst", 0);
-				char *out = cJSON_Print(del_info);
-				cJSON_Delete(del_info);
-				return out;
-			}
-		}
-	}
-	cJSON_AddNumberToObject(del_info, "rst", 1);
-	char *out = cJSON_Print(del_info);
-	cJSON_Delete(del_info);
-	return out;
-}
+// char *rkipc_response_delete(int num, int id, char *name_list) {
+// 	int ret;
+// 	cJSON *del_info = NULL;
+// 	del_info = cJSON_CreateObject();
+// 	rkipc_storage_handle *phandle = (rkipc_storage_handle *)g_sd_phandle;
+// 	if (id == 0) {
+// 		for (int i = 0; i < num; i++) {
+// 			ret = rkipc_storage_file_list_del(&phandle->dev_sta.folder[0], &name_list[i]);
+// 			if (ret) {
+// 				LOG_ERROR("delete %s failed!\n", &name_list[i]);
+// 				cJSON_AddNumberToObject(del_info, "rst", 0);
+// 				char *out = cJSON_Print(del_info);
+// 				cJSON_Delete(del_info);
+// 				return out;
+// 			}
+// 		}
+// 	} else if (id == 1) {
+// 		for (int i = 0; i < num; i++) {
+// 			ret = rkipc_storage_file_list_del(&phandle->dev_sta.folder[1], &name_list[i]);
+// 			if (ret) {
+// 				LOG_ERROR("delete %s failed!\n", &name_list[i]);
+// 				cJSON_AddNumberToObject(del_info, "rst", 0);
+// 				char *out = cJSON_Print(del_info);
+// 				cJSON_Delete(del_info);
+// 				return out;
+// 			}
+// 		}
+// 	} else if (id == 2) {
+// 		for (int i = 0; i < num; i++) {
+// 			ret = rkipc_storage_file_list_del(&phandle->dev_sta.folder[2], &name_list[i]);
+// 			if (ret) {
+// 				LOG_ERROR("delete %s failed!\n", &name_list[i]);
+// 				cJSON_AddNumberToObject(del_info, "rst", 0);
+// 				char *out = cJSON_Print(del_info);
+// 				cJSON_Delete(del_info);
+// 				return out;
+// 			}
+// 		}
+// 	}
+// 	cJSON_AddNumberToObject(del_info, "rst", 1);
+// 	char *out = cJSON_Print(del_info);
+// 	cJSON_Delete(del_info);
+// 	return out;
+// }
 
 static void *rk_storage_record(void *arg) {
 	int *id_ptr = arg;
