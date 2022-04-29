@@ -63,16 +63,16 @@ int rkipc_storage_set_dev_attr(rkipc_str_dev_attr *pstDevAttr) {
 	char dev_path[64];
 	char type[64];
 	char attributes[128];
-	memset(dev_path,0,sizeof(dev_path));
-	memset(type,0,sizeof(type));
-	memset(attributes,0,sizeof(attributes));
+	memset(dev_path, 0, sizeof(dev_path));
+	memset(type, 0, sizeof(type));
+	memset(attributes, 0, sizeof(attributes));
 	RKIPC_CHECK_POINTER(pstDevAttr, RKIPC_STORAGE_FAIL);
 	LOG_DEBUG("The DevAttr will be user-defined.\n");
 
 	memset(pstDevAttr, 0, sizeof(rkipc_str_dev_attr));
 	mount_path = rk_param_get_string("storage:mount_path", "/userdata");
 	sprintf(pstDevAttr->mount_path, mount_path);
-	rkipc_storage_get_mount_dev(mount_path,dev_path,type,attributes);
+	rkipc_storage_get_mount_dev(mount_path, dev_path, type, attributes);
 	sprintf(pstDevAttr->dev_path, dev_path);
 	LOG_INFO("mount path is %s, dev_path is %s\n", mount_path, dev_path);
 
