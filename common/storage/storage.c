@@ -23,18 +23,56 @@ RKIPC_MAYBE_UNUSED static rkipc_str_dev_attr rkipc_storage_get_dev_attr(void *pH
 	return rkipc_storage_get_param((rkipc_storage_handle *)pHandle);
 }
 
+static int rkipc_storage_get_mount_dev(char *path, char *dev, char *type, char *attributes) {
+	FILE *fp;
+	char strLine[MAX_STRLINE_LEN];
+	char *tmp;
+
+	RKIPC_CHECK_POINTER(dev, RKIPC_STORAGE_FAIL);
+	RKIPC_CHECK_POINTER(path, RKIPC_STORAGE_FAIL);
+	RKIPC_CHECK_POINTER(type, RKIPC_STORAGE_FAIL);
+	RKIPC_CHECK_POINTER(attributes, RKIPC_STORAGE_FAIL);
+
+	if ((fp = fopen("/proc/mounts", "r")) == NULL) {
+		LOG_ERROR("Open file error!");
+		return -1;
+	}
+
+	while (!feof(fp)) {
+		fgets(strLine, MAX_STRLINE_LEN, fp);
+		tmp = strstr(strLine, path);
+
+		if (tmp) {
+			char MountPath[RKIPC_MAX_FILE_PATH_LEN];
+			sscanf(strLine, "%s %s %s %s", dev, MountPath, type, attributes);
+
+			fclose(fp);
+			return 0;
+		}
+	}
+
+	fclose(fp);
+	return -1;
+}
+
 int rkipc_storage_set_dev_attr(rkipc_str_dev_attr *pstDevAttr) {
 	int quota;
+	char cmd[64];
 	const char *folder_name = NULL;
 	const char *mount_path = NULL;
-	const char *dev_path = NULL;
+	char dev_path[64];
+	char type[64];
+	char attributes[128];
+	memset(dev_path,0,sizeof(dev_path));
+	memset(type,0,sizeof(type));
+	memset(attributes,0,sizeof(attributes));
 	RKIPC_CHECK_POINTER(pstDevAttr, RKIPC_STORAGE_FAIL);
 	LOG_DEBUG("The DevAttr will be user-defined.\n");
 
 	memset(pstDevAttr, 0, sizeof(rkipc_str_dev_attr));
 	mount_path = rk_param_get_string("storage:mount_path", "/userdata");
 	sprintf(pstDevAttr->mount_path, mount_path);
-	dev_path = rk_param_get_string("storage:dev_path", "/dev/mmcblk0p6");
+	rkipc_storage_get_mount_dev(mount_path,dev_path,type,attributes);
 	sprintf(pstDevAttr->dev_path, dev_path);
 	LOG_INFO("mount path is %s, dev_path is %s\n", mount_path, dev_path);
 
@@ -159,38 +197,6 @@ static int rkipc_storage_get_disk_size(char *path, int *total_size, int *free_si
 	*total_size = (diskInfo.f_bsize * diskInfo.f_blocks) >> 10;
 	*free_size = (diskInfo.f_bfree * diskInfo.f_bsize) >> 10;
 	return 0;
-}
-
-static int rkipc_storage_get_mount_dev(char *path, char *dev, char *type, char *attributes) {
-	FILE *fp;
-	char strLine[MAX_STRLINE_LEN];
-	char *tmp;
-
-	RKIPC_CHECK_POINTER(dev, RKIPC_STORAGE_FAIL);
-	RKIPC_CHECK_POINTER(path, RKIPC_STORAGE_FAIL);
-	RKIPC_CHECK_POINTER(type, RKIPC_STORAGE_FAIL);
-	RKIPC_CHECK_POINTER(attributes, RKIPC_STORAGE_FAIL);
-
-	if ((fp = fopen("/proc/mounts", "r")) == NULL) {
-		LOG_ERROR("Open file error!");
-		return -1;
-	}
-
-	while (!feof(fp)) {
-		fgets(strLine, MAX_STRLINE_LEN, fp);
-		tmp = strstr(strLine, path);
-
-		if (tmp) {
-			char MountPath[RKIPC_MAX_FILE_PATH_LEN];
-			sscanf(strLine, "%s %s %s %s", dev, MountPath, type, attributes);
-
-			fclose(fp);
-			return 0;
-		}
-	}
-
-	fclose(fp);
-	return -1;
 }
 
 static int rkipc_storage_get_mount_path(char *dev, char *path, int path_len) {
