@@ -385,7 +385,7 @@ int rkipc_pipe_0_init() {
 	VI_CHN_BUF_WRAP_S stViWrap;
 	memset(&stViWrap, 0, sizeof(VI_CHN_BUF_WRAP_S));
 	if (rk_param_get_int("video.0:enable_wrap", 0)) {
-		int buffer_line = rk_param_get_int("video.0:buffer_line", video_height / 2);
+		int buffer_line = rk_param_get_int("video.0:buffer_line", video_height / 4);
 		if (buffer_line < 64 || buffer_line > video_height) {
 			LOG_ERROR("wrap mode buffer line must between [64, H]\n");
 			return -1;
@@ -513,6 +513,7 @@ int rkipc_pipe_0_init() {
 	memset(&stVencChnBufWrap, 0, sizeof(stVencChnBufWrap));
 	if (rk_param_get_int("video.0:enable_wrap", 0)) {
 		stVencChnBufWrap.bEnable = 1;
+		stVencChnBufWrap.u32BufLine = rk_param_get_int("video.0:buffer_line", video_height / 4);
 		RK_MPI_VENC_SetChnBufWrapAttr(VIDEO_PIPE_0, &stVencChnBufWrap);
 	}
 

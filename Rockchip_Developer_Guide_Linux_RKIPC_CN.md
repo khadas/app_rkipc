@@ -2,9 +2,9 @@
 
 文件标识：TODO
 
-发布版本：V0.8.0
+发布版本：V0.9.0
 
-日期：2022-05-11
+日期：2022-05-16
 
 文件密级：□绝密   □秘密   □内部资料   ■公开
 
@@ -72,6 +72,7 @@ Rockchip Electronics Co., Ltd.
 | V0.6.0     | 林刘迪铭 | 2022-02-21   | 更新RV1106信息          |
 | V0.7.0     | 林刘迪铭 | 2022-05-05   | 更新RV1106电池类IPC框图 |
 | V0.8.0     | 林刘迪铭 | 2022-05-11   | 添加ini参数说明         |
+| V0.9.0     | 林刘迪铭 | 2022-05-16   | 修改RV1106 IPC框图      |
 
 ---
 
@@ -104,7 +105,7 @@ graph LR
 	AI-->AENC-->MUXER-->MP4
 	VI_0-->VENC_0-->MUXER
 	VENC_0-->RTSP_RTMP_0
-	VI_1-->NN_DRAW-->VENC_1-->RTSP_RTMP_1
+	VI_1-->VENC_1_and_OSD_draw-->RTSP_RTMP_1
 	VI_1-->VPSS-->NPU
 ```
 
