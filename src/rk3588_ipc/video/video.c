@@ -473,7 +473,7 @@ int rkipc_vpss_init() {
 	}
 
 	if (enable_venc_0) {
-		stVpssChnAttr[0].enChnMode = VPSS_CHN_MODE_USER;
+		stVpssChnAttr[0].enChnMode = VPSS_CHN_MODE_AUTO;
 		stVpssChnAttr[0].enDynamicRange = DYNAMIC_RANGE_SDR8;
 		stVpssChnAttr[0].enPixelFormat = RK_FMT_YUV420SP;
 		stVpssChnAttr[0].stFrameRate.s32SrcFrameRate = -1;
@@ -489,7 +489,7 @@ int rkipc_vpss_init() {
 			LOG_ERROR("0: RK_MPI_VPSS_EnableChn error! ret is %#x\n", ret);
 	}
 	if (enable_venc_1) {
-		stVpssChnAttr[1].enChnMode = VPSS_CHN_MODE_USER;
+		stVpssChnAttr[1].enChnMode = VPSS_CHN_MODE_AUTO;
 		stVpssChnAttr[1].enDynamicRange = DYNAMIC_RANGE_SDR8;
 		stVpssChnAttr[1].enPixelFormat = RK_FMT_YUV420SP;
 		stVpssChnAttr[1].stFrameRate.s32SrcFrameRate = -1;
@@ -505,7 +505,7 @@ int rkipc_vpss_init() {
 			LOG_ERROR("1: RK_MPI_VPSS_EnableChn error! ret is %#x\n", ret);
 	}
 	if (enable_venc_2) {
-		stVpssChnAttr[2].enChnMode = VPSS_CHN_MODE_USER;
+		stVpssChnAttr[2].enChnMode = VPSS_CHN_MODE_AUTO;
 		stVpssChnAttr[2].enDynamicRange = DYNAMIC_RANGE_SDR8;
 		stVpssChnAttr[2].enPixelFormat = RK_FMT_YUV420SP;
 		stVpssChnAttr[2].stFrameRate.s32SrcFrameRate = -1;
@@ -521,7 +521,7 @@ int rkipc_vpss_init() {
 			LOG_ERROR("2: RK_MPI_VPSS_EnableChn error! ret is %#x\n", ret);
 	}
 	if (enable_jpeg) {
-		stVpssChnAttr[3].enChnMode = VPSS_CHN_MODE_USER;
+		stVpssChnAttr[3].enChnMode = VPSS_CHN_MODE_AUTO;
 		stVpssChnAttr[3].enDynamicRange = DYNAMIC_RANGE_SDR8;
 		stVpssChnAttr[3].enPixelFormat = RK_FMT_YUV420SP;
 		stVpssChnAttr[3].stFrameRate.s32SrcFrameRate = -1;
@@ -1267,7 +1267,7 @@ int rkipc_pipe_vpss_vo_init() {
 	stVpssGrpAttr.stFrameRate.s32DstFrameRate = -1;
 	stVpssGrpAttr.enCompressMode = COMPRESS_MODE_NONE;
 
-	stVpssChnAttr[0].enChnMode = VPSS_CHN_MODE_USER;
+	stVpssChnAttr[0].enChnMode = VPSS_CHN_MODE_AUTO;
 	stVpssChnAttr[0].enDynamicRange = DYNAMIC_RANGE_SDR8;
 	stVpssChnAttr[0].enPixelFormat = RK_FMT_YUV420SP;
 	stVpssChnAttr[0].stFrameRate.s32SrcFrameRate = -1;

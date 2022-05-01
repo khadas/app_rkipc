@@ -528,7 +528,7 @@ int rkipc_vpss_1_init() {
 		return ret;
 	}
 
-	stVpssChnAttr[0].enChnMode = VPSS_CHN_MODE_USER;
+	stVpssChnAttr[0].enChnMode = VPSS_CHN_MODE_AUTO;
 	stVpssChnAttr[0].enDynamicRange = DYNAMIC_RANGE_SDR8;
 	stVpssChnAttr[0].enPixelFormat = RK_FMT_YUV420SP;
 	stVpssChnAttr[0].stFrameRate.s32SrcFrameRate = -1;
@@ -590,7 +590,7 @@ int rkipc_vpss_2_init() {
 		return ret;
 	}
 
-	stVpssChnAttr[0].enChnMode = VPSS_CHN_MODE_USER;
+	stVpssChnAttr[0].enChnMode = VPSS_CHN_MODE_AUTO;
 	stVpssChnAttr[0].enDynamicRange = DYNAMIC_RANGE_SDR8;
 	stVpssChnAttr[0].enPixelFormat = RK_FMT_YUV420SP;
 	stVpssChnAttr[0].stFrameRate.s32SrcFrameRate = -1;
@@ -650,7 +650,7 @@ int rkipc_vpss_3_init() {
 		return ret;
 	}
 
-	stVpssChnAttr[0].enChnMode = VPSS_CHN_MODE_USER;
+	stVpssChnAttr[0].enChnMode = VPSS_CHN_MODE_AUTO;
 	stVpssChnAttr[0].enDynamicRange = DYNAMIC_RANGE_SDR8;
 	stVpssChnAttr[0].enPixelFormat = RK_FMT_YUV420SP;
 	stVpssChnAttr[0].stFrameRate.s32SrcFrameRate = -1;
@@ -709,7 +709,7 @@ int rkipc_vpss_4_init() {
 		return ret;
 	}
 
-	stVpssChnAttr[0].enChnMode = VPSS_CHN_MODE_USER;
+	stVpssChnAttr[0].enChnMode = VPSS_CHN_MODE_AUTO;
 	stVpssChnAttr[0].enDynamicRange = DYNAMIC_RANGE_SDR8;
 	stVpssChnAttr[0].enPixelFormat = RK_FMT_BGR888;
 	stVpssChnAttr[0].stFrameRate.s32SrcFrameRate = -1;
