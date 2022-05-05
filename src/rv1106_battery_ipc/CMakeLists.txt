@@ -18,6 +18,7 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/common/isp/rv1106 SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/ SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/param SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/vendor_storage SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/rockiva SRCS)
 
 include_directories(audio
 					${PROJECT_SOURCE_DIR}/common/isp/rv1106
@@ -25,6 +26,7 @@ include_directories(audio
 					${PROJECT_SOURCE_DIR}/common
 					${PROJECT_SOURCE_DIR}/common/rtsp
 					${PROJECT_SOURCE_DIR}/common/param
+					${PROJECT_SOURCE_DIR}/common/rockiva
 					${PROJECT_SOURCE_DIR}/common/rkbar
 					${PROJECT_SOURCE_DIR}/common/tuya_ipc/include
 					${PROJECT_SOURCE_DIR}/common/tuya_ipc
@@ -37,7 +39,9 @@ add_definitions(-g -ggdb)
 
 add_executable(${PROJECT_NAME} ${SRCS})
 
-target_link_libraries(${PROJECT_NAME} m pthread rockit rkaiq rtsp )
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--gc-sections -Wl,--as-needed")
+
+target_link_libraries(${PROJECT_NAME} m pthread rockit rkaiq rtsp rockiva rknnmrt rga)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION root/usr/bin)
 install(FILES rkipc.ini DESTINATION root/usr/share)

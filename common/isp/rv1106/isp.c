@@ -207,6 +207,20 @@ int rk_isp_set_frame_rate(int cam_id, int value) {
 	return 0;
 }
 
+int rk_isp_set_frame_rate_without_ini(int cam_id, int value) {
+	RK_ISP_CHECK_CAMERA_ID(cam_id);
+	int ret;
+	Uapi_ExpSwAttrV2_t expSwAttr;
+	LOG_DEBUG("start %d\n", value);
+	ret = rk_aiq_user_api2_ae_getExpSwAttr(rkipc_aiq_get_ctx(cam_id), &expSwAttr);
+	expSwAttr.stAuto.stFrmRate.isFpsFix = true;
+	expSwAttr.stAuto.stFrmRate.FpsValue = value;
+	ret = rk_aiq_user_api2_ae_setExpSwAttr(rkipc_aiq_get_ctx(cam_id), expSwAttr);
+	LOG_DEBUG("end, %d\n", value);
+
+	return 0;
+}
+
 // image adjustment
 
 int rk_isp_get_contrast(int cam_id, int *value) {
@@ -1318,7 +1332,7 @@ int rk_isp_set_from_ini(int cam_id) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret = 0;
 	LOG_DEBUG("start\n");
-	// rk_isp_set_frame_rate(cam_id, rk_param_get_int("isp.0.adjustment:fps", 30));
+	rk_isp_set_frame_rate(cam_id, rk_param_get_int("isp.0.adjustment:fps", 30));
 	// rk_isp_set_contrast(cam_id, rk_param_get_int("isp.0.adjustment:contrast", 50));
 	// rk_isp_set_brightness(cam_id, rk_param_get_int("isp.0.adjustment:brightness", 50));
 	// rk_isp_set_saturation(cam_id, rk_param_get_int("isp.0.adjustment:saturation", 50));
@@ -1349,9 +1363,7 @@ int rk_isp_init(int cam_id, char *iqfile_path) {
 		ret = sample_common_isp_init(cam_id, RK_AIQ_WORKING_MODE_NORMAL, true, g_iq_file_dir_);
 		// rk_aiq_uapi2_sysctl_switch_scene(g_aiq_ctx[cam_id], "normal" , "day");
 	}
-
 	ret |= sample_common_isp_run(cam_id);
-	ret |= rk_isp_set_from_ini(cam_id);
 
 	return ret;
 }

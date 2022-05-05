@@ -12,6 +12,7 @@
 #include "isp.h"
 #include "log.h"
 #include "param.h"
+#include "rockiva.h"
 #include "tuya_ipc.h"
 #include "video.h"
 
@@ -23,7 +24,7 @@
 enum { LOG_ERROR, LOG_WARN, LOG_INFO, LOG_DEBUG };
 
 int enable_minilog = 0;
-int rkipc_log_level = LOG_DEBUG;
+int rkipc_log_level = LOG_INFO;
 
 static int g_main_run_ = 1;
 char *rkipc_ini_path_ = NULL;
@@ -186,10 +187,13 @@ int main(int argc, char **argv) {
 	// init
 	rk_param_init(rkipc_ini_path_);
 	rk_isp_init(0, rkipc_iq_file_path_);
-	// rk_isp_set_frame_rate(0, rk_param_get_int("isp.0.adjustment:fps", 30));
+	rk_isp_set_frame_rate_without_ini(0, rk_param_get_int("isp.0.adjustment:fps", 15));
+	if (rk_param_get_int("video.1:enable_npu", 0))
+		rkipc_rockiva_init();
+	RK_MPI_SYS_Init();
 	rk_video_init();
 	if (rk_param_get_int("audio.0:enable", 0))
-		rk_audio_init();
+		rkipc_audio_init();
 	// rk_tuya_init();
 
 	while (g_main_run_) {
@@ -201,7 +205,10 @@ int main(int argc, char **argv) {
 	rk_video_deinit();
 	rk_isp_deinit(0);
 	if (rk_param_get_int("audio.0:enable", 0))
-		rk_audio_deinit();
+		rkipc_audio_deinit();
+	RK_MPI_SYS_Exit();
+	if (rk_param_get_int("video.1:enable_npu", 0))
+		rkipc_rockiva_deinit();
 	rk_param_deinit();
 
 	return 0;

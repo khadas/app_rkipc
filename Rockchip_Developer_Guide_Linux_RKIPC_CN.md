@@ -106,6 +106,23 @@ graph LR
 	VI_1-->VPSS-->NPU
 ```
 
+### RV1106 Battery IPC
+
+```mermaid
+graph LR
+	VI_0-->QR_code_recognition
+	VI_0-->VENC-->RTSP
+
+	VENC-->tuya_clound
+	AI-->AENC-->tuya_clound
+	tuya_clound-->|preview| phone_app
+	phone_app-->|wake up from sleep| tuya_clound
+	VI_1-->VPSS-->NN_detect
+	VI_1-->draw-->VENC_1-->RTSP_1
+```
+
+
+
 ### RK3588 IPC
 
 ```mermaid
