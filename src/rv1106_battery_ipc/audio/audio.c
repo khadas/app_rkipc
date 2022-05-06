@@ -433,3 +433,44 @@ int rkipc_audio_deinit() {
 
 	return ret;
 }
+
+// int rk_ao_deinit() {
+// 	int ret;
+// 	ret = RK_MPI_AO_DisableChn(0, 0);
+// 	if (ret)
+// 		LOG_ERROR("RK_MPI_AO_DisableChn fail %#x\n", ret);
+// 	ret = RK_MPI_AO_Disable(0);
+// 	if (ret)
+// 		LOG_ERROR("RK_MPI_AO_Disable fail %#x\n", ret);
+
+// 	return 0;
+// }
+
+// int rk_ao_write(unsigned char *data, int data_len) {
+// 	int ret;
+// 	AUDIO_FRAME_S frame;
+// 	MB_EXT_CONFIG_S extConfig;
+// 	if (data_len <= 0) {
+// 		LOG_INFO("eof");
+// 		return 0;
+// 	}
+
+// 	memset(&frame, 0, sizeof(frame));
+// 	frame.u32Len = data_len;
+// 	frame.u64TimeStamp = 0;
+// 	frame.enBitWidth = AUDIO_BIT_WIDTH_16;
+// 	frame.enSoundMode = AUDIO_SOUND_MODE_MONO;
+// 	frame.bBypassMbBlk = RK_FALSE;
+
+// 	memset(&extConfig, 0, sizeof(extConfig));
+// 	extConfig.pu8VirAddr = data;
+// 	extConfig.u64Size = data_len;
+// 	RK_MPI_SYS_CreateMB(&(frame.pMbBlk), &extConfig);
+
+// 	ret = RK_MPI_AO_SendFrame(0, 0, &frame, 300);
+// 	if (ret < 0)
+// 		LOG_ERROR("send frame fail, result = %#x\n", ret);
+// 	RK_MPI_MB_ReleaseMB(frame.pMbBlk);
+
+// 	return 0;
+// }
