@@ -420,8 +420,6 @@ static void *rkipc_get_vpss_bgr(void *arg) {
 
 int rkipc_rtsp_init() {
 	LOG_DEBUG("start\n");
-	pthread_mutex_lock(&g_rtsp_mutex);
-
 	g_rtsplive = create_rtsp_demo(554);
 	g_rtsp_session_0 = rtsp_new_session(g_rtsplive, RTSP_URL_0);
 	g_rtsp_session_1 = rtsp_new_session(g_rtsplive, RTSP_URL_1);
@@ -443,7 +441,6 @@ int rkipc_rtsp_init() {
 
 	rtsp_sync_video_ts(g_rtsp_session_0, rtsp_get_reltime(), rtsp_get_ntptime());
 	rtsp_sync_video_ts(g_rtsp_session_1, rtsp_get_reltime(), rtsp_get_ntptime());
-	pthread_mutex_unlock(&g_rtsp_mutex);
 	LOG_DEBUG("end\n");
 
 	return 0;
@@ -451,7 +448,6 @@ int rkipc_rtsp_init() {
 
 int rkipc_rtsp_deinit() {
 	LOG_DEBUG("%s\n", __func__);
-	pthread_mutex_lock(&g_rtsp_mutex);
 	if (g_rtsp_session_0) {
 		rtsp_del_session(g_rtsp_session_0);
 		g_rtsp_session_0 = NULL;
@@ -463,7 +459,6 @@ int rkipc_rtsp_deinit() {
 	if (g_rtsplive)
 		rtsp_del_demo(g_rtsplive);
 	g_rtsplive = NULL;
-	pthread_mutex_unlock(&g_rtsp_mutex);
 	return 0;
 }
 
