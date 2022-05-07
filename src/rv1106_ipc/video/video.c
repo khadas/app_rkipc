@@ -1669,6 +1669,8 @@ int rk_video_set_resolution(int stream_id, const char *value) {
 	rk_param_set_int(entry, width);
 	snprintf(entry, 127, "video.%d:height", stream_id);
 	rk_param_set_int(entry, height);
+	snprintf(entry, 127, "video.source:buffer_line");
+	rk_param_set_int(entry, height / 2);
 	rk_video_restart();
 
 	return 0;
