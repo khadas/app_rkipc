@@ -7,7 +7,6 @@
 #include "common.h"
 #include "isp.h"
 #include "log.h"
-#include "network.h"
 #include "param.h"
 #include "rockiva.h"
 #include "server.h"

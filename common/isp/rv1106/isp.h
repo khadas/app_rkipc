@@ -3,8 +3,6 @@ int rk_isp_deinit(int cam_id);
 int rk_isp_group_init(int cam_group_id, char *iqfile_path);
 int rk_isp_group_deinit(int cam_group_id);
 int rk_isp_set_frame_rate(int cam_id, int value);
-int rk_isp_set_frame_rate_without_ini(int cam_id, int value);
-int rk_isp_set_from_ini(int cam_id);
 // image adjustment
 int rk_isp_get_contrast(int cam_id, int *value);
 int rk_isp_set_contrast(int cam_id, int value);

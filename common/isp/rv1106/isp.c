@@ -1333,70 +1333,11 @@ int rk_isp_set_from_ini(int cam_id) {
 	int ret = 0;
 	LOG_DEBUG("start\n");
 	rk_isp_set_frame_rate(cam_id, rk_param_get_int("isp.0.adjustment:fps", 30));
-	// image adjustment
-	LOG_DEBUG("image adjustment\n");
-	rk_isp_set_contrast(cam_id, rk_param_get_int("isp.0.adjustment:contrast", 50));
-	rk_isp_set_brightness(cam_id, rk_param_get_int("isp.0.adjustment:brightness", 50));
-	rk_isp_set_saturation(cam_id, rk_param_get_int("isp.0.adjustment:saturation", 50));
-	rk_isp_set_sharpness(cam_id, rk_param_get_int("isp.0.adjustment:sharpness", 50));
-	rk_isp_set_hue(cam_id, rk_param_get_int("isp.0.adjustment:hue", 50));
-	// exposure
-	LOG_DEBUG("exposure\n");
-	rk_isp_set_exposure_mode(cam_id, rk_param_get_string("isp.0.exposure:exposure_mode", "auto"));
-	rk_isp_set_gain_mode(cam_id, rk_param_get_string("isp.0.exposure:gain_mode", "auto"));
-	rk_isp_set_exposure_time(cam_id, rk_param_get_string("isp.0.exposure:exposure_time", "1/6"));
-	rk_isp_set_exposure_gain(cam_id, rk_param_get_int("isp.0.exposure:exposure_gain", 1));
-	// night_to_day
-	LOG_DEBUG("night_to_day\n");
-	rk_isp_set_night_to_day(cam_id, rk_param_get_string("isp.0.night_to_day:night_to_day", "day"));
-	rk_isp_set_fill_light_mode(cam_id,
-	                           rk_param_get_string("isp.0.night_to_day:fill_light_mode", "IR"));
-	rk_isp_set_light_brightness(cam_id, rk_param_get_int("isp.0.night_to_day:light_brightness", 1));
-	// blc
-	LOG_DEBUG("blc\n");
-	rk_isp_set_hdr(cam_id, rk_param_get_string("isp.0.blc:hdr", "close"));
-	rk_isp_set_blc_region(cam_id, rk_param_get_string("isp.0.blc:blc_region", "close"));
-	rk_isp_set_hlc(cam_id, rk_param_get_string("isp.0.blc:hlc", "close"));
-	rk_isp_set_hdr_level(cam_id, rk_param_get_int("isp.0.blc:hdr_level", 1));
-	rk_isp_set_blc_strength(cam_id, rk_param_get_int("isp.0.blc:blc_strength", 1));
-	rk_isp_set_hlc_level(cam_id, rk_param_get_int("isp.0.blc:hlc_level", 0));
-	rk_isp_set_dark_boost_level(cam_id, rk_param_get_int("isp.0.blc:dark_boost_level", 0));
-	// white_blance
-	LOG_DEBUG("white_blance\n");
-	rk_isp_set_white_blance_style(
-	    cam_id, rk_param_get_string("isp.0.white_blance:white_blance_style", "autoWhiteBalance"));
-	rk_isp_set_white_blance_red(cam_id,
-	                            rk_param_get_int("isp.0.white_blance:white_blance_red", 50));
-	rk_isp_set_white_blance_green(cam_id,
-	                              rk_param_get_int("isp.0.white_blance:white_blance_green", 50));
-	rk_isp_set_white_blance_blue(cam_id,
-	                             rk_param_get_int("isp.0.white_blance:white_blance_blue", 50));
-	// enhancement
-	LOG_DEBUG("enhancement\n");
-	rk_isp_set_noise_reduce_mode(
-	    cam_id, rk_param_get_string("isp.0.enhancement:noise_reduce_mode", "close"));
-	// rk_isp_set_dehaze(cam_id, rk_param_get_string("isp.0.enhancement:dehaze", "close"));
-	rk_isp_set_gray_scale_mode(cam_id,
-	                           rk_param_get_string("isp.0.enhancement:gray_scale_mode", "[0-255]"));
-	rk_isp_set_distortion_correction(
-	    cam_id, rk_param_get_string("isp.0.enhancement:distortion_correction", "close"));
-	rk_isp_set_spatial_denoise_level(
-	    cam_id, rk_param_get_int("isp.0.enhancement:spatial_denoise_level", 50));
-	rk_isp_set_temporal_denoise_level(
-	    cam_id, rk_param_get_int("isp.0.enhancement:temporal_denoise_level", 50));
-	rk_isp_set_dehaze_level(cam_id, rk_param_get_int("isp.0.enhancement:dehaze_level", 50));
-	rk_isp_set_ldch_level(cam_id, rk_param_get_int("isp.0.enhancement:ldch_level", 0));
-	// video_adjustment
-	LOG_DEBUG("video_adjustment\n");
-	rk_isp_set_power_line_frequency_mode(
-	    cam_id,
-	    rk_param_get_string("isp.0.video_adjustment:power_line_frequency_mode", "PAL(50HZ)"));
-	rk_isp_set_image_flip(cam_id,
-	                      rk_param_get_string("isp.0.video_adjustment:image_flip", "close"));
-	// auto focus
-	// LOG_DEBUG("auto focus\n");
-	// rk_isp_set_af_mode(cam_id, const char *value);
-
+	// rk_isp_set_contrast(cam_id, rk_param_get_int("isp.0.adjustment:contrast", 50));
+	// rk_isp_set_brightness(cam_id, rk_param_get_int("isp.0.adjustment:brightness", 50));
+	// rk_isp_set_saturation(cam_id, rk_param_get_int("isp.0.adjustment:saturation", 50));
+	// rk_isp_set_sharpness(cam_id, rk_param_get_int("isp.0.adjustment:sharpness", 50));
+	// rk_isp_set_hue(cam_id, rk_param_get_int("isp.0.adjustment:hue", 50));
 	LOG_DEBUG("end\n");
 
 	return ret;
