@@ -779,14 +779,9 @@ int rkipc_avs_init() {
 	const char *mesh_alpha_path =
 	    rk_param_get_string("avs:mesh_alpha_path", "/usr/share/avs_calib/");
 	LOG_INFO("calib_file_path = %s, mesh_alpha_path = %s\n", calib_file_path, mesh_alpha_path);
-	memcpy(stAvsGrpAttr.stOutAttr.stCalib.aCalibFilePath, calib_file_path,
-	       strlen(calib_file_path) + 1);
-	memset(stAvsGrpAttr.stOutAttr.stCalib.aCalibFilePath + strlen(calib_file_path) + 1, '\0',
-	       sizeof(char));
-	memcpy(stAvsGrpAttr.stOutAttr.stCalib.aMeshAlphaPath, mesh_alpha_path,
-	       strlen(mesh_alpha_path) + 1);
-	memset(stAvsGrpAttr.stOutAttr.stCalib.aMeshAlphaPath + strlen(mesh_alpha_path) + 1, '\0',
-	       sizeof(char));
+	stAvsGrpAttr.stInAttr.enParamSource = AVS_PARAM_SOURCE_CALIB;
+	stAvsGrpAttr.stInAttr.stCalib.pCalibFilePath = calib_file_path;
+	stAvsGrpAttr.stInAttr.stCalib.pMeshAlphaPath = mesh_alpha_path;
 #endif
 	stAvsGrpAttr.u32PipeNum = g_sensor_num;
 	stAvsGrpAttr.stGainAttr.enMode = AVS_GAIN_MODE_AUTO;
@@ -801,7 +796,6 @@ int rkipc_avs_init() {
 	stAvsGrpAttr.stOutAttr.stRotation.s32Roll = 0;
 	stAvsGrpAttr.stOutAttr.stRotation.s32Pitch = 0;
 	stAvsGrpAttr.stOutAttr.stRotation.s32Yaw = 0;
-	stAvsGrpAttr.stLUT.enAccuracy = AVS_LUT_ACCURACY_HIGH;
 	stAvsGrpAttr.bSyncPipe = rk_param_get_int("avs:sync", 1);
 	stAvsGrpAttr.stFrameRate.s32SrcFrameRate = -1;
 	stAvsGrpAttr.stFrameRate.s32DstFrameRate = -1;
