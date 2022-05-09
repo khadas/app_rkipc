@@ -570,6 +570,7 @@ int rk_isp_set_hdr(int cam_id, const char *value) {
 		rk_param_set_string(entry, value);
 		// usleep(100 * 1000);
 		rk_isp_init(0, g_iq_file_dir_);
+		rk_isp_set_from_ini(0);
 		RK_MPI_VI_ResumeChn(0, 0);
 		RK_MPI_VI_ResumeChn(0, 1);
 	}
