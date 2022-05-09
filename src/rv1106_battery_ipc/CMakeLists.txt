@@ -38,10 +38,8 @@ add_definitions(-DISP_HW_V32)
 add_definitions(-g -ggdb)
 
 add_executable(${PROJECT_NAME} ${SRCS})
-
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--gc-sections -Wl,--as-needed")
-
-target_link_libraries(${PROJECT_NAME} m pthread rockit rkaiq rtsp rockiva rknnmrt rga)
+target_link_libraries(${PROJECT_NAME} libpthread.a librockit.a stdc++ librockchip_mpp.a librkaiq.a
+				librtsp.a librkaudio_detect.a libaec_bf_process.a libm.a librockiva.a librknnmrt.a librga.a)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION root/usr/bin)
 install(FILES rkipc.ini DESTINATION root/usr/share)
