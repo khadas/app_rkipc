@@ -203,10 +203,10 @@ int rk_storage_record_start();
 int rk_storage_record_stop();
 int rk_storage_record_statue_get(int *value);
 
-//int rkipc_storage_quota_get(int id, char **value);    // TODO, current only sd card
-int rkipc_storage_quota_set(int id, char *value);     // TODO
-//int rkipc_storage_hdd_list_get(int id, char **value); // TODO, current only sd card
-//int rkipc_storage_snap_plan_get(int id, char **value);
+// int rkipc_storage_quota_get(int id, char **value);    // TODO, current only sd card
+int rkipc_storage_quota_set(int id, char *value); // TODO
+// int rkipc_storage_hdd_list_get(int id, char **value); // TODO, current only sd card
+// int rkipc_storage_snap_plan_get(int id, char **value);
 int rkipc_storage_snap_plan_set(int id, char *value); // TODO
 int rkipc_storage_current_path_get(char **value);
 int rkipc_storage_current_path_set(char *value);
@@ -214,7 +214,7 @@ int rkipc_storage_search(char *file_info); // TODO
 
 // num:The number of files to delete
 // namel_ist:The list of files to be deleted, the number of lists matches the num
-//char *rkipc_response_delete(int id, int num, char *name_list);
+// char *rkipc_response_delete(int id, int num, char *name_list);
 
 #ifdef __cplusplus
 }

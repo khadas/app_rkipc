@@ -1810,12 +1810,12 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 		stCoverChn.s32ChnId = 0;
 		ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
 		if (RK_SUCCESS != ret) {
-			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) failed with %#x\n", coverHandle, ret);
+			LOG_ERROR("0 RK_MPI_RGN_AttachToChn (%d) failed with %#x\n", coverHandle, ret);
 			return RK_FAILURE;
 		}
 		ret = RK_MPI_RGN_SetDisplayAttr(coverHandle, &stCoverChn, &stCoverChnAttr);
 		if (RK_SUCCESS != ret) {
-			LOG_ERROR(" RK_MPI_RGN_SetDisplayAttr failed with %#x!", ret);
+			LOG_ERROR("0 RK_MPI_RGN_SetDisplayAttr failed with %#x!", ret);
 			return RK_FAILURE;
 		}
 		LOG_DEBUG("RK_MPI_RGN_AttachToChn to venc0 success\n");
@@ -1836,10 +1836,15 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 		stCoverChn.s32ChnId = 1;
 		ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
 		if (RK_SUCCESS != ret) {
-			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) failed with %#x\n", coverHandle, ret);
+			LOG_ERROR("1 RK_MPI_RGN_AttachToChn (%d) failed with %#x\n", coverHandle, ret);
 			return RK_FAILURE;
 		}
-		LOG_DEBUG("RK_MPI_RGN_AttachToChn to venc0 success\n");
+		ret = RK_MPI_RGN_SetDisplayAttr(coverHandle, &stCoverChn, &stCoverChnAttr);
+		if (RK_SUCCESS != ret) {
+			LOG_ERROR("1 RK_MPI_RGN_SetDisplayAttr failed with %#x!", ret);
+			return RK_FAILURE;
+		}
+		LOG_DEBUG("RK_MPI_RGN_AttachToChn to venc1 success\n");
 	}
 
 	return ret;
