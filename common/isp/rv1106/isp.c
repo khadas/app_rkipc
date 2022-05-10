@@ -453,8 +453,10 @@ int rk_isp_get_exposure_gain(int cam_id, int *value) {
 
 int rk_isp_set_exposure_gain(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	const char *mode = rk_param_get_string("isp.0.exposure:exposure_mode", "auto");
-	if (!strcmp(mode, "auto"))
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "isp.%d.exposure:exposure_mode", cam_id);
+	const char *mode = rk_param_get_string(entry, "auto");
+	if (strcmp(mode, "manual"))
 		return 0;
 	Uapi_ExpSwAttrV2_t stExpSwAttr;
 	float gain_set = (value * 1.0f);
@@ -464,7 +466,7 @@ int rk_isp_set_exposure_gain(int cam_id, int value) {
 	stExpSwAttr.stManual.HdrAE.GainValue[1] = gain_set;
 	stExpSwAttr.stManual.HdrAE.GainValue[2] = gain_set;
 	int ret = rk_aiq_user_api2_ae_setExpSwAttr(rkipc_aiq_get_ctx(cam_id), stExpSwAttr);
-	char entry[128] = {'\0'};
+
 	snprintf(entry, 127, "isp.%d.exposure:exposure_gain", cam_id);
 	rk_param_set_int(entry, value);
 
