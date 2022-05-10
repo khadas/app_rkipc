@@ -385,6 +385,15 @@ int rkipc_aenc_deinit() {
 	return 0;
 }
 
+int rkipc_audio_rtsp_init() {
+	rtsp_set_audio(g_rtsp_session_0, RTSP_CODEC_ID_AUDIO_G711A, NULL, 0);
+	rtsp_set_audio(g_rtsp_session_1, RTSP_CODEC_ID_AUDIO_G711A, NULL, 0);
+	rtsp_sync_audio_ts(g_rtsp_session_0, rtsp_get_reltime(), rtsp_get_ntptime());
+	rtsp_sync_audio_ts(g_rtsp_session_1, rtsp_get_reltime(), rtsp_get_ntptime());
+
+	return 0;
+}
+
 int rkipc_audio_init() {
 	LOG_DEBUG("%s\n", __func__);
 	int ret = rkipc_ai_init();
@@ -404,10 +413,7 @@ int rkipc_audio_init() {
 		LOG_ERROR("RK_MPI_SYS_Bind fail %x\n", ret);
 	}
 	LOG_DEBUG("RK_MPI_SYS_Bind success\n");
-	rtsp_set_audio(g_rtsp_session_0, RTSP_CODEC_ID_AUDIO_G711A, NULL, 0);
-	rtsp_set_audio(g_rtsp_session_1, RTSP_CODEC_ID_AUDIO_G711A, NULL, 0);
-	rtsp_sync_audio_ts(g_rtsp_session_0, rtsp_get_reltime(), rtsp_get_ntptime());
-	rtsp_sync_audio_ts(g_rtsp_session_1, rtsp_get_reltime(), rtsp_get_ntptime());
+	rkipc_audio_rtsp_init();
 
 	return ret;
 }
