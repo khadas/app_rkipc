@@ -73,7 +73,16 @@ int rkipc_storage_set_dev_attr(rkipc_str_dev_attr *pstDevAttr) {
 	mount_path = rk_param_get_string("storage:mount_path", "/userdata");
 	sprintf(pstDevAttr->mount_path, mount_path);
 	rkipc_storage_get_mount_dev(mount_path, dev_path, type, attributes);
-	sprintf(pstDevAttr->dev_path, dev_path);
+	if (strlen(dev_path) == 0) {
+		char entry[128] = {'\0'};
+		LOG_ERROR("unrecognized dev_path,stop record!\n");
+		for (int i = 0; i < STORAGE_NUM; i++) {
+			snprintf(entry, 127, "storage.%d:enable", i);
+			rk_param_set_int(entry, 0);
+		}
+	} else {
+		sprintf(pstDevAttr->dev_path, dev_path);
+	}
 	LOG_INFO("mount path is %s, dev_path is %s\n", mount_path, dev_path);
 
 	pstDevAttr->auto_delete = 1;
