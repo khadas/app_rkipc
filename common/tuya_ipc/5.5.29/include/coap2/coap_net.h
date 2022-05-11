@@ -22,14 +22,14 @@
 #include <lwip/ip_addr.h>
 #endif
 
-#include "coap_io.h"
 #include "coap_dtls.h"
 #include "coap_event.h"
+#include "coap_io.h"
+#include "coap_session.h"
 #include "coap_time.h"
 #include "option.h"
 #include "pdu.h"
 #include "prng.h"
-#include "coap_session.h"
 
 struct coap_queue_t;
 
@@ -37,14 +37,14 @@ struct coap_queue_t;
  * Queue entry
  */
 typedef struct coap_queue_t {
-  struct coap_queue_t *next;
-  coap_tick_t t;                /**< when to send PDU for the next time */
-  unsigned char retransmit_cnt; /**< retransmission counter, will be removed
-                                 *    when zero */
-  unsigned int timeout;         /**< the randomized timeout value */
-  coap_session_t *session;      /**< the CoAP session */
-  coap_tid_t id;                /**< CoAP transaction id */
-  coap_pdu_t *pdu;              /**< the CoAP PDU to send */
+	struct coap_queue_t *next;
+	coap_tick_t t;                /**< when to send PDU for the next time */
+	unsigned char retransmit_cnt; /**< retransmission counter, will be removed
+	                               *    when zero */
+	unsigned int timeout;         /**< the randomized timeout value */
+	coap_session_t *session;      /**< the CoAP session */
+	coap_tid_t id;                /**< CoAP transaction id */
+	coap_pdu_t *pdu;              /**< the CoAP PDU to send */
 } coap_queue_t;
 
 /**
@@ -95,10 +95,8 @@ struct coap_async_state_t;
  * @param received The PDU that was received.
  * @param id CoAP transaction ID.
  */
-typedef void (*coap_response_handler_t)(struct coap_context_t *context,
-                                        coap_session_t *session,
-                                        coap_pdu_t *sent,
-                                        coap_pdu_t *received,
+typedef void (*coap_response_handler_t)(struct coap_context_t *context, coap_session_t *session,
+                                        coap_pdu_t *sent, coap_pdu_t *received,
                                         const coap_tid_t id);
 
 /**
@@ -110,10 +108,8 @@ typedef void (*coap_response_handler_t)(struct coap_context_t *context,
  * @param reason The reason for the NACK.
  * @param id CoAP transaction ID.
  */
-typedef void (*coap_nack_handler_t)(struct coap_context_t *context,
-                                    coap_session_t *session,
-                                    coap_pdu_t *sent,
-                                    coap_nack_reason_t reason,
+typedef void (*coap_nack_handler_t)(struct coap_context_t *context, coap_session_t *session,
+                                    coap_pdu_t *sent, coap_nack_reason_t reason,
                                     const coap_tid_t id);
 
 /**
@@ -124,10 +120,8 @@ typedef void (*coap_nack_handler_t)(struct coap_context_t *context,
  * @param received The PDU that was received.
  * @param id CoAP transaction ID.
  */
-typedef void (*coap_ping_handler_t)(struct coap_context_t *context,
-                                    coap_session_t *session,
-                                    coap_pdu_t *received,
-                                    const coap_tid_t id);
+typedef void (*coap_ping_handler_t)(struct coap_context_t *context, coap_session_t *session,
+                                    coap_pdu_t *received, const coap_tid_t id);
 
 /**
  * Recieved Pong handler that is used as call-back in coap_context_t.
@@ -137,86 +131,93 @@ typedef void (*coap_ping_handler_t)(struct coap_context_t *context,
  * @param received The PDU that was received.
  * @param id CoAP transaction ID.
  */
-typedef void (*coap_pong_handler_t)(struct coap_context_t *context,
-                                    coap_session_t *session,
-                                    coap_pdu_t *received,
-                                    const coap_tid_t id);
+typedef void (*coap_pong_handler_t)(struct coap_context_t *context, coap_session_t *session,
+                                    coap_pdu_t *received, const coap_tid_t id);
 
 /**
  * The CoAP stack's global state is stored in a coap_context_t object.
  */
 typedef struct coap_context_t {
-  coap_opt_filter_t known_options;
-  struct coap_resource_t *resources; /**< hash table or list of known
-                                          resources */
-  struct coap_resource_t *unknown_resource; /**< can be used for handling
-                                                 unknown resources */
+	coap_opt_filter_t known_options;
+	struct coap_resource_t *resources;        /**< hash table or list of known
+	                                               resources */
+	struct coap_resource_t *unknown_resource; /**< can be used for handling
+	                                               unknown resources */
 
 #ifndef WITHOUT_ASYNC
-  /**
-   * list of asynchronous transactions */
-  struct coap_async_state_t *async_state;
+	/**
+	 * list of asynchronous transactions */
+	struct coap_async_state_t *async_state;
 #endif /* WITHOUT_ASYNC */
 
-  /**
-   * The time stamp in the first element of the sendqeue is relative
-   * to sendqueue_basetime. */
-  coap_tick_t sendqueue_basetime;
-  coap_queue_t *sendqueue;
-  coap_endpoint_t *endpoint;      /**< the endpoints used for listening  */
-  coap_session_t *sessions;       /**< client sessions */
+	/**
+	 * The time stamp in the first element of the sendqeue is relative
+	 * to sendqueue_basetime. */
+	coap_tick_t sendqueue_basetime;
+	coap_queue_t *sendqueue;
+	coap_endpoint_t *endpoint; /**< the endpoints used for listening  */
+	coap_session_t *sessions;  /**< client sessions */
 
 #ifdef WITH_CONTIKI
-  struct uip_udp_conn *conn;      /**< uIP connection object */
-  struct etimer retransmit_timer; /**< fires when the next packet must be sent */
-  struct etimer notify_timer;     /**< used to check resources periodically */
-#endif /* WITH_CONTIKI */
+	struct uip_udp_conn *conn;      /**< uIP connection object */
+	struct etimer retransmit_timer; /**< fires when the next packet must be sent */
+	struct etimer notify_timer;     /**< used to check resources periodically */
+#endif                              /* WITH_CONTIKI */
 
 #ifdef WITH_LWIP
-  uint8_t timer_configured;       /**< Set to 1 when a retransmission is
-                                   *   scheduled using lwIP timers for this
-                                   *   context, otherwise 0. */
-#endif /* WITH_LWIP */
+	uint8_t timer_configured; /**< Set to 1 when a retransmission is
+	                           *   scheduled using lwIP timers for this
+	                           *   context, otherwise 0. */
+#endif                        /* WITH_LWIP */
 
-  /**
-   * The last message id that was used is stored in this field. The initial
-   * value is set by coap_new_context() and is usually a random value. A new
-   * message id can be created with coap_new_message_id().
-   */
-  uint16_t message_id;
+	/**
+	 * The last message id that was used is stored in this field. The initial
+	 * value is set by coap_new_context() and is usually a random value. A new
+	 * message id can be created with coap_new_message_id().
+	 */
+	uint16_t message_id;
 
-  coap_response_handler_t response_handler;
-  coap_nack_handler_t nack_handler;
-  coap_ping_handler_t ping_handler;
-  coap_pong_handler_t pong_handler;
+	coap_response_handler_t response_handler;
+	coap_nack_handler_t nack_handler;
+	coap_ping_handler_t ping_handler;
+	coap_pong_handler_t pong_handler;
 
-  /**
-   * Callback function that is used to signal events to the
-   * application.  This field is set by coap_set_event_handler().
-   */
-  coap_event_handler_t handle_event;
+	/**
+	 * Callback function that is used to signal events to the
+	 * application.  This field is set by coap_set_event_handler().
+	 */
+	coap_event_handler_t handle_event;
 
-  ssize_t (*network_send)(coap_socket_t *sock, const coap_session_t *session, const uint8_t *data, size_t datalen);
+	ssize_t (*network_send)(coap_socket_t *sock, const coap_session_t *session, const uint8_t *data,
+	                        size_t datalen);
 
-  ssize_t (*network_read)(coap_socket_t *sock, struct coap_packet_t *packet);
+	ssize_t (*network_read)(coap_socket_t *sock, struct coap_packet_t *packet);
 
-  size_t(*get_client_psk)(const coap_session_t *session, const uint8_t *hint, size_t hint_len, uint8_t *identity, size_t *identity_len, size_t max_identity_len, uint8_t *psk, size_t max_psk_len);
-  size_t(*get_server_psk)(const coap_session_t *session, const uint8_t *identity, size_t identity_len, uint8_t *psk, size_t max_psk_len);
-  size_t(*get_server_hint)(const coap_session_t *session, uint8_t *hint, size_t max_hint_len);
+	size_t (*get_client_psk)(const coap_session_t *session, const uint8_t *hint, size_t hint_len,
+	                         uint8_t *identity, size_t *identity_len, size_t max_identity_len,
+	                         uint8_t *psk, size_t max_psk_len);
+	size_t (*get_server_psk)(const coap_session_t *session, const uint8_t *identity,
+	                         size_t identity_len, uint8_t *psk, size_t max_psk_len);
+	size_t (*get_server_hint)(const coap_session_t *session, uint8_t *hint, size_t max_hint_len);
 
-  void *dtls_context;
-  uint8_t *psk_hint;
-  size_t psk_hint_len;
-  uint8_t *psk_key;
-  size_t psk_key_len;
+	void *dtls_context;
+	uint8_t *psk_hint;
+	size_t psk_hint_len;
+	uint8_t *psk_key;
+	size_t psk_key_len;
 
-  unsigned int session_timeout;    /**< Number of seconds of inactivity after which an unused session will be closed. 0 means use default. */
-  unsigned int max_idle_sessions;  /**< Maximum number of simultaneous unused sessions per endpoint. 0 means no maximum. */
-  unsigned int max_handshake_sessions; /**< Maximum number of simultaneous negotating sessions per endpoint. 0 means use default. */
-  unsigned int ping_timeout;           /**< Minimum inactivity time before sending a ping message. 0 means disabled. */
-  unsigned int csm_timeout;           /**< Timeout for waiting for a CSM from the remote side. 0 means disabled. */
+	unsigned int session_timeout; /**< Number of seconds of inactivity after which an unused session
+	                                 will be closed. 0 means use default. */
+	unsigned int max_idle_sessions;      /**< Maximum number of simultaneous unused sessions per
+	                                        endpoint. 0 means no maximum. */
+	unsigned int max_handshake_sessions; /**< Maximum number of simultaneous negotating sessions per
+	                                        endpoint. 0 means use default. */
+	unsigned int ping_timeout; /**< Minimum inactivity time before sending a ping message. 0 means
+	                              disabled. */
+	unsigned int
+	    csm_timeout; /**< Timeout for waiting for a CSM from the remote side. 0 means disabled. */
 
-  void *app;                       /**< application-specific data */
+	void *app; /**< application-specific data */
 } coap_context_t;
 
 /**
@@ -226,10 +227,9 @@ typedef struct coap_context_t {
  * @param context The context to register the handler for.
  * @param handler The response handler to register.
  */
-COAP_STATIC_INLINE void
-coap_register_response_handler(coap_context_t *context,
-                               coap_response_handler_t handler) {
-  context->response_handler = handler;
+COAP_STATIC_INLINE void coap_register_response_handler(coap_context_t *context,
+                                                       coap_response_handler_t handler) {
+	context->response_handler = handler;
 }
 
 /**
@@ -241,10 +241,9 @@ coap_register_response_handler(coap_context_t *context,
  * @param context The context to register the handler for.
  * @param handler The nack handler to register.
  */
-COAP_STATIC_INLINE void
-coap_register_nack_handler(coap_context_t *context,
-                           coap_nack_handler_t handler) {
-  context->nack_handler = handler;
+COAP_STATIC_INLINE void coap_register_nack_handler(coap_context_t *context,
+                                                   coap_nack_handler_t handler) {
+	context->nack_handler = handler;
 }
 
 /**
@@ -254,10 +253,9 @@ coap_register_nack_handler(coap_context_t *context,
  * @param context The context to register the handler for.
  * @param handler The ping handler to register.
  */
-COAP_STATIC_INLINE void
-coap_register_ping_handler(coap_context_t *context,
-                           coap_ping_handler_t handler) {
-  context->ping_handler = handler;
+COAP_STATIC_INLINE void coap_register_ping_handler(coap_context_t *context,
+                                                   coap_ping_handler_t handler) {
+	context->ping_handler = handler;
 }
 
 /**
@@ -267,10 +265,9 @@ coap_register_ping_handler(coap_context_t *context,
  * @param context The context to register the handler for.
  * @param handler The pong handler to register.
  */
-COAP_STATIC_INLINE void
-coap_register_pong_handler(coap_context_t *context,
-                           coap_pong_handler_t handler) {
-  context->pong_handler = handler;
+COAP_STATIC_INLINE void coap_register_pong_handler(coap_context_t *context,
+                                                   coap_pong_handler_t handler) {
+	context->pong_handler = handler;
 }
 
 /**
@@ -279,9 +276,8 @@ coap_register_pong_handler(coap_context_t *context,
  * @param ctx  The context to use.
  * @param type The option type to register.
  */
-COAP_STATIC_INLINE void
-coap_register_option(coap_context_t *ctx, uint16_t type) {
-  coap_option_setb(ctx->known_options, type);
+COAP_STATIC_INLINE void coap_register_option(coap_context_t *ctx, uint16_t type) {
+	coap_option_setb(ctx->known_options, type);
 }
 
 /**
@@ -294,12 +290,12 @@ unsigned int coap_adjust_basetime(coap_context_t *ctx, coap_tick_t now);
 /**
  * Returns the next pdu to send without removing from sendqeue.
  */
-coap_queue_t *coap_peek_next( coap_context_t *context );
+coap_queue_t *coap_peek_next(coap_context_t *context);
 
 /**
  * Returns the next pdu to send and removes it from the sendqeue.
  */
-coap_queue_t *coap_pop_next( coap_context_t *context );
+coap_queue_t *coap_pop_next(coap_context_t *context);
 
 /**
  * Creates a new coap_context_t object that will hold the CoAP stack status.
@@ -318,8 +314,8 @@ coap_context_t *coap_new_context(const coap_address_t *listen_addr);
  *
  * @return @c 1 if successful, else @c 0.
  */
-int coap_context_set_psk( coap_context_t *context, const char *hint,
-                           const uint8_t *key, size_t key_len );
+int coap_context_set_psk(coap_context_t *context, const char *hint, const uint8_t *key,
+                         size_t key_len);
 
 /**
  * Set the context's default PKI information for a server.
@@ -330,9 +326,7 @@ int coap_context_set_psk( coap_context_t *context, const char *hint,
  *
  * @return @c 1 if successful, else @c 0.
  */
-int
-coap_context_set_pki(coap_context_t *context,
-                     coap_dtls_pki_t *setup_data);
+int coap_context_set_pki(coap_context_t *context, coap_dtls_pki_t *setup_data);
 
 /**
  * Set the context's default Root CA information for a client or server.
@@ -345,10 +339,7 @@ coap_context_set_pki(coap_context_t *context,
  *
  * @return @c 1 if successful, else @c 0.
  */
-int
-coap_context_set_pki_root_cas(coap_context_t *context,
-                              const char *ca_file,
-                              const char *ca_dir);
+int coap_context_set_pki_root_cas(coap_context_t *context, const char *ca_file, const char *ca_dir);
 
 /**
  * Set the context keepalive timer for sessions.
@@ -375,9 +366,8 @@ void coap_context_set_keepalive(coap_context_t *context, unsigned int seconds);
  *
  * @return        Incremented message id in network byte order.
  */
-COAP_STATIC_INLINE uint16_t
-coap_new_message_id(coap_session_t *session) {
-  return ++session->tx_mid;
+COAP_STATIC_INLINE uint16_t coap_new_message_id(coap_session_t *session) {
+	return ++session->tx_mid;
 }
 
 /**
@@ -429,8 +419,7 @@ void *coap_get_app_data(const coap_context_t *context);
  *
  * @return        A pointer to the new message or @c NULL on error.
  */
-coap_pdu_t *coap_new_error_response(coap_pdu_t *request,
-                                    unsigned char code,
+coap_pdu_t *coap_new_error_response(coap_pdu_t *request, unsigned char code,
                                     coap_opt_filter_t opts);
 
 /**
@@ -448,9 +437,7 @@ coap_pdu_t *coap_new_error_response(coap_pdu_t *request,
  * @return                The transaction id if the message was sent, or @c
  *                        COAP_INVALID_TID otherwise.
  */
-coap_tid_t coap_send_error(coap_session_t *session,
-                           coap_pdu_t *request,
-                           unsigned char code,
+coap_tid_t coap_send_error(coap_session_t *session, coap_pdu_t *request, unsigned char code,
                            coap_opt_filter_t opts);
 
 /**
@@ -464,8 +451,7 @@ coap_tid_t coap_send_error(coap_session_t *session,
  * @return                transaction id on success or @c COAP_INVALID_TID
  *                        otherwise.
  */
-coap_tid_t
-coap_send_message_type(coap_session_t *session, coap_pdu_t *request, unsigned char type);
+coap_tid_t coap_send_message_type(coap_session_t *session, coap_pdu_t *request, unsigned char type);
 
 /**
  * Sends an ACK message with code @c 0 for the specified @p request to @p dst.
@@ -491,23 +477,22 @@ coap_tid_t coap_send_ack(coap_session_t *session, coap_pdu_t *request);
  * @return                The transaction id if RST was sent or @c
  *                        COAP_INVALID_TID on error.
  */
-COAP_STATIC_INLINE coap_tid_t
-coap_send_rst(coap_session_t *session, coap_pdu_t *request) {
-  return coap_send_message_type(session, request, COAP_MESSAGE_RST);
+COAP_STATIC_INLINE coap_tid_t coap_send_rst(coap_session_t *session, coap_pdu_t *request) {
+	return coap_send_message_type(session, request, COAP_MESSAGE_RST);
 }
 
 /**
-* Sends a CoAP message to given peer. The memory that is
-* allocated by pdu will be released by coap_send().
-* The caller must not use the pdu after calling coap_send().
-*
-* @param session         The CoAP session.
-* @param pdu             The CoAP PDU to send.
-*
-* @return                The message id of the sent message or @c
-*                        COAP_INVALID_TID on error.
-*/
-coap_tid_t coap_send( coap_session_t *session, coap_pdu_t *pdu );
+ * Sends a CoAP message to given peer. The memory that is
+ * allocated by pdu will be released by coap_send().
+ * The caller must not use the pdu after calling coap_send().
+ *
+ * @param session         The CoAP session.
+ * @param pdu             The CoAP PDU to send.
+ *
+ * @return                The message id of the sent message or @c
+ *                        COAP_INVALID_TID on error.
+ */
+coap_tid_t coap_send(coap_session_t *session, coap_pdu_t *pdu);
 
 /**
  * Handles retransmissions of confirmable messages
@@ -521,32 +506,31 @@ coap_tid_t coap_send( coap_session_t *session, coap_pdu_t *pdu );
 coap_tid_t coap_retransmit(coap_context_t *context, coap_queue_t *node);
 
 /**
-* For applications with their own message loop, send all pending retransmits and
-* return the list of sockets with events to wait for and the next timeout
-* The application should call coap_read, then coap_write again when any condition below is true:
-* - data is available on any of the sockets with the COAP_SOCKET_WANT_READ
-* - an incoming connection is pending in the listen queue and the COAP_SOCKET_WANT_ACCEPT flag is set
-* - at least some data can be written without blocking on any of the sockets with the COAP_SOCKET_WANT_WRITE flag set
-* - a connection event occured (success or failure) and the COAP_SOCKET_WANT_CONNECT flag is set
-* - the timeout has expired
-* Before calling coap_read or coap_write again, the application should position COAP_SOCKET_CAN_READ and COAP_SOCKET_CAN_WRITE flags as applicable.
-*
-* @param ctx The CoAP context
-* @param sockets array of socket descriptors, filled on output
-* @param max_sockets size of socket array.
-* @param num_sockets pointer to the number of valid entries in the socket arrays on output
-* @param now Current time.
-*
-* @return timeout as maxmimum number of milliseconds that the application should wait for network events or 0 if the application should wait forever.
-*/
+ * For applications with their own message loop, send all pending retransmits and
+ * return the list of sockets with events to wait for and the next timeout
+ * The application should call coap_read, then coap_write again when any condition below is true:
+ * - data is available on any of the sockets with the COAP_SOCKET_WANT_READ
+ * - an incoming connection is pending in the listen queue and the COAP_SOCKET_WANT_ACCEPT flag is
+ * set
+ * - at least some data can be written without blocking on any of the sockets with the
+ * COAP_SOCKET_WANT_WRITE flag set
+ * - a connection event occured (success or failure) and the COAP_SOCKET_WANT_CONNECT flag is set
+ * - the timeout has expired
+ * Before calling coap_read or coap_write again, the application should position
+ * COAP_SOCKET_CAN_READ and COAP_SOCKET_CAN_WRITE flags as applicable.
+ *
+ * @param ctx The CoAP context
+ * @param sockets array of socket descriptors, filled on output
+ * @param max_sockets size of socket array.
+ * @param num_sockets pointer to the number of valid entries in the socket arrays on output
+ * @param now Current time.
+ *
+ * @return timeout as maxmimum number of milliseconds that the application should wait for network
+ * events or 0 if the application should wait forever.
+ */
 
-unsigned int
-coap_write(coap_context_t *ctx,
-  coap_socket_t *sockets[],
-  unsigned int max_sockets,
-  unsigned int *num_sockets,
-  coap_tick_t now
-);
+unsigned int coap_write(coap_context_t *ctx, coap_socket_t *sockets[], unsigned int max_sockets,
+                        unsigned int *num_sockets, coap_tick_t now);
 
 /**
  * For applications with their own message loop, reads all data from the network.
@@ -560,12 +544,13 @@ void coap_read(coap_context_t *ctx, coap_tick_t now);
  * The main message processing loop.
  *
  * @param ctx The CoAP context
- * @param timeout_ms Minimum number of milliseconds to wait for new messages before returning. If zero the call will block until at least one packet is sent or received.
+ * @param timeout_ms Minimum number of milliseconds to wait for new messages before returning. If
+ * zero the call will block until at least one packet is sent or received.
  *
  * @return number of milliseconds spent or @c -1 if there was an error
  */
 
-int coap_run_once( coap_context_t *ctx, unsigned int timeout_ms );
+int coap_run_once(coap_context_t *ctx, unsigned int timeout_ms);
 
 /**
  * Parses and interprets a CoAP datagram with context @p ctx. This function
@@ -592,9 +577,7 @@ int coap_handle_dgram(coap_context_t *ctx, coap_session_t *session, uint8_t *dat
  * @return The result from the associated event handler or 0 if none was
  * registered.
  */
-int coap_handle_event(coap_context_t *context,
-                      coap_event_t event,
-                      coap_session_t *session);
+int coap_handle_event(coap_context_t *context, coap_event_t event, coap_session_t *session);
 /**
  * This function removes the element with given @p id from the list given list.
  * If @p id was found, @p node is updated to point to the removed element. Note
@@ -611,14 +594,10 @@ int coap_handle_event(coap_context_t *context,
  *
  * @return      @c 1 if @p id was found, @c 0 otherwise.
  */
-int coap_remove_from_queue(coap_queue_t **queue,
-                           coap_session_t *session,
-                           coap_tid_t id,
+int coap_remove_from_queue(coap_queue_t **queue, coap_session_t *session, coap_tid_t id,
                            coap_queue_t **node);
 
-coap_tid_t
-coap_wait_ack( coap_context_t *context, coap_session_t *session,
-               coap_queue_t *node);
+coap_tid_t coap_wait_ack(coap_context_t *context, coap_session_t *session, coap_queue_t *node);
 
 /**
  * Retrieves transaction from the queue.
@@ -640,28 +619,23 @@ coap_queue_t *coap_find_transaction(coap_queue_t *queue, coap_session_t *session
  * @param token        Message token.
  * @param token_length Actual length of @p token.
  */
-void coap_cancel_all_messages(coap_context_t *context,
-                              coap_session_t *session,
-                              const uint8_t *token,
-                              size_t token_length);
+void coap_cancel_all_messages(coap_context_t *context, coap_session_t *session,
+                              const uint8_t *token, size_t token_length);
 
 /**
-* Cancels all outstanding messages for session @p session.
-*
-* @param context      The context in use.
-* @param session      Session of the messages to remove.
-* @param reason       The reasion for the session cancellation
-*/
-void
-coap_cancel_session_messages(coap_context_t *context,
-                             coap_session_t *session,
-                             coap_nack_reason_t reason);
+ * Cancels all outstanding messages for session @p session.
+ *
+ * @param context      The context in use.
+ * @param session      Session of the messages to remove.
+ * @param reason       The reasion for the session cancellation
+ */
+void coap_cancel_session_messages(coap_context_t *context, coap_session_t *session,
+                                  coap_nack_reason_t reason);
 
 /**
  * Dispatches the PDUs from the receive queue in given context.
  */
-void coap_dispatch(coap_context_t *context, coap_session_t *session,
-                   coap_pdu_t *pdu);
+void coap_dispatch(coap_context_t *context, coap_session_t *session, coap_pdu_t *pdu);
 
 /**
  * Returns 1 if there are no messages to send or to dispatch in the context's
@@ -705,9 +679,7 @@ void coap_ticks(coap_tick_t *);
  *
  * @return         @c 1 if everything was ok, @c 0 otherwise.
  */
-int coap_option_check_critical(coap_context_t *ctx,
-                               coap_pdu_t *pdu,
-                               coap_opt_filter_t unknown);
+int coap_option_check_critical(coap_context_t *ctx, coap_pdu_t *pdu, coap_opt_filter_t unknown);
 
 /**
  * Creates a new response for given @p request with the contents of @c
@@ -720,8 +692,7 @@ int coap_option_check_critical(coap_context_t *ctx,
  *
  * @return        A new 2.05 response for @c .well-known/core or NULL on error.
  */
-coap_pdu_t *coap_wellknown_response(coap_context_t *context,
-                                    coap_session_t *session,
+coap_pdu_t *coap_wellknown_response(coap_context_t *context, coap_session_t *session,
                                     coap_pdu_t *request);
 
 /**

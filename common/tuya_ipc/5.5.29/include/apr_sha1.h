@@ -23,7 +23,6 @@
 #ifndef APR_SHA1_H
 #define APR_SHA1_H
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -48,18 +47,18 @@ extern "C" {
 /** @see apr_sha1_ctx_t */
 typedef struct apr_sha1_ctx_t apr_sha1_ctx_t;
 
-/** 
+/**
  * SHA1 context structure
  */
 struct apr_sha1_ctx_t {
-    /** message digest */
-    unsigned int digest[5];
-    /** 64-bit bit counts */
-    unsigned int count_lo, count_hi;
-    /** SHA data buffer */
-    unsigned int data[16];
-    /** unprocessed amount in data */
-    int local;
+	/** message digest */
+	unsigned int digest[5];
+	/** 64-bit bit counts */
+	unsigned int count_lo, count_hi;
+	/** SHA data buffer */
+	unsigned int data[16];
+	/** unprocessed amount in data */
+	int local;
 };
 
 /**
@@ -74,8 +73,7 @@ void apr_sha1_init(apr_sha1_ctx_t *context);
  * @param input The buffer to add to the SHA digest
  * @param inputLen The length of the input buffer
  */
-void apr_sha1_update(apr_sha1_ctx_t *context, const char *input,
-                                unsigned int inputLen);
+void apr_sha1_update(apr_sha1_ctx_t *context, const char *input, unsigned int inputLen);
 
 /**
  * Update the SHA digest with binary data
@@ -83,25 +81,22 @@ void apr_sha1_update(apr_sha1_ctx_t *context, const char *input,
  * @param input The buffer to add to the SHA digest
  * @param inputLen The length of the input buffer
  */
-void apr_sha1_update_binary(apr_sha1_ctx_t *context,
-                                       const unsigned char *input,
-                                       unsigned int inputLen);
+void apr_sha1_update_binary(apr_sha1_ctx_t *context, const unsigned char *input,
+                            unsigned int inputLen);
 
 /**
  * Finish computing the SHA digest
  * @param digest the output buffer in which to store the digest
  * @param context The context to finalize
  */
-void apr_sha1_final(unsigned char digest[APR_SHA1_DIGESTSIZE],
-                               apr_sha1_ctx_t *context);
+void apr_sha1_final(unsigned char digest[APR_SHA1_DIGESTSIZE], apr_sha1_ctx_t *context);
 
-//calculate HMAC_SHA1
+// calculate HMAC_SHA1
 void HMAC_SHA1(unsigned char hmac[20], const unsigned char *key, int key_len,
                const unsigned char *message, int message_len);
-
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif	/* APR_SHA1_H */
+#endif /* APR_SHA1_H */

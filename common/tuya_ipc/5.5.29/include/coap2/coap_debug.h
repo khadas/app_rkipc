@@ -41,14 +41,14 @@ typedef short coap_log_t;
 #else
 /** Pre-defined log levels akin to what is used in \b syslog. */
 typedef enum {
-  LOG_EMERG=0, /**< Emergency */
-  LOG_ALERT,   /**< Alert */
-  LOG_CRIT,    /**< Critical */
-  LOG_ERR,     /**< Error */
-  LOG_WARNING, /**< Warning */
-  LOG_NOTICE,  /**< Notice */
-  LOG_INFO,    /**< Information */
-  LOG_DEBUG    /**< Debug */
+	LOG_EMERG = 0, /**< Emergency */
+	LOG_ALERT,     /**< Alert */
+	LOG_CRIT,      /**< Critical */
+	LOG_ERR,       /**< Error */
+	LOG_WARNING,   /**< Warning */
+	LOG_NOTICE,    /**< Notice */
+	LOG_INFO,      /**< Information */
+	LOG_DEBUG      /**< Debug */
 } coap_log_t;
 #endif
 
@@ -72,7 +72,7 @@ void coap_set_log_level(coap_log_t level);
  * @param level One of the LOG_* values.
  * @param message Zero-terminated string message to log.
  */
-typedef void (*coap_log_handler_t) (coap_log_t level, const char *message);
+typedef void (*coap_log_handler_t)(coap_log_t level, const char *message);
 
 /**
  * Add a custom log callback handler.
@@ -106,8 +106,7 @@ const char *coap_package_version(void);
  & @param format The format string to use.
  */
 #if (defined(__GNUC__))
-void coap_log_impl(coap_log_t level,
-              const char *format, ...) __attribute__ ((format(printf, 2, 3)));
+void coap_log_impl(coap_log_t level, const char *format, ...) __attribute__((format(printf, 2, 3)));
 #else
 void coap_log_impl(coap_log_t level, const char *format, ...);
 #endif
@@ -121,10 +120,11 @@ void coap_log_impl(coap_log_t level, const char *format, ...);
  *
  * @param level One of the LOG_* values.
  */
-#define coap_log(level, ...) do { \
-  if ((int)((level))<=(int)coap_get_log_level()) \
-     PR_DEBUG(__VA_ARGS__);   \
-} while(0)
+#define coap_log(level, ...)                                                                       \
+	do {                                                                                           \
+		if ((int)((level)) <= (int)coap_get_log_level())                                           \
+			PR_DEBUG(__VA_ARGS__);                                                                 \
+	} while (0)
 #endif
 
 #include "pdu.h"
@@ -178,8 +178,7 @@ struct coap_address_t;
  *
  * @return The amount written into the buffer.
  */
-size_t coap_print_addr(const struct coap_address_t *address,
-                       unsigned char *buffer, size_t size);
+size_t coap_print_addr(const struct coap_address_t *address, unsigned char *buffer, size_t size);
 
 /** @} */
 
@@ -206,6 +205,5 @@ int coap_debug_set_packet_loss(const char *loss_level);
  * @return @c 1 if packet is to be sent, @c 0 if packet is to be dropped.
  */
 int coap_debug_send_packet(void);
-
 
 #endif /* COAP_DEBUG_H_ */

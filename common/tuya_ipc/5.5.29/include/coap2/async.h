@@ -29,37 +29,37 @@
  * the option @c observe.
  */
 typedef struct coap_async_state_t {
-  unsigned char flags;  /**< holds the flags to control behaviour */
+	unsigned char flags; /**< holds the flags to control behaviour */
 
-  /**
-   * Holds the internal time when the object was registered with a
-   * resource. This field will be updated whenever
-   * coap_register_async() is called for a specific resource.
-   */
-  coap_tick_t created;
+	/**
+	 * Holds the internal time when the object was registered with a
+	 * resource. This field will be updated whenever
+	 * coap_register_async() is called for a specific resource.
+	 */
+	coap_tick_t created;
 
-  /**
-   * This field can be used to register opaque application data with the
-   * asynchronous state object.
-   */
-  void *appdata;
-  uint16_t message_id;       /**< id of last message seen */
-  coap_session_t *session;         /**< transaction session */
-  coap_tid_t id;                   /**< transaction id */
-  struct coap_async_state_t *next; /**< internally used for linking */
-  size_t tokenlen;                 /**< length of the token */
-  uint8_t token[8];                /**< the token to use in a response */
+	/**
+	 * This field can be used to register opaque application data with the
+	 * asynchronous state object.
+	 */
+	void *appdata;
+	uint16_t message_id;             /**< id of last message seen */
+	coap_session_t *session;         /**< transaction session */
+	coap_tid_t id;                   /**< transaction id */
+	struct coap_async_state_t *next; /**< internally used for linking */
+	size_t tokenlen;                 /**< length of the token */
+	uint8_t token[8];                /**< the token to use in a response */
 } coap_async_state_t;
 
 /* Definitions for Async Status Flags These flags can be used to control the
  * behaviour of asynchronous response generation.
  */
-#define COAP_ASYNC_CONFIRM   0x01  /**< send confirmable response */
-#define COAP_ASYNC_SEPARATE  0x02  /**< send separate response */
-#define COAP_ASYNC_OBSERVED  0x04  /**< the resource is being observed */
+#define COAP_ASYNC_CONFIRM 0x01  /**< send confirmable response */
+#define COAP_ASYNC_SEPARATE 0x02 /**< send separate response */
+#define COAP_ASYNC_OBSERVED 0x04 /**< the resource is being observed */
 
 /** release application data on destruction */
-#define COAP_ASYNC_RELEASE_DATA  0x08
+#define COAP_ASYNC_RELEASE_DATA 0x08
 
 /**
  * Allocates a new coap_async_state_t object and fills its fields according to
@@ -81,12 +81,8 @@ typedef struct coap_async_state_t {
  * @return         A pointer to the registered coap_async_state_t object or @c
  *                 NULL in case of an error.
  */
-coap_async_state_t *
-coap_register_async(coap_context_t *context,
-                    coap_session_t *session,
-                    coap_pdu_t *request,
-                    unsigned char flags,
-                    void *data);
+coap_async_state_t *coap_register_async(coap_context_t *context, coap_session_t *session,
+                                        coap_pdu_t *request, unsigned char flags, void *data);
 
 /**
  * Removes the state object identified by @p id from @p context. The removed
@@ -104,9 +100,7 @@ coap_register_async(coap_context_t *context,
  *                object was found with the given id. @p s is valid only if the
  *                return value is @c 1.
  */
-int coap_remove_async(coap_context_t *context,
-                      coap_session_t *session,
-                      coap_tid_t id,
+int coap_remove_async(coap_context_t *context, coap_session_t *session, coap_tid_t id,
                       coap_async_state_t **s);
 
 /**
@@ -116,8 +110,7 @@ int coap_remove_async(coap_context_t *context,
  *
  * @param state The object to delete.
  */
-void
-coap_free_async(coap_async_state_t *state);
+void coap_free_async(coap_async_state_t *state);
 
 /**
  * Retrieves the object identified by @p id from the list of asynchronous
@@ -132,15 +125,15 @@ coap_free_async(coap_async_state_t *state);
  * @return        A pointer to the object identified by @p id or @c NULL if
  *                not found.
  */
-coap_async_state_t *coap_find_async(coap_context_t *context, coap_session_t *session, coap_tid_t id);
+coap_async_state_t *coap_find_async(coap_context_t *context, coap_session_t *session,
+                                    coap_tid_t id);
 
 /**
  * Updates the time stamp of @p s.
  *
  * @param s The state object to update.
  */
-COAP_STATIC_INLINE void
-coap_touch_async(coap_async_state_t *s) { coap_ticks(&s->created); }
+COAP_STATIC_INLINE void coap_touch_async(coap_async_state_t *s) { coap_ticks(&s->created); }
 
 /** @} */
 

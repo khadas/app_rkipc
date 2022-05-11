@@ -12,7 +12,6 @@
 
 #include <string.h>
 
-
 /**
  * @defgroup string String handling support
  * API functions for handling strings
@@ -23,26 +22,27 @@
  * Coap string data definition
  */
 typedef struct coap_string_t {
-  size_t length;    /**< length of string */
-  uint8_t *s;       /**< string data */
+	size_t length; /**< length of string */
+	uint8_t *s;    /**< string data */
 } coap_string_t;
 
 /**
  * Coap string data definition with const data
  */
 typedef struct coap_str_const_t {
-  size_t length;    /**< length of string */
-  const uint8_t *s; /**< string data */
+	size_t length;    /**< length of string */
+	const uint8_t *s; /**< string data */
 } coap_str_const_t;
 
-#define COAP_SET_STR(st,l,v) { (st)->length = (l), (st)->s = (v); }
+#define COAP_SET_STR(st, l, v)                                                                     \
+	{ (st)->length = (l), (st)->s = (v); }
 
 /**
  * Coap binary data definition
  */
 typedef struct coap_binary_t {
-  size_t length;    /**< length of binary data */
-  uint8_t *s;       /**< binary data */
+	size_t length; /**< length of binary data */
+	uint8_t *s;    /**< binary data */
 } coap_binary_t;
 
 /**
@@ -92,16 +92,16 @@ void coap_delete_str_const(coap_str_const_t *string);
  */
 #ifdef __cplusplus
 namespace libcoap {
-  struct CoAPStrConst : coap_str_const_t {
-    operator coap_str_const_t *() { return this; }
-  };
-}
-#define coap_make_str_const(CStr)                                       \
-  libcoap::CoAPStrConst{sizeof(CStr)-1, reinterpret_cast<const uint8_t *>(CStr)}
+struct CoAPStrConst : coap_str_const_t {
+	operator coap_str_const_t *() { return this; }
+};
+} // namespace libcoap
+#define coap_make_str_const(CStr)                                                                  \
+	libcoap::CoAPStrConst { sizeof(CStr) - 1, reinterpret_cast<const uint8_t *>(CStr) }
 #else /* __cplusplus */
-#define coap_make_str_const(string)                                     \
-  (&(coap_str_const_t){sizeof(string)-1,(const uint8_t *)(string)})
-#endif  /* __cplusplus */
+#define coap_make_str_const(string)                                                                \
+	(&(coap_str_const_t){sizeof(string) - 1, (const uint8_t *)(string)})
+#endif /* __cplusplus */
 
 /**
  * Compares the two strings for equality
@@ -112,9 +112,9 @@ namespace libcoap {
  * @return         @c 1 if the strings are equal
  *                 @c 0 otherwise.
  */
-#define coap_string_equal(string1,string2) \
-        ((string1)->length == (string2)->length && ((string1)->length == 0 || \
-         memcmp((string1)->s, (string2)->s, (string1)->length) == 0))
+#define coap_string_equal(string1, string2)                                                        \
+	((string1)->length == (string2)->length &&                                                     \
+	 ((string1)->length == 0 || memcmp((string1)->s, (string2)->s, (string1)->length) == 0))
 
 /** @} */
 

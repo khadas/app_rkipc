@@ -27,22 +27,22 @@ void coap_memory_init(void);
  * management on constrained devices.
  */
 typedef enum {
-  COAP_STRING,
-  COAP_ATTRIBUTE_NAME,
-  COAP_ATTRIBUTE_VALUE,
-  COAP_PACKET,
-  COAP_NODE,
-  COAP_CONTEXT,
-  COAP_ENDPOINT,
-  COAP_PDU,
-  COAP_PDU_BUF,
-  COAP_RESOURCE,
-  COAP_RESOURCEATTR,
+	COAP_STRING,
+	COAP_ATTRIBUTE_NAME,
+	COAP_ATTRIBUTE_VALUE,
+	COAP_PACKET,
+	COAP_NODE,
+	COAP_CONTEXT,
+	COAP_ENDPOINT,
+	COAP_PDU,
+	COAP_PDU_BUF,
+	COAP_RESOURCE,
+	COAP_RESOURCEATTR,
 #ifdef HAVE_LIBTINYDTLS
-  COAP_DTLS_SESSION,
+	COAP_DTLS_SESSION,
 #endif
-  COAP_SESSION,
-  COAP_OPTLIST,
+	COAP_SESSION,
+	COAP_OPTLIST,
 } coap_memory_tag_t;
 
 #ifndef WITH_LWIP
@@ -72,16 +72,12 @@ void coap_free_type(coap_memory_tag_t type, void *p);
 /**
  * Wrapper function to coap_malloc_type() for backwards compatibility.
  */
-COAP_STATIC_INLINE void *coap_malloc(size_t size) {
-  return coap_malloc_type(COAP_STRING, size);
-}
+COAP_STATIC_INLINE void *coap_malloc(size_t size) { return coap_malloc_type(COAP_STRING, size); }
 
 /**
  * Wrapper function to coap_free_type() for backwards compatibility.
  */
-COAP_STATIC_INLINE void coap_free(void *object) {
-  coap_free_type(COAP_STRING, object);
-}
+COAP_STATIC_INLINE void coap_free(void *object) { coap_free_type(COAP_STRING, object); }
 
 #endif /* not WITH_LWIP */
 
@@ -97,18 +93,18 @@ COAP_STATIC_INLINE void coap_memory_init(void) {}
  * declaration, but i currently don't see a standard way to check that without
  * sourcing the custom memp pools and becoming dependent of its syntax
  */
-#define coap_malloc_type(type, size) memp_malloc(MEMP_ ## type)
-#define coap_free_type(type, p) memp_free(MEMP_ ## type, p)
+#define coap_malloc_type(type, size) memp_malloc(MEMP_##type)
+#define coap_free_type(type, p) memp_free(MEMP_##type, p)
 
 /* Those are just here to make uri.c happy where string allocation has not been
  * made conditional.
  */
 COAP_STATIC_INLINE void *coap_malloc(size_t size) {
-  LWIP_ASSERT("coap_malloc must not be used in lwIP", 0);
+	LWIP_ASSERT("coap_malloc must not be used in lwIP", 0);
 }
 
 COAP_STATIC_INLINE void coap_free(void *pointer) {
-  LWIP_ASSERT("coap_free must not be used in lwIP", 0);
+	LWIP_ASSERT("coap_free must not be used in lwIP", 0);
 }
 
 #endif /* WITH_LWIP */

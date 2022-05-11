@@ -1,13 +1,13 @@
 /**
-* @file uni_time_queue.h
-* @author nzy@tuya.com
-* @brief Common process - Initialization
-* @version 0.1
-* @date 2020-11-09
-*
-* @copyright Copyright 2020-2021 Tuya Inc. All Rights Reserved.
-*
-*/
+ * @file uni_time_queue.h
+ * @author nzy@tuya.com
+ * @brief Common process - Initialization
+ * @version 0.1
+ * @date 2020-11-09
+ *
+ * @copyright Copyright 2020-2021 Tuya Inc. All Rights Reserved.
+ *
+ */
 #ifndef _UNI_TIME_QUEUE_H
 #define _UNI_TIME_QUEUE_H
 
@@ -17,22 +17,22 @@ extern "C" {
 
 #include "tuya_cloud_types.h"
 
-//the handle of the timer queue
-typedef PVOID_T TIMER_QUE_HANDLE; 
+// the handle of the timer queue
+typedef PVOID_T TIMER_QUE_HANDLE;
 
-//timer id
-typedef WORD_T TIMER_ID;  // 定时器ID
+// timer id
+typedef WORD_T TIMER_ID; // 定时器ID
 
-//the timer's processing function
-typedef VOID (* P_TIMER_FUNC)(UINT_T timerID,PVOID_T pTimerArg);
+// the timer's processing function
+typedef VOID (*P_TIMER_FUNC)(UINT_T timerID, PVOID_T pTimerArg);
 
 /**
  * @brief the type of timer
  */
 typedef enum {
-    TIMER_ONCE = 0,
-    TIMER_CYCLE,
-}TIMER_TYPE;
+	TIMER_ONCE = 0,
+	TIMER_CYCLE,
+} TIMER_TYPE;
 
 /**
  * @brief Create and init the system timer queue
@@ -58,11 +58,9 @@ OPERATE_RET CreateTimerQueAndInit(OUT TIMER_QUE_HANDLE *pTimerQueHandle);
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET AddTimerToQueue(IN CONST TIMER_QUE_HANDLE timerQueHandle,\
-                                  IN CONST TIME_MS timeCycle,\
-                                  IN CONST P_TIMER_FUNC pTimerFunc,\
-                                  OUT TIMER_ID *timerID,\
-                                  IN CONST PVOID_T pTimerArg);
+OPERATE_RET AddTimerToQueue(IN CONST TIMER_QUE_HANDLE timerQueHandle, IN CONST TIME_MS timeCycle,
+                            IN CONST P_TIMER_FUNC pTimerFunc, OUT TIMER_ID *timerID,
+                            IN CONST PVOID_T pTimerArg);
 
 /**
  * @brief Delete timer from queue
@@ -74,7 +72,8 @@ OPERATE_RET AddTimerToQueue(IN CONST TIMER_QUE_HANDLE timerQueHandle,\
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET DeleteTimerFromQueue(IN CONST TIMER_QUE_HANDLE timerQueHandle, IN CONST TIMER_ID timerID);
+OPERATE_RET DeleteTimerFromQueue(IN CONST TIMER_QUE_HANDLE timerQueHandle,
+                                 IN CONST TIMER_ID timerID);
 
 /**
  * @brief Start the timer in the queue
@@ -88,10 +87,8 @@ OPERATE_RET DeleteTimerFromQueue(IN CONST TIMER_QUE_HANDLE timerQueHandle, IN CO
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET StartTimerFromQueue(IN CONST TIMER_QUE_HANDLE timerQueHandle,\
-                                        IN CONST TIMER_ID timerID,\
-                                        IN CONST TIME_MS timeCycle,\
-                                        IN CONST TIMER_TYPE timer_type);
+OPERATE_RET StartTimerFromQueue(IN CONST TIMER_QUE_HANDLE timerQueHandle, IN CONST TIMER_ID timerID,
+                                IN CONST TIME_MS timeCycle, IN CONST TIMER_TYPE timer_type);
 
 /**
  * @brief Trigger the timer in the queue
@@ -103,7 +100,8 @@ OPERATE_RET StartTimerFromQueue(IN CONST TIMER_QUE_HANDLE timerQueHandle,\
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET TriggerTimerFromQueue(IN CONST TIMER_QUE_HANDLE timerQueHandle, IN CONST TIMER_ID timerID);
+OPERATE_RET TriggerTimerFromQueue(IN CONST TIMER_QUE_HANDLE timerQueHandle,
+                                  IN CONST TIMER_ID timerID);
 
 /**
  * @brief Stop the timer in the queue

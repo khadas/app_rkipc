@@ -1,11 +1,11 @@
 /**
-* @file tuya_devos_entry.h
-* @brief Common process - Initialization
-* @version 0.1
-* @date 2020-11-09
-*
-* @copyright Copyright 2020-2021 Tuya Inc. All Rights Reserved.
-*/
+ * @file tuya_devos_entry.h
+ * @brief Common process - Initialization
+ * @version 0.1
+ * @date 2020-11-09
+ *
+ * @copyright Copyright 2020-2021 Tuya Inc. All Rights Reserved.
+ */
 
 #ifndef __TUYA_DEVOS_ENTRY_H__
 #define __TUYA_DEVOS_ENTRY_H__
@@ -20,18 +20,18 @@ extern "C" {
  * @brief Init param of IoT device
  */
 typedef struct {
-    /** The key of firmware, assigned by TUYA */
-    CHAR_T *firmware_key;
-    /** The key of product, assigned by TUYA */
-    CHAR_T *product_key;
-    /** The version of firmware, format is "x.y.z" */
-    CHAR_T *sw_ver;
- 
-    /** The count of attach modules */
-    UINT_T attr_num;
-    /** The attributes of attach modules */
-    GW_ATTACH_ATTR_T *attrs;
-}tuya_dev_init_t;
+	/** The key of firmware, assigned by TUYA */
+	CHAR_T *firmware_key;
+	/** The key of product, assigned by TUYA */
+	CHAR_T *product_key;
+	/** The version of firmware, format is "x.y.z" */
+	CHAR_T *sw_ver;
+
+	/** The count of attach modules */
+	UINT_T attr_num;
+	/** The attributes of attach modules */
+	GW_ATTACH_ATTR_T *attrs;
+} tuya_dev_init_t;
 
 /**
  * @brief Device is activated, and begin to launch
@@ -53,8 +53,8 @@ OPERATE_RET tuya_iot_dev_activated(VOID);
  */
 OPERATE_RET tuya_iot_dev_update_attachs(UINT_T attr_num, GW_ATTACH_ATTR_T *attrs);
 
-OPERATE_RET tuya_iot_dev_set_attach_attr(GW_PERMIT_DEV_TP_T tp, GW_ATTACH_ATTR_T * attr);
-OPERATE_RET tuya_iot_dev_get_attach_attr(GW_PERMIT_DEV_TP_T tp, GW_ATTACH_ATTR_T * attr);
+OPERATE_RET tuya_iot_dev_set_attach_attr(GW_PERMIT_DEV_TP_T tp, GW_ATTACH_ATTR_T *attr);
+OPERATE_RET tuya_iot_dev_get_attach_attr(GW_PERMIT_DEV_TP_T tp, GW_ATTACH_ATTR_T *attr);
 
 /**
  * @brief Enable reset log upload or not
@@ -104,11 +104,10 @@ VOID gw_ctrl_update_stride(VOID);
  *
  * @return NULL on faile, others see GW_STRIDE_UPDATE_S
  */
-GW_STRIDE_UPDATE_S* gw_get_new_pid_key(VOID);
+GW_STRIDE_UPDATE_S *gw_get_new_pid_key(VOID);
 
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif //__TUYA_DEVOS_ENTRY_H__

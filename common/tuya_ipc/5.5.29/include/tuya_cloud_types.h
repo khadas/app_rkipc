@@ -13,9 +13,9 @@ Copyright(C),2018-2020, 涂鸦科技 www.tuya.comm
 #include <ctype.h>
 #endif
 
-#include <stddef.h>
 #include "tuya_cloud_error_code.h"
 #include "tuya_error_code.h"
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -67,7 +67,6 @@ typedef ULONG_T TIME_MS;
 typedef ULONG_T TIME_S;
 typedef unsigned int TIME_T;
 
-
 #ifndef FALSE
 #define FALSE 0
 #endif
@@ -95,7 +94,6 @@ typedef unsigned int TIME_T;
 #ifndef VOID_T
 #define VOID_T void
 #endif
-
 
 #ifndef CONST
 #define CONST const
@@ -136,15 +134,15 @@ typedef int bool_t;
 typedef size_t SIZE_T;
 
 #ifndef MAX
-#define MAX(a,b) (((a) > (b)) ? (a) : (b))
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #endif
 
 #ifndef MIN
-#define MIN(a,b) (((a) < (b)) ? (a) : (b))
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #endif
 
 #ifndef BIT
-#define BIT(nr)     (1UL << (nr))
+#define BIT(nr) (1UL << (nr))
 #endif
 #define MAKEWORD(a, b) ((WORD_T)(((BYTE_T)(a)) | ((WORD_T)((BYTE_T)(b))) << 8))
 #define MAKELONG(a, b) ((LONG_T)(((WORD_T)(a)) | ((DWORD_T)((WORD_T)(b))) << 16))
@@ -153,22 +151,21 @@ typedef size_t SIZE_T;
 #define LOBYTE(w) ((BYTE_T)(w))
 #define HIBYTE(w) ((BYTE_T)(((WORD_T)(w) >> 8) & 0xFF))
 
-#define WORD_SWAP(X)    (((X << 8) | (X >> 8))&0xFFFF)
-#define DWORD_SWAP(X)   ( (((X)&0xff)<<24) + \
-                          (((X)&0xff00)<<8) + \
-                          (((X)&0xff0000)>>8) + \
-                          (((X)&0xff000000)>>24) )
-#define DDWORD_SWAP(X) { \
-    unsigned long temp_low, temp_high; \
-    temp_low = DWORD_SWAP((unsigned long)((X) & 0xffffffff)); \
-    temp_high = DWORD_SWAP((unsigned long)((X) >> 32)); \
-    X = 0; \
-    X |= temp_low; \
-    X <<= 32; \
-    X |= temp_high;\
-}
+#define WORD_SWAP(X) (((X << 8) | (X >> 8)) & 0xFFFF)
+#define DWORD_SWAP(X)                                                                              \
+	((((X)&0xff) << 24) + (((X)&0xff00) << 8) + (((X)&0xff0000) >> 8) + (((X)&0xff000000) >> 24))
+#define DDWORD_SWAP(X)                                                                             \
+	{                                                                                              \
+		unsigned long temp_low, temp_high;                                                         \
+		temp_low = DWORD_SWAP((unsigned long)((X)&0xffffffff));                                    \
+		temp_high = DWORD_SWAP((unsigned long)((X) >> 32));                                        \
+		X = 0;                                                                                     \
+		X |= temp_low;                                                                             \
+		X <<= 32;                                                                                  \
+		X |= temp_high;                                                                            \
+	}
 
-#if defined(LITTLE_END) && (LITTLE_END==1)
+#if defined(LITTLE_END) && (LITTLE_END == 1)
 #define UNI_NTOHS(X) WORD_SWAP(X)
 #define UNI_HTONS(X) WORD_SWAP(X)
 #define UNI_NTOHL(X) DWORD_SWAP(X)
@@ -187,11 +184,10 @@ typedef size_t SIZE_T;
 
 #endif
 
-#define OFFSOF(s,m) ((SIZE_T)(&(((s*)0)->m)))
-#define CNTSOF(a)   (sizeof(a)/sizeof(a[0]))
-#define CNTR_OF(ptr, type, member) \
-        ({(type *)( (char *)ptr - OFFSOF(type,member) );}) // continer of
-
+#define OFFSOF(s, m) ((SIZE_T)(&(((s *)0)->m)))
+#define CNTSOF(a) (sizeof(a) / sizeof(a[0]))
+#define CNTR_OF(ptr, type, member)                                                                 \
+	({ (type *)((char *)ptr - OFFSOF(type, member)); }) // continer of
 
 #ifdef __cplusplus
 }

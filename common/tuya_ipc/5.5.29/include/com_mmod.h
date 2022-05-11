@@ -1,20 +1,20 @@
 /**
-* @file com_mmod.h
-* @author nzy@tuya.com
-* @brief Common process - Initialization
-* @version 0.1
-* @date 2020-11-09
-*
-* @copyright Copyright 2020-2021 Tuya Inc. All Rights Reserved.
-*
-*/
+ * @file com_mmod.h
+ * @author nzy@tuya.com
+ * @brief Common process - Initialization
+ * @version 0.1
+ * @date 2020-11-09
+ *
+ * @copyright Copyright 2020-2021 Tuya Inc. All Rights Reserved.
+ *
+ */
 #ifndef _COM_MMOD_H
 #define _COM_MMOD_H
 
 #include "uni_msg_queue.h"
 
 #ifdef __cplusplus
-    extern "C" {
+extern "C" {
 #endif
 
 /**
@@ -73,7 +73,8 @@ OPERATE_RET cmmod_unreg_msgcb(IN CONST MSG_ID msgID);
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET cmmod_post_msg(IN CONST MSG_ID msgID,IN CONST P_MSG_DATA pMsgData, IN CONST MSG_DATA_LEN msgDataLen);
+OPERATE_RET cmmod_post_msg(IN CONST MSG_ID msgID, IN CONST P_MSG_DATA pMsgData,
+                           IN CONST MSG_DATA_LEN msgDataLen);
 
 /**
  * @brief Post a message with memory alloc
@@ -82,11 +83,13 @@ OPERATE_RET cmmod_post_msg(IN CONST MSG_ID msgID,IN CONST P_MSG_DATA pMsgData, I
  * @param[in] pMsgData: message data
  * @param[in] msgDataLen: message data len
  *
- * @note This API is used for posting a message with memory alloc, the param of message data can be local variable
+ * @note This API is used for posting a message with memory alloc, the param of message data can be
+ * local variable
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET cmmod_post_msg_malloc(IN CONST MSG_ID msgID,IN CONST P_MSG_DATA pMsgData, IN CONST MSG_DATA_LEN msgDataLen);
+OPERATE_RET cmmod_post_msg_malloc(IN CONST MSG_ID msgID, IN CONST P_MSG_DATA pMsgData,
+                                  IN CONST MSG_DATA_LEN msgDataLen);
 
 /**
  * @brief Post a message instantly
@@ -99,7 +102,8 @@ OPERATE_RET cmmod_post_msg_malloc(IN CONST MSG_ID msgID,IN CONST P_MSG_DATA pMsg
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET cmmod_post_instancy_msg(IN CONST MSG_ID msgID,IN CONST P_MSG_DATA pMsgData, IN CONST MSG_DATA_LEN msgDataLen);
+OPERATE_RET cmmod_post_instancy_msg(IN CONST MSG_ID msgID, IN CONST P_MSG_DATA pMsgData,
+                                    IN CONST MSG_DATA_LEN msgDataLen);
 
 /**
  * @brief Post a instant message with memory alloc
@@ -108,11 +112,13 @@ OPERATE_RET cmmod_post_instancy_msg(IN CONST MSG_ID msgID,IN CONST P_MSG_DATA pM
  * @param[in] pMsgData: message data
  * @param[in] msgDataLen: message data len
  *
- * @note This API is used for posting a instant message with memory alloc, the param of message data can be local variable
+ * @note This API is used for posting a instant message with memory alloc, the param of message data
+ * can be local variable
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET cmmod_post_instancy_msg_malloc(IN CONST MSG_ID msgID,IN CONST P_MSG_DATA pMsgData, IN CONST MSG_DATA_LEN msgDataLen);
+OPERATE_RET cmmod_post_instancy_msg_malloc(IN CONST MSG_ID msgID, IN CONST P_MSG_DATA pMsgData,
+                                           IN CONST MSG_DATA_LEN msgDataLen);
 
 /**
  * @brief Create timer message handle.
@@ -125,7 +131,7 @@ OPERATE_RET cmmod_post_instancy_msg_malloc(IN CONST MSG_ID msgID,IN CONST P_MSG_
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET cmmod_cr_tm_msg_hand(IN CONST TM_MSG_CB cb,IN CONST VOID *data,OUT TM_MSG_S **tm_msg);
+OPERATE_RET cmmod_cr_tm_msg_hand(IN CONST TM_MSG_CB cb, IN CONST VOID *data, OUT TM_MSG_S **tm_msg);
 
 /**
  * @brief Start the timer message.
@@ -138,7 +144,8 @@ OPERATE_RET cmmod_cr_tm_msg_hand(IN CONST TM_MSG_CB cb,IN CONST VOID *data,OUT T
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET cmmod_start_tm_msg(IN CONST TM_MSG_S *tm_msg,IN CONST TIME_MS timeCycle, IN CONST TIMER_TYPE timer_type);
+OPERATE_RET cmmod_start_tm_msg(IN CONST TM_MSG_S *tm_msg, IN CONST TIME_MS timeCycle,
+                               IN CONST TIMER_TYPE timer_type);
 
 /**
  * @brief Stop the timer message.
@@ -177,4 +184,3 @@ INT_T cmmod_get_msg_node_num(VOID);
 }
 #endif
 #endif
-

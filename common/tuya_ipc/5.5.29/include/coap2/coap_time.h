@@ -23,8 +23,8 @@
 
 #if defined(WITH_LWIP)
 
-#include <stdint.h>
 #include <lwip/sys.h>
+#include <stdint.h>
 
 /* lwIP provides ms in sys_now */
 #define COAP_TICKS_PER_SECOND 1000
@@ -33,19 +33,14 @@ typedef uint32_t coap_tick_t;
 typedef uint32_t coap_time_t;
 typedef int32_t coap_tick_diff_t;
 
-COAP_STATIC_INLINE void coap_ticks_impl(coap_tick_t *t) {
-  *t = sys_now();
-}
+COAP_STATIC_INLINE void coap_ticks_impl(coap_tick_t *t) { *t = sys_now(); }
 
-COAP_STATIC_INLINE void coap_clock_init_impl(void) {
-}
+COAP_STATIC_INLINE void coap_clock_init_impl(void) {}
 
 #define coap_clock_init coap_clock_init_impl
 #define coap_ticks coap_ticks_impl
 
-COAP_STATIC_INLINE coap_time_t coap_ticks_to_rt(coap_tick_t t) {
-  return t / COAP_TICKS_PER_SECOND;
-}
+COAP_STATIC_INLINE coap_time_t coap_ticks_to_rt(coap_tick_t t) { return t / COAP_TICKS_PER_SECOND; }
 
 #elif defined(WITH_CONTIKI)
 
@@ -63,17 +58,11 @@ typedef int coap_tick_diff_t;
 
 #define COAP_TICKS_PER_SECOND CLOCK_SECOND
 
-COAP_STATIC_INLINE void coap_clock_init(void) {
-  clock_init();
-}
+COAP_STATIC_INLINE void coap_clock_init(void) { clock_init(); }
 
-COAP_STATIC_INLINE void coap_ticks(coap_tick_t *t) {
-  *t = clock_time();
-}
+COAP_STATIC_INLINE void coap_ticks(coap_tick_t *t) { *t = clock_time(); }
 
-COAP_STATIC_INLINE coap_time_t coap_ticks_to_rt(coap_tick_t t) {
-  return t / COAP_TICKS_PER_SECOND;
-}
+COAP_STATIC_INLINE coap_time_t coap_ticks_to_rt(coap_tick_t t) { return t / COAP_TICKS_PER_SECOND; }
 
 #else
 #include <stdint.h>
@@ -122,22 +111,22 @@ void coap_ticks(coap_tick_t *t);
 coap_time_t coap_ticks_to_rt(coap_tick_t t);
 
 /**
-* Helper function that converts coap ticks to POSIX wallclock time in us.
-*
-* @param t Internal system ticks.
-*
-* @return  The number of seconds that has passed since a specific reference
-*          point (seconds since epoch on POSIX).
-*/
+ * Helper function that converts coap ticks to POSIX wallclock time in us.
+ *
+ * @param t Internal system ticks.
+ *
+ * @return  The number of seconds that has passed since a specific reference
+ *          point (seconds since epoch on POSIX).
+ */
 uint64_t coap_ticks_to_rt_us(coap_tick_t t);
 
 /**
-* Helper function that converts POSIX wallclock time in us to coap ticks.
-*
-* @param t POSIX time is us
-*
-* @return  coap ticks
-*/
+ * Helper function that converts POSIX wallclock time in us to coap ticks.
+ *
+ * @param t POSIX time is us
+ *
+ * @return  coap ticks
+ */
 coap_tick_t coap_ticks_from_rt_us(uint64_t t);
 #endif
 
@@ -146,7 +135,7 @@ coap_tick_t coap_ticks_from_rt_us(uint64_t t);
  * signed data type.
  */
 COAP_STATIC_INLINE int coap_time_lt(coap_tick_t a, coap_tick_t b) {
-  return ((coap_tick_diff_t)(a - b)) < 0;
+	return ((coap_tick_diff_t)(a - b)) < 0;
 }
 
 /**
@@ -154,7 +143,7 @@ COAP_STATIC_INLINE int coap_time_lt(coap_tick_t a, coap_tick_t b) {
  * defined on a signed data type.
  */
 COAP_STATIC_INLINE int coap_time_le(coap_tick_t a, coap_tick_t b) {
-  return a == b || coap_time_lt(a,b);
+	return a == b || coap_time_lt(a, b);
 }
 
 /** @} */

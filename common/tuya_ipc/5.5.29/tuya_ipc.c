@@ -78,7 +78,8 @@ STATIC VOID __TUYA_APP_rev_audio_cb(IN CONST TRANSFER_AUDIO_FRAME_S *p_audio_fra
 	//           p_audio_frame->buf_len, p_audio_frame->audio_codec, p_audio_frame->audio_sample,
 	//           p_audio_frame->audio_databits, p_audio_frame->audio_channel);
 	int data_len;
-	// tuya_g711_decode(TUYA_G711_MU_LAW, p_audio_frame->p_audio_buf, p_audio_frame->buf_len, ao_data,
+	// tuya_g711_decode(TUYA_G711_MU_LAW, p_audio_frame->p_audio_buf, p_audio_frame->buf_len,
+	// ao_data,
 	//                  &data_len);
 	// LOG_DEBUG("data_len is %d\n", data_len);
 	rk_tuya_ao_write_(&ao_data, data_len);
@@ -237,7 +238,7 @@ int rk_tuya_init_ring_buffer(void) {
 	}
 
 	int ret;
-	Ring_Buffer_Init_Param_S param={0};
+	Ring_Buffer_Init_Param_S param = {0};
 	for (int i = E_IPC_STREAM_VIDEO_MAIN; i < E_IPC_STREAM_MAX; i++) {
 		IPC_STREAM_E channel = i;
 		LOG_DEBUG("init ring buffer Channel:%d Enable:%d\n", channel,
@@ -248,19 +249,20 @@ int rk_tuya_init_ring_buffer(void) {
 				         s_media_info.audio_sample[E_IPC_STREAM_AUDIO_MAIN],
 				         s_media_info.audio_databits[E_IPC_STREAM_AUDIO_MAIN],
 				         s_media_info.audio_fps[E_IPC_STREAM_AUDIO_MAIN]);
-				param.bitrate = s_media_info.audio_sample[E_IPC_STREAM_AUDIO_MAIN]*s_media_info.audio_databits[E_IPC_STREAM_AUDIO_MAIN]/1024;
-                param.fps = s_media_info.audio_fps[E_IPC_STREAM_AUDIO_MAIN];
-                param.max_buffer_seconds = 0;
-                param.requestKeyFrameCB = NULL;
-                ret = tuya_ipc_ring_buffer_init(0,0,channel,&param);
+				param.bitrate = s_media_info.audio_sample[E_IPC_STREAM_AUDIO_MAIN] *
+				                s_media_info.audio_databits[E_IPC_STREAM_AUDIO_MAIN] / 1024;
+				param.fps = s_media_info.audio_fps[E_IPC_STREAM_AUDIO_MAIN];
+				param.max_buffer_seconds = 0;
+				param.requestKeyFrameCB = NULL;
+				ret = tuya_ipc_ring_buffer_init(0, 0, channel, &param);
 			} else {
 				LOG_INFO("video_bitrate %d, video_fps %d\n", s_media_info.video_bitrate[channel],
 				         s_media_info.video_fps[channel]);
 				param.bitrate = s_media_info.video_bitrate[channel];
-                param.fps = s_media_info.video_fps[channel];
-                param.max_buffer_seconds = 0;
-                param.requestKeyFrameCB = NULL;
-				ret = tuya_ipc_ring_buffer_init(0,0,channel, &param);
+				param.fps = s_media_info.video_fps[channel];
+				param.max_buffer_seconds = 0;
+				param.requestKeyFrameCB = NULL;
+				ret = tuya_ipc_ring_buffer_init(0, 0, channel, &param);
 			}
 			if (ret != 0) {
 				LOG_ERROR("init ring buffer fails. %d %d\n", channel, ret);
@@ -565,24 +567,24 @@ int rk_tuya_init() {
 	return 0;
 }
 
-int rk_tuya_deinit() { 
+int rk_tuya_deinit() {
 	tuya_ipc_ring_buffer_close(audio_handle);
 
-tuya_ipc_ring_buffer_close(video_handle);
-return 0; }
+	tuya_ipc_ring_buffer_close(video_handle);
+	return 0;
+}
 
 int rk_tuya_put_frame(IN CONST IPC_STREAM_E channel, IN CONST MEDIA_FRAME_S *p_frame) {
 	// LOG_DEBUG("Put Frame. Channel:%d type:%d size:%u pts:%llu ts:%llu\n", channel,
 	//           p_frame->type, p_frame->size, p_frame->pts, p_frame->timestamp);
 
-
 	int ret;
 	if (channel == E_IPC_STREAM_VIDEO_MAIN) {
 		ret = tuya_ipc_ring_buffer_append_data(video_handle, p_frame->p_buf, p_frame->size,
-	                                           p_frame->type, p_frame->pts);
+		                                       p_frame->type, p_frame->pts);
 	} else {
 		ret = tuya_ipc_ring_buffer_append_data(audio_handle, p_frame->p_buf, p_frame->size,
-	                                           p_frame->type, p_frame->pts);
+		                                       p_frame->type, p_frame->pts);
 	}
 
 	if (ret != OPRT_OK) {

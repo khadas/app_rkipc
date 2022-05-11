@@ -4,9 +4,8 @@
 #include "tuya_cloud_com_defs.h"
 
 #ifdef __cplusplus
-	extern "C" {
+extern "C" {
 #endif
-
 
 /***********************************************************
 *************************micro define***********************
@@ -27,4 +26,3 @@ BOOL_T lan_dp_report_need_report(CHAR_T *subdev_id);
 }
 #endif
 #endif
-

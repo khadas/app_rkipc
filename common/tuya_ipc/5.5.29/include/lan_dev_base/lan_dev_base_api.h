@@ -3,16 +3,13 @@
 
 #include "tuya_cloud_com_defs.h"
 
-
 #ifdef __cplusplus
-	extern "C" {
+extern "C" {
 #endif
-
 
 /***********************************************************
 *************************micro define***********************
 ***********************************************************/
-
 
 /***********************************************************
 *************************variable define********************
@@ -23,11 +20,9 @@
 ***********************************************************/
 VOID lan_dev_base_set_cap(IN USHORT_T cap);
 
-OPERATE_RET lan_dev_base_module_init(IN CONST CHAR_T * dev_id);
-
+OPERATE_RET lan_dev_base_module_init(IN CONST CHAR_T *dev_id);
 
 #ifdef __cplusplus
 }
 #endif
 #endif
-

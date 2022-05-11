@@ -1,25 +1,25 @@
 /**
-* @file uni_module.h
-* @author nzy@tuya.com
-* @brief Common process - Initialization
-* @version 0.1
-* @date 2020-11-09
-*
-* @copyright Copyright 2020-2021 Tuya Inc. All Rights Reserved.
-*
-*/
+ * @file uni_module.h
+ * @author nzy@tuya.com
+ * @brief Common process - Initialization
+ * @version 0.1
+ * @date 2020-11-09
+ *
+ * @copyright Copyright 2020-2021 Tuya Inc. All Rights Reserved.
+ *
+ */
 #ifndef _UNI_MODULE_H
 #define _UNI_MODULE_H
 
-#include "tuya_cloud_types.h"
 #include "tuya_base_utilities.h"
+#include "tuya_cloud_types.h"
 #include "uni_msg_queue.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-//the handle of the module
+// the handle of the module
 typedef PVOID_T MODULE_HANDLE;
 
 /**
@@ -45,10 +45,8 @@ OPERATE_RET ReleaseModule(IN CONST MODULE_HANDLE moduleHandle);
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET CreateModuleAndStart(OUT MODULE_HANDLE *pModuleHandle,\
-                                         IN CONST P_CONSTRUCT_FUNC enter,\
-                                         IN CONST P_EXTRACT_FUNC exit,\
-                                         IN CONST THRD_PARAM_S *thrd_param);
+OPERATE_RET CreateModuleAndStart(OUT MODULE_HANDLE *pModuleHandle, IN CONST P_CONSTRUCT_FUNC enter,
+                                 IN CONST P_EXTRACT_FUNC exit, IN CONST THRD_PARAM_S *thrd_param);
 
 /**
  * @brief Post a message.
@@ -62,10 +60,8 @@ OPERATE_RET CreateModuleAndStart(OUT MODULE_HANDLE *pModuleHandle,\
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET ModulePostMessage(IN CONST MODULE_HANDLE moduleHandle,\
-                                     IN CONST MSG_ID msgID,\
-                                     IN CONST P_MSG_DATA pMsgData,\
-                                     IN CONST MSG_DATA_LEN msgDataLen);
+OPERATE_RET ModulePostMessage(IN CONST MODULE_HANDLE moduleHandle, IN CONST MSG_ID msgID,
+                              IN CONST P_MSG_DATA pMsgData, IN CONST MSG_DATA_LEN msgDataLen);
 
 /**
  * @brief Post a message with memory alloc
@@ -75,14 +71,13 @@ OPERATE_RET ModulePostMessage(IN CONST MODULE_HANDLE moduleHandle,\
  * @param[in] pMsgData: message data
  * @param[in] msgDataLen: message data len
  *
- * @note This API is used for posting a message with memory alloc, the param of message data can be local variable
+ * @note This API is used for posting a message with memory alloc, the param of message data can be
+ * local variable
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET ModPostMsgMalloc(IN CONST MODULE_HANDLE moduleHandle,\
-                                    IN CONST MSG_ID msgID,\
-                                    IN CONST P_MSG_DATA pMsgData,\
-                                    IN CONST MSG_DATA_LEN msgDataLen);
+OPERATE_RET ModPostMsgMalloc(IN CONST MODULE_HANDLE moduleHandle, IN CONST MSG_ID msgID,
+                             IN CONST P_MSG_DATA pMsgData, IN CONST MSG_DATA_LEN msgDataLen);
 
 /**
  * @brief Post a message instantly
@@ -96,10 +91,8 @@ OPERATE_RET ModPostMsgMalloc(IN CONST MODULE_HANDLE moduleHandle,\
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET ModulePostInstancyMsg(IN CONST MODULE_HANDLE moduleHandle,\
-                                          IN CONST MSG_ID msgID,\
-                                          IN CONST P_MSG_DATA pMsgData,\
-                                          IN CONST MSG_DATA_LEN msgDataLen);
+OPERATE_RET ModulePostInstancyMsg(IN CONST MODULE_HANDLE moduleHandle, IN CONST MSG_ID msgID,
+                                  IN CONST P_MSG_DATA pMsgData, IN CONST MSG_DATA_LEN msgDataLen);
 
 /**
  * @brief Post a instant message with memory alloc
@@ -109,14 +102,14 @@ OPERATE_RET ModulePostInstancyMsg(IN CONST MODULE_HANDLE moduleHandle,\
  * @param[in] pMsgData: message data
  * @param[in] msgDataLen: message data len
  *
- * @note This API is used for posting a instant message with memory alloc, the param of message data can be local variable
+ * @note This API is used for posting a instant message with memory alloc, the param of message data
+ * can be local variable
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET ModPostInstancyMsgMalloc(IN CONST MODULE_HANDLE moduleHandle,\
-                                               IN CONST MSG_ID msgID,\
-                                               IN CONST P_MSG_DATA pMsgData,\
-                                               IN CONST MSG_DATA_LEN msgDataLen);
+OPERATE_RET ModPostInstancyMsgMalloc(IN CONST MODULE_HANDLE moduleHandle, IN CONST MSG_ID msgID,
+                                     IN CONST P_MSG_DATA pMsgData,
+                                     IN CONST MSG_DATA_LEN msgDataLen);
 
 /**
  * @brief Regist callback function for message.
@@ -129,9 +122,8 @@ OPERATE_RET ModPostInstancyMsgMalloc(IN CONST MODULE_HANDLE moduleHandle,\
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET ModuleRegisterMsgCb(IN CONST MODULE_HANDLE moduleHandle,\
-                                        IN CONST MSG_CALLBACK msg_cb,\
-                                        OUT MSG_ID *msg_id);
+OPERATE_RET ModuleRegisterMsgCb(IN CONST MODULE_HANDLE moduleHandle, IN CONST MSG_CALLBACK msg_cb,
+                                OUT MSG_ID *msg_id);
 
 /**
  * @brief Unregist callback function for message.
@@ -143,7 +135,7 @@ OPERATE_RET ModuleRegisterMsgCb(IN CONST MODULE_HANDLE moduleHandle,\
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET ModuleUnregisterMsgCb(IN CONST MODULE_HANDLE moduleHandle,IN CONST MSG_ID msgID);
+OPERATE_RET ModuleUnregisterMsgCb(IN CONST MODULE_HANDLE moduleHandle, IN CONST MSG_ID msgID);
 
 /**
  * @brief Create timer message handle.
@@ -157,8 +149,8 @@ OPERATE_RET ModuleUnregisterMsgCb(IN CONST MODULE_HANDLE moduleHandle,IN CONST M
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET module_cr_tm_msg_hand(IN CONST MODULE_HANDLE moduleHandle,IN CONST VOID *data,\
-                                           IN CONST TM_MSG_CB cb,OUT TM_MSG_S **tm_msg);
+OPERATE_RET module_cr_tm_msg_hand(IN CONST MODULE_HANDLE moduleHandle, IN CONST VOID *data,
+                                  IN CONST TM_MSG_CB cb, OUT TM_MSG_S **tm_msg);
 
 /**
  * @brief Start the timer message.
@@ -171,8 +163,8 @@ OPERATE_RET module_cr_tm_msg_hand(IN CONST MODULE_HANDLE moduleHandle,IN CONST V
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET module_start_tm_msg(IN CONST TM_MSG_S *tm_msg,IN CONST TIME_MS timeCycle,\
-                                        IN CONST TIMER_TYPE timer_type);
+OPERATE_RET module_start_tm_msg(IN CONST TM_MSG_S *tm_msg, IN CONST TIME_MS timeCycle,
+                                IN CONST TIMER_TYPE timer_type);
 
 /**
  * @brief Stop the timer message.
@@ -206,11 +198,10 @@ OPERATE_RET module_release_tm_msg(IN CONST TM_MSG_S *tm_msg);
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET ModuleGetMsgNodeNum(IN CONST MODULE_HANDLE moduleHandle,OUT PINT_T pMsgNodeNum);
+OPERATE_RET ModuleGetMsgNodeNum(IN CONST MODULE_HANDLE moduleHandle, OUT PINT_T pMsgNodeNum);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
 #endif
-

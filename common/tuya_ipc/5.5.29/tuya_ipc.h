@@ -7,11 +7,11 @@
 #include "common.h"
 #include "vendor_storage.h"
 
+#include "codec/tuya_g711_utils.h"
 #include "tuya_cloud_base_defs.h"
 #include "tuya_cloud_com_defs.h"
 #include "tuya_cloud_error_code.h"
 #include "tuya_cloud_types.h"
-#include "codec/tuya_g711_utils.h"
 #include "tuya_ipc_api.h"
 #include "tuya_ipc_media.h"
 #include "tuya_ipc_p2p.h"

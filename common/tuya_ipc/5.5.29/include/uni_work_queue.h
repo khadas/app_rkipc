@@ -1,21 +1,21 @@
 /**
-* @file uni_work_queue.h
-* @brief provide work queue operate api
-* @version 0.1
-* @date 2010-09-09
-*
-* @copyright Copyright 2019-2021 Tuya Inc. All Rights Reserved.
-*
-*/
+ * @file uni_work_queue.h
+ * @brief provide work queue operate api
+ * @version 0.1
+ * @date 2010-09-09
+ *
+ * @copyright Copyright 2019-2021 Tuya Inc. All Rights Reserved.
+ *
+ */
 
 #ifndef _UNI_WORK_QUEUE_H
 #define _UNI_WORK_QUEUE_H
 
-#include "tuya_cloud_types.h"
 #include "tuya_base_utilities.h"
+#include "tuya_cloud_types.h"
 
 #ifdef __cplusplus
-    extern "C" {
+extern "C" {
 #endif
 
 /**
@@ -40,10 +40,8 @@ typedef VOID (*WK_CALLBACK)(VOID *data);
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET work_queue_create(OUT WORK_QUEUE_HANDLE *phand,\
-                                     IN CONST STACK_SIZE stack_size,\
-                                     IN CONST TRD_PRI pri,\
-                                     IN CONST UINT_T work_num);
+OPERATE_RET work_queue_create(OUT WORK_QUEUE_HANDLE *phand, IN CONST STACK_SIZE stack_size,
+                              IN CONST TRD_PRI pri, IN CONST UINT_T work_num);
 
 /**
  * @brief Add a task to work queue
@@ -56,8 +54,8 @@ OPERATE_RET work_queue_create(OUT WORK_QUEUE_HANDLE *phand,\
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET work_queue_add(IN CONST WORK_QUEUE_HANDLE hand,IN CONST WK_CALLBACK cb,\
-                                 IN CONST VOID *data);
+OPERATE_RET work_queue_add(IN CONST WORK_QUEUE_HANDLE hand, IN CONST WK_CALLBACK cb,
+                           IN CONST VOID *data);
 
 /**
  * @brief Check and delete a task from work queue
@@ -94,9 +92,7 @@ OPERATE_RET work_queue_release(IN CONST WORK_QUEUE_HANDLE hand);
  */
 UINT_T work_queue_get_depth(IN CONST WORK_QUEUE_HANDLE hand);
 
-
 #ifdef __cplusplus
 }
 #endif
 #endif
-

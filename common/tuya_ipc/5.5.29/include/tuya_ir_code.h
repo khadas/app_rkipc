@@ -1,6 +1,6 @@
 /**
  * @file tuya_ir_code.h
- * @brief 
+ * @brief
  * @author tuya
  * @version 1.0.0
  * @date 2021-01-13
@@ -16,14 +16,14 @@ extern "C" {
 #endif
 
 /**
- * @brief tuya_ir_clear_irtime 
+ * @brief tuya_ir_clear_irtime
  *
  * @return none
  */
 VOID tuya_ir_clear_irtime(VOID);
 
 /**
- * @brief tuya_ir_get_irtime 
+ * @brief tuya_ir_get_irtime
  *
  * @param[in] data[]
  * @param[in] data_len
@@ -33,7 +33,7 @@ VOID tuya_ir_clear_irtime(VOID);
 BOOL_T tuya_ir_get_irtime(USHORT_T data[], USHORT_T data_len);
 
 /**
- * @brief tuya_ir_encode_head 
+ * @brief tuya_ir_encode_head
  *
  * @param[in] feq
  * @param[in] data[]
@@ -43,10 +43,11 @@ BOOL_T tuya_ir_get_irtime(USHORT_T data[], USHORT_T data_len);
  *
  * @return BOOL_T
  */
-BOOL_T tuya_ir_encode_head(USHORT_T feq, USHORT_T data[], USHORT_T data_len, CHAR_T *ir_head, USHORT_T ir_head_size);
+BOOL_T tuya_ir_encode_head(USHORT_T feq, USHORT_T data[], USHORT_T data_len, CHAR_T *ir_head,
+                           USHORT_T ir_head_size);
 
 /**
- * @brief tuya_ir_encode 
+ * @brief tuya_ir_encode
  * @desc encode
  *
  * @param[in] framecount
@@ -59,10 +60,11 @@ BOOL_T tuya_ir_encode_head(USHORT_T feq, USHORT_T data[], USHORT_T data_len, CHA
  *
  * @return BOOL_T
  */
-BOOL_T tuya_ir_encode(BYTE_T framecount, USHORT_T data[], USHORT_T length, CHAR_T *ir_head, USHORT_T ir_head_size, CHAR_T *ir_key, USHORT_T ir_key_size);
+BOOL_T tuya_ir_encode(BYTE_T framecount, USHORT_T data[], USHORT_T length, CHAR_T *ir_head,
+                      USHORT_T ir_head_size, CHAR_T *ir_key, USHORT_T ir_key_size);
 
 /**
- * @brief tuya_ir_decode 
+ * @brief tuya_ir_decode
  * @desc decode
  *
  * @param[in] head
@@ -74,7 +76,8 @@ BOOL_T tuya_ir_encode(BYTE_T framecount, USHORT_T data[], USHORT_T length, CHAR_
  *
  * @return USHORT_T
  */
-USHORT_T tuya_ir_decode(CHAR_T *head, CHAR_T *key, USHORT_T *decode_buf, USHORT_T buf_size, BYTE_T *framecount, USHORT_T *feq);
+USHORT_T tuya_ir_decode(CHAR_T *head, CHAR_T *key, USHORT_T *decode_buf, USHORT_T buf_size,
+                        BYTE_T *framecount, USHORT_T *feq);
 
 #ifdef __cplusplus
 }

@@ -20,10 +20,10 @@ struct coap_pdu_t;
  * others are even.
  */
 enum coap_uri_scheme_t {
-  COAP_URI_SCHEME_COAP=0,
-  COAP_URI_SCHEME_COAPS=1,
-  COAP_URI_SCHEME_COAP_TCP=2,
-  COAP_URI_SCHEME_COAPS_TCP=3
+	COAP_URI_SCHEME_COAP = 0,
+	COAP_URI_SCHEME_COAPS = 1,
+	COAP_URI_SCHEME_COAP_TCP = 2,
+	COAP_URI_SCHEME_COAPS_TCP = 3
 };
 
 /** This mask can be used to check if a parsed URI scheme is secure. */
@@ -34,19 +34,18 @@ enum coap_uri_scheme_t {
  * coap_split_uri() and can be used as input for option-creation functions.
  */
 typedef struct {
-  coap_str_const_t host;  /**< host part of the URI */
-  uint16_t port;          /**< The port in host byte order */
-  coap_str_const_t path;  /**< Beginning of the first path segment.
-                           Use coap_split_path() to create Uri-Path options */
-  coap_str_const_t query; /**<  The query part if present */
+	coap_str_const_t host;  /**< host part of the URI */
+	uint16_t port;          /**< The port in host byte order */
+	coap_str_const_t path;  /**< Beginning of the first path segment.
+	                         Use coap_split_path() to create Uri-Path options */
+	coap_str_const_t query; /**<  The query part if present */
 
-  /** The parsed scheme specifier. */
-  enum coap_uri_scheme_t scheme;
+	/** The parsed scheme specifier. */
+	enum coap_uri_scheme_t scheme;
 } coap_uri_t;
 
-static inline int
-coap_uri_scheme_is_secure(const coap_uri_t *uri) {
-  return uri && ((uri->scheme & COAP_URI_SCHEME_SECURE_MASK) != 0);
+static inline int coap_uri_scheme_is_secure(const coap_uri_t *uri) {
+	return uri && ((uri->scheme & COAP_URI_SCHEME_SECURE_MASK) != 0);
 }
 
 /**
@@ -103,10 +102,7 @@ int coap_split_uri(const uint8_t *str_var, size_t len, coap_uri_t *uri);
  *
  * @return       The number of segments created or @c -1 on error.
  */
-int coap_split_path(const uint8_t *s,
-                    size_t length,
-                    unsigned char *buf,
-                    size_t *buflen);
+int coap_split_path(const uint8_t *s, size_t length, unsigned char *buf, size_t *buflen);
 
 /**
  * Splits the given URI query into segments. Each segment is preceded
@@ -123,10 +119,7 @@ int coap_split_path(const uint8_t *s,
  *
  * @bug This function does not reserve additional space for delta > 12.
  */
-int coap_split_query(const uint8_t *s,
-                     size_t length,
-                     unsigned char *buf,
-                     size_t *buflen);
+int coap_split_query(const uint8_t *s, size_t length, unsigned char *buf, size_t *buflen);
 
 /**
  * Extract query string from request PDU according to escape rules in 6.5.8.

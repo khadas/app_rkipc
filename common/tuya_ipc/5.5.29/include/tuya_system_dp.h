@@ -10,14 +10,12 @@ Copyright(C),2017, 涂鸦科技 www.tuya.comm
 extern "C" {
 #endif
 
-#define TY_SYSTEM_DP_MIN            200
-#define TY_SYSTEM_DP_IR_CTL         201
-#define TY_SYSTEM_DP_STUDY_REPORT   202
+#define TY_SYSTEM_DP_MIN 200
+#define TY_SYSTEM_DP_IR_CTL 201
+#define TY_SYSTEM_DP_STUDY_REPORT 202
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  
-
-
+#endif

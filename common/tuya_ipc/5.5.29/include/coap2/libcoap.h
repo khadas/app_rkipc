@@ -18,25 +18,25 @@
  *
  * The CONTIKI variable is within the Contiki build environment! */
 
-#include "tuya_os_adapter.h"
-#include "uni_network.h"
+#include "coap_config.h"
 #include "mem_pool.h"
 #include "tuya_cloud_types.h"
-#include "coap_config.h"
+#include "tuya_os_adapter.h"
+#include "uni_network.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
 #if defined(_WIN32)
-#pragma comment(lib,"Ws2_32.lib")
+#pragma comment(lib, "Ws2_32.lib")
 #include <ws2tcpip.h>
 typedef SSIZE_T ssize_t;
 typedef USHORT in_port_t;
-#elif !defined (CONTIKI)
+#elif !defined(CONTIKI)
 
 #ifdef HAVE_NETINET_IN_H
-# include <netinet/in.h>
+#include <netinet/in.h>
 #endif
 
 #ifdef HAVE_SYS_SOCKET_H
@@ -45,26 +45,26 @@ typedef USHORT in_port_t;
 #endif /* CONTIKI */
 
 #ifndef COAP_STATIC_INLINE
-#  if defined(__cplusplus)
-#    define COAP_STATIC_INLINE inline
-#  else
-#    if defined(_MSC_VER)
-#      define COAP_STATIC_INLINE static __inline
-#    else
-#      define COAP_STATIC_INLINE static inline
-#    endif
-#  endif
+#if defined(__cplusplus)
+#define COAP_STATIC_INLINE inline
+#else
+#if defined(_MSC_VER)
+#define COAP_STATIC_INLINE static __inline
+#else
+#define COAP_STATIC_INLINE static inline
+#endif
+#endif
 #endif
 #ifndef COAP_DEPRECATED
-#  if defined(__cplusplus)
-#    define COAP_DEPRECATED __attribute__ ((deprecated))
-#  else
-#    if defined(_MSC_VER)
-#      define COAP_DEPRECATED __declspec(deprecated)
-#    else
-#      define COAP_DEPRECATED __attribute__ ((deprecated))
-#    endif
-#  endif
+#if defined(__cplusplus)
+#define COAP_DEPRECATED __attribute__((deprecated))
+#else
+#if defined(_MSC_VER)
+#define COAP_DEPRECATED __declspec(deprecated)
+#else
+#define COAP_DEPRECATED __attribute__((deprecated))
+#endif
+#endif
 #endif
 
 void coap_startup(void);

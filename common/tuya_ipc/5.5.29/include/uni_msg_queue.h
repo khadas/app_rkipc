@@ -1,13 +1,13 @@
 /**
-* @file uni_msg_queue.h
-* @author nzy@tuya.com
-* @brief Common process - Initialization
-* @version 0.1
-* @date 2020-11-09
-*
-* @copyright Copyright 2020-2021 Tuya Inc. All Rights Reserved.
-*
-*/
+ * @file uni_msg_queue.h
+ * @author nzy@tuya.com
+ * @brief Common process - Initialization
+ * @version 0.1
+ * @date 2020-11-09
+ *
+ * @copyright Copyright 2020-2021 Tuya Inc. All Rights Reserved.
+ *
+ */
 #ifndef _UNI_MSG_QUEUE_H
 #define _UNI_MSG_QUEUE_H
 
@@ -15,82 +15,80 @@
 extern "C" {
 #endif
 
+#include "sys_timer.h"
 #include "tuya_cloud_types.h"
 #include "uni_pointer.h"
-#include "sys_timer.h"
 
 #define USE_SEM_COUNTING 1
 #if !(USE_SEM_COUNTING)
-    #include "tuya_hal_system.h"
-    #define PROC_MSG_DELAY 100
+#include "tuya_hal_system.h"
+#define PROC_MSG_DELAY 100
 #endif
 
 typedef PVOID_T MSG_QUE_HANDLE; // message queue handle
 
-typedef USHORT_T MSG_ID;          // message id
-typedef PVOID_T P_MSG_DATA;       // message data
-typedef UINT_T MSG_DATA_LEN;      // message data lenth
+typedef USHORT_T MSG_ID;     // message id
+typedef PVOID_T P_MSG_DATA;  // message data
+typedef UINT_T MSG_DATA_LEN; // message data lenth
 
-#define UNVALUED_MSGID 0xffff  // invalid message id
+#define UNVALUED_MSGID 0xffff // invalid message id
 
 /**
  * @brief Definition of message type
  */
-typedef UINT_T MSG_TYPE; 
-#define INSTANCY_MESSAGE 0  // instant message type
-#define NORMAL_MESSAGE 1    // normal message type
+typedef UINT_T MSG_TYPE;
+#define INSTANCY_MESSAGE 0 // instant message type
+#define NORMAL_MESSAGE 1   // normal message type
 
 /**
  * @brief Init param of message
  */
-typedef struct
-{
-    MSG_ID msgID;            // message id
-    P_MSG_DATA pMsgData;     // message data
-    MSG_DATA_LEN msgDataLen; // message data len
-}MESSAGE,*P_MESSAGE;
+typedef struct {
+	MSG_ID msgID;            // message id
+	P_MSG_DATA pMsgData;     // message data
+	MSG_DATA_LEN msgDataLen; // message data len
+} MESSAGE, *P_MESSAGE;
 
 /**
  * @brief message list
  */
-typedef struct
-{
-    LIST_HEAD listHead;  // list head
-    MESSAGE msg;         // message info
-}MSG_LIST,*P_MSG_LIST;
+typedef struct {
+	LIST_HEAD listHead; // list head
+	MESSAGE msg;        // message info
+} MSG_LIST, *P_MSG_LIST;
 
 // message processing callback
-typedef VOID(*MSG_CALLBACK)(MESSAGE *msg);
+typedef VOID (*MSG_CALLBACK)(MESSAGE *msg);
 
 struct s_tm_msg;
-typedef VOID(* TM_MSG_CB)(struct s_tm_msg *tm_msg); // timer message callback
+typedef VOID (*TM_MSG_CB)(struct s_tm_msg *tm_msg); // timer message callback
 
 /**
  * @brief timer message definition
  */
 typedef struct s_tm_msg {
-    TIMER_ID timer;              // timer id
-    MSG_QUE_HANDLE msgQueHandle; // timer queue handle
-    TM_MSG_CB cb;                // timer callback function
-    MSG_ID msgID;                // message id
-    VOID *data;                  // message data
-}TM_MSG_S;
+	TIMER_ID timer;              // timer id
+	MSG_QUE_HANDLE msgQueHandle; // timer queue handle
+	TM_MSG_CB cb;                // timer callback function
+	MSG_ID msgID;                // message id
+	VOID *data;                  // message data
+} TM_MSG_S;
 
 /**
  * @brief message entry definition
  */
 typedef struct {
-    MSG_ID *mid;         // message id
-    MSG_CALLBACK msg_cb; // message callback
-}MSG_ENTRY_S;
+	MSG_ID *mid;         // message id
+	MSG_CALLBACK msg_cb; // message callback
+} MSG_ENTRY_S;
 
 /**
  * @brief timer message entry definition
  */
 typedef struct {
-    TM_MSG_S **tm_msg;    //timer message info
-    TM_MSG_CB tmm_msg_cb; //timer message callback
-}TM_MSG_ENTRY_S;
+	TM_MSG_S **tm_msg;    // timer message info
+	TM_MSG_CB tmm_msg_cb; // timer message callback
+} TM_MSG_ENTRY_S;
 
 /**
  * @brief Create and init the message queue
@@ -116,10 +114,9 @@ OPERATE_RET CreateMsgQueAndInit(OUT MSG_QUE_HANDLE *pMsgQueHandle);
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET AddMsgNodeToQueue(IN CONST MSG_QUE_HANDLE msgQueHandle,\
-                                     IN CONST MSG_ID msgID, IN CONST P_MSG_DATA pMsgData,\
-                                     IN CONST MSG_DATA_LEN msgDataLen,\
-                                     IN CONST MSG_TYPE msgType);
+OPERATE_RET AddMsgNodeToQueue(IN CONST MSG_QUE_HANDLE msgQueHandle, IN CONST MSG_ID msgID,
+                              IN CONST P_MSG_DATA pMsgData, IN CONST MSG_DATA_LEN msgDataLen,
+                              IN CONST MSG_TYPE msgType);
 
 /**
  * @brief Get message node from queue
@@ -132,8 +129,8 @@ OPERATE_RET AddMsgNodeToQueue(IN CONST MSG_QUE_HANDLE msgQueHandle,\
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET GetMsgNodeFromQueue(IN CONST MSG_QUE_HANDLE msgQueHandle,\
-                                        IN CONST MSG_ID msgID, OUT P_MSG_LIST *ppMsgListNode);
+OPERATE_RET GetMsgNodeFromQueue(IN CONST MSG_QUE_HANDLE msgQueHandle, IN CONST MSG_ID msgID,
+                                OUT P_MSG_LIST *ppMsgListNode);
 
 /**
  * @brief Get the first message node from queue
@@ -145,8 +142,8 @@ OPERATE_RET GetMsgNodeFromQueue(IN CONST MSG_QUE_HANDLE msgQueHandle,\
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET GetFirstMsgFromQueue(IN CONST MSG_QUE_HANDLE msgQueHandle,\
-                                         OUT P_MSG_LIST *ppMsgListNode);
+OPERATE_RET GetFirstMsgFromQueue(IN CONST MSG_QUE_HANDLE msgQueHandle,
+                                 OUT P_MSG_LIST *ppMsgListNode);
 
 /**
  * @brief Get the count of message node from queue
@@ -170,7 +167,8 @@ OPERATE_RET GetMsgNodeNum(IN CONST MSG_QUE_HANDLE msgQueHandle, OUT PINT_T pMsgN
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET DelAndFreeMsgNodeFromQueue(IN CONST MSG_QUE_HANDLE msgQueHandle, IN CONST P_MSG_LIST pMsgListNode);
+OPERATE_RET DelAndFreeMsgNodeFromQueue(IN CONST MSG_QUE_HANDLE msgQueHandle,
+                                       IN CONST P_MSG_LIST pMsgListNode);
 
 /**
  * @brief Release the message queue
@@ -195,10 +193,8 @@ OPERATE_RET ReleaseMsgQue(IN CONST MSG_QUE_HANDLE msgQueHandle);
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET PostMessage(IN CONST MSG_QUE_HANDLE msgQueHandle,\
-                            IN CONST MSG_ID msgID,\
-                            IN CONST P_MSG_DATA pMsgData,\
-                            IN CONST MSG_DATA_LEN msgDataLen);
+OPERATE_RET PostMessage(IN CONST MSG_QUE_HANDLE msgQueHandle, IN CONST MSG_ID msgID,
+                        IN CONST P_MSG_DATA pMsgData, IN CONST MSG_DATA_LEN msgDataLen);
 
 /**
  * @brief Post a message instantly
@@ -212,10 +208,8 @@ OPERATE_RET PostMessage(IN CONST MSG_QUE_HANDLE msgQueHandle,\
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET PostInstancyMsg(IN CONST MSG_QUE_HANDLE msgQueHandle,\
-                                  IN CONST MSG_ID msgID,\
-                                  IN CONST P_MSG_DATA pMsgData,\
-                                  IN CONST MSG_DATA_LEN msgDataLen);
+OPERATE_RET PostInstancyMsg(IN CONST MSG_QUE_HANDLE msgQueHandle, IN CONST MSG_ID msgID,
+                            IN CONST P_MSG_DATA pMsgData, IN CONST MSG_DATA_LEN msgDataLen);
 
 /**
  * @brief Wait a message.
@@ -240,9 +234,8 @@ OPERATE_RET WaitMessage(IN CONST MSG_QUE_HANDLE msgQueHandle, OUT P_MSG_LIST *pp
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET RegisterMsgCb(IN CONST MSG_QUE_HANDLE msgQueHandle,\
-                               IN CONST MSG_CALLBACK msg_cb, OUT MSG_ID *msg_id);
-
+OPERATE_RET RegisterMsgCb(IN CONST MSG_QUE_HANDLE msgQueHandle, IN CONST MSG_CALLBACK msg_cb,
+                          OUT MSG_ID *msg_id);
 
 /**
  * @brief Unregist callback function for message.
@@ -254,7 +247,7 @@ OPERATE_RET RegisterMsgCb(IN CONST MSG_QUE_HANDLE msgQueHandle,\
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET UnregisterMsgCb(IN CONST MSG_QUE_HANDLE msgQueHandle,IN CONST MSG_ID msgID);
+OPERATE_RET UnregisterMsgCb(IN CONST MSG_QUE_HANDLE msgQueHandle, IN CONST MSG_ID msgID);
 
 /**
  * @brief Message loop processing.
@@ -279,8 +272,8 @@ VOID MessageLoop(IN CONST MSG_QUE_HANDLE msgQueHandle);
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET create_tm_msg_hand(IN CONST MSG_QUE_HANDLE msgQueHandle,IN CONST VOID *data,\
-                                      IN CONST TM_MSG_CB cb,OUT TM_MSG_S **tm_msg);
+OPERATE_RET create_tm_msg_hand(IN CONST MSG_QUE_HANDLE msgQueHandle, IN CONST VOID *data,
+                               IN CONST TM_MSG_CB cb, OUT TM_MSG_S **tm_msg);
 
 /**
  * @brief Start the timer message.
@@ -293,8 +286,8 @@ OPERATE_RET create_tm_msg_hand(IN CONST MSG_QUE_HANDLE msgQueHandle,IN CONST VOI
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET start_tm_msg(IN CONST TM_MSG_S *tm_msg,IN CONST TIME_MS timeCycle,\
-                              IN CONST TIMER_TYPE timer_type);
+OPERATE_RET start_tm_msg(IN CONST TM_MSG_S *tm_msg, IN CONST TIME_MS timeCycle,
+                         IN CONST TIMER_TYPE timer_type);
 
 /**
  * @brief Stop the timer message.

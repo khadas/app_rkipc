@@ -117,12 +117,9 @@ extern "C" {
 #define SRTP_AES_ICM_192_KEY_LEN_WSALT (SRTP_SALT_LEN + SRTP_AES_192_KEY_LEN)
 #define SRTP_AES_ICM_256_KEY_LEN_WSALT (SRTP_SALT_LEN + SRTP_AES_256_KEY_LEN)
 
-#define SRTP_AES_GCM_128_KEY_LEN_WSALT                                         \
-    (SRTP_AEAD_SALT_LEN + SRTP_AES_128_KEY_LEN)
-#define SRTP_AES_GCM_192_KEY_LEN_WSALT                                         \
-    (SRTP_AEAD_SALT_LEN + SRTP_AES_192_KEY_LEN)
-#define SRTP_AES_GCM_256_KEY_LEN_WSALT                                         \
-    (SRTP_AEAD_SALT_LEN + SRTP_AES_256_KEY_LEN)
+#define SRTP_AES_GCM_128_KEY_LEN_WSALT (SRTP_AEAD_SALT_LEN + SRTP_AES_128_KEY_LEN)
+#define SRTP_AES_GCM_192_KEY_LEN_WSALT (SRTP_AEAD_SALT_LEN + SRTP_AES_192_KEY_LEN)
+#define SRTP_AES_GCM_256_KEY_LEN_WSALT (SRTP_AEAD_SALT_LEN + SRTP_AES_256_KEY_LEN)
 
 /**
  *  @brief A srtp_cipher_type_id_t is an identifier for a particular cipher
@@ -162,40 +159,40 @@ typedef uint32_t srtp_auth_type_id_t;
  *
  */
 typedef enum {
-    srtp_err_status_ok = 0,             /**< nothing to report               */
-    srtp_err_status_fail = 1,           /**< unspecified failure             */
-    srtp_err_status_bad_param = 2,      /**< unsupported parameter           */
-    srtp_err_status_alloc_fail = 3,     /**< couldn't allocate memory        */
-    srtp_err_status_dealloc_fail = 4,   /**< couldn't deallocate properly    */
-    srtp_err_status_init_fail = 5,      /**< couldn't initialize             */
-    srtp_err_status_terminus = 6,       /**< can't process as much data as   */
-                                        /**< requested                       */
-    srtp_err_status_auth_fail = 7,      /**< authentication failure          */
-    srtp_err_status_cipher_fail = 8,    /**< cipher failure                  */
-    srtp_err_status_replay_fail = 9,    /**< replay check failed (bad index) */
-    srtp_err_status_replay_old = 10,    /**< replay check failed (index too  */
-                                        /**< old)                            */
-    srtp_err_status_algo_fail = 11,     /**< algorithm failed test routine   */
-    srtp_err_status_no_such_op = 12,    /**< unsupported operation           */
-    srtp_err_status_no_ctx = 13,        /**< no appropriate context found    */
-    srtp_err_status_cant_check = 14,    /**< unable to perform desired       */
-                                        /**< validation                      */
-    srtp_err_status_key_expired = 15,   /**< can't use key any more          */
-    srtp_err_status_socket_err = 16,    /**< error in use of socket          */
-    srtp_err_status_signal_err = 17,    /**< error in use POSIX signals      */
-    srtp_err_status_nonce_bad = 18,     /**< nonce check failed              */
-    srtp_err_status_read_fail = 19,     /**< couldn't read data              */
-    srtp_err_status_write_fail = 20,    /**< couldn't write data             */
-    srtp_err_status_parse_err = 21,     /**< error parsing data              */
-    srtp_err_status_encode_err = 22,    /**< error encoding data             */
-    srtp_err_status_semaphore_err = 23, /**< error while using semaphores    */
-    srtp_err_status_pfkey_err = 24,     /**< error while using pfkey         */
-    srtp_err_status_bad_mki = 25,       /**< error MKI present in packet is  */
-                                        /**< invalid                         */
-    srtp_err_status_pkt_idx_old = 26,   /**< packet index is too old to      */
-                                        /**< consider                        */
-    srtp_err_status_pkt_idx_adv = 27    /**< packet index advanced, reset    */
-                                        /**< needed                          */
+	srtp_err_status_ok = 0,             /**< nothing to report               */
+	srtp_err_status_fail = 1,           /**< unspecified failure             */
+	srtp_err_status_bad_param = 2,      /**< unsupported parameter           */
+	srtp_err_status_alloc_fail = 3,     /**< couldn't allocate memory        */
+	srtp_err_status_dealloc_fail = 4,   /**< couldn't deallocate properly    */
+	srtp_err_status_init_fail = 5,      /**< couldn't initialize             */
+	srtp_err_status_terminus = 6,       /**< can't process as much data as   */
+	                                    /**< requested                       */
+	srtp_err_status_auth_fail = 7,      /**< authentication failure          */
+	srtp_err_status_cipher_fail = 8,    /**< cipher failure                  */
+	srtp_err_status_replay_fail = 9,    /**< replay check failed (bad index) */
+	srtp_err_status_replay_old = 10,    /**< replay check failed (index too  */
+	                                    /**< old)                            */
+	srtp_err_status_algo_fail = 11,     /**< algorithm failed test routine   */
+	srtp_err_status_no_such_op = 12,    /**< unsupported operation           */
+	srtp_err_status_no_ctx = 13,        /**< no appropriate context found    */
+	srtp_err_status_cant_check = 14,    /**< unable to perform desired       */
+	                                    /**< validation                      */
+	srtp_err_status_key_expired = 15,   /**< can't use key any more          */
+	srtp_err_status_socket_err = 16,    /**< error in use of socket          */
+	srtp_err_status_signal_err = 17,    /**< error in use POSIX signals      */
+	srtp_err_status_nonce_bad = 18,     /**< nonce check failed              */
+	srtp_err_status_read_fail = 19,     /**< couldn't read data              */
+	srtp_err_status_write_fail = 20,    /**< couldn't write data             */
+	srtp_err_status_parse_err = 21,     /**< error parsing data              */
+	srtp_err_status_encode_err = 22,    /**< error encoding data             */
+	srtp_err_status_semaphore_err = 23, /**< error while using semaphores    */
+	srtp_err_status_pfkey_err = 24,     /**< error while using pfkey         */
+	srtp_err_status_bad_mki = 25,       /**< error MKI present in packet is  */
+	                                    /**< invalid                         */
+	srtp_err_status_pkt_idx_old = 26,   /**< packet index is too old to      */
+	                                    /**< consider                        */
+	srtp_err_status_pkt_idx_adv = 27    /**< packet index advanced, reset    */
+	                                    /**< needed                          */
 } srtp_err_status_t;
 
 typedef struct srtp_ctx_t_ srtp_ctx_t;
@@ -208,10 +205,10 @@ typedef struct srtp_ctx_t_ srtp_ctx_t;
  * policy (or other mechanism).
  */
 typedef enum {
-    sec_serv_none = 0,         /**< no services                        */
-    sec_serv_conf = 1,         /**< confidentiality                    */
-    sec_serv_auth = 2,         /**< authentication                     */
-    sec_serv_conf_and_auth = 3 /**< confidentiality and authentication */
+	sec_serv_none = 0,         /**< no services                        */
+	sec_serv_conf = 1,         /**< confidentiality                    */
+	sec_serv_auth = 2,         /**< authentication                     */
+	sec_serv_conf_and_auth = 3 /**< confidentiality and authentication */
 } srtp_sec_serv_t;
 
 /**
@@ -224,18 +221,18 @@ typedef enum {
  * in the session.
  */
 typedef struct srtp_crypto_policy_t {
-    srtp_cipher_type_id_t cipher_type; /**< An integer representing          */
-                                       /**< the type of cipher.              */
-    int cipher_key_len;                /**< The length of the cipher key     */
-                                       /**< in octets.                       */
-    srtp_auth_type_id_t auth_type;     /**< An integer representing the      */
-                                       /**< authentication function.         */
-    int auth_key_len;                  /**< The length of the authentication */
-                                       /**< function key in octets.          */
-    int auth_tag_len;                  /**< The length of the authentication */
-                                       /**< tag in octets.                   */
-    srtp_sec_serv_t sec_serv;          /**< The flag indicating the security */
-                                       /**< services to be applied.          */
+	srtp_cipher_type_id_t cipher_type; /**< An integer representing          */
+	                                   /**< the type of cipher.              */
+	int cipher_key_len;                /**< The length of the cipher key     */
+	                                   /**< in octets.                       */
+	srtp_auth_type_id_t auth_type;     /**< An integer representing the      */
+	                                   /**< authentication function.         */
+	int auth_key_len;                  /**< The length of the authentication */
+	                                   /**< function key in octets.          */
+	int auth_tag_len;                  /**< The length of the authentication */
+	                                   /**< tag in octets.                   */
+	srtp_sec_serv_t sec_serv;          /**< The flag indicating the security */
+	                                   /**< services to be applied.          */
 } srtp_crypto_policy_t;
 
 /**
@@ -245,14 +242,14 @@ typedef struct srtp_crypto_policy_t {
  * @ref srtp_policy_t for more informataion.
  */
 typedef enum {
-    ssrc_undefined = 0,   /**< Indicates an undefined SSRC type.    */
-    ssrc_specific = 1,    /**< Indicates a specific SSRC value      */
-    ssrc_any_inbound = 2, /**< Indicates any inbound SSRC value     */
-                          /**< (i.e. a value that is used in the    */
-                          /**< function srtp_unprotect())           */
-    ssrc_any_outbound = 3 /**< Indicates any outbound SSRC value    */
-                          /**< (i.e. a value that is used in the    */
-                          /**< function srtp_protect())             */
+	ssrc_undefined = 0,   /**< Indicates an undefined SSRC type.    */
+	ssrc_specific = 1,    /**< Indicates a specific SSRC value      */
+	ssrc_any_inbound = 2, /**< Indicates any inbound SSRC value     */
+	                      /**< (i.e. a value that is used in the    */
+	                      /**< function srtp_unprotect())           */
+	ssrc_any_outbound = 3 /**< Indicates any outbound SSRC value    */
+	                      /**< (i.e. a value that is used in the    */
+	                      /**< function srtp_protect())             */
 } srtp_ssrc_type_t;
 
 /**
@@ -265,9 +262,9 @@ typedef enum {
  * SSRCs (if its type is ssrc_any_inbound).
  */
 typedef struct {
-    srtp_ssrc_type_t type; /**< The type of this particular SSRC */
-    unsigned int value;    /**< The value of this SSRC, if it is not a */
-                           /**< wildcard */
+	srtp_ssrc_type_t type; /**< The type of this particular SSRC */
+	unsigned int value;    /**< The value of this SSRC, if it is not a */
+	                       /**< wildcard */
 } srtp_ssrc_t;
 
 /**
@@ -287,9 +284,9 @@ typedef struct srtp_ekt_stream_ctx_t *srtp_ekt_stream_t;
  * Index Size to correctly read it from a packet.
  */
 typedef struct srtp_master_key_t {
-    unsigned char *key;
-    unsigned char *mki_id;
-    unsigned int mki_size;
+	unsigned char *key;
+	unsigned char *mki_id;
+	unsigned int mki_size;
 } srtp_master_key_t;
 
 /**
@@ -319,31 +316,31 @@ typedef struct srtp_master_key_t {
  */
 
 typedef struct srtp_policy_t {
-    srtp_ssrc_t ssrc;              /**< The SSRC value of stream, or the    */
-                                   /**< flags SSRC_ANY_INBOUND or           */
-                                   /**< SSRC_ANY_OUTBOUND if key sharing    */
-                                   /**< is used for this policy element.    */
-    srtp_crypto_policy_t rtp;      /**< SRTP crypto policy.                 */
-    srtp_crypto_policy_t rtcp;     /**< SRTCP crypto policy.                */
-    unsigned char *key;            /**< Pointer to the SRTP master key for  */
-                                   /**< this stream.                        */
-    srtp_master_key_t **keys;      /** Array of Master Key structures       */
-    unsigned long num_master_keys; /** Number of master keys                */
-    srtp_ekt_policy_t ekt;         /**< Pointer to the EKT policy structure */
-                                   /**< for this stream (if any)            */
-    unsigned long window_size;     /**< The window size to use for replay   */
-                                   /**< protection.                         */
-    int allow_repeat_tx;           /**< Whether retransmissions of          */
-                                   /**< packets with the same sequence      */
-                                   /**< number are allowed.                 */
-                                   /**< (Note that such repeated            */
-                                   /**< transmissions must have the same    */
-                                   /**< RTP payload, or a severe security   */
-                                   /**< weakness is introduced!)            */
-    int *enc_xtn_hdr;              /**< List of header ids to encrypt.      */
-    int enc_xtn_hdr_count;         /**< Number of entries in list of header */
-                                   /**<  ids.                               */
-    struct srtp_policy_t *next;    /**< Pointer to next stream policy.      */
+	srtp_ssrc_t ssrc;              /**< The SSRC value of stream, or the    */
+	                               /**< flags SSRC_ANY_INBOUND or           */
+	                               /**< SSRC_ANY_OUTBOUND if key sharing    */
+	                               /**< is used for this policy element.    */
+	srtp_crypto_policy_t rtp;      /**< SRTP crypto policy.                 */
+	srtp_crypto_policy_t rtcp;     /**< SRTCP crypto policy.                */
+	unsigned char *key;            /**< Pointer to the SRTP master key for  */
+	                               /**< this stream.                        */
+	srtp_master_key_t **keys;      /** Array of Master Key structures       */
+	unsigned long num_master_keys; /** Number of master keys                */
+	srtp_ekt_policy_t ekt;         /**< Pointer to the EKT policy structure */
+	                               /**< for this stream (if any)            */
+	unsigned long window_size;     /**< The window size to use for replay   */
+	                               /**< protection.                         */
+	int allow_repeat_tx;           /**< Whether retransmissions of          */
+	                               /**< packets with the same sequence      */
+	                               /**< number are allowed.                 */
+	                               /**< (Note that such repeated            */
+	                               /**< transmissions must have the same    */
+	                               /**< RTP payload, or a severe security   */
+	                               /**< weakness is introduced!)            */
+	int *enc_xtn_hdr;              /**< List of header ids to encrypt.      */
+	int enc_xtn_hdr_count;         /**< Number of entries in list of header */
+	                               /**<  ids.                               */
+	struct srtp_policy_t *next;    /**< Pointer to next stream policy.      */
 } srtp_policy_t;
 
 /**
@@ -465,11 +462,8 @@ srtp_err_status_t srtp_protect(srtp_t ctx, void *rtp_hdr, int *len_ptr);
  *    - srtp_err_status_replay_fail   rtp sequence number was non-increasing
  *    - @e other                 failure in cryptographic mechanisms
  */
-srtp_err_status_t srtp_protect_mki(srtp_ctx_t *ctx,
-                                   void *rtp_hdr,
-                                   int *pkt_octet_len,
-                                   unsigned int use_mki,
-                                   unsigned int mki_index);
+srtp_err_status_t srtp_protect_mki(srtp_ctx_t *ctx, void *rtp_hdr, int *pkt_octet_len,
+                                   unsigned int use_mki, unsigned int mki_index);
 
 /**
  * @brief srtp_unprotect() is the Secure RTP receiver-side packet
@@ -559,9 +553,7 @@ srtp_err_status_t srtp_unprotect(srtp_t ctx, void *srtp_hdr, int *len_ptr);
  *    - [other]  if there has been an error in the cryptographic mechanisms.
  *
  */
-srtp_err_status_t srtp_unprotect_mki(srtp_t ctx,
-                                     void *srtp_hdr,
-                                     int *len_ptr,
+srtp_err_status_t srtp_unprotect_mki(srtp_t ctx, void *srtp_hdr, int *len_ptr,
                                      unsigned int use_mki);
 
 /**
@@ -673,8 +665,7 @@ srtp_err_status_t srtp_update(srtp_t session, const srtp_policy_t *policy);
  *    - [other]                      otherwise.
  *
  */
-srtp_err_status_t srtp_update_stream(srtp_t session,
-                                     const srtp_policy_t *policy);
+srtp_err_status_t srtp_update_stream(srtp_t session, const srtp_policy_t *policy);
 
 /**
  * @brief srtp_crypto_policy_set_rtp_default() sets a crypto policy
@@ -730,8 +721,7 @@ void srtp_crypto_policy_set_rtcp_default(srtp_crypto_policy_t *p);
  * @return void.
  *
  */
-#define srtp_crypto_policy_set_aes_cm_128_hmac_sha1_80(p)                      \
-    srtp_crypto_policy_set_rtp_default(p)
+#define srtp_crypto_policy_set_aes_cm_128_hmac_sha1_80(p) srtp_crypto_policy_set_rtp_default(p)
 
 /**
  * @brief srtp_crypto_policy_set_aes_cm_128_hmac_sha1_32() sets a crypto
@@ -1173,13 +1163,13 @@ srtp_err_status_t srtp_dealloc(srtp_t s);
  * https://www.iana.org/assignments/srtp-protection/srtp-protection.xhtml
  */
 typedef enum {
-    srtp_profile_reserved = 0,
-    srtp_profile_aes128_cm_sha1_80 = 1,
-    srtp_profile_aes128_cm_sha1_32 = 2,
-    srtp_profile_null_sha1_80 = 5,
-    srtp_profile_null_sha1_32 = 6,
-    srtp_profile_aead_aes_128_gcm = 7,
-    srtp_profile_aead_aes_256_gcm = 8,
+	srtp_profile_reserved = 0,
+	srtp_profile_aes128_cm_sha1_80 = 1,
+	srtp_profile_aes128_cm_sha1_32 = 2,
+	srtp_profile_null_sha1_80 = 5,
+	srtp_profile_null_sha1_32 = 6,
+	srtp_profile_aead_aes_128_gcm = 7,
+	srtp_profile_aead_aes_256_gcm = 8,
 } srtp_profile_t;
 
 /**
@@ -1205,9 +1195,8 @@ typedef enum {
  *     - srtp_err_status_bad_param  the profile is not supported
  *
  */
-srtp_err_status_t srtp_crypto_policy_set_from_profile_for_rtp(
-    srtp_crypto_policy_t *policy,
-    srtp_profile_t profile);
+srtp_err_status_t srtp_crypto_policy_set_from_profile_for_rtp(srtp_crypto_policy_t *policy,
+                                                              srtp_profile_t profile);
 
 /**
  * @brief srtp_crypto_policy_set_from_profile_for_rtcp() sets a crypto policy
@@ -1232,9 +1221,8 @@ srtp_err_status_t srtp_crypto_policy_set_from_profile_for_rtp(
  *     - srtp_err_status_bad_param  the profile is not supported
  *
  */
-srtp_err_status_t srtp_crypto_policy_set_from_profile_for_rtcp(
-    srtp_crypto_policy_t *policy,
-    srtp_profile_t profile);
+srtp_err_status_t srtp_crypto_policy_set_from_profile_for_rtcp(srtp_crypto_policy_t *policy,
+                                                               srtp_profile_t profile);
 
 /**
  * @brief returns the master key length for a given SRTP profile
@@ -1257,9 +1245,7 @@ unsigned int srtp_profile_get_master_salt_length(srtp_profile_t profile);
  *          available at the location pointed to by key.
  *
  */
-void srtp_append_salt_to_key(unsigned char *key,
-                             unsigned int bytes_in_key,
-                             unsigned char *salt,
+void srtp_append_salt_to_key(unsigned char *key, unsigned int bytes_in_key, unsigned char *salt,
                              unsigned int bytes_in_salt);
 
 /**
@@ -1322,9 +1308,7 @@ void srtp_append_salt_to_key(unsigned char *key,
  *    - [other]                  if there was a failure in
  *                               the cryptographic mechanisms.
  */
-srtp_err_status_t srtp_protect_rtcp(srtp_t ctx,
-                                    void *rtcp_hdr,
-                                    int *pkt_octet_len);
+srtp_err_status_t srtp_protect_rtcp(srtp_t ctx, void *rtcp_hdr, int *pkt_octet_len);
 
 /**
  * @brief srtp_protect_rtcp_mki() is the Secure RTCP sender-side packet
@@ -1371,11 +1355,8 @@ srtp_err_status_t srtp_protect_rtcp(srtp_t ctx,
  *    - [other]                  if there was a failure in
  *                               the cryptographic mechanisms.
  */
-srtp_err_status_t srtp_protect_rtcp_mki(srtp_t ctx,
-                                        void *rtcp_hdr,
-                                        int *pkt_octet_len,
-                                        unsigned int use_mki,
-                                        unsigned int mki_index);
+srtp_err_status_t srtp_protect_rtcp_mki(srtp_t ctx, void *rtcp_hdr, int *pkt_octet_len,
+                                        unsigned int use_mki, unsigned int mki_index);
 
 /**
  * @brief srtp_unprotect_rtcp() is the Secure RTCP receiver-side packet
@@ -1415,9 +1396,7 @@ srtp_err_status_t srtp_protect_rtcp_mki(srtp_t ctx,
  *    - [other]  if there has been an error in the cryptographic mechanisms.
  *
  */
-srtp_err_status_t srtp_unprotect_rtcp(srtp_t ctx,
-                                      void *srtcp_hdr,
-                                      int *pkt_octet_len);
+srtp_err_status_t srtp_unprotect_rtcp(srtp_t ctx, void *srtcp_hdr, int *pkt_octet_len);
 
 /**
  * @brief srtp_unprotect_rtcp() is the Secure RTCP receiver-side packet
@@ -1464,9 +1443,7 @@ srtp_err_status_t srtp_unprotect_rtcp(srtp_t ctx,
  *                                  cryptographic mechanisms.
  *
  */
-srtp_err_status_t srtp_unprotect_rtcp_mki(srtp_t ctx,
-                                          void *srtcp_hdr,
-                                          int *pkt_octet_len,
+srtp_err_status_t srtp_unprotect_rtcp_mki(srtp_t ctx, void *srtcp_hdr, int *pkt_octet_len,
                                           unsigned int use_mki);
 
 /**
@@ -1560,13 +1537,13 @@ void *srtp_get_user_data(srtp_t ctx);
  * latter case, all of the streams in the session will expire.
  */
 typedef enum {
-    event_ssrc_collision,    /**< An SSRC collision occured.            */
-    event_key_soft_limit,    /**< An SRTP stream reached the soft key   */
-                             /**< usage limit and will expire soon.     */
-    event_key_hard_limit,    /**< An SRTP stream reached the hard       */
-                             /**< key usage limit and has expired.      */
-    event_packet_index_limit /**< An SRTP stream reached the hard       */
-                             /**< packet limit (2^48 packets).          */
+	event_ssrc_collision,    /**< An SSRC collision occured.            */
+	event_key_soft_limit,    /**< An SRTP stream reached the soft key   */
+	                         /**< usage limit and will expire soon.     */
+	event_key_hard_limit,    /**< An SRTP stream reached the hard       */
+	                         /**< key usage limit and has expired.      */
+	event_packet_index_limit /**< An SRTP stream reached the hard       */
+	                         /**< packet limit (2^48 packets).          */
 } srtp_event_t;
 
 /**
@@ -1577,10 +1554,10 @@ typedef enum {
  * handler function.
  */
 typedef struct srtp_event_data_t {
-    srtp_t session;     /**< The session in which the event happend.        */
-    uint32_t ssrc;      /**< The ssrc in host order of the stream in which  */
-                        /**< the event happend                              */
-    srtp_event_t event; /**< An enum indicating the type of event.          */
+	srtp_t session;     /**< The session in which the event happend.        */
+	uint32_t ssrc;      /**< The ssrc in host order of the stream in which  */
+	                    /**< the event happend                              */
+	srtp_event_t event; /**< An enum indicating the type of event.          */
 } srtp_event_data_t;
 
 /**
@@ -1645,10 +1622,10 @@ srtp_err_status_t srtp_list_debug_modules(void);
  *
  */
 typedef enum {
-    srtp_log_level_error,   /**< log level is reporting an error message  */
-    srtp_log_level_warning, /**< log level is reporting a warning message */
-    srtp_log_level_info,    /**< log level is reporting an info message   */
-    srtp_log_level_debug    /**< log level is reporting a debug message   */
+	srtp_log_level_error,   /**< log level is reporting an error message  */
+	srtp_log_level_warning, /**< log level is reporting a warning message */
+	srtp_log_level_info,    /**< log level is reporting an info message   */
+	srtp_log_level_debug    /**< log level is reporting a debug message   */
 } srtp_log_level_t;
 
 /**
@@ -1661,9 +1638,7 @@ typedef enum {
  * There can only be a single, global handler for all log messages in
  * libSRTP.
  */
-typedef void(srtp_log_handler_func_t)(srtp_log_level_t level,
-                                      const char *msg,
-                                      void *data);
+typedef void(srtp_log_handler_func_t)(srtp_log_level_t level, const char *msg, void *data);
 
 /**
  * @brief sets the log handler to the function supplied by the caller.
@@ -1679,8 +1654,7 @@ typedef void(srtp_log_handler_func_t)(srtp_log_level_t level,
  * @param data is a user pointer that will be returned as the data argument in
  * func.
  */
-srtp_err_status_t srtp_install_log_handler(srtp_log_handler_func_t func,
-                                           void *data);
+srtp_err_status_t srtp_install_log_handler(srtp_log_handler_func_t func, void *data);
 
 /**
  * @brief srtp_get_protect_trailer_length(session, use_mki, mki_index, length)
@@ -1693,10 +1667,8 @@ srtp_err_status_t srtp_install_log_handler(srtp_log_handler_func_t func,
  * invalid
  *
  */
-srtp_err_status_t srtp_get_protect_trailer_length(srtp_t session,
-                                                  uint32_t use_mki,
-                                                  uint32_t mki_index,
-                                                  uint32_t *length);
+srtp_err_status_t srtp_get_protect_trailer_length(srtp_t session, uint32_t use_mki,
+                                                  uint32_t mki_index, uint32_t *length);
 
 /**
  * @brief srtp_get_protect_rtcp_trailer_length(session, use_mki, mki_index,
@@ -1710,10 +1682,8 @@ srtp_err_status_t srtp_get_protect_trailer_length(srtp_t session,
  * invalid
  *
  */
-srtp_err_status_t srtp_get_protect_rtcp_trailer_length(srtp_t session,
-                                                       uint32_t use_mki,
-                                                       uint32_t mki_index,
-                                                       uint32_t *length);
+srtp_err_status_t srtp_get_protect_rtcp_trailer_length(srtp_t session, uint32_t use_mki,
+                                                       uint32_t mki_index, uint32_t *length);
 
 /**
  * @brief srtp_set_stream_roc(session, ssrc, roc)
@@ -1724,9 +1694,7 @@ srtp_err_status_t srtp_get_protect_rtcp_trailer_length(srtp_t session,
  * stream found
  *
  */
-srtp_err_status_t srtp_set_stream_roc(srtp_t session,
-                                      uint32_t ssrc,
-                                      uint32_t roc);
+srtp_err_status_t srtp_set_stream_roc(srtp_t session, uint32_t ssrc, uint32_t roc);
 
 /**
  * @brief srtp_get_stream_roc(session, ssrc, roc)
@@ -1737,9 +1705,7 @@ srtp_err_status_t srtp_set_stream_roc(srtp_t session,
  * stream found
  *
  */
-srtp_err_status_t srtp_get_stream_roc(srtp_t session,
-                                      uint32_t ssrc,
-                                      uint32_t *roc);
+srtp_err_status_t srtp_get_stream_roc(srtp_t session, uint32_t ssrc, uint32_t *roc);
 
 /**
  * @}

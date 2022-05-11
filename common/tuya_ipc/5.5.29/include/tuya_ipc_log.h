@@ -1,7 +1,7 @@
 /*********************************************************************************
-  *Copyright(C),2017, 涂鸦科技 www.tuya.comm
-  *FileName:    tuya_ipc_log.h
-**********************************************************************************/
+ *Copyright(C),2017, 涂鸦科技 www.tuya.comm
+ *FileName:    tuya_ipc_log.h
+ **********************************************************************************/
 
 #ifndef _TUYA_IPC_LOG_H
 #define _TUYA_IPC_LOG_H
@@ -19,12 +19,10 @@ extern "C" {
  */
 OPERATE_RET tuya_ipc_set_log_attr(IN CONST INT_T log_level, CHAR_T *filename);
 
-
 OPERATE_RET tuya_ipc_log_setting(IN CONST INT_T log_level, FILE *filename, BOOL_T if_ms_level);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  /*_TUYA_IPC_LOG_H*/
-
+#endif /*_TUYA_IPC_LOG_H*/

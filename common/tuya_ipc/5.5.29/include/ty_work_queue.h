@@ -1,12 +1,12 @@
 /**
-* @file tuya_work_queue.h
-* @brief provide work queue operate api
-* @version 0.1
-* @date 2010-09-09
-*
-* @copyright Copyright 2019-2021 Tuya Inc. All Rights Reserved.
-*
-*/
+ * @file tuya_work_queue.h
+ * @brief provide work queue operate api
+ * @version 0.1
+ * @date 2010-09-09
+ *
+ * @copyright Copyright 2019-2021 Tuya Inc. All Rights Reserved.
+ *
+ */
 
 #ifndef _TY_WORK_QUEUE_H
 #define _TY_WORK_QUEUE_H
@@ -14,7 +14,7 @@
 #include "tuya_cloud_types.h"
 
 #ifdef __cplusplus
-    extern "C" {
+extern "C" {
 #endif
 
 /**
@@ -60,4 +60,3 @@ UINT_T ty_work_queue_depth(VOID);
 }
 #endif
 #endif
-

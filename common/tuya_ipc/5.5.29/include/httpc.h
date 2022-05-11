@@ -61,29 +61,28 @@
 #ifndef _HTTPC_H_
 #define _HTTPC_H_
 
-#include <time.h>
-#include "uni_time.h"
 #include "tuya_hal_network.h"
+#include "uni_time.h"
+#include <time.h>
 
-typedef void * http_session_t;
+typedef void *http_session_t;
 
 /* Request methods */
 typedef enum {
-    HTTP_OPTIONS,		/* request to server for communication  options */
-    HTTP_GET,		/* retrieve information */
-    HTTP_HEAD,		/* get meta-info */
-    HTTP_POST,		/* request to accept new sub-ordinate of resource */
-    HTTP_PUT,		/* modify or create new resource referred to by URI */
-    HTTP_DELETE,		/* delete the resource */
-    HTTP_TRACE,		/* echo */
-    HTTP_CONNECT,		/* do we need this  ? */
+	HTTP_OPTIONS, /* request to server for communication  options */
+	HTTP_GET,     /* retrieve information */
+	HTTP_HEAD,    /* get meta-info */
+	HTTP_POST,    /* request to accept new sub-ordinate of resource */
+	HTTP_PUT,     /* modify or create new resource referred to by URI */
+	HTTP_DELETE,  /* delete the resource */
+	HTTP_TRACE,   /* echo */
+	HTTP_CONNECT, /* do we need this  ? */
 } http_method_t;
 
 typedef enum {
-    HTTP_VER_1_0,
-    HTTP_VER_1_1,
+	HTTP_VER_1_0,
+	HTTP_VER_1_1,
 } http_ver_t;
-
 
 /**
  * The OR of zero or more flags below is passed to the API
@@ -91,47 +90,44 @@ typedef enum {
  * header field is added to the HTTP header. The values added will be
  * default ones.
  */
-typedef enum  {
-    HDR_ADD_DEFAULT_USER_AGENT	= 0x0001,
-    /* Note: This flag is not necessary to set up persistent
-     * connections in HTTP 1.1. However, if you want the server to
-     * respond with persistent connection timeout values you may need
-     * to add this flag. These timeout values are used to find out how
-     * long a persistent connection will be kept alive by the
-     * server. */
-    HDR_ADD_CONN_KEEP_ALIVE		= 0x0002,
-    HDR_ADD_CONN_CLOSE		= 0x0004,
-    HDR_ADD_TYPE_CHUNKED            = 0x0008,
+typedef enum {
+	HDR_ADD_DEFAULT_USER_AGENT = 0x0001,
+	/* Note: This flag is not necessary to set up persistent
+	 * connections in HTTP 1.1. However, if you want the server to
+	 * respond with persistent connection timeout values you may need
+	 * to add this flag. These timeout values are used to find out how
+	 * long a persistent connection will be kept alive by the
+	 * server. */
+	HDR_ADD_CONN_KEEP_ALIVE = 0x0002,
+	HDR_ADD_CONN_CLOSE = 0x0004,
+	HDR_ADD_TYPE_CHUNKED = 0x0008,
 
-    // add content type
-    HDR_ADD_CONTENT_TYPE_JSON       = 0x0010,
-    HDR_ADD_CONTENT_TYPE_FORM_URLENCODE = 0x0020, // add by nzy 20150608
-    HRD_ADD_DOWNLOAD_RANGE = 0x0040, /* add downlaod offset */
-    HRD_ADD_HTTP_RAW = 0x0080, /* add downlaod offset */
+	// add content type
+	HDR_ADD_CONTENT_TYPE_JSON = 0x0010,
+	HDR_ADD_CONTENT_TYPE_FORM_URLENCODE = 0x0020, // add by nzy 20150608
+	HRD_ADD_DOWNLOAD_RANGE = 0x0040,              /* add downlaod offset */
+	HRD_ADD_HTTP_RAW = 0x0080,                    /* add downlaod offset */
 
 } http_hdr_field_sel_t;
 
-
-#define STANDARD_HDR_FLAGS			\
-     (HDR_ADD_DEFAULT_USER_AGENT)
+#define STANDARD_HDR_FLAGS (HDR_ADD_DEFAULT_USER_AGENT)
 
 // user http head add callback
-typedef void (*HTTP_HEAD_ADD_CB)(http_session_t session, VOID* data);
-
+typedef void (*HTTP_HEAD_ADD_CB)(http_session_t session, VOID *data);
 
 typedef unsigned int (*HTTP_CUSTOM_GET_CONTENT_LEN_CB)(VOID *pri_data);
-typedef int (*HTTP_CUSTOM_BEFORE_READ_CONTENT_CB)(VOID *pri_data, unsigned int *p_malloc_buffer_size);
+typedef int (*HTTP_CUSTOM_BEFORE_READ_CONTENT_CB)(VOID *pri_data,
+                                                  unsigned int *p_malloc_buffer_size);
 typedef int (*HTTP_CUSTOM_READ_CONTENT_CB)(unsigned char *p_buffer, int buf_size, VOID *pri_data);
 typedef int (*HTTP_CUSTOM_AFTER_READ_CONTENT_CB)(VOID *pri_data);
 
 typedef struct {
-    HTTP_CUSTOM_GET_CONTENT_LEN_CB get_content_len_cb;
-    HTTP_CUSTOM_BEFORE_READ_CONTENT_CB before_read_cb;
-    HTTP_CUSTOM_READ_CONTENT_CB read_content_cb;
-    HTTP_CUSTOM_AFTER_READ_CONTENT_CB after_read_cb;
-    VOID *pri_data;
-}http_custom_content_ctx_s;
-
+	HTTP_CUSTOM_GET_CONTENT_LEN_CB get_content_len_cb;
+	HTTP_CUSTOM_BEFORE_READ_CONTENT_CB before_read_cb;
+	HTTP_CUSTOM_READ_CONTENT_CB read_content_cb;
+	HTTP_CUSTOM_AFTER_READ_CONTENT_CB after_read_cb;
+	VOID *pri_data;
+} http_custom_content_ctx_s;
 
 void http_reset_session_state(http_session_t handle);
 
@@ -152,141 +148,140 @@ void http_reset_session_state(http_session_t handle);
  * More name-value fields can be added to HTTP header using http_add_header().
  */
 typedef struct {
-    /** The Type of HTTP Request */
-    http_method_t type;
-    /** The target resource for the HTTP Request. A complete URL is also
-     * accepted.
-     */
-    const char *resource;
-    /** initialzied redirect count, default is zero */
-    unsigned char redirect_cnt;
-    /** The HTTP Protocol Version */
-    http_ver_t version;
-    /** Pointer to data buffer. NULL if GET request */
-    const char *content;
-    /** The length of the data pointed to by \a content above. This is
-     * don't-care if the content is set to NULL
-     */
-    int content_len;
-    HTTP_HEAD_ADD_CB add_head_cb;
-    VOID *add_head_data;
-    unsigned int download_offset;
-    unsigned int download_size;
+	/** The Type of HTTP Request */
+	http_method_t type;
+	/** The target resource for the HTTP Request. A complete URL is also
+	 * accepted.
+	 */
+	const char *resource;
+	/** initialzied redirect count, default is zero */
+	unsigned char redirect_cnt;
+	/** The HTTP Protocol Version */
+	http_ver_t version;
+	/** Pointer to data buffer. NULL if GET request */
+	const char *content;
+	/** The length of the data pointed to by \a content above. This is
+	 * don't-care if the content is set to NULL
+	 */
+	int content_len;
+	HTTP_HEAD_ADD_CB add_head_cb;
+	VOID *add_head_data;
+	unsigned int download_offset;
+	unsigned int download_size;
 
-    http_custom_content_ctx_s *p_custom_content_ctx;
+	http_custom_content_ctx_s *p_custom_content_ctx;
 } http_req_t;
 
 /**
  * Structure used to give back http header response fields to the caller.
  */
 typedef struct {
-    /** The value of the protocol field in the first line of the HTTP
-        header response. e.g. "HTTP". */
-    const char *protocol;
-    /** HTTP version */
-    http_ver_t version;
-    /** The status code returned as a part of the first line of the
-        HTTP response e.g. 200 if success
-    */
-    int status_code;
-    /** The ASCII string present in the first line of HTTP response. It
-        is the verbose representation of status code. e.g. "OK" if
-        status_code is 200
-    */
-    const char *reason_phrase;
-    /** HTTP "Location" header field value */
-    const char *location;
-    /** HTTP "Server" header field value */
-    const char *server;
-    /** Accept-Ranges */
-    const char *p_accept_ranges;
-    /** Last-Modified header field value in POSIX time format */
-    time_t modify_time;
-    /** The value of "Content-Type" header field. e.g. "text/html" */
-    const char *content_type;
-    /** The value of "Content-Encoding" header field e.g. "gzip" */
-    const char *content_encoding;
-    /** If "Keep-Alive" field is present or if the value of
-        "Connection" field is "Keep-Alive" then this member is set to
-        'true'. It is set to 'false' in other cases
-    */
-    bool_t keep_alive_ack;
-    /** If "Keep-Alive" field is present in the response, this member
-        contains the value of the "timeout" sub-field of this
-        field. This is the time the server will allow an idle
-        connection to remain open before it is closed.
-    */
-    int keep_alive_timeout;
-    /** If "Keep-Alive" field is present in the response, this member
-        contains the value of the "max" sub-field of this field. The
-        max parameter indicates the maximum number of requests that a
-        client will make, or that a server will allow to be made on the
-        persistent connection.
-    */
-    int keep_alive_max;
-    /** This will be 'true' if "Transfer-Encoding" field is set to
-        "chunked". Note that this is only for information and the API
-        http_read_content() transparently handles chunked reads.
-    */
-    bool_t chunked;
-    /** Value of the "Content-Length" field. If "Transfer-Encoding" is
-        set to chunked then this value will be zero.
-    */
-    unsigned int content_length;
+	/** The value of the protocol field in the first line of the HTTP
+	    header response. e.g. "HTTP". */
+	const char *protocol;
+	/** HTTP version */
+	http_ver_t version;
+	/** The status code returned as a part of the first line of the
+	    HTTP response e.g. 200 if success
+	*/
+	int status_code;
+	/** The ASCII string present in the first line of HTTP response. It
+	    is the verbose representation of status code. e.g. "OK" if
+	    status_code is 200
+	*/
+	const char *reason_phrase;
+	/** HTTP "Location" header field value */
+	const char *location;
+	/** HTTP "Server" header field value */
+	const char *server;
+	/** Accept-Ranges */
+	const char *p_accept_ranges;
+	/** Last-Modified header field value in POSIX time format */
+	time_t modify_time;
+	/** The value of "Content-Type" header field. e.g. "text/html" */
+	const char *content_type;
+	/** The value of "Content-Encoding" header field e.g. "gzip" */
+	const char *content_encoding;
+	/** If "Keep-Alive" field is present or if the value of
+	    "Connection" field is "Keep-Alive" then this member is set to
+	    'true'. It is set to 'false' in other cases
+	*/
+	bool_t keep_alive_ack;
+	/** If "Keep-Alive" field is present in the response, this member
+	    contains the value of the "timeout" sub-field of this
+	    field. This is the time the server will allow an idle
+	    connection to remain open before it is closed.
+	*/
+	int keep_alive_timeout;
+	/** If "Keep-Alive" field is present in the response, this member
+	    contains the value of the "max" sub-field of this field. The
+	    max parameter indicates the maximum number of requests that a
+	    client will make, or that a server will allow to be made on the
+	    persistent connection.
+	*/
+	int keep_alive_max;
+	/** This will be 'true' if "Transfer-Encoding" field is set to
+	    "chunked". Note that this is only for information and the API
+	    http_read_content() transparently handles chunked reads.
+	*/
+	bool_t chunked;
+	/** Value of the "Content-Length" field. If "Transfer-Encoding" is
+	    set to chunked then this value will be zero.
+	*/
+	unsigned int content_length;
 } http_resp_t;
 
 typedef struct {
-    char *name;
-    char *value;
+	char *name;
+	char *value;
 } http_header_pair_t;
 
 typedef struct {
-    const char *scheme;
-    const char *hostname;
-    unsigned portno;
-    const char *resource;
+	const char *scheme;
+	const char *hostname;
+	unsigned portno;
+	const char *resource;
 } parsed_url_t;
 
 /** HTTPC Error Codes **/
 
 enum wm_httpc_errno {
-    WM_SUCCESS = 0,
-    WM_E_INVAL,
-    WM_FAIL,
-    WM_E_IO,
-    WM_E_AGAIN,
-    WM_E_BADF,
-    WM_E_NOMEM, // 6
-    /** TCP connection failed (maybe due to unreachable server) */
-    WM_E_HTTPC_TCP_CONNECT_FAIL,
-    /** TCP tls connection failed (maybe due to unreachable server) */
-    WM_E_HTTPC_TCP_TLS_CONNECT_FAIL,
-    /** HTTP File not found */
-    WM_E_HTTPC_FILE_NOT_FOUND,
-    /** HTTP Bad Request */
-    WM_E_HTTPC_BAD_REQUEST,//10
-    /** TLS not enabled */
-    WM_E_HTTPC_TLS_NOT_ENABLED,
-    /** Socket error. Note to applications: Please check 'errno' for
-        more information */
-    WM_E_HTTPC_SOCKET_ERROR,
-    /** Peer has performed orderly shutdown */
-    WM_E_HTTPC_SOCKET_SHUTDOWN,
+	WM_SUCCESS = 0,
+	WM_E_INVAL,
+	WM_FAIL,
+	WM_E_IO,
+	WM_E_AGAIN,
+	WM_E_BADF,
+	WM_E_NOMEM, // 6
+	/** TCP connection failed (maybe due to unreachable server) */
+	WM_E_HTTPC_TCP_CONNECT_FAIL,
+	/** TCP tls connection failed (maybe due to unreachable server) */
+	WM_E_HTTPC_TCP_TLS_CONNECT_FAIL,
+	/** HTTP File not found */
+	WM_E_HTTPC_FILE_NOT_FOUND,
+	/** HTTP Bad Request */
+	WM_E_HTTPC_BAD_REQUEST, // 10
+	/** TLS not enabled */
+	WM_E_HTTPC_TLS_NOT_ENABLED,
+	/** Socket error. Note to applications: Please check 'errno' for
+	    more information */
+	WM_E_HTTPC_SOCKET_ERROR,
+	/** Peer has performed orderly shutdown */
+	WM_E_HTTPC_SOCKET_SHUTDOWN,
 
-    /* add by nzy 20150803 timeout */
-    WM_E_HTTPC_SOCKET_TIMEOUT,//14
+	/* add by nzy 20150803 timeout */
+	WM_E_HTTPC_SOCKET_TIMEOUT, // 14
 
-    /* dns parse failed */
-    WM_E_HTTPC_DNS_PARSE_FAILED,
-    /* socket creat failed */
-    WM_E_HTTPC_SOCKET_CREAT_FAILED,
-    /* parse url failed*/
-    WM_E_HTTPC_URL_PARSE_FAILED,//17
+	/* dns parse failed */
+	WM_E_HTTPC_DNS_PARSE_FAILED,
+	/* socket creat failed */
+	WM_E_HTTPC_SOCKET_CREAT_FAILED,
+	/* parse url failed*/
+	WM_E_HTTPC_URL_PARSE_FAILED, // 17
 };
 
-
 /* Status codes */
-#define HTTP_RESP_INFORMATIONAL(x) (x >=100 && < 200)
+#define HTTP_RESP_INFORMATIONAL(x) (x >= 100 && < 200)
 #define HTTP_RESP_SUCCESS(x) (x >= 200 && x < 300)
 #define HTTP_RESP_REDIR(x) (x >= 300 && x < 400)
 #define HTTP_RESP_CLIENT_ERR(x) (x >= 400 && x < 500)
@@ -298,7 +293,7 @@ enum wm_httpc_errno {
  */
 #define HTTP_OK 200
 #define HTTP_CREATED 201
-#define HTTP_ACCEPTED  202
+#define HTTP_ACCEPTED 202
 #define HTTP_FOUND 302
 #define HTTP_NOT_MODIFIED 304
 
@@ -308,9 +303,9 @@ enum wm_httpc_errno {
 #define HTTP_NOT_FOUND 404
 
 /* max redirect count */
-#define REDIRECT_CNT_MAX      5
+#define REDIRECT_CNT_MAX 5
 /* default redirect count */
-#define REDIRECT_CNT_DEFAULT  3
+#define REDIRECT_CNT_DEFAULT 3
 /* zero means disable http redirect */
 #define REDIRECT_CNT_DISABLED 0
 
@@ -320,8 +315,8 @@ enum wm_httpc_errno {
  * flag below.
  */
 typedef enum {
-    /** Pass this flag when you want the connection to be SSL based */
-    TLS_ENABLE = 0x01,
+	/** Pass this flag when you want the connection to be SSL based */
+	TLS_ENABLE = 0x01,
 } http_open_flags_t;
 
 /**
@@ -356,8 +351,7 @@ typedef enum {
  * @return -WM_FAIL if the API was unable to initiate an HTTP session with
  * the server.
  */
-int http_open_session(http_session_t *handle,const char *hostname, \
-                      int flags,int retry_cnt);
+int http_open_session(http_session_t *handle, const char *hostname, int flags, int retry_cnt);
 
 /**
  * Prepare the HTTP header for sending to the server.
@@ -386,7 +380,6 @@ int http_open_session(http_session_t *handle,const char *hostname, \
 int http_prepare_req(http_session_t handle, const http_req_t *req,
                      http_hdr_field_sel_t field_flags);
 
-
 /**
  * Add custom http headers to the partially generated header.
  *
@@ -407,8 +400,8 @@ int http_prepare_req(http_session_t handle, const http_req_t *req,
  *
  * @return Standard wmsdk value.
  */
-int http_add_header(http_session_t handle, const http_req_t *req,
-                    const char *name, const char *value);
+int http_add_header(http_session_t handle, const http_req_t *req, const char *name,
+                    const char *value);
 
 /**
  * Perform an HTTP request.
@@ -430,7 +423,7 @@ int http_add_header(http_session_t handle, const http_req_t *req,
  * @return -WM_E_IO if failed to send data to network
  * @return -WM_E_INVAL for an invalid arguments.
  */
-int http_send_request(http_session_t handle, const http_req_t * req, int send_content);
+int http_send_request(http_session_t handle, const http_req_t *req, int send_content);
 
 /**
  * Get the HTTP response header
@@ -473,7 +466,7 @@ int http_send_request(http_session_t handle, const http_req_t * req, int send_co
  * @return WM_SUCCESS on success
  * @return -WM_FAIL on error
  */
-int http_get_response_hdr(http_session_t handle, http_resp_t ** resp);
+int http_get_response_hdr(http_session_t handle, http_resp_t **resp);
 
 /**
  * Get a particular HTTP response header value.
@@ -515,8 +508,7 @@ int http_get_response_hdr(http_session_t handle, http_resp_t ** resp);
  * @return -WM_FAIL on error
  */
 
-int http_get_response_hdr_value(http_session_t handle,
-                const char *header_name, char **value);
+int http_get_response_hdr_value(http_session_t handle, const char *header_name, char **value);
 /**
  * Get requested number of HTTP response header name-value pairs.
  *
@@ -562,8 +554,7 @@ int http_get_response_hdr_value(http_session_t handle,
  * @return -WM_FAIL on error
  */
 
-int http_get_response_hdr_all(http_session_t handle, http_header_pair_t *arr,
-                  int *count);
+int http_get_response_hdr_all(http_session_t handle, http_header_pair_t *arr, int *count);
 
 /**
  * Read data content from the stream.
@@ -633,8 +624,7 @@ int http_read_content(http_session_t handle, void *buf, unsigned int max_len);
  *
  * @return Standard WMSDK return codes.
  */
-int http_parse_URL(const char *URL, char *tmp_buf, int tmp_buf_len,
-           parsed_url_t *parsed_url);
+int http_parse_URL(const char *URL, char *tmp_buf, int tmp_buf_len, parsed_url_t *parsed_url);
 /**
  * HTTP lowlevel read
  *

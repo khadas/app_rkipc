@@ -27,16 +27,16 @@ struct coap_session_t;
 /**
  * The largest value for the SZX component in a Block option.
  */
-#define COAP_MAX_BLOCK_SZX      6
+#define COAP_MAX_BLOCK_SZX 6
 #endif /* COAP_MAX_BLOCK_SZX */
 
 /**
  * Structure of Block options.
  */
 typedef struct {
-  unsigned int num;       /**< block number */
-  unsigned int m:1;       /**< 1 if more blocks follow, 0 otherwise */
-  unsigned int szx:3;     /**< block size */
+	unsigned int num;     /**< block number */
+	unsigned int m : 1;   /**< 1 if more blocks follow, 0 otherwise */
+	unsigned int szx : 3; /**< block size */
 } coap_block_t;
 
 /**
@@ -44,16 +44,14 @@ typedef struct {
  * For zero-length options (i.e. num == m == szx == 0), COAP_OPT_BLOCK_LAST
  * returns @c NULL.
  */
-#define COAP_OPT_BLOCK_LAST(opt) \
-  (coap_opt_length(opt) ? (coap_opt_value(opt) + (coap_opt_length(opt)-1)) : 0)
+#define COAP_OPT_BLOCK_LAST(opt)                                                                   \
+	(coap_opt_length(opt) ? (coap_opt_value(opt) + (coap_opt_length(opt) - 1)) : 0)
 
 /** Returns the value of the More-bit of a Block option @p opt. */
-#define COAP_OPT_BLOCK_MORE(opt) \
-  (coap_opt_length(opt) ? (*COAP_OPT_BLOCK_LAST(opt) & 0x08) : 0)
+#define COAP_OPT_BLOCK_MORE(opt) (coap_opt_length(opt) ? (*COAP_OPT_BLOCK_LAST(opt) & 0x08) : 0)
 
 /** Returns the value of the SZX-field of a Block option @p opt. */
-#define COAP_OPT_BLOCK_SZX(opt)  \
-  (coap_opt_length(opt) ? (*COAP_OPT_BLOCK_LAST(opt) & 0x07) : 0)
+#define COAP_OPT_BLOCK_SZX(opt) (coap_opt_length(opt) ? (*COAP_OPT_BLOCK_LAST(opt) & 0x07) : 0)
 
 /**
  * Returns the value of field @c num in the given block option @p block_opt.
@@ -64,9 +62,8 @@ unsigned int coap_opt_block_num(const coap_opt_t *block_opt);
  * Checks if more than @p num blocks are required to deliver @p data_len
  * bytes of data for a block size of 1 << (@p szx + 4).
  */
-COAP_STATIC_INLINE int
-coap_more_blocks(size_t data_len, unsigned int num, uint16_t szx) {
-  return ((num+1) << (szx + 4)) < data_len;
+COAP_STATIC_INLINE int coap_more_blocks(size_t data_len, unsigned int num, uint16_t szx) {
+	return ((num + 1) << (szx + 4)) < data_len;
 }
 
 #if 0
@@ -115,10 +112,7 @@ int coap_get_block(coap_pdu_t *pdu, uint16_t type, coap_block_t *block);
  *
  * @return            @c 1 on success, or a negative value on error.
  */
-int coap_write_block_opt(coap_block_t *block,
-                         uint16_t type,
-                         coap_pdu_t *pdu,
-                         size_t data_length);
+int coap_write_block_opt(coap_block_t *block, uint16_t type, coap_pdu_t *pdu, size_t data_length);
 
 /**
  * Adds the @p block_num block of size 1 << (@p block_szx + 4) from source @p
@@ -132,10 +126,7 @@ int coap_write_block_opt(coap_block_t *block,
  *
  * @return          @c 1 on success, @c 0 otherwise.
  */
-int coap_add_block(coap_pdu_t *pdu,
-                   unsigned int len,
-                   const uint8_t *data,
-                   unsigned int block_num,
+int coap_add_block(coap_pdu_t *pdu, unsigned int len, const uint8_t *data, unsigned int block_num,
                    unsigned char block_szx);
 
 /**
@@ -157,28 +148,16 @@ int coap_add_block(coap_pdu_t *pdu,
  * @param data       The entire data block to transmit.
  *
  */
-void
-coap_add_data_blocked_response(struct coap_resource_t *resource,
-                               struct coap_session_t *session,
-                               coap_pdu_t *request,
-                               coap_pdu_t *response,
-                               const coap_binary_t *token,
-                               uint16_t media_type,
-                               int maxage,
-                               size_t length,
-                               const uint8_t* data);
+void coap_add_data_blocked_response(struct coap_resource_t *resource,
+                                    struct coap_session_t *session, coap_pdu_t *request,
+                                    coap_pdu_t *response, const coap_binary_t *token,
+                                    uint16_t media_type, int maxage, size_t length,
+                                    const uint8_t *data);
 
-void
-coap_dm_add_data_response(struct coap_resource_t *resource,
-                      struct coap_session_t *session,
-                      coap_pdu_t *request,
-                      coap_pdu_t *response,
-                      const coap_binary_t *token,
-                      uint16_t media_type,
-                      int maxage,
-                      size_t length,
-                      const uint8_t* data);
-
+void coap_dm_add_data_response(struct coap_resource_t *resource, struct coap_session_t *session,
+                               coap_pdu_t *request, coap_pdu_t *response,
+                               const coap_binary_t *token, uint16_t media_type, int maxage,
+                               size_t length, const uint8_t *data);
 
 /**@}*/
 

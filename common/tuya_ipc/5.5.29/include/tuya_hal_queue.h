@@ -9,7 +9,6 @@
  *
  */
 
-
 #ifndef _TUYA_HAL_QUEUE_H
 #define _TUYA_HAL_QUEUE_H
 
@@ -26,7 +25,7 @@ extern "C" {
  * @param[out] pQueue_hanle 返回queue句柄
  * @return int 0=成功，非0=失败
  */
-OPERATE_RET tuya_hal_queue_create_init(QUEUE_HANDLE *queue, int msgsize,int msgcount);
+OPERATE_RET tuya_hal_queue_create_init(QUEUE_HANDLE *queue, int msgsize, int msgcount);
 
 /**
  * @brief tuya_hal_queue_post用于发送一个消息到指定的队列中
@@ -34,7 +33,7 @@ OPERATE_RET tuya_hal_queue_create_init(QUEUE_HANDLE *queue, int msgsize,int msgc
  * @param[in] pQueue_hanle tuya queue句柄，data消息体指针，timeout 超时时间
  * @return int 0=成功，非0=失败
  */
-OPERATE_RET tuya_hal_queue_post(CONST QUEUE_HANDLE pQueue_hanle,void *data, unsigned int timeout);
+OPERATE_RET tuya_hal_queue_post(CONST QUEUE_HANDLE pQueue_hanle, void *data, unsigned int timeout);
 
 /**
  * @brief tuya_hal_queue_fetch用于等待一个消息队列

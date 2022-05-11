@@ -18,23 +18,21 @@ extern "C" {
 #include "ty_cJSON.h"
 #include "uni_log.h"
 
-
-#define IR_TYPE_FLASH_KEY   "ir_type_flg"
-#define IR_GW_ID            "ir_recode_gwid"
-#define IR_INIT_MODE        "ir_init_mode"
-
+#define IR_TYPE_FLASH_KEY "ir_type_flg"
+#define IR_GW_ID "ir_recode_gwid"
+#define IR_INIT_MODE "ir_init_mode"
 
 /**
-* @brief ws_db_ir_type_mqtt_push_flg_write 
-*
-* @param[in] ir_init_mode
-*
-* @return OPERATE_RET
-*/
+ * @brief ws_db_ir_type_mqtt_push_flg_write
+ *
+ * @param[in] ir_init_mode
+ *
+ * @return OPERATE_RET
+ */
 OPERATE_RET ws_db_ir_type_mqtt_push_flg_write(CHAR_T ir_init_mode);
 
 /**
- * @brief ws_db_ir_type_mqtt_push_flg_read 
+ * @brief ws_db_ir_type_mqtt_push_flg_read
  *
  * @param[in] p_data
  *
@@ -43,7 +41,7 @@ OPERATE_RET ws_db_ir_type_mqtt_push_flg_write(CHAR_T ir_init_mode);
 OPERATE_RET ws_db_ir_type_mqtt_push_flg_read(INOUT CHAR_T **p_data);
 
 /**
- * @brief ws_db_ir_type_mqtt_push_judge 
+ * @brief ws_db_ir_type_mqtt_push_judge
  *
  * @param[in] ir_init_mode
  *
@@ -51,12 +49,8 @@ OPERATE_RET ws_db_ir_type_mqtt_push_flg_read(INOUT CHAR_T **p_data);
  */
 BOOL_T ws_db_ir_type_mqtt_push_judge(CHAR_T ir_init_mode);
 
-
-
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-
-

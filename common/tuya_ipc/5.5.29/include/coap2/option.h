@@ -29,9 +29,9 @@ typedef uint8_t coap_opt_t;
  * Representation of CoAP options.
  */
 typedef struct {
-  uint16_t delta;
-  size_t length;
-  const uint8_t *value;
+	uint16_t delta;
+	size_t length;
+	const uint8_t *value;
 } coap_option_t;
 
 /**
@@ -46,9 +46,7 @@ typedef struct {
  *               actual values iff coap_opt_parse() > 0.
  * @return       The number of bytes parsed or @c 0 on error.
  */
-size_t coap_opt_parse(const coap_opt_t *opt,
-                      size_t length,
-                      coap_option_t *result);
+size_t coap_opt_parse(const coap_opt_t *opt, size_t length, coap_option_t *result);
 
 /**
  * Returns the size of the given option, taking into account a possible option
@@ -81,7 +79,7 @@ size_t coap_opt_size(const coap_opt_t *opt);
  * at most 16. Each coap_option_filter_t object reserves
  * COAP_OPT_FILTER_LONG * 2 bytes for short options.
  */
-#define COAP_OPT_FILTER_LONG  2
+#define COAP_OPT_FILTER_LONG 2
 
 /* Ensure that COAP_OPT_FILTER_SHORT and COAP_OPT_FILTER_LONG are set
  * correctly. */
@@ -90,8 +88,7 @@ size_t coap_opt_size(const coap_opt_t *opt);
 #endif /* (COAP_OPT_FILTER_SHORT + COAP_OPT_FILTER_LONG > 16) */
 
 /** The number of elements in coap_opt_filter_t. */
-#define COAP_OPT_FILTER_SIZE                                        \
-  (((COAP_OPT_FILTER_SHORT + 1) >> 1) + COAP_OPT_FILTER_LONG) +1
+#define COAP_OPT_FILTER_SIZE (((COAP_OPT_FILTER_SHORT + 1) >> 1) + COAP_OPT_FILTER_LONG) + 1
 
 /**
  * Fixed-size vector we use for option filtering. It is large enough
@@ -126,9 +123,8 @@ typedef uint16_t coap_opt_filter_t[COAP_OPT_FILTER_SIZE];
  *
  * @param f The filter to clear.
  */
-COAP_STATIC_INLINE void
-coap_option_filter_clear(coap_opt_filter_t f) {
-  memset(f, 0, sizeof(coap_opt_filter_t));
+COAP_STATIC_INLINE void coap_option_filter_clear(coap_opt_filter_t f) {
+	memset(f, 0, sizeof(coap_opt_filter_t));
 }
 
 /**
@@ -179,9 +175,8 @@ int coap_option_filter_get(coap_opt_filter_t filter, uint16_t type);
  *
  * @return       @c 1 if bit was set, @c -1 otherwise.
  */
-COAP_STATIC_INLINE int
-coap_option_setb(coap_opt_filter_t filter, uint16_t type) {
-  return coap_option_filter_set(filter, type) ? 1 : -1;
+COAP_STATIC_INLINE int coap_option_setb(coap_opt_filter_t filter, uint16_t type) {
+	return coap_option_filter_set(filter, type) ? 1 : -1;
 }
 
 /**
@@ -196,9 +191,8 @@ coap_option_setb(coap_opt_filter_t filter, uint16_t type) {
  *
  * @return       @c 1 if bit was set, @c -1 otherwise.
  */
-COAP_STATIC_INLINE int
-coap_option_clrb(coap_opt_filter_t filter, uint16_t type) {
-  return coap_option_filter_unset(filter, type) ? 1 : -1;
+COAP_STATIC_INLINE int coap_option_clrb(coap_opt_filter_t filter, uint16_t type) {
+	return coap_option_filter_unset(filter, type) ? 1 : -1;
 }
 
 /**
@@ -213,9 +207,8 @@ coap_option_clrb(coap_opt_filter_t filter, uint16_t type) {
  *
  * @return       @c 1 if bit was set, @c 0 if not, @c -1 on error.
  */
-COAP_STATIC_INLINE int
-coap_option_getb(coap_opt_filter_t filter, uint16_t type) {
-  return coap_option_filter_get(filter, type);
+COAP_STATIC_INLINE int coap_option_getb(coap_opt_filter_t filter, uint16_t type) {
+	return coap_option_filter_get(filter, type);
 }
 
 /**
@@ -235,12 +228,12 @@ coap_option_getb(coap_opt_filter_t filter, uint16_t type) {
  * @endcode
  */
 typedef struct {
-  size_t length;                /**< remaining length of PDU */
-  uint16_t type;                /**< decoded option type */
-  unsigned int bad:1;           /**< iterator object is ok if not set */
-  unsigned int filtered:1;      /**< denotes whether or not filter is used */
-  coap_opt_t *next_option;      /**< pointer to the unparsed next option */
-  coap_opt_filter_t filter;     /**< option filter */
+	size_t length;             /**< remaining length of PDU */
+	uint16_t type;             /**< decoded option type */
+	unsigned int bad : 1;      /**< iterator object is ok if not set */
+	unsigned int filtered : 1; /**< denotes whether or not filter is used */
+	coap_opt_t *next_option;   /**< pointer to the unparsed next option */
+	coap_opt_filter_t filter;  /**< option filter */
 } coap_opt_iterator_t;
 
 /**
@@ -259,8 +252,7 @@ typedef struct {
  *
  * @return       The iterator object @p oi on success, @c NULL otherwise.
  */
-coap_opt_iterator_t *coap_option_iterator_init(const coap_pdu_t *pdu,
-                                               coap_opt_iterator_t *oi,
+coap_opt_iterator_t *coap_option_iterator_init(const coap_pdu_t *pdu, coap_opt_iterator_t *oi,
                                                const coap_opt_filter_t filter);
 
 /**
@@ -294,9 +286,7 @@ coap_opt_t *coap_option_next(coap_opt_iterator_t *oi);
  * @return     A pointer to the first option of type @p type, or @c NULL if
  *             not found.
  */
-coap_opt_t *coap_check_option(coap_pdu_t *pdu,
-                              uint16_t type,
-                              coap_opt_iterator_t *oi);
+coap_opt_t *coap_check_option(coap_pdu_t *pdu, uint16_t type, coap_opt_iterator_t *oi);
 
 /**
  * Encodes the given delta and length values into @p opt. This function returns
@@ -312,10 +302,7 @@ coap_opt_t *coap_check_option(coap_pdu_t *pdu,
  *
  * @return       The number of bytes used or @c 0 on error.
  */
-size_t coap_opt_setheader(coap_opt_t *opt,
-                          size_t maxlen,
-                          uint16_t delta,
-                          size_t length);
+size_t coap_opt_setheader(coap_opt_t *opt, size_t maxlen, uint16_t delta, size_t length);
 
 /**
  * Compute storage bytes needed for an option with given @p delta and
@@ -343,10 +330,7 @@ size_t coap_opt_encode_size(uint16_t delta, size_t length);
  * @return       The number of bytes that have been written to @p opt or @c 0 on
  *               error. The return value will always be less than @p n.
  */
-size_t coap_opt_encode(coap_opt_t *opt,
-                       size_t n,
-                       uint16_t delta,
-                       const uint8_t *val,
+size_t coap_opt_encode(coap_opt_t *opt, size_t n, uint16_t delta, const uint8_t *val,
                        size_t length);
 
 /**
@@ -406,10 +390,10 @@ const uint8_t *coap_opt_value(const coap_opt_t *opt);
  * @endcode
  */
 typedef struct coap_optlist_t {
-  struct coap_optlist_t *next;  /**< next entry in the optlist chain */
-  uint16_t number;              /**< the option number (no delta coding) */
-  size_t length;                /**< the option value length */
-  uint8_t *data;                /**< the option data */
+	struct coap_optlist_t *next; /**< next entry in the optlist chain */
+	uint16_t number;             /**< the option number (no delta coding) */
+	size_t length;               /**< the option value length */
+	uint8_t *data;               /**< the option data */
 } coap_optlist_t;
 
 /**
@@ -421,9 +405,7 @@ typedef struct coap_optlist_t {
  *
  * @return          A pointer to the new optlist entry, or @c NULL if error
  */
-coap_optlist_t *coap_new_optlist(uint16_t number,
-                                 size_t length,
-                                 const uint8_t *data);
+coap_optlist_t *coap_new_optlist(uint16_t number, size_t length, const uint8_t *data);
 
 /**
  * The current optlist of @p optlist_chain is first sorted (as per RFC7272
@@ -434,7 +416,7 @@ coap_optlist_t *coap_new_optlist(uint16_t number,
  *
  * @return     @c 1 if succesful or @c 0 if failure;
  */
-int coap_add_optlist_pdu(coap_pdu_t *pdu, coap_optlist_t** optlist_chain);
+int coap_add_optlist_pdu(coap_pdu_t *pdu, coap_optlist_t **optlist_chain);
 
 /**
  * Adds @p optlist to the given @p optlist_chain. The optlist_chain variable
@@ -447,8 +429,7 @@ int coap_add_optlist_pdu(coap_pdu_t *pdu, coap_optlist_t** optlist_chain);
  *
  * @return         @c 1 if successful, @c 0 otherwise.
  */
-int coap_insert_optlist(coap_optlist_t **optlist_chain,
-                        coap_optlist_t *optlist);
+int coap_insert_optlist(coap_optlist_t **optlist_chain, coap_optlist_t *optlist);
 
 /**
  * Removes all entries from the @p optlist_chain, freeing off their

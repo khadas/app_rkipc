@@ -35,19 +35,19 @@ int coap_dtls_is_supported(void);
  */
 int coap_tls_is_supported(void);
 
-#define COAP_TLS_LIBRARY_NOTLS 0 /**< No DTLS library */
+#define COAP_TLS_LIBRARY_NOTLS 0    /**< No DTLS library */
 #define COAP_TLS_LIBRARY_TINYDTLS 1 /**< Using TinyDTLS library */
-#define COAP_TLS_LIBRARY_OPENSSL 2 /**< Using OpenSSL library */
-#define COAP_TLS_LIBRARY_GNUTLS 3 /**< Using GnuTLS library */
+#define COAP_TLS_LIBRARY_OPENSSL 2  /**< Using OpenSSL library */
+#define COAP_TLS_LIBRARY_GNUTLS 3   /**< Using GnuTLS library */
 
 /**
  * The structure used for returning the underlying (D)TLS library
  * information.
  */
 typedef struct coap_tls_version_t {
-  uint64_t version; /**< (D)TLS runtime Library Version */
-  int type; /**< Library type. One of COAP_TLS_LIBRARY_* */
-  uint64_t built_version; /**< (D)TLS Built against Library Version */
+	uint64_t version;       /**< (D)TLS runtime Library Version */
+	int type;               /**< Library type. One of COAP_TLS_LIBRARY_* */
+	uint64_t built_version; /**< (D)TLS Built against Library Version */
 } coap_tls_version_t;
 
 /**
@@ -74,8 +74,7 @@ struct coap_dtls_pki_t;
  *
  * @return @c 1 if successful, else @c 0.
  */
-typedef int (*coap_dtls_security_setup_t)(void* tls_session,
-                                        struct coap_dtls_pki_t *setup_data);
+typedef int (*coap_dtls_security_setup_t)(void *tls_session, struct coap_dtls_pki_t *setup_data);
 
 /**
  * CN Validation call-back that can be set up by coap_context_set_pki().
@@ -95,75 +94,71 @@ typedef int (*coap_dtls_security_setup_t)(void* tls_session,
  *
  * @return @c 1 if accepted, else @c 0 if to be rejected.
  */
-typedef int (*coap_dtls_cn_callback_t)(const char *cn,
-             const uint8_t *asn1_public_cert,
-             size_t asn1_length,
-             coap_session_t *coap_session,
-             unsigned depth,
-             int validated,
-             void *arg);
+typedef int (*coap_dtls_cn_callback_t)(const char *cn, const uint8_t *asn1_public_cert,
+                                       size_t asn1_length, coap_session_t *coap_session,
+                                       unsigned depth, int validated, void *arg);
 
 /**
  * The enum used for determining the provided PKI ASN.1 (DER) Private Key
  * formats.
  */
 typedef enum coap_asn1_privatekey_type_t {
-  COAP_ASN1_PKEY_NONE,     /**< NONE */
-  COAP_ASN1_PKEY_RSA,      /**< RSA type */
-  COAP_ASN1_PKEY_RSA2,     /**< RSA2 type */
-  COAP_ASN1_PKEY_DSA,      /**< DSA type */
-  COAP_ASN1_PKEY_DSA1,     /**< DSA1 type */
-  COAP_ASN1_PKEY_DSA2,     /**< DSA2 type */
-  COAP_ASN1_PKEY_DSA3,     /**< DSA3 type */
-  COAP_ASN1_PKEY_DSA4,     /**< DSA4 type */
-  COAP_ASN1_PKEY_DH,       /**< DH type */
-  COAP_ASN1_PKEY_DHX,      /**< DHX type */
-  COAP_ASN1_PKEY_EC,       /**< EC type */
-  COAP_ASN1_PKEY_HMAC,     /**< HMAC type */
-  COAP_ASN1_PKEY_CMAC,     /**< CMAC type */
-  COAP_ASN1_PKEY_TLS1_PRF, /**< TLS1_PRF type */
-  COAP_ASN1_PKEY_HKDF      /**< HKDF type */
+	COAP_ASN1_PKEY_NONE,     /**< NONE */
+	COAP_ASN1_PKEY_RSA,      /**< RSA type */
+	COAP_ASN1_PKEY_RSA2,     /**< RSA2 type */
+	COAP_ASN1_PKEY_DSA,      /**< DSA type */
+	COAP_ASN1_PKEY_DSA1,     /**< DSA1 type */
+	COAP_ASN1_PKEY_DSA2,     /**< DSA2 type */
+	COAP_ASN1_PKEY_DSA3,     /**< DSA3 type */
+	COAP_ASN1_PKEY_DSA4,     /**< DSA4 type */
+	COAP_ASN1_PKEY_DH,       /**< DH type */
+	COAP_ASN1_PKEY_DHX,      /**< DHX type */
+	COAP_ASN1_PKEY_EC,       /**< EC type */
+	COAP_ASN1_PKEY_HMAC,     /**< HMAC type */
+	COAP_ASN1_PKEY_CMAC,     /**< CMAC type */
+	COAP_ASN1_PKEY_TLS1_PRF, /**< TLS1_PRF type */
+	COAP_ASN1_PKEY_HKDF      /**< HKDF type */
 } coap_asn1_privatekey_type_t;
 
 /**
  * The enum used for determining the PKI key formats.
  */
 typedef enum coap_pki_key_t {
-  COAP_PKI_KEY_PEM = 0,   /**< The PKI key type is PEM */
-  COAP_PKI_KEY_ASN1,      /**< The PKI key type is ASN.1 (DER) */
+	COAP_PKI_KEY_PEM = 0, /**< The PKI key type is PEM */
+	COAP_PKI_KEY_ASN1,    /**< The PKI key type is ASN.1 (DER) */
 } coap_pki_key_t;
 
 /**
  * The structure that holds the PKI PEM definitions.
  */
 typedef struct coap_pki_key_pem_t {
-  const char *ca_file;       /**< File location of Common CA in PEM format */
-  const char *public_cert;   /**< File location of Public Cert in PEM format */
-  const char *private_key;   /**< File location of Private Key in PEM format */
+	const char *ca_file;     /**< File location of Common CA in PEM format */
+	const char *public_cert; /**< File location of Public Cert in PEM format */
+	const char *private_key; /**< File location of Private Key in PEM format */
 } coap_pki_key_pem_t;
 
 /**
  * The structure that holds the PKI ASN.1 (DER) definitions.
  */
 typedef struct coap_pki_key_asn1_t {
-  const uint8_t *ca_cert;     /**< ASN1 (DER) Common CA Cert */
-  const uint8_t *public_cert; /**< ASN1 (DER) Public Cert */
-  const uint8_t *private_key; /**< ASN1 (DER) Private Key */
-  size_t ca_cert_len;         /**< ASN1 CA Cert length */
-  size_t public_cert_len;     /**< ASN1 Public Cert length */
-  size_t private_key_len;     /**< ASN1 Private Key length */
-  coap_asn1_privatekey_type_t private_key_type; /**< Private Key Type */
+	const uint8_t *ca_cert;                       /**< ASN1 (DER) Common CA Cert */
+	const uint8_t *public_cert;                   /**< ASN1 (DER) Public Cert */
+	const uint8_t *private_key;                   /**< ASN1 (DER) Private Key */
+	size_t ca_cert_len;                           /**< ASN1 CA Cert length */
+	size_t public_cert_len;                       /**< ASN1 Public Cert length */
+	size_t private_key_len;                       /**< ASN1 Private Key length */
+	coap_asn1_privatekey_type_t private_key_type; /**< Private Key Type */
 } coap_pki_key_asn1_t;
 
 /**
  * The structure that holds the PKI key information.
  */
 typedef struct coap_dtls_key_t {
-  coap_pki_key_t key_type;          /**< key format type */
-  union {
-    coap_pki_key_pem_t pem;         /**< for PEM keys */
-    coap_pki_key_asn1_t asn1;       /**< for ASN.1 (DER) keys */
-  } key;
+	coap_pki_key_t key_type; /**< key format type */
+	union {
+		coap_pki_key_pem_t pem;   /**< for PEM keys */
+		coap_pki_key_asn1_t asn1; /**< for ASN.1 (DER) keys */
+	} key;
 } coap_dtls_key_t;
 
 /**
@@ -179,9 +174,7 @@ typedef struct coap_dtls_key_t {
  *
  * @return New set of certificates to use, or @c NULL if SNI is to be rejected.
  */
-typedef coap_dtls_key_t *(*coap_dtls_sni_callback_t)(const char *sni,
-             void* arg);
-
+typedef coap_dtls_key_t *(*coap_dtls_sni_callback_t)(const char *sni, void *arg);
 
 #define COAP_DTLS_PKI_SETUP_VERSION 1 /**< Latest PKI setup version */
 
@@ -189,55 +182,55 @@ typedef coap_dtls_key_t *(*coap_dtls_sni_callback_t)(const char *sni,
  * The structure used for defining the PKI setup data to be used.
  */
 typedef struct coap_dtls_pki_t {
-  uint8_t version; /** Set to 1 to support this version of the struct */
+	uint8_t version; /** Set to 1 to support this version of the struct */
 
-  /* Options to enable different TLS functionality in libcoap */
-  uint8_t verify_peer_cert;        /**< 1 if peer cert is to be verified */
-  uint8_t require_peer_cert;       /**< 1 if peer cert is required */
-  uint8_t allow_self_signed;       /**< 1 if self signed certs are allowed */
-  uint8_t allow_expired_certs;     /**< 1 if expired certs are allowed */
-  uint8_t cert_chain_validation;   /**< 1 if to check cert_chain_verify_depth */
-  uint8_t cert_chain_verify_depth; /**< recommended depth is 3 */
-  uint8_t check_cert_revocation;   /**< 1 if revocation checks wanted */
-  uint8_t allow_no_crl;            /**< 1 ignore if CRL not there */
-  uint8_t allow_expired_crl;       /**< 1 if expired crl is allowed */
-  uint8_t reserved[6];             /**< Reserved - must be set to 0 for
-                                        future compatibility */
-                                   /* Size of 6 chosen to align to next
-                                    * parameter, so if newly defined option
-                                    * it can use one of the reserverd slot so
-                                    * no need to change
-                                    * COAP_DTLS_PKI_SETUP_VERSION and just
-                                    * decrement the reserved[] count.
-                                    */
+	/* Options to enable different TLS functionality in libcoap */
+	uint8_t verify_peer_cert;        /**< 1 if peer cert is to be verified */
+	uint8_t require_peer_cert;       /**< 1 if peer cert is required */
+	uint8_t allow_self_signed;       /**< 1 if self signed certs are allowed */
+	uint8_t allow_expired_certs;     /**< 1 if expired certs are allowed */
+	uint8_t cert_chain_validation;   /**< 1 if to check cert_chain_verify_depth */
+	uint8_t cert_chain_verify_depth; /**< recommended depth is 3 */
+	uint8_t check_cert_revocation;   /**< 1 if revocation checks wanted */
+	uint8_t allow_no_crl;            /**< 1 ignore if CRL not there */
+	uint8_t allow_expired_crl;       /**< 1 if expired crl is allowed */
+	uint8_t reserved[6];             /**< Reserved - must be set to 0 for
+	                                      future compatibility */
+	                                 /* Size of 6 chosen to align to next
+	                                  * parameter, so if newly defined option
+	                                  * it can use one of the reserverd slot so
+	                                  * no need to change
+	                                  * COAP_DTLS_PKI_SETUP_VERSION and just
+	                                  * decrement the reserved[] count.
+	                                  */
 
-  /** CN check call-back function.
-   * If not NULL, is called when the TLS connection has passed the configured
-   * TLS options above for the application to verify if the CN is valid.
-   */
-  coap_dtls_cn_callback_t validate_cn_call_back;
-  void *cn_call_back_arg;  /**< Passed in to the CN call-back function */
+	/** CN check call-back function.
+	 * If not NULL, is called when the TLS connection has passed the configured
+	 * TLS options above for the application to verify if the CN is valid.
+	 */
+	coap_dtls_cn_callback_t validate_cn_call_back;
+	void *cn_call_back_arg; /**< Passed in to the CN call-back function */
 
-  /** SNI check call-back function.
-   * If not @p NULL, called if the SNI is not previously seen and prior to
-   * sending a certificate set back to the client so that the appropriate
-   * certificate set can be used based on the requesting SNI.
-   */
-  coap_dtls_sni_callback_t validate_sni_call_back;
-  void *sni_call_back_arg;  /**< Passed in to the sni call-back function */
+	/** SNI check call-back function.
+	 * If not @p NULL, called if the SNI is not previously seen and prior to
+	 * sending a certificate set back to the client so that the appropriate
+	 * certificate set can be used based on the requesting SNI.
+	 */
+	coap_dtls_sni_callback_t validate_sni_call_back;
+	void *sni_call_back_arg; /**< Passed in to the sni call-back function */
 
-  /** Additional Security call-back handler that is invoked when libcoap has
-   * done the standerd, defined validation checks at the TLS level,
-   * If not @p NULL, called from within the TLS Client Hello connection
-   * setup.
-   */
-  coap_dtls_security_setup_t additional_tls_setup_call_back;
+	/** Additional Security call-back handler that is invoked when libcoap has
+	 * done the standerd, defined validation checks at the TLS level,
+	 * If not @p NULL, called from within the TLS Client Hello connection
+	 * setup.
+	 */
+	coap_dtls_security_setup_t additional_tls_setup_call_back;
 
-  char* client_sni;    /**<  If not NULL, SNI to use in client TLS setup.
-                             Owned by the client app and must remain valid
-                             during the call to coap_new_client_session_pki() */
+	char *client_sni; /**<  If not NULL, SNI to use in client TLS setup.
+	                        Owned by the client app and must remain valid
+	                        during the call to coap_new_client_session_pki() */
 
-  coap_dtls_key_t pki_key;  /**< PKI key definition */
+	coap_dtls_key_t pki_key; /**< PKI key definition */
 } coap_dtls_pki_t;
 
 /** @} */
@@ -258,12 +251,11 @@ typedef struct coap_dtls_pki_t {
  *
  * @return A DTLS context object or @c NULL on error.
  */
-void *
-coap_dtls_new_context(struct coap_context_t *coap_context);
+void *coap_dtls_new_context(struct coap_context_t *coap_context);
 
 typedef enum coap_dtls_role_t {
-  COAP_DTLS_ROLE_CLIENT, /**< Internal function invoked for client */
-  COAP_DTLS_ROLE_SERVER  /**< Internal function invoked for server */
+	COAP_DTLS_ROLE_CLIENT, /**< Internal function invoked for client */
+	COAP_DTLS_ROLE_SERVER  /**< Internal function invoked for server */
 } coap_dtls_role_t;
 
 /**
@@ -287,10 +279,8 @@ typedef enum coap_dtls_role_t {
  * @return @c 1 if successful, else @c 0.
  */
 
-int
-coap_dtls_context_set_psk(struct coap_context_t *coap_context,
-                          const char *identity_hint,
-                          coap_dtls_role_t role);
+int coap_dtls_context_set_psk(struct coap_context_t *coap_context, const char *identity_hint,
+                              coap_dtls_role_t role);
 
 /**
  * Set the DTLS context's default server PKI information.
@@ -311,10 +301,8 @@ coap_dtls_context_set_psk(struct coap_context_t *coap_context,
  * @return @c 1 if successful, else @c 0.
  */
 
-int
-coap_dtls_context_set_pki(struct coap_context_t *coap_context,
-                          coap_dtls_pki_t *setup_data,
-                          coap_dtls_role_t role);
+int coap_dtls_context_set_pki(struct coap_context_t *coap_context, coap_dtls_pki_t *setup_data,
+                              coap_dtls_role_t role);
 
 /**
  * Set the dtls context's default Root CA information for a client or server.
@@ -330,10 +318,8 @@ coap_dtls_context_set_pki(struct coap_context_t *coap_context,
  * @return @c 1 if successful, else @c 0.
  */
 
-int
-coap_dtls_context_set_pki_root_cas(struct coap_context_t *coap_context,
-                                   const char *ca_file,
-                                   const char *ca_dir);
+int coap_dtls_context_set_pki_root_cas(struct coap_context_t *coap_context, const char *ca_file,
+                                       const char *ca_dir);
 
 /**
  * Check whether one of the coap_dtls_context_set_{psk|pki}() functions have
@@ -366,7 +352,7 @@ void coap_dtls_free_context(void *dtls_context);
  *
  * @return Opaque handle to underlying TLS library object containing security
  *         parameters for the session.
-*/
+ */
 void *coap_dtls_new_client_session(coap_session_t *coap_session);
 
 /**
@@ -416,9 +402,7 @@ void coap_dtls_session_update_mtu(coap_session_t *coap_session);
  * @return @c 0 if this would be blocking, @c -1 if there is an error or the
  *         number of cleartext bytes sent.
  */
-int coap_dtls_send(coap_session_t *coap_session,
-                   const uint8_t *data,
-                   size_t data_len);
+int coap_dtls_send(coap_session_t *coap_session, const uint8_t *data, size_t data_len);
 
 /**
  * Check if timeout is handled per CoAP session or per CoAP context.
@@ -473,9 +457,7 @@ void coap_dtls_handle_timeout(coap_session_t *coap_session);
  * @return Result of coap_handle_dgram on the decrypted CoAP PDU
  *         or @c -1 for error.
  */
-int coap_dtls_receive(coap_session_t *coap_session,
-                      const uint8_t *data,
-                      size_t data_len);
+int coap_dtls_receive(coap_session_t *coap_session, const uint8_t *data, size_t data_len);
 
 /**
  * Handling client HELLO messages from a new candiate peer.
@@ -491,9 +473,7 @@ int coap_dtls_receive(coap_session_t *coap_session,
  *        HELLO contains a valid cookie and a server session should be created,
  *        @c -1 if the message is invalid.
  */
-int coap_dtls_hello(coap_session_t *coap_session,
-                    const uint8_t *data,
-                    size_t data_len);
+int coap_dtls_hello(coap_session_t *coap_session, const uint8_t *data, size_t data_len);
 
 /**
  * Get DTLS overhead over cleartext PDUs.
@@ -517,7 +497,7 @@ unsigned int coap_dtls_get_overhead(coap_session_t *coap_session);
  *
  * @return Opaque handle to underlying TLS library object containing security
  *         parameters for the session.
-*/
+ */
 void *coap_tls_new_client_session(coap_session_t *coap_session, int *connected);
 
 /**
@@ -542,7 +522,7 @@ void *coap_tls_new_server_session(coap_session_t *coap_session, int *connected);
  *
  * @param coap_session The CoAP session.
  */
-void coap_tls_free_session( coap_session_t *coap_session );
+void coap_tls_free_session(coap_session_t *coap_session);
 
 /**
  * Send data to a TLS peer, with implicit flush.
@@ -556,10 +536,7 @@ void coap_tls_free_session( coap_session_t *coap_session );
  * @return          @c 0 if this should be retried, @c -1 if there is an error
  *                  or the number of cleartext bytes sent.
  */
-ssize_t coap_tls_write(coap_session_t *coap_session,
-                       const uint8_t *data,
-                       size_t data_len
-                       );
+ssize_t coap_tls_write(coap_session_t *coap_session, const uint8_t *data, size_t data_len);
 
 /**
  * Read some data from a TLS peer.
@@ -573,10 +550,7 @@ ssize_t coap_tls_write(coap_session_t *coap_session,
  * @return          @c 0 if this should be retried, @c -1 if there is an error
  *                  or the number of cleartext bytes read.
  */
-ssize_t coap_tls_read(coap_session_t *coap_session,
-                      uint8_t *data,
-                      size_t data_len
-                      );
+ssize_t coap_tls_read(coap_session_t *coap_session, uint8_t *data, size_t data_len);
 
 /**
  * Initialize the underlying (D)TLS Library layer.
@@ -604,6 +578,5 @@ void coap_dtls_set_log_level(int level);
  * @return The current log level (one of LOG_*).
  */
 int coap_dtls_get_log_level(void);
-
 
 #endif /* COAP_DTLS_H */

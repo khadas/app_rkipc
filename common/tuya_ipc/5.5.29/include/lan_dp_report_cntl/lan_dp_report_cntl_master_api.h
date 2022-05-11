@@ -4,14 +4,12 @@
 #include "tuya_cloud_com_defs.h"
 
 #ifdef __cplusplus
-	extern "C" {
+extern "C" {
 #endif
-
 
 /***********************************************************
 *************************micro define***********************
 ***********************************************************/
-
 
 /***********************************************************
 *************************variable define********************
@@ -24,9 +22,7 @@
 //设置需要局域网上报给master的子设备
 OPERATE_RET lan_dp_report_add_subdev(CHAR_T *gw_id, CHAR_T *sub_id);
 
-
 #ifdef __cplusplus
 }
 #endif
 #endif
-

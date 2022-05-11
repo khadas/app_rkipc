@@ -44,8 +44,7 @@
 #define HAVE_NETDB_H 1
 
 /* Define to 1 if you have the <netinet/in.h> header file. */
-#define HAVE_NETINET_IN_H 1  // commeted by changcheng
-
+#define HAVE_NETINET_IN_H 1 // commeted by changcheng
 
 /* Define if the system has libssl1.1 */
 /* #undef HAVE_OPENSSL */
@@ -128,18 +127,16 @@
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
-
-
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
 #if defined AC_APPLE_UNIVERSAL_BUILD
-# if defined __BIG_ENDIAN__
-#  define WORDS_BIGENDIAN 1
-# endif
+#if defined __BIG_ENDIAN__
+#define WORDS_BIGENDIAN 1
+#endif
 #else
-# ifndef WORDS_BIGENDIAN
+#ifndef WORDS_BIGENDIAN
 /* #  undef WORDS_BIGENDIAN */
-# endif
+#endif
 #endif
 
 /* Define this to 1 for ancillary data on MacOS */
@@ -163,4 +160,3 @@
 #undef SUPPORT_IPV6
 
 #define WITH_TY_UNI_NETWORK 1
-

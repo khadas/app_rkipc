@@ -1,6 +1,6 @@
 /**
  * @file tuya_iot_internal_api.h
- * @brief 
+ * @brief
  * @author tuya
  * @version 1.0.0
  * @date 2021-01-12
@@ -10,13 +10,13 @@
 #ifndef _TUYA_IOT_INTERNAL_API_H
 #define _TUYA_IOT_INTERNAL_API_H
 
+#include "tuya_cloud_com_defs.h"
 #include "tuya_cloud_types.h"
 #include "ty_cJSON.h"
-#include "tuya_cloud_com_defs.h"
 
-#if defined(WIFI_GW) && (WIFI_GW==1)
-#include "tuya_cloud_wifi_defs.h"
+#if defined(WIFI_GW) && (WIFI_GW == 1)
 #include "thing_config.h"
+#include "tuya_cloud_wifi_defs.h"
 #endif
 
 #ifdef __cplusplus
@@ -24,10 +24,10 @@ extern "C" {
 #endif
 
 /* cloud-storage api  */
-//TODO
+// TODO
 
 /**
- * @brief iot_httpc_common_post_no_remalloc 
+ * @brief iot_httpc_common_post_no_remalloc
  * @desc http api
  *
  * @param[in] api_name
@@ -48,7 +48,7 @@ OPERATE_RET iot_httpc_common_post_no_remalloc(IN CONST CHAR_T *api_name, IN CONS
                                               OUT ty_cJSON **pp_result);
 
 /**
- * @brief iot_httpc_common_post 
+ * @brief iot_httpc_common_post
  *
  * @param[in] api_name
  * @param[in] api_ver
@@ -62,12 +62,11 @@ OPERATE_RET iot_httpc_common_post_no_remalloc(IN CONST CHAR_T *api_name, IN CONS
  */
 OPERATE_RET iot_httpc_common_post(IN CONST CHAR_T *api_name, IN CONST CHAR_T *api_ver,
                                   IN CONST CHAR_T *uuid, IN CONST CHAR_T *devid,
-                                  IN CHAR_T *post_data,
-                                  IN CONST CHAR_T *p_head_other,
+                                  IN CHAR_T *post_data, IN CONST CHAR_T *p_head_other,
                                   OUT ty_cJSON **pp_result);
 
 /**
- * @brief iot_httpc_common_post_simple 
+ * @brief iot_httpc_common_post_simple
  *
  * @param[in] api_name
  * @param[in] api_ver
@@ -78,13 +77,15 @@ OPERATE_RET iot_httpc_common_post(IN CONST CHAR_T *api_name, IN CONST CHAR_T *ap
  * @return OPERATE_RET
  */
 OPERATE_RET iot_httpc_common_post_simple(IN CONST CHAR_T *api_name, IN CONST CHAR_T *api_ver,
-                                         IN CHAR_T *post_data, IN CONST CHAR_T *p_head_other, OUT ty_cJSON **pp_result);
+                                         IN CHAR_T *post_data, IN CONST CHAR_T *p_head_other,
+                                         OUT ty_cJSON **pp_result);
 
-typedef OPERATE_RET (*IOT_HTTP_GET_FILE_DATA_CB)(IN PVOID_T priv_data, IN CONST UINT_T total_len,IN CONST UINT_T offset,\
-                                            IN CONST BYTE_T *data,IN CONST UINT_T len,OUT UINT_T *remain_len);
+typedef OPERATE_RET (*IOT_HTTP_GET_FILE_DATA_CB)(IN PVOID_T priv_data, IN CONST UINT_T total_len,
+                                                 IN CONST UINT_T offset, IN CONST BYTE_T *data,
+                                                 IN CONST UINT_T len, OUT UINT_T *remain_len);
 
 /**
- * @brief iot_httpc_download_file 
+ * @brief iot_httpc_download_file
  *
  * @param[in] url
  * @param[in] mlk_buf_len
@@ -95,15 +96,15 @@ typedef OPERATE_RET (*IOT_HTTP_GET_FILE_DATA_CB)(IN PVOID_T priv_data, IN CONST 
  *
  * @return OPERATE_RET
  */
-OPERATE_RET iot_httpc_download_file(IN CONST CHAR_T *url,IN CONST UINT_T mlk_buf_len,\
-                                  IN CONST IOT_HTTP_GET_FILE_DATA_CB gfd_cb, IN PVOID_T priv_data, \
-                                  IN CONST UINT_T total_len, INOUT BYTE_T file_hmac[32]);
+OPERATE_RET iot_httpc_download_file(IN CONST CHAR_T *url, IN CONST UINT_T mlk_buf_len,
+                                    IN CONST IOT_HTTP_GET_FILE_DATA_CB gfd_cb, IN PVOID_T priv_data,
+                                    IN CONST UINT_T total_len, INOUT BYTE_T file_hmac[32]);
 
 /* mqtt api */
 typedef OPERATE_RET (*iot_mqc_protocol_handler_cb)(IN ty_cJSON *root_json);
 
 /**
- * @brief iot_mqc_app_register_cb 
+ * @brief iot_mqc_app_register_cb
  * @desc 注册mqtt事件回调函数
  *
  * @param[in] mq_pro
@@ -113,9 +114,9 @@ typedef OPERATE_RET (*iot_mqc_protocol_handler_cb)(IN ty_cJSON *root_json);
  */
 OPERATE_RET iot_mqc_app_register_cb(UINT_T mq_pro, iot_mqc_protocol_handler_cb handler);
 
-typedef VOID (*iot_mqc_publish_result_cb)(IN CONST OPERATE_RET op_ret,IN CONST VOID *prv_data);
+typedef VOID (*iot_mqc_publish_result_cb)(IN CONST OPERATE_RET op_ret, IN CONST VOID *prv_data);
 /**
- * @brief iot_mqc_send_custom_msg 
+ * @brief iot_mqc_send_custom_msg
  *
  * @param[in] protocol
  * @param[in] data
@@ -126,11 +127,12 @@ typedef VOID (*iot_mqc_publish_result_cb)(IN CONST OPERATE_RET op_ret,IN CONST V
  *
  * @return OPERATE_RET
  */
-OPERATE_RET iot_mqc_send_custom_msg(IN CONST UINT_T protocol,IN CONST CHAR_T *data,IN CONST BYTE_T qos,\
-                                    IN CONST UINT_T to_lmt,IN CONST iot_mqc_publish_result_cb cb,IN VOID *prv_data);
+OPERATE_RET iot_mqc_send_custom_msg(IN CONST UINT_T protocol, IN CONST CHAR_T *data,
+                                    IN CONST BYTE_T qos, IN CONST UINT_T to_lmt,
+                                    IN CONST iot_mqc_publish_result_cb cb, IN VOID *prv_data);
 
 /**
- * @brief iot_wd_common_write 
+ * @brief iot_wd_common_write
  * @desc wd write
  *
  * @param[in] key
@@ -142,7 +144,7 @@ OPERATE_RET iot_mqc_send_custom_msg(IN CONST UINT_T protocol,IN CONST CHAR_T *da
 OPERATE_RET iot_wd_common_write(IN CONST CHAR_T *key, IN CONST BYTE_T *value, IN CONST UINT_T len);
 
 /**
- * @brief iot_wd_common_read 
+ * @brief iot_wd_common_read
  * @desc wd read
  *
  * @param[in] key
@@ -154,7 +156,7 @@ OPERATE_RET iot_wd_common_write(IN CONST CHAR_T *key, IN CONST BYTE_T *value, IN
 OPERATE_RET iot_wd_common_read(IN CONST CHAR_T *key, OUT BYTE_T **value, OUT UINT_T *p_len);
 
 /**
- * @brief iot_wd_common_free_data 
+ * @brief iot_wd_common_free_data
  * @desc wd free
  *
  * @param[in] data
@@ -164,7 +166,7 @@ OPERATE_RET iot_wd_common_read(IN CONST CHAR_T *key, OUT BYTE_T **value, OUT UIN
 OPERATE_RET iot_wd_common_free_data(IN BYTE_T *data);
 
 /**
- * @brief iot_wd_common_delete 
+ * @brief iot_wd_common_delete
  * @desc wd delete
  *
  * @param[in] key
@@ -174,7 +176,7 @@ OPERATE_RET iot_wd_common_free_data(IN BYTE_T *data);
 OPERATE_RET iot_wd_common_delete(IN CONST CHAR_T *key);
 
 /**
- * @brief iot_wd_gw_desc_if_read 
+ * @brief iot_wd_gw_desc_if_read
  * @desc wd read gateway information
  *
  * @param[out] di
@@ -183,9 +185,9 @@ OPERATE_RET iot_wd_common_delete(IN CONST CHAR_T *key);
  */
 OPERATE_RET iot_wd_gw_desc_if_read(OUT VOID *di);
 
-#if defined(GW_SUPPORT_COUNTRY_CODE) && (GW_SUPPORT_COUNTRY_CODE==1)
+#if defined(GW_SUPPORT_COUNTRY_CODE) && (GW_SUPPORT_COUNTRY_CODE == 1)
 /**
- * @brief iot_wd_gw_write_country_code 
+ * @brief iot_wd_gw_write_country_code
  * @desc wd write country code
  *
  * @param[in] country_code
@@ -206,14 +208,14 @@ typedef BYTE_T IOT_VAR_TP_T;
 #define VT_RAW 7
 
 typedef struct {
-    CHAR_T *key;
-    IOT_VAR_TP_T vt;
-    VOID *val;
-    USHORT_T len;
-}IOT_TY_DB_RW_S;
+	CHAR_T *key;
+	IOT_VAR_TP_T vt;
+	VOID *val;
+	USHORT_T len;
+} IOT_TY_DB_RW_S;
 
 /**
- * @brief iot_wd_utils_serialize 
+ * @brief iot_wd_utils_serialize
  *
  * @param[in] rw
  * @param[in] rw_cnt
@@ -222,11 +224,11 @@ typedef struct {
  *
  * @return OPERATE_RET
  */
-OPERATE_RET iot_wd_utils_serialize(IN CONST IOT_TY_DB_RW_S *rw,IN CONST UINT_T rw_cnt,\
-                               OUT CHAR_T **out,OUT UINT_T *out_len);
+OPERATE_RET iot_wd_utils_serialize(IN CONST IOT_TY_DB_RW_S *rw, IN CONST UINT_T rw_cnt,
+                                   OUT CHAR_T **out, OUT UINT_T *out_len);
 
 /**
- * @brief iot_wd_utils_free_outbuf 
+ * @brief iot_wd_utils_free_outbuf
  *
  * @param[out] out_buf
  *
@@ -235,7 +237,7 @@ OPERATE_RET iot_wd_utils_serialize(IN CONST IOT_TY_DB_RW_S *rw,IN CONST UINT_T r
 OPERATE_RET iot_wd_utils_free_outbuf(IN CHAR_T *out_buf);
 
 /**
- * @brief iot_wd_utils_deserialize 
+ * @brief iot_wd_utils_deserialize
  *
  * @param[in] in
  * @param[in] rw
@@ -243,10 +245,11 @@ OPERATE_RET iot_wd_utils_free_outbuf(IN CHAR_T *out_buf);
  *
  * @return OPERATE_RET
  */
-OPERATE_RET iot_wd_utils_deserialize(IN CONST CHAR_T *in,INOUT IOT_TY_DB_RW_S *rw,IN CONST UINT_T rw_cnt);
+OPERATE_RET iot_wd_utils_deserialize(IN CONST CHAR_T *in, INOUT IOT_TY_DB_RW_S *rw,
+                                     IN CONST UINT_T rw_cnt);
 
 /**
- * @brief iot_gw_user_token_bind 
+ * @brief iot_gw_user_token_bind
  *
  * @param[in] token
  *
@@ -255,7 +258,7 @@ OPERATE_RET iot_wd_utils_deserialize(IN CONST CHAR_T *in,INOUT IOT_TY_DB_RW_S *r
 OPERATE_RET iot_gw_user_token_bind(IN CONST CHAR_T *token);
 
 /**
- * @brief iot_put_cloud_config 
+ * @brief iot_put_cloud_config
  * @desc the project switches to the release, reporting configuration
  *
  * @param[in] data
@@ -264,10 +267,9 @@ OPERATE_RET iot_gw_user_token_bind(IN CONST CHAR_T *token);
  */
 OPERATE_RET iot_put_cloud_config(IN CONST CHAR_T *data);
 
-
-#if defined(WIFI_GW) && (WIFI_GW==1)
+#if defined(WIFI_GW) && (WIFI_GW == 1)
 /**
- * @brief iot_wf_gw_unactive_custom_mode 
+ * @brief iot_wf_gw_unactive_custom_mode
  *
  * @param[in] wifi_mode
  *
@@ -284,7 +286,7 @@ OPERATE_RET iot_wf_gw_unactive_custom_mode(GW_WF_START_MODE wifi_mode);
 typedef VOID (*PRE_GW_UG_INFORM_CB)(INOUT BOOL_T *handled, IN CONST FW_UG_S *fw);
 
 /**
- * @brief iot_register_pre_gw_ug_cb 
+ * @brief iot_register_pre_gw_ug_cb
  *
  * @param pre_ug_cb
  *
@@ -299,7 +301,7 @@ VOID iot_register_pre_gw_ug_cb(IN PRE_GW_UG_INFORM_CB pre_ug_cb);
 */
 
 /**
- * @brief iot_tls_set_ssl_verify 
+ * @brief iot_tls_set_ssl_verify
  *
  * @param[in] verify_mode
  *
@@ -308,7 +310,7 @@ VOID iot_register_pre_gw_ug_cb(IN PRE_GW_UG_INFORM_CB pre_ug_cb);
 VOID iot_tls_set_ssl_verify(IN CONST INT_T verify_mode);
 
 /**
- * @brief iot_tls_register_x509_crt_der 
+ * @brief iot_tls_register_x509_crt_der
  * @desc Parse one or more PEM certificates from a buffer and add them to the chained list
  *
  * @param[in] p_ctx
@@ -320,7 +322,7 @@ VOID iot_tls_set_ssl_verify(IN CONST INT_T verify_mode);
 INT_T iot_tls_register_x509_crt_der(VOID *p_ctx, UCHAR_T *p_der, UINT_T der_len);
 
 /**
- * @brief iot_gw_update_versions 
+ * @brief iot_gw_update_versions
  *
  * @return OPERATE_RET
  */
@@ -331,7 +333,7 @@ OPERATE_RET iot_gw_update_versions(VOID);
 typedef PVOID_T IOT_RAW_HTTP_S;
 
 /**
- * @brief iot_httpc_raw_post 
+ * @brief iot_httpc_raw_post
  *
  * @param[in] p_url
  * @param[in] data_total_len
@@ -339,10 +341,11 @@ typedef PVOID_T IOT_RAW_HTTP_S;
  *
  * @return OPERATE_RET
  */
-OPERATE_RET iot_httpc_raw_post(IN CONST CHAR_T *p_url, IN CONST UINT_T data_total_len, INOUT IOT_RAW_HTTP_S *pp_raw_http);
+OPERATE_RET iot_httpc_raw_post(IN CONST CHAR_T *p_url, IN CONST UINT_T data_total_len,
+                               INOUT IOT_RAW_HTTP_S *pp_raw_http);
 
 /**
- * @brief iot_httpc_raw_get 
+ * @brief iot_httpc_raw_get
  *
  * @param[in] p_url
  * @param[out] pp_raw_http
@@ -351,10 +354,11 @@ OPERATE_RET iot_httpc_raw_post(IN CONST CHAR_T *p_url, IN CONST UINT_T data_tota
  *
  * @return OPERATE_RET
  */
-OPERATE_RET iot_httpc_raw_get(IN CONST CHAR_T *p_url, INOUT IOT_RAW_HTTP_S *pp_raw_http, IN UINT_T offset, IN UINT_T total_len);
+OPERATE_RET iot_httpc_raw_get(IN CONST CHAR_T *p_url, INOUT IOT_RAW_HTTP_S *pp_raw_http,
+                              IN UINT_T offset, IN UINT_T total_len);
 
 /**
- * @brief iot_httpc_raw_put 
+ * @brief iot_httpc_raw_put
  *
  * @param[in] p_url
  * @param[in] data_total_len
@@ -362,10 +366,11 @@ OPERATE_RET iot_httpc_raw_get(IN CONST CHAR_T *p_url, INOUT IOT_RAW_HTTP_S *pp_r
  *
  * @return OPERATE_RET
  */
-OPERATE_RET iot_httpc_raw_put(IN CONST CHAR_T *p_url, IN CONST UINT_T data_total_len, INOUT IOT_RAW_HTTP_S *pp_raw_http);
+OPERATE_RET iot_httpc_raw_put(IN CONST CHAR_T *p_url, IN CONST UINT_T data_total_len,
+                              INOUT IOT_RAW_HTTP_S *pp_raw_http);
 
 /**
- * @brief iot_httpc_raw_write_content 
+ * @brief iot_httpc_raw_write_content
  *
  * @param[in] p_raw_http
  * @param[in] buf
@@ -374,10 +379,11 @@ OPERATE_RET iot_httpc_raw_put(IN CONST CHAR_T *p_url, IN CONST UINT_T data_total
  *
  * @return result
  */
-INT_T iot_httpc_raw_write_content(IN IOT_RAW_HTTP_S p_raw_http, IN CONST BYTE_T *buf, IN CONST UINT_T buf_len, BOOL_T chunked);
+INT_T iot_httpc_raw_write_content(IN IOT_RAW_HTTP_S p_raw_http, IN CONST BYTE_T *buf,
+                                  IN CONST UINT_T buf_len, BOOL_T chunked);
 
 /**
- * @brief iot_httpc_raw_read_resp_header 
+ * @brief iot_httpc_raw_read_resp_header
  *
  * @param[in/out] p_raw_http
  * @param[out] p_status_code
@@ -386,10 +392,12 @@ INT_T iot_httpc_raw_write_content(IN IOT_RAW_HTTP_S p_raw_http, IN CONST BYTE_T 
  *
  * @return OPERATE_RET
  */
-OPERATE_RET iot_httpc_raw_read_resp_header(INOUT IOT_RAW_HTTP_S p_raw_http, OUT INT_T *p_status_code, OUT BOOL_T *p_chunked, OUT UINT_T *p_content_len);
+OPERATE_RET iot_httpc_raw_read_resp_header(INOUT IOT_RAW_HTTP_S p_raw_http,
+                                           OUT INT_T *p_status_code, OUT BOOL_T *p_chunked,
+                                           OUT UINT_T *p_content_len);
 
 /**
- * @brief iot_httpc_raw_read_content 
+ * @brief iot_httpc_raw_read_content
  *
  * @param[in] p_raw_http
  * @param[in] buf
@@ -397,10 +405,11 @@ OPERATE_RET iot_httpc_raw_read_resp_header(INOUT IOT_RAW_HTTP_S p_raw_http, OUT 
  *
  * @return result
  */
-INT_T iot_httpc_raw_read_content(IN IOT_RAW_HTTP_S p_raw_http, IN BYTE_T *buf, IN CONST UINT_T buf_len);
+INT_T iot_httpc_raw_read_content(IN IOT_RAW_HTTP_S p_raw_http, IN BYTE_T *buf,
+                                 IN CONST UINT_T buf_len);
 
 /**
- * @brief iot_httpc_raw_close 
+ * @brief iot_httpc_raw_close
  *
  * @param[in] p_raw_http
  *
@@ -409,7 +418,7 @@ INT_T iot_httpc_raw_read_content(IN IOT_RAW_HTTP_S p_raw_http, IN BYTE_T *buf, I
 OPERATE_RET iot_httpc_raw_close(IN IOT_RAW_HTTP_S p_raw_http);
 
 /**
- * @brief tuya_iot_put_cloud_config 
+ * @brief tuya_iot_put_cloud_config
  *
  * @param[in] data
  *
@@ -417,9 +426,9 @@ OPERATE_RET iot_httpc_raw_close(IN IOT_RAW_HTTP_S p_raw_http);
  */
 OPERATE_RET tuya_iot_put_cloud_config(IN CONST CHAR_T *data);
 
-#if defined(WIFI_GW) && (WIFI_GW==1)
+#if defined(WIFI_GW) && (WIFI_GW == 1)
 /**
- * @brief tuya_iot_thing_config_init 
+ * @brief tuya_iot_thing_config_init
  *
  * @param[in] socket_cb
  *
@@ -428,7 +437,7 @@ OPERATE_RET tuya_iot_put_cloud_config(IN CONST CHAR_T *data);
 OPERATE_RET tuya_iot_thing_config_init(IN THING_CONFIG_SOCKET_CB socket_cb);
 
 /**
- * @brief tuya_iot_thing_config_start 
+ * @brief tuya_iot_thing_config_start
  *
  * @param[in] ssid
  * @param[in] passwd
@@ -437,10 +446,11 @@ OPERATE_RET tuya_iot_thing_config_init(IN THING_CONFIG_SOCKET_CB socket_cb);
  *
  * @return OPERATE_RET
  */
-OPERATE_RET tuya_iot_thing_config_start(IN CONST CHAR_T *ssid, IN CONST CHAR_T *passwd, IN CONST CHAR_T *token, IN CONST UINT_T timeout);
+OPERATE_RET tuya_iot_thing_config_start(IN CONST CHAR_T *ssid, IN CONST CHAR_T *passwd,
+                                        IN CONST CHAR_T *token, IN CONST UINT_T timeout);
 
 /**
- * @brief tuya_iot_thing_config_stop 
+ * @brief tuya_iot_thing_config_stop
  *
  * @return none
  */
@@ -453,14 +463,14 @@ VOID tuya_iot_thing_config_stop(VOID);
  * @param cString1
  * @param cString2
  *
- * @return 
+ * @return
  */
 BOOL_T tuya_iot_compare_two_string(IN CONST CHAR_T *cString1, IN CONST CHAR_T *cString2);
 
 typedef OPERATE_RET (*iot_special_dp_cb)(IN CONST UINT16_T dpid, IN CONST ty_cJSON *dp_obj);
 
 /**
- * @brief iot_special_dp_register_cb 
+ * @brief iot_special_dp_register_cb
  *
  * @param[in] handler
  *
@@ -469,29 +479,28 @@ typedef OPERATE_RET (*iot_special_dp_cb)(IN CONST UINT16_T dpid, IN CONST ty_cJS
 OPERATE_RET iot_special_dp_register_cb(IN iot_special_dp_cb handler);
 
 /**
- * @brief tuya_iot_compare_two_string 
+ * @brief tuya_iot_compare_two_string
  *
  * @param[in] cString1
  * @param[in] cString2
  *
- * @return 
+ * @return
  */
 BOOL_T tuya_iot_compare_two_string(IN CONST CHAR_T *cString1, IN CONST CHAR_T *cString2);
 
 /**
- * @brief tuya_iot_get_json_safety_string 
+ * @brief tuya_iot_get_json_safety_string
  * @desc will change the (") to the (\") in json file
  *
  * @param[in] json
  *
- * @return 
+ * @return
  *
  * @note user shoule free memory
  */
-CHAR_T* tuya_iot_get_json_safety_string(IN CONST CHAR_T *json);
+CHAR_T *tuya_iot_get_json_safety_string(IN CONST CHAR_T *json);
 
 #ifdef __cplusplus
 }
 #endif
 #endif /*_TUYA_IOT_INTERNAL_API_H*/
-

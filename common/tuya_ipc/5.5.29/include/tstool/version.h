@@ -29,17 +29,15 @@
 #ifndef _version
 #define _version
 
-//const char software_version1[] = "1.11";
+// const char software_version1[] = "1.11";
 
 // The following is intended to be output as part of the main help text for
 // each program. ``program_name`` is thus the name of the program.
-#define REPORT_VERSION(program_name) \
-  printf("  TS tools version %s, %s built %s %s\n", \
-         "1.11",(program_name), \
-         __DATE__,__TIME__)
+#define REPORT_VERSION(program_name)                                                               \
+	printf("  TS tools version %s, %s built %s %s\n", "1.11", (program_name), __DATE__, __TIME__)
 
 #endif // _version
-
+
 // Local Variables:
 // tab-width: 8
 // indent-tabs-mode: nil

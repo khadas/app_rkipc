@@ -1,15 +1,14 @@
 /**
-* @file base_os_adapter.h
-* @brief Common process - Initialization
-* @version 0.1
-* @date 2020-11-09
-*
-* @copyright Copyright 2020-2021 Tuya Inc. All Rights Reserved.
-*
-*/
+ * @file base_os_adapter.h
+ * @brief Common process - Initialization
+ * @version 0.1
+ * @date 2020-11-09
+ *
+ * @copyright Copyright 2020-2021 Tuya Inc. All Rights Reserved.
+ *
+ */
 #ifndef _BASE_OS_ADAPTER_H
 #define _BASE_OS_ADAPTER_H
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,10 +25,8 @@ extern "C" {
  */
 int tuya_os_intf_init(void);
 
-
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif /* _TUYA_OS_ADAPTER_H */

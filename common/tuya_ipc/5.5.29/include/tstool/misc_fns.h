@@ -28,8 +28,8 @@
 #ifndef _misc_fns
 #define _misc_fns
 
-#include "misc_defns.h"
 #include "es_defns.h"
+#include "misc_defns.h"
 #ifndef _WIN32
 #include <stdint.h>
 #endif
@@ -55,9 +55,7 @@ extern uint32_t crc32_block(uint32_t crc, byte *pData, int blk_len);
 /*
  * Print out the bottom N bits from a byte on the given stream
  */
-extern void print_bits(FILE   *stream,
-                       int     num_bits,
-                       byte    value);
+extern void print_bits(FILE *stream, int num_bits, byte value);
 
 /*
  * Print out (the first `max`) bytes of a byte array.
@@ -75,11 +73,7 @@ extern void print_bits(FILE   *stream,
  * where no more than `max` bytes are to be printed (and "..." is printed
  * if not all bytes were shown).
  */
-extern void print_data(FILE *stream,
-                       char *name,
-                       byte  data[],
-                       int   length,
-                       int   max);
+extern void print_data(FILE *stream, char *name, byte data[], int length, int max);
 /*
  * Print out (the last `max`) bytes of a byte array.
  *
@@ -96,17 +90,12 @@ extern void print_data(FILE *stream,
  * where no more than `max` bytes are to be printed (and "..." is printed
  * if not all bytes were shown).
  */
-extern void print_end_of_data(FILE *stream,
-                              char *name,
-                              byte  data[],
-                              int   length,
-                              int   max);
+extern void print_end_of_data(FILE *stream, char *name, byte data[], int length, int max);
 /*
  * Calculate log2 of `x` - for some reason this is missing from <math.h>
  */
 extern double log2(double x);
 
-
 // ============================================================
 // Simple file I/O utilities
 // ============================================================
@@ -124,9 +113,7 @@ extern double log2(double x);
  * other error occurred (in which case it will already have output a message
  * on stderr about the problem).
  */
-extern int read_bytes(int    input,
-                      int    num_bytes,
-                      byte  *data);
+extern int read_bytes(int input, int num_bytes, byte *data);
 /*
  * Utility function to seek within a file
  *
@@ -142,8 +129,7 @@ extern int read_bytes(int    input,
  * requested). If an error occurs, then an explanatory message will
  * already have been written to stderr.
  */
-extern int seek_file(int       filedes,
-                     offset_t  posn);
+extern int seek_file(int filedes, offset_t posn);
 /*
  * Utility function to report the current location within a file
  *
@@ -157,7 +143,7 @@ extern int seek_file(int       filedes,
  * -1 (in which case an error message will already have been written
  * on stderr)
  */
-extern offset_t tell_file(int    filedes);
+extern offset_t tell_file(int filedes);
 /*
  * Utility function to open a file (descriptor), and report any errors
  *
@@ -174,15 +160,14 @@ extern offset_t tell_file(int    filedes);
  * Returns the file descriptor for the file, or -1 if it failed to open
  * the file.
  */
-extern int open_binary_file(char  *filename,
-                            int    for_write);
+extern int open_binary_file(char *filename, int for_write);
 /*
  * Utility function to close a file (descriptor), and report any errors
  *
  * Returns 0 if all went well, 1 if an error occurred.
  */
-extern int close_file(int  filedes);
-
+extern int close_file(int filedes);
+
 // ============================================================
 // More complex file I/O utilities
 // ============================================================
@@ -221,13 +206,8 @@ extern int close_file(int  filedes);
  * Returns 0 if all goes well, 1 if something goes wrong. In the latter case,
  * suitable messages will have been written out to standard error.
  */
-extern int open_input_as_ES(char   *name,
-                            int     use_pes,
-                            int     quiet,
-                            int     force_stream_type,
-                            int     want_data,
-                            int    *is_data,
-                            ES_p   *es);
+extern int open_input_as_ES(char *name, int use_pes, int quiet, int force_stream_type,
+                            int want_data, int *is_data, ES_p *es);
 /*
  * Close an input ES stream opened with `open_input_as_ES`.
  *
@@ -240,10 +220,8 @@ extern int open_input_as_ES(char   *name,
  * Returns 0 if all goes well, 1 if something goes wrong. In the latter case,
  * suitable messages will have been written out to standard error.
  */
-extern int close_input_as_ES(char   *name,
-                             ES_p   *es);
+extern int close_input_as_ES(char *name, ES_p *es);
 
-
 // ============================================================
 // Command line "helpers"
 // ============================================================
@@ -262,11 +240,7 @@ extern int close_input_as_ES(char   *name,
  * Returns 0 if all went well, 1 otherwise (in which case a message
  * explaining will have been written to stderr).
  */
-extern int unsigned_value(char      *prefix,
-                          char      *cmd,
-                          char      *arg,
-                          int        base,
-                          uint32_t  *value);
+extern int unsigned_value(char *prefix, char *cmd, char *arg, int base, uint32_t *value);
 /*
  * Read in an integer value, checking for extraneous characters.
  *
@@ -283,12 +257,7 @@ extern int unsigned_value(char      *prefix,
  * Returns 0 if all went well, 1 otherwise (in which case a message
  * explaining will have been written to stderr).
  */
-extern int int_value(char *prefix,
-                     char *cmd,
-                     char *str,
-                     int   positive,
-                     int   base,
-                     int  *value);
+extern int int_value(char *prefix, char *cmd, char *str, int positive, int base, int *value);
 /*
  * Read in an integer value, checking for extraneous characters and a range.
  *
@@ -306,13 +275,8 @@ extern int int_value(char *prefix,
  * Returns 0 if all went well, 1 otherwise (in which case a message
  * explaining will have been written to stderr).
  */
-extern int int_value_in_range(char *prefix,
-                              char *cmd,
-                              char *arg,
-                              int   minimum,
-                              int   maximum,
-                              int   base,
-                              int  *value);
+extern int int_value_in_range(char *prefix, char *cmd, char *arg, int minimum, int maximum,
+                              int base, int *value);
 /*
  * Read in a double value, checking for extraneous characters.
  *
@@ -327,11 +291,7 @@ extern int int_value_in_range(char *prefix,
  * Returns 0 if all went well, 1 otherwise (in which case a message
  * explaining will have been written to stderr).
  */
-extern int double_value(char   *prefix,
-                           char   *cmd,
-                           char   *arg,
-                           int     positive,
-                           double *value);
+extern int double_value(char *prefix, char *cmd, char *arg, int positive, double *value);
 /*
  * Read in a hostname and (optional) port
  *
@@ -353,15 +313,8 @@ extern int double_value(char   *prefix,
  * Returns 0 if all went well, 1 otherwise (in which case a message
  * explaining will have been written to stderr).
  */
-extern int host_value(char  *prefix,
-                      char  *cmd,
-                      char  *arg,
-                      char **hostname,
-                      int   *port);
+extern int host_value(char *prefix, char *cmd, char *arg, char **hostname, int *port);
 
-
-
-
 // ============================================================
 // Sockets
 // ============================================================
@@ -399,10 +352,7 @@ extern void print_winsock_err(int err);
  * succeeds, or -1 if it fails, in which case it will have complained on
  * stderr.
  */
-extern int connect_socket(char *hostname,
-                          int   port,
-                          int   use_tcpip,
-                          char *multicast_ifaddr);
+extern int connect_socket(char *hostname, int port, int use_tcpip, char *multicast_ifaddr);
 
 /*
  * Disconnect from a socket (close it).
@@ -410,9 +360,9 @@ extern int connect_socket(char *hostname,
  * Returns 0 if all goes well, 1 otherwise.
  */
 #ifdef _WIN32
-extern int disconnect_socket(SOCKET  socket);
+extern int disconnect_socket(SOCKET socket);
 #else  // _WIN32
-extern int disconnect_socket(int  socket);
+extern int disconnect_socket(int socket);
 #endif // _WIN32
 
 /*! Decode a host byte order address to a static buffer. */
@@ -421,45 +371,30 @@ const char *ipv4_addr_to_string(const uint32_t addr);
 /*! Decode a string to a host byte order address */
 int ipv4_string_to_addr(uint32_t *dest, const char *addr);
 
-
 // ============================================================
 // Byte order handling
 // ============================================================
 
-
-static inline uint32_t uint_32_be(const uint8_t *const p)
-{
-  return (((int)p[0]&0xff) << 24) | 
-    (((int)p[1]&0xff) << 16) | 
-    (((int)p[2]&0xff) << 8) |
-    (((int)p[3]&0xff));
+static inline uint32_t uint_32_be(const uint8_t *const p) {
+	return (((int)p[0] & 0xff) << 24) | (((int)p[1] & 0xff) << 16) | (((int)p[2] & 0xff) << 8) |
+	       (((int)p[3] & 0xff));
 }
 
-
-static inline uint32_t uint_32_le(const uint8_t *const p)
-{
-  return (((int)p[0]&0xff) | 
-	  (((int)p[1]&0xff) << 8) | 
-	  (((int)p[2]&0xff) << 16) | 
-	  (((int)p[3]&0xff) << 24));
+static inline uint32_t uint_32_le(const uint8_t *const p) {
+	return (((int)p[0] & 0xff) | (((int)p[1] & 0xff) << 8) | (((int)p[2] & 0xff) << 16) |
+	        (((int)p[3] & 0xff) << 24));
 }
 
-
-static inline uint16_t uint_16_be(const uint8_t *const p)
-{
-  return ((((int)p[0])&0xff)<<8) | 
-    ((((int)p[1])&0xff));
+static inline uint16_t uint_16_be(const uint8_t *const p) {
+	return ((((int)p[0]) & 0xff) << 8) | ((((int)p[1]) & 0xff));
 }
 
-static inline uint16_t uint_16_le(const uint8_t *const p)
-{
-  return (((int)p[0]&0xff) | 
-	  ((int)p[1]&0xff)<<8);
+static inline uint16_t uint_16_le(const uint8_t *const p) {
+	return (((int)p[0] & 0xff) | ((int)p[1] & 0xff) << 8);
 }
-
 
 #endif // _misc_fns
-
+
 // Local Variables:
 // tab-width: 8
 // indent-tabs-mode: nil

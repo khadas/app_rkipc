@@ -16,8 +16,8 @@
 #define COAP_HASHKEY_H_
 
 #include "libcoap.h"
-#include "uthash.h"
 #include "str.h"
+#include "uthash.h"
 
 typedef unsigned char coap_key_t[4];
 
@@ -33,8 +33,7 @@ typedef unsigned char coap_key_t[4];
  */
 void coap_hash_impl(const unsigned char *s, unsigned int len, coap_key_t h);
 
-#define coap_hash(String,Length,Result) \
-  coap_hash_impl((String),(Length),(Result))
+#define coap_hash(String, Length, Result) coap_hash_impl((String), (Length), (Result))
 
 /* This is used to control the pre-set hash-keys for resources. */
 #define COAP_DEFAULT_HASH
@@ -50,10 +49,11 @@ void coap_hash_impl(const unsigned char *s, unsigned int len, coap_key_t h);
  *
  * @hideinitializer
  */
-#define coap_str_hash(Str,H) {               \
-    assert(Str);                             \
-    memset((H), 0, sizeof(coap_key_t));      \
-    coap_hash((Str)->s, (Str)->length, (H)); \
-  }
+#define coap_str_hash(Str, H)                                                                      \
+	{                                                                                              \
+		assert(Str);                                                                               \
+		memset((H), 0, sizeof(coap_key_t));                                                        \
+		coap_hash((Str)->s, (Str)->length, (H));                                                   \
+	}
 
 #endif /* COAP_HASHKEY_H_ */

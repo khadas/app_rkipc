@@ -10,12 +10,9 @@
 extern "C" {
 #endif
 
-
-typedef struct
-{
-    uint8_t aes_key[16];
-}
-mbedtls_aes_context;
+typedef struct {
+	uint8_t aes_key[16];
+} mbedtls_aes_context;
 
 #ifdef __cplusplus
 }

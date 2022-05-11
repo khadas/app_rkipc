@@ -1,13 +1,13 @@
 /**
-* @file sys_timer.h
-* @author nzy@tuya.com
-* @brief Common process - Initialization
-* @version 0.1
-* @date 2020-11-09
-*
-* @copyright Copyright 2020-2021 Tuya Inc. All Rights Reserved.
-*
-*/
+ * @file sys_timer.h
+ * @author nzy@tuya.com
+ * @brief Common process - Initialization
+ * @version 0.1
+ * @date 2020-11-09
+ *
+ * @copyright Copyright 2020-2021 Tuya Inc. All Rights Reserved.
+ *
+ */
 #ifndef _SYS_TIMER_H
 #define _SYS_TIMER_H
 
@@ -40,9 +40,8 @@ OPERATE_RET system_timer_init(void);
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET sys_add_timer(IN CONST P_TIMER_FUNC pTimerFunc,\
-                               IN CONST PVOID_T pTimerArg,\
-                               OUT TIMER_ID *p_timerID);
+OPERATE_RET sys_add_timer(IN CONST P_TIMER_FUNC pTimerFunc, IN CONST PVOID_T pTimerArg,
+                          OUT TIMER_ID *p_timerID);
 
 /**
  * @brief Delete the system timer
@@ -88,10 +87,8 @@ BOOL_T IsThisSysTimerRun(IN CONST TIMER_ID timer_id);
  *
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET sys_start_timer(IN CONST TIMER_ID timerID,\
-                                  IN CONST TIME_MS timeCycle,\
-                                  IN CONST TIMER_TYPE timer_type);
-
+OPERATE_RET sys_start_timer(IN CONST TIMER_ID timerID, IN CONST TIME_MS timeCycle,
+                            IN CONST TIMER_TYPE timer_type);
 
 /**
  * @brief Trigger the system timer
@@ -103,7 +100,6 @@ OPERATE_RET sys_start_timer(IN CONST TIMER_ID timerID,\
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
 OPERATE_RET sys_trigger_timer(IN CONST TIMER_ID timerID);
-
 
 /**
  * @brief Release all resource of the system timer
@@ -149,18 +145,8 @@ ULONG_T system_timer_get_sleep_interval(VOID);
  */
 INT_T sys_get_timer_num(VOID);
 
-
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
 #endif
-
-
-
-
-
-
-
-
