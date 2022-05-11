@@ -2,9 +2,9 @@
 
 文件标识：TODO
 
-发布版本：V0.6.0
+发布版本：V0.8.0
 
-日期：2022-02-21
+日期：2022-05-11
 
 文件密级：□绝密   □秘密   □内部资料   ■公开
 
@@ -62,14 +62,16 @@ Rockchip Electronics Co., Ltd.
 
 **修订记录**
 
-| **版本号** | **作者** | **修改日期** | **修改说明**           |
-| ---------- | -------- | :----------- | ---------------------- |
-| V0.1.0     | 林刘迪铭 | 2021-09-23   | 初始版本               |
-| V0.2.0     | 林刘迪铭 | 2021-10-23   | 增加模块API介绍        |
-| V0.3.0     | 林刘迪铭 | 2021-11-12   | 增加媒体流框图说明     |
-| V0.4.0     | 林刘迪铭 | 2022-01-14   | 增加isp模块API介绍     |
-| V0.5.0     | 林刘迪铭 | 2022-01-26   | 更新代码结构和产品类型 |
-| V0.6.0     | 林刘迪铭 | 2022-02-21   | 更新RV1106信息         |
+| **版本号** | **作者** | **修改日期** | **修改说明**            |
+| ---------- | -------- | :----------- | ----------------------- |
+| V0.1.0     | 林刘迪铭 | 2021-09-23   | 初始版本                |
+| V0.2.0     | 林刘迪铭 | 2021-10-23   | 增加模块API介绍         |
+| V0.3.0     | 林刘迪铭 | 2021-11-12   | 增加媒体流框图说明      |
+| V0.4.0     | 林刘迪铭 | 2022-01-14   | 增加isp模块API介绍      |
+| V0.5.0     | 林刘迪铭 | 2022-01-26   | 更新代码结构和产品类型  |
+| V0.6.0     | 林刘迪铭 | 2022-02-21   | 更新RV1106信息          |
+| V0.7.0     | 林刘迪铭 | 2022-05-05   | 更新RV1106电池类IPC框图 |
+| V0.8.0     | 林刘迪铭 | 2022-05-11   | 添加ini参数说明         |
 
 ---
 
@@ -827,4 +829,367 @@ TODO
 | rk_param_init       | 从指定ini文件初始化         |
 | rk_param_deinit     | 反初始化                    |
 | rk_param_reload     | 不保存当前参数，重新加载ini |
+
+## ini参数说明
+
+**注意：由于各个产品类型定义不同，部分参数是特有的，部分参数的含义也可能不同，此处仅供参考，以实际ini文件中的注释为准。**
+
+### 音频模块
+
+```ini
+[audio.0]
+enable = 1 ; 是否使能音频功能
+card_name = hw:0,0 ; 声卡名称
+encode_type = G711A ; 编码类型
+format = S16 ; 格式
+sample_rate = 8000 ; 采样率
+channels = 2 ; 声道数
+frame_size = 1152 ; 采样大小
+bit_rate = 16000 ; 比特率
+input = mic_in ; 输入类型，目前仅支持mic_in
+volume = 50 ; 输入音量
+enable_aed = 0 ; 是否使能声音检测
+enable_bcd = 0 ; 是否使能哭声检测
+enable_vqe = 1 ; 是否使能音频3A算法
+vqe_cfg = /oem/usr/share/vqefiles/config_aivqe.json ; 音频3A算法配置文件路径
+```
+
+### 视频模块
+
+```ini
+[video.source]
+enable_aiq = 1 ; 是否使能aiq功能
+enable_vo = 0 ; 是否使能屏幕显示功能
+vo_dev_id = 3 ; VO设备ID，0代表hdmi, 3代表mipi，不同平台可能有差异
+enable_jpeg = 1 ; 是否使能jpeg拍照功能
+enable_venc_0 = 1 ; 是否开启第一路码流
+enable_venc_1 = 1 ; 是否开启第二路码流
+enable_venc_2 = 0 ; 是否开启第三路码流
+enable_npu = 1 ; 是否使能npu算法
+npu_fps = 10 ; npu算法输入帧率
+enable_wrap = 1 ; 是否使能卷绕功能
+buffer_line = 720 ; 卷绕的行数，默认为高度一半，半帧卷绕
+jpeg_buffer_size = 409600 ; JPEG输出buffer大小，默认为400KB
+enable_rtsp = 1 ; 是否使能rtsp预览
+enable_rtmp = 1 ; 是否使能rtmp预览
+enable_cycle_snapshot = 0 ; 是否使能定时抓拍功能
+snapshot_interval_ms = 1000 ; 抓拍间隔时间
+
+[video.0]
+buffer_size = 1843200 ; 输出buffer大小，建议值为 w * h / 2
+buffer_count = 4 ; 输出buffer个数
+enable_refer_buffer_share = 1 ； 是否开启参考帧和重构帧共享
+stream_type = mainStream ; 码流名称，供web判断使用
+video_type = compositeStream ; 码流类型，供web判断使用
+width = 2560
+height = 1440
+rc_mode = CBR ; 码率控制类型
+rc_quality = high ; 码率控制质量
+src_frame_rate_den = 1 ; 输入帧率分母
+src_frame_rate_num = 25 ; 输入帧率分子
+dst_frame_rate_den = 1 ; 输出帧率分母
+dst_frame_rate_num = 25 ; 输出帧率分子
+target_rate = 0 ; 目标码率，目前未使用
+mid_rate = 2048 ; 中间码率，详细请参考rockit文档说明
+max_rate = 3072 ; 最大码率，详细请参考rockit文档说明
+min_rate = 0 ; 最小码率，详细请参考rockit文档说明
+output_data_type = H.265 ; 视频编码类型
+smart = close ; 是否开启智能编码，注意不是smartp
+h264_profile = high ; h264的profile
+gop = 50 ; I帧间隔
+tsvc = close ; 是否开启分层编码
+stream_smooth = 50 ; 码流平滑度，目前未使用
+```
+
+### ISP模块
+
+```ini
+[isp.0.adjustment]
+contrast    = 50 ; 对比度
+brightness  = 50 ; 亮度
+saturation  = 50 ; 饱和度
+sharpness  = 50 ; 锐度
+fps = 25 ; 帧率
+hue = 50 ; 色调
+
+[isp.0.exposure]
+iris_type = auto
+exposure_mode = auto ; 曝光模式
+gain_mode = auto ; 曝光增益模式
+auto_iris_level = 5
+auto_exposure_enabled = 1
+audo_gain_enabled = 1
+exposure_time = 1/6 ; 曝光时间
+exposure_gain = 1 ; 曝光增益
+
+[isp.0.night_to_day]
+night_to_day = day ; 日夜模式
+night_to_day_filter_level = 5 ; 日夜转换灵敏度，暂未使用
+night_to_day_filter_time = 5 ; 日夜转换过滤时间，暂未使用
+dawn_time = 07:00:00 ; 日出时间，暂未使用
+dusk_time = 18:00:00 ; 日落时间，暂未使用
+ircut_filter_action = day ; ircut触发状态，暂未使用
+over_exposure_suppress = open ; 防补光过曝，暂未使用
+over_exposure_suppress_type = auto ; 防补光过曝模式，暂未使用
+fill_light_mode = IR ; 补光灯类型，红外IR或LED
+brightness_adjustment_mode = auto ; 亮度调节模式，暂未使用
+light_brightness = 1 ; 补光灯亮度
+distance_level = 1 ; 距离等级，暂未使用
+
+[isp.0.blc]
+blc_region = close ; 背光补偿
+blc_strength = 1 ; 背光补偿强度
+wdr = close ; 宽动态模式，暂未使用
+wdr_level = 0 ; 宽动态强度，暂未使用
+hdr = close ; 高动态模式
+hdr_level = 1 ; 高动态强度
+hlc = close ; 强光抑制
+hlc_level = 0 ; 强光抑制强度
+dark_boost_level = 0 ; 暗区增强级别
+position_x = 0 ; 背光补偿区域x坐标
+position_y = 0 ; 背光补偿区域y坐标
+blc_region_width = 120 ; 背光补偿区域宽度
+blc_region_high = 92 ; 背光补偿区域高度
+
+[isp.0.white_blance]
+white_blance_style = autoWhiteBalance ; 白平衡类型
+white_blance_red = 50 ; 白平衡红色分量
+white_blance_green = 50 ; 白平衡绿色分量
+white_blance_blue = 50 ; 白平衡蓝色分量
+
+[isp.0.enhancement]
+noise_reduce_mode = close ; 降噪模式
+denoise_level = 50 ; 降噪等级
+spatial_denoise_level = 50 ; 空域降噪等级
+temporal_denoise_level = 50 ; 时域降噪等级
+dehaze = close ; 去雾模式
+dehaze_level = 0 ; 去雾等级
+dis = close ; 电子防抖，暂未使用
+gray_scale_mode = [0-255] ; 灰度范围
+image_rotation = close ; 图像旋转角，暂未使用
+distortion_correction = close ; 畸变矫正
+ldch_level = 0 ; 横向镜头畸变校正
+
+[isp.0.video_adjustment]
+image_flip = close ; 镜像功能
+scene_mode = indoor ; 场景模式,室内或室外
+power_line_frequency_mode = PAL(50HZ) ; 视频制式
+
+[isp.0.auto_focus]
+af_mode = semi-auto ; 自动对焦模式
+zoom_level = 0 ; 放大/缩小级别
+focus_level = 0 ; 聚焦/失焦级别
+```
+
+### 存储模块
+
+```ini
+[storage]
+mount_path = /userdata ; 存储路径
+free_size_del_min = 500 ; 剩余空间小于此值，则开始自动删除文件，单位为MB
+free_size_del_max = 1000 ; 剩余空间大于此值，则停止自动删除文件，单位为MB
+
+[storage.0]
+enable = 0 ; 是否使能对应码流录像
+folder_name = video0 ; 文件夹名称
+file_format = mp4 ; 文件格式，例如mp4,flv,ts
+file_duration = 60 ; 文件时长，单位为秒
+video_quota = 30 ; 视频配额，暂未使用
+```
+
+### 能力集模块
+
+​    此处能力集提供给web前端使用，如果要修改网页上参数的选项和范围，可以手动转换成json，添加后再拆分开，填入ini。由于ini每行默认1024长度的限制，所以有做拆分。
+
+```ini
+[capability.video]
+0 = {"disabled":[{"name":"sStreamType","options":{"subStream":{"sSmart":"close"},"thirdStream":{"sSmart":"close"}},"type":"disabled/limit"},{"name":"sSmart","options":{"open":{"iGOP":null,"iStreamSmooth":null,"sH264Profile":null,"sRCMode":null,"sRCQuality":null,"sSVC":null}},"type":"disabled"},{"name":"sRCMode","options":{"CBR":{"sRCQuality":null}},"type":"disabled"},{"name":"sOutputDataType","options":{"H.265":{"sH264Profile":null}},"type":"disabled"},{"name":"unspport","options":{"iStreamSmooth":null,"sVideoType":null},"type":"disabled"}],"dynamic":{"sSmart":{"open":{"iMinRate":{"dynamicRange":{"max":"iMaxRate","maxRate":1,"min":"iMaxRate","minRate":0.125},"type":"dynamicRange"}}},"sStreamType":{"mainStream":{"iMaxRate":{"options":[256,512,1024,2048,3072,4096,6144],"type":"options"},"sResolution":{"options":["2560*1440","1920*1080","1280*720"],"type":"options"}},"subStream":{"iMaxRate"
+1 = :{"options":[128,256,512],"type":"options"},"sResolution":{"options":["704*576","640*480","352*288","320*240"],"type":"options"}},"thirdStream":{"iMaxRate":{"options":[256,512],"type":"options"},"sResolution":{"options":["416*416"],"type":"options"}}}},"layout":{"encoder":["sStreamType","sVideoType","sResolution","sRCMode","sRCQuality","sFrameRate","sOutputDataType","sSmart","sH264Profile","sSVC","iMaxRate","iMinRate","iGOP","iStreamSmooth"]},"static":{"iGOP":{"range":{"max":400,"min":1},"type":"range"},"iStreamSmooth":{"range":{"max":100,"min":1,"step":1},"type":"range"},"sFrameRate":{"dynamicRange":{"max":"sFrameRateIn","maxRate":1},"options":["1/16","1/8","1/4","1/2","1","2","4","6","8","10","12","14","16","18","20","25","30"],"type":"options/dynamicRange"},"sH264Profile":{"options":["high","main","baseline"],"type":"options"},"sOutputDataType":{"options"
+2 = :["H.264","H.265"],"type":"options"},"sRCMode":{"options":["CBR","VBR"],"type":"options"},"sRCQuality":{"options":["lowest","lower","low","medium","high","higher","highest"],"type":"options"},"sSVC":{"options":["open","close"],"type":"options"},"sSmart":{"options":["open","close"],"type":"options"},"sStreamType":{"options":["mainStream","subStream","thirdStream"],"type":"options"},"sVideoType":{"options":["videoStream","compositeStream"],"type":"options"}}}
+
+[capability.image_adjustment]
+0 = {"layout":{"image_adjustment":["iBrightness","iContrast","iSaturation","iSharpness","iHue"]},"static":{"iBrightness":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iContrast":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iHue":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iSaturation":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iSharpness":{"range":{"max":100,"min":0,"step":1},"type":"range"}}}
+
+[capability.image_blc]
+0 = {"disabled":[{"name":"sHLC","options":{"open":{"sBLCRegion":null}},"type":"disabled"},{"name":"sBLCRegion","options":{"open":{"iDarkBoostLevel":null,"iHLCLevel":null,"sHLC":null}},"type":"disabled"}],"dynamic":{"sBLCRegion":{"open":{"iBLCStrength":{"range":{"max":100,"min":0,"step":1},"type":"range"}}},"sHDR":{"HDR2":{"iHDRLevel":{"options":[1,2,3,4],"type":"options"}},"close":{"sBLCRegion":{"options":["close","open"],"type":"options"},"sHLC":{"options"
+1 = :["close","open"],"type":"options"}}},"sHLC":{"open":{"iDarkBoostLevel":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iHLCLevel":{"range":{"max":100,"min":0,"step":1},"type":"range"}}},"sWDR":{"open":{"iWDRLevel":{"range":{"max":100,"min":0,"step":1},"type":"range"}}}},"layout":{"image_blc":["sHDR","iHDRLevel","sBLCRegion","iBLCStrength","sHLC","iHLCLevel"]},"static":{"sHDR":{"options":["close","HDR2"],"type":"options"}}}
+
+[capability.image_enhancement]
+0 = {"dynamic":{"sDehaze":{"open":{"iDehazeLevel":{"range":{"max":10,"min":0,"step":1},"type":"range"}}},"sDistortionCorrection":{"FEC":{"iFecLevel":{"range":{"max":100,"min":0,"step":1},"type":"range"}},"LDCH":{"iLdchLevel":{"range":{"max":100,"min":0,"step":1},"type":"range"}}},"sNoiseReduceMode":{"2dnr":{"iSpatialDenoiseLevel":{"range":{"max":100,"min":0,"step":1},"type":"range"}},"3dnr":{"iTemporalDenoiseLevel":{"range":{"max":100,"min":0,"step":1},"type":"range"}},"mixnr":{"iSpatialDenoiseLevel":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iTemporalDenoiseLevel":{"range":{"max":100,"min":0,"step":1},"type":"range"}}}},"layout"
+1 = :{"image_enhancement":["sNoiseReduceMode","iSpatialDenoiseLevel","iTemporalDenoiseLevel","sDehaze","iDehazeLevel","sGrayScaleMode","sDistortionCorrection","iLdchLevel","iFecLevel","iImageRotation"]},"static":{"iImageRotation":{"options":[0,90,270],"type":"options"},"sDIS":{"options":["open","close"],"type":"options"},"sDehaze":{"options":["open","close","auto"],"type":"options"},"sDistortionCorrection":{"options":["LDCH","close"],"type":"options"},"sFEC":{"options":["open","close"],"type":"options"},"sGrayScaleMode":{"options":["[0-255]","[16-235]"],"type":"options"},"sNoiseReduceMode":{"options":["close","2dnr","3dnr","mixnr"],"type":"options"}}}
+
+[capability.image_exposure]
+0 = {"dynamic":{"sExposureMode":{"auto":{"iAutoIrisLevel":{"range":{"max":100,"min":0,"step":1},"type":"range"}},"manual":{"sExposureTime":{"options":["1","1/3","1/6","1/12","1/25","1/50","1/100","1/150","1/200","1/250","1/500","1/750","1/1000","1/2000","1/4000","1/10000","1/100000"],"type":"options"},"sGainMode":{"options":["auto","manual"],"type":"options"}}},"sGainMode":{"manual":{"iExposureGain":{"range":{"max":100,"min":1,"step":1},"type":"range"}}}},"layout":{"image_exposure":["sExposureMode","sExposureTime","sGainMode","iExposureGain"]},"static":{"sExposureMode":{"options":["auto","manual"],"type":"options"}}}
+
+[capability.image_night_to_day]
+0 = {"disabled":[{"name":"sNightToDay","options":{"day":{"iLightBrightness":null,"sFillLightMode":null},"night":{"iDarkBoostLevel":null,"iHDRLevel":null,"iHLCLevel":null,"sHDR":null,"sHLC":"close"}},"type":"disabled"}],"dynamic":{"sNightToDay":{"auto":{"iNightToDayFilterLevel":{"options":[0,1,2,3,4,5,6,7],"type":"options"},"iNightToDayFilterTime":{"range":{"max":10,"min":3,"step":1},"type":"range"}},"schedule":{"sDawnTime":{"input":"time","type":"input"},"sDuskTime":{"input":"time","type":"input"}}},"sOverexposeSuppress":{"open"
+1 = :{"sOverexposeSuppressType":{"options":["auto","manual"],"type":"options"}}},"sOverexposeSuppressType":{"manual":{"iDistanceLevel":{"range":{"max":100,"min":0,"step":1},"type":"range"}}}},"layout":{"image_night_to_day":["sNightToDay","iNightToDayFilterLevel","iNightToDayFilterTime","sDawnTime","sDuskTime","sFillLightMode","iLightBrightness"]},"static":{"iLightBrightness":{"range":{"max":100,"min":0,"step":10},"type":"range"},"sNightToDay":{"options":["day","night"],"type":"options"},"sFillLightMode":{"type":"options","options":["IR"]}}}
+
+[capability.image_video_adjustment]
+0 = {"layout":{"image_video_adjustment":["sPowerLineFrequencyMode","sImageFlip"]},"static":{"sImageFlip":{"options":["close","flip","mirror","centrosymmetric"],"type":"options"},"sPowerLineFrequencyMode":{"options":["PAL(50HZ)","NTSC(60HZ)"],"type":"options"},"sSceneMode":{"options":["indoor","outdoor"],"type":"options"}}}
+
+[capability.image_white_blance]
+0 = {"dynamic":{"sWhiteBlanceStyle":{"manualWhiteBalance":{"iWhiteBalanceBlue":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iWhiteBalanceGreen":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iWhiteBalanceRed":{"range":{"max":100,"min":0,"step":1},"type":"range"}}}},"layout":{"image_white_blance":["sWhiteBlanceStyle","iWhiteBalanceRed","iWhiteBalanceGreen","iWhiteBalanceBlue"]},"static":{"sWhiteBlanceStyle":{"options":["manualWhiteBalance","autoWhiteBalance","lockingWhiteBalance","fluorescentLamp","incandescent","warmLight","naturalLight"],"type":"options"}}}
+
+```
+
+### 用户模块
+
+```ini
+[user.0]
+user_name = admin ; 用户名
+password = YWRtaW4= ; 加密后的用户密码
+user_level = 1 ; 用户等级，administrator=0 operator=1 user=2
+```
+
+### OSD模块
+
+```ini
+[osd.common]
+enable_osd = 1 ; 是否使能osd模块
+is_presistent_text = 1
+attribute = transparent/not-flashing ; 是否透明和闪烁，暂未使用
+font_size = 32 ; 字体大小
+font_color_mode = customize ; 字体颜色模式
+font_color = fff799 ; 字体颜色
+alignment = customize ; 对齐模式
+boundary = 0 ; 对齐边界
+font_path = /oem/usr/share/simsun_en.ttf ; 字库路径
+normalized_screen_width = 704 ; web前端归一化宽度
+normalized_screen_height = 480 ; web前端归一化高度
+
+[osd.0]
+type = channelName ; OSD区域类型为通道名称
+enabled = 0 ; 是否使能此OSD区域
+position_x = 1104 ; OSD区域x坐标
+position_y = 640 ; OSD区域y坐标
+display_text = Camera 01 ; 显示文本内容
+
+[osd.1]
+type = dateTime ; OSD区域类型为时间戳
+enabled = 1
+position_x = 16
+position_y = 16
+date_style = CHR-YYYY-MM-DD ; 日期格式
+time_style = 24hour ; 24/12小时制
+display_week_enabled = 0 ; 是否显示星期
+
+[osd.2]
+type = character ; OSD区域类型为自定义文本
+enabled = 0
+position_x = 0
+position_y = 0
+display_text = null
+
+[osd.3]
+type = character
+enabled = 0
+position_x = 0
+position_y = 0
+display_text = null
+
+[osd.4]
+type = privacyMask ; OSD区域类型为隐私遮盖
+enabled = 0
+position_x = 0
+position_y = 0
+width = 0
+height = 0
+
+[osd.5]
+type = privacyMask
+enabled = 0
+position_x = 0
+position_y = 0
+width = 0
+height = 0
+
+[osd.6]
+type = image ; OSD区域类型为图片
+enabled = 0
+position_x = 16
+position_y = 640
+image_path = /usr/share/image.bmp ; 图片路径
+```
+
+### 事件模块
+
+```ini
+[event.regional_invasion]
+enabled = 1 ; 是否使能区域入侵
+position_x = 0
+position_y = 0
+width = 700
+height = 560
+proportion = 1 ; 区域占比阈值，1~100
+sensitivity_level = 90 ; 灵敏度，1~100
+time_threshold = 1 ; 时间阈值，单位为秒
+```
+
+### ROI模块
+
+```ini
+[roi.0]
+stream_type = mainStream ; 码流类型
+id = 1 ; 区域id
+enabled = 0
+name = test ; 区域自定义名称
+position_x = 0
+position_y = 0
+width = 0
+height = 0
+quality_level = 3 ; ROI提升等级
+```
+
+### 区域裁剪模块
+
+```ini
+[region_clip.1]
+enabled = 0
+position_x = 0
+position_y = 0
+width = 640
+height = 480
+```
+
+### 涂鸦云平台模块
+
+```ini
+[tuya]
+enable = 0 ; 是否使能涂鸦云平台功能
+use_ini_key = 0 ; 是否使用ini内的设备三元组
+product_key = 4wrrx6gmxh1czhcv
+uuid = tuya943c2c4f36a4217c
+auth_key = WZUXGSw3Mf0D8C1699rD0Tqi4JUO1M3B
+```
+
+### AVS拼接模块
+
+注意：目前仅RK3588特有，部分选项与视频模块的[video.source]一致。
+
+```ini
+[avs]
+format = 1 ; 是否为压缩格式，0 is nv12, 1 is fbc
+sensor_num = 6 ; 摄像头个数
+source_width = 2560 ; 每个摄像头宽度
+source_height = 1520 ; 每个摄像头高度
+; avs 2:5088*1520 4:5440*2700 6:8192*2700
+avs_width = 8192 ; 拼接后宽度
+avs_height = 2700 ; 拼接后高度
+avs_mode = 0 ; avs拼接模式，0为非融合拼接, 1为融合拼接
+sync = 1 ; avs同步模式，要求所有帧序列号同步
+calib_file_path = /oem/usr/share/avs_calib/calib_file.pto ; pto文件路径
+mesh_alpha_path = /oem/usr/share/avs_calib/ ; 生成的mesh表存放路径
+center_x = 4196
+center_y = 2080
+fov_x = 28000
+fov_y = 9500
+enable_jpeg = 0
+enable_venc_0 = 1
+enable_venc_1 = 1
+enable_venc_2 = 1
+enable_vo = 0
+vo_dev_id = 3 ; 0 is hdmi, 3 is mipi
+enable_npu = 1
+```
 
