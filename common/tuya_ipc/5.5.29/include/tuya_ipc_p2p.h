@@ -334,7 +334,7 @@ typedef struct {
 	INT_T max_client_num;
 	IPC_MEDIA_INFO_S AVInfo;
 	TRANS_DEFAULT_QUALITY_E
-	    defLiveMode; /* for multi-streaming ipc, the default quality for live preview */
+	defLiveMode; /* for multi-streaming ipc, the default quality for live preview */
 	BOOL_T lowpower;
 	VOID *p_reserved;
 } TUYA_IPC_TRANSFER_VAR_S;

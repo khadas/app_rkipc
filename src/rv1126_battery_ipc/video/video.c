@@ -89,7 +89,9 @@ static void *rkipc_get_venc_0(void *arg) {
 				              stFrame.pstPack->u64PTS);
 				rtsp_do_event(g_rtsplive);
 			}
-			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
+			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_IDRSLICE) ||
+			    (stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
+			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_IDRSLICE) ||
 			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
 				rk_tuya_push_video(data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS, 1);
 			} else {

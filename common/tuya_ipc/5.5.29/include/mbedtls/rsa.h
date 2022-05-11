@@ -49,8 +49,9 @@
 #define MBEDTLS_ERR_RSA_BAD_INPUT_DATA -0x4080 /**< Bad input parameters to function. */
 #define MBEDTLS_ERR_RSA_INVALID_PADDING                                                            \
 	-0x4100 /**< Input data contains invalid padding and is rejected. */
-#define MBEDTLS_ERR_RSA_KEY_GEN_FAILED -0x4180 /**< Something failed during generation of a key.   \
-	                                            */
+#define MBEDTLS_ERR_RSA_KEY_GEN_FAILED                                                             \
+	-0x4180 /**< Something failed during generation of a key.                                      \
+	         */
 #define MBEDTLS_ERR_RSA_KEY_CHECK_FAILED                                                           \
 	-0x4200 /**< Key failed to pass the validity check of the library. */
 #define MBEDTLS_ERR_RSA_PUBLIC_FAILED -0x4280  /**< The public key operation failed. */

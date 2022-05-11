@@ -121,7 +121,9 @@ static void *rkipc_get_venc_0(void *arg) {
 				rtsp_do_event(g_rtsplive);
 				pthread_mutex_unlock(&g_rtsp_mutex);
 			}
-			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
+			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_IDRSLICE) ||
+			    (stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
+			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_IDRSLICE) ||
 			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
 				rk_storage_write_video_frame(0, data, stFrame.pstPack->u32Len,
 				                             stFrame.pstPack->u64PTS, 1);
@@ -174,7 +176,9 @@ static void *rkipc_get_venc_1(void *arg) {
 				rtsp_do_event(g_rtsplive);
 				pthread_mutex_unlock(&g_rtsp_mutex);
 			}
-			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
+			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_IDRSLICE) ||
+			    (stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
+			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_IDRSLICE) ||
 			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
 				rk_storage_write_video_frame(1, data, stFrame.pstPack->u32Len,
 				                             stFrame.pstPack->u64PTS, 1);
@@ -223,7 +227,9 @@ static void *rkipc_get_venc_2(void *arg) {
 				rtsp_do_event(g_rtsplive);
 				pthread_mutex_unlock(&g_rtsp_mutex);
 			}
-			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
+			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_IDRSLICE) ||
+			    (stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
+			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_IDRSLICE) ||
 			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
 				rk_storage_write_video_frame(2, data, stFrame.pstPack->u32Len,
 				                             stFrame.pstPack->u64PTS, 1);

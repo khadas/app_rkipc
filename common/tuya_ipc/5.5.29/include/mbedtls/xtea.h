@@ -36,8 +36,9 @@
 #define MBEDTLS_XTEA_ENCRYPT 1
 #define MBEDTLS_XTEA_DECRYPT 0
 
-#define MBEDTLS_ERR_XTEA_INVALID_INPUT_LENGTH -0x0028 /**< The data input has an invalid length.   \
-	                                                   */
+#define MBEDTLS_ERR_XTEA_INVALID_INPUT_LENGTH                                                      \
+	-0x0028 /**< The data input has an invalid length.                                             \
+	         */
 
 /* MBEDTLS_ERR_XTEA_HW_ACCEL_FAILED is deprecated and should not be used. */
 #define MBEDTLS_ERR_XTEA_HW_ACCEL_FAILED -0x0029 /**< XTEA hardware accelerator failed. */

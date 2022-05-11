@@ -99,13 +99,13 @@
 #define MBEDTLS_OID_ORG_NETSCAPE "\x86\xF8\x42" /* {netscape(113730)} */
 #define MBEDTLS_OID_NETSCAPE                                                                       \
 	MBEDTLS_OID_ISO_ITU_US_ORG                                                                     \
-	    MBEDTLS_OID_ORG_NETSCAPE /* Netscape OID {joint-iso-itu-t(2) country(16) us(840)           \
-	                                organization(1) netscape(113730)} */
+	MBEDTLS_OID_ORG_NETSCAPE /* Netscape OID {joint-iso-itu-t(2) country(16) us(840)               \
+	                            organization(1) netscape(113730)} */
 
 /* ISO arc for standard certificate and CRL extensions */
 #define MBEDTLS_OID_ID_CE                                                                          \
 	MBEDTLS_OID_ISO_CCITT_DS                                                                       \
-	    "\x1D" /**< id-ce OBJECT IDENTIFIER  ::=  {joint-iso-ccitt(2) ds(5) 29} */
+	"\x1D" /**< id-ce OBJECT IDENTIFIER  ::=  {joint-iso-ccitt(2) ds(5) 29} */
 
 #define MBEDTLS_OID_NIST_ALG                                                                       \
 	MBEDTLS_OID_GOV "\x03\x04" /** { joint-iso-itu-t(2) country(16) us(840) organization(1)        \
@@ -166,7 +166,7 @@
  */
 #define MBEDTLS_OID_AUTHORITY_KEY_IDENTIFIER                                                       \
 	MBEDTLS_OID_ID_CE                                                                              \
-	    "\x23" /**< id-ce-authorityKeyIdentifier OBJECT IDENTIFIER ::=  { id-ce 35 } */
+	"\x23" /**< id-ce-authorityKeyIdentifier OBJECT IDENTIFIER ::=  { id-ce 35 } */
 #define MBEDTLS_OID_SUBJECT_KEY_IDENTIFIER                                                         \
 	MBEDTLS_OID_ID_CE "\x0E" /**< id-ce-subjectKeyIdentifier OBJECT IDENTIFIER ::=  { id-ce 14 }   \
 	                          */
@@ -182,7 +182,7 @@
 	MBEDTLS_OID_ID_CE "\x12" /**< id-ce-issuerAltName OBJECT IDENTIFIER ::=  { id-ce 18 } */
 #define MBEDTLS_OID_SUBJECT_DIRECTORY_ATTRS                                                        \
 	MBEDTLS_OID_ID_CE                                                                              \
-	    "\x09" /**< id-ce-subjectDirectoryAttributes OBJECT IDENTIFIER ::=  { id-ce 9 } */
+	"\x09" /**< id-ce-subjectDirectoryAttributes OBJECT IDENTIFIER ::=  { id-ce 9 } */
 #define MBEDTLS_OID_BASIC_CONSTRAINTS                                                              \
 	MBEDTLS_OID_ID_CE "\x13" /**< id-ce-basicConstraints OBJECT IDENTIFIER ::=  { id-ce 19 } */
 #define MBEDTLS_OID_NAME_CONSTRAINTS                                                               \
@@ -226,7 +226,7 @@
  */
 #define MBEDTLS_OID_ANY_EXTENDED_KEY_USAGE                                                         \
 	MBEDTLS_OID_EXTENDED_KEY_USAGE                                                                 \
-	    "\x00" /**< anyExtendedKeyUsage OBJECT IDENTIFIER ::= { id-ce-extKeyUsage 0 } */
+	"\x00" /**< anyExtendedKeyUsage OBJECT IDENTIFIER ::= { id-ce-extKeyUsage 0 } */
 
 #define MBEDTLS_OID_KP MBEDTLS_OID_PKIX "\x03" /**< id-kp OBJECT IDENTIFIER ::= { id-pkix 3 } */
 #define MBEDTLS_OID_SERVER_AUTH                                                                    \
@@ -267,12 +267,15 @@
  */
 #define MBEDTLS_OID_PKCS1_RSA                                                                      \
 	MBEDTLS_OID_PKCS1 "\x01" /**< rsaEncryption OBJECT IDENTIFIER ::= { pkcs-1 1 } */
-#define MBEDTLS_OID_PKCS1_MD2 MBEDTLS_OID_PKCS1 "\x02" /**< md2WithRSAEncryption ::= { pkcs-1 2 }  \
-	                                                    */
-#define MBEDTLS_OID_PKCS1_MD4 MBEDTLS_OID_PKCS1 "\x03" /**< md4WithRSAEncryption ::= { pkcs-1 3 }  \
-	                                                    */
-#define MBEDTLS_OID_PKCS1_MD5 MBEDTLS_OID_PKCS1 "\x04" /**< md5WithRSAEncryption ::= { pkcs-1 4 }  \
-	                                                    */
+#define MBEDTLS_OID_PKCS1_MD2                                                                      \
+	MBEDTLS_OID_PKCS1 "\x02" /**< md2WithRSAEncryption ::= { pkcs-1 2 }                            \
+	                          */
+#define MBEDTLS_OID_PKCS1_MD4                                                                      \
+	MBEDTLS_OID_PKCS1 "\x03" /**< md4WithRSAEncryption ::= { pkcs-1 3 }                            \
+	                          */
+#define MBEDTLS_OID_PKCS1_MD5                                                                      \
+	MBEDTLS_OID_PKCS1 "\x04" /**< md5WithRSAEncryption ::= { pkcs-1 4 }                            \
+	                          */
 #define MBEDTLS_OID_PKCS1_SHA1                                                                     \
 	MBEDTLS_OID_PKCS1 "\x05" /**< sha1WithRSAEncryption ::= { pkcs-1 5 } */
 #define MBEDTLS_OID_PKCS1_SHA224                                                                   \
@@ -298,64 +301,64 @@
  */
 #define MBEDTLS_OID_DIGEST_ALG_MD2                                                                 \
 	MBEDTLS_OID_RSA_COMPANY                                                                        \
-	    "\x02\x02" /**< id-mbedtls_md2 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840)       \
-	                  rsadsi(113549) digestAlgorithm(2) 2 } */
+	"\x02\x02" /**< id-mbedtls_md2 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840)           \
+	              rsadsi(113549) digestAlgorithm(2) 2 } */
 #define MBEDTLS_OID_DIGEST_ALG_MD4                                                                 \
 	MBEDTLS_OID_RSA_COMPANY                                                                        \
-	    "\x02\x04" /**< id-mbedtls_md4 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840)       \
-	                  rsadsi(113549) digestAlgorithm(2) 4 } */
+	"\x02\x04" /**< id-mbedtls_md4 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840)           \
+	              rsadsi(113549) digestAlgorithm(2) 4 } */
 #define MBEDTLS_OID_DIGEST_ALG_MD5                                                                 \
 	MBEDTLS_OID_RSA_COMPANY                                                                        \
-	    "\x02\x05" /**< id-mbedtls_md5 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840)       \
-	                  rsadsi(113549) digestAlgorithm(2) 5 } */
+	"\x02\x05" /**< id-mbedtls_md5 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840)           \
+	              rsadsi(113549) digestAlgorithm(2) 5 } */
 #define MBEDTLS_OID_DIGEST_ALG_SHA1                                                                \
 	MBEDTLS_OID_ISO_IDENTIFIED_ORG                                                                 \
-	    MBEDTLS_OID_OIW_SECSIG_SHA1 /**< id-mbedtls_sha1 OBJECT IDENTIFIER ::= { iso(1)            \
-	                                   identified-organization(3) oiw(14) secsig(3) algorithms(2)  \
-	                                   26 } */
+	MBEDTLS_OID_OIW_SECSIG_SHA1 /**< id-mbedtls_sha1 OBJECT IDENTIFIER ::= { iso(1)                \
+	                               identified-organization(3) oiw(14) secsig(3) algorithms(2)      \
+	                               26 } */
 #define MBEDTLS_OID_DIGEST_ALG_SHA224                                                              \
 	MBEDTLS_OID_NIST_ALG                                                                           \
-	    "\x02\x04" /**< id-sha224 OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16) us(840)   \
-	                  organization(1) gov(101) csor(3) nistalgorithm(4) hashalgs(2) 4 } */
+	"\x02\x04" /**< id-sha224 OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16) us(840)       \
+	              organization(1) gov(101) csor(3) nistalgorithm(4) hashalgs(2) 4 } */
 #define MBEDTLS_OID_DIGEST_ALG_SHA256                                                              \
 	MBEDTLS_OID_NIST_ALG                                                                           \
-	    "\x02\x01" /**< id-mbedtls_sha256 OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16)   \
-	                  us(840) organization(1) gov(101) csor(3) nistalgorithm(4) hashalgs(2) 1 } */
+	"\x02\x01" /**< id-mbedtls_sha256 OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16)       \
+	              us(840) organization(1) gov(101) csor(3) nistalgorithm(4) hashalgs(2) 1 } */
 
 #define MBEDTLS_OID_DIGEST_ALG_SHA384                                                              \
 	MBEDTLS_OID_NIST_ALG                                                                           \
-	    "\x02\x02" /**< id-sha384 OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16) us(840)   \
-	                  organization(1) gov(101) csor(3) nistalgorithm(4) hashalgs(2) 2 } */
+	"\x02\x02" /**< id-sha384 OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16) us(840)       \
+	              organization(1) gov(101) csor(3) nistalgorithm(4) hashalgs(2) 2 } */
 
 #define MBEDTLS_OID_DIGEST_ALG_SHA512                                                              \
 	MBEDTLS_OID_NIST_ALG                                                                           \
-	    "\x02\x03" /**< id-mbedtls_sha512 OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16)   \
-	                  us(840) organization(1) gov(101) csor(3) nistalgorithm(4) hashalgs(2) 3 } */
+	"\x02\x03" /**< id-mbedtls_sha512 OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16)       \
+	              us(840) organization(1) gov(101) csor(3) nistalgorithm(4) hashalgs(2) 3 } */
 
 #define MBEDTLS_OID_HMAC_SHA1                                                                      \
 	MBEDTLS_OID_RSA_COMPANY                                                                        \
-	    "\x02\x07" /**< id-hmacWithSHA1 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840)      \
-	                  rsadsi(113549) digestAlgorithm(2) 7 } */
+	"\x02\x07" /**< id-hmacWithSHA1 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840)          \
+	              rsadsi(113549) digestAlgorithm(2) 7 } */
 
 #define MBEDTLS_OID_HMAC_SHA224                                                                    \
 	MBEDTLS_OID_RSA_COMPANY                                                                        \
-	    "\x02\x08" /**< id-hmacWithSHA224 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840)    \
-	                  rsadsi(113549) digestAlgorithm(2) 8 } */
+	"\x02\x08" /**< id-hmacWithSHA224 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840)        \
+	              rsadsi(113549) digestAlgorithm(2) 8 } */
 
 #define MBEDTLS_OID_HMAC_SHA256                                                                    \
 	MBEDTLS_OID_RSA_COMPANY                                                                        \
-	    "\x02\x09" /**< id-hmacWithSHA256 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840)    \
-	                  rsadsi(113549) digestAlgorithm(2) 9 } */
+	"\x02\x09" /**< id-hmacWithSHA256 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840)        \
+	              rsadsi(113549) digestAlgorithm(2) 9 } */
 
 #define MBEDTLS_OID_HMAC_SHA384                                                                    \
 	MBEDTLS_OID_RSA_COMPANY                                                                        \
-	    "\x02\x0A" /**< id-hmacWithSHA384 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840)    \
-	                  rsadsi(113549) digestAlgorithm(2) 10 } */
+	"\x02\x0A" /**< id-hmacWithSHA384 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840)        \
+	              rsadsi(113549) digestAlgorithm(2) 10 } */
 
 #define MBEDTLS_OID_HMAC_SHA512                                                                    \
 	MBEDTLS_OID_RSA_COMPANY                                                                        \
-	    "\x02\x0B" /**< id-hmacWithSHA512 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840)    \
-	                  rsadsi(113549) digestAlgorithm(2) 11 } */
+	"\x02\x0B" /**< id-hmacWithSHA512 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840)        \
+	              rsadsi(113549) digestAlgorithm(2) 11 } */
 
 /*
  * Encryption algorithms
@@ -366,12 +369,12 @@
 	              secsig(3) algorithms(2) 7 } */
 #define MBEDTLS_OID_DES_EDE3_CBC                                                                   \
 	MBEDTLS_OID_RSA_COMPANY                                                                        \
-	    "\x03\x07" /**< des-ede3-cbc OBJECT IDENTIFIER ::= { iso(1) member-body(2) -- us(840)      \
-	                  rsadsi(113549) encryptionAlgorithm(3) 7 } */
+	"\x03\x07" /**< des-ede3-cbc OBJECT IDENTIFIER ::= { iso(1) member-body(2) -- us(840)          \
+	              rsadsi(113549) encryptionAlgorithm(3) 7 } */
 #define MBEDTLS_OID_AES                                                                            \
 	MBEDTLS_OID_NIST_ALG                                                                           \
-	    "\x01" /** aes OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16) us(840)              \
-	              organization(1) gov(101) csor(3) nistAlgorithm(4) 1 } */
+	"\x01" /** aes OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16) us(840)                  \
+	          organization(1) gov(101) csor(3) nistAlgorithm(4) 1 } */
 
 /*
  * Key Wrapping algorithms
@@ -431,22 +434,22 @@
 
 #define MBEDTLS_OID_PKCS12_PBE_SHA1_RC4_128                                                        \
 	MBEDTLS_OID_PKCS12_PBE                                                                         \
-	    "\x01" /**< pbeWithSHAAnd128BitRC4 OBJECT IDENTIFIER ::= {pkcs-12PbeIds 1} */
+	"\x01" /**< pbeWithSHAAnd128BitRC4 OBJECT IDENTIFIER ::= {pkcs-12PbeIds 1} */
 #define MBEDTLS_OID_PKCS12_PBE_SHA1_RC4_40                                                         \
 	MBEDTLS_OID_PKCS12_PBE                                                                         \
-	    "\x02" /**< pbeWithSHAAnd40BitRC4 OBJECT IDENTIFIER ::= {pkcs-12PbeIds 2} */
+	"\x02" /**< pbeWithSHAAnd40BitRC4 OBJECT IDENTIFIER ::= {pkcs-12PbeIds 2} */
 #define MBEDTLS_OID_PKCS12_PBE_SHA1_DES3_EDE_CBC                                                   \
 	MBEDTLS_OID_PKCS12_PBE                                                                         \
-	    "\x03" /**< pbeWithSHAAnd3-KeyTripleDES-CBC OBJECT IDENTIFIER ::= {pkcs-12PbeIds 3} */
+	"\x03" /**< pbeWithSHAAnd3-KeyTripleDES-CBC OBJECT IDENTIFIER ::= {pkcs-12PbeIds 3} */
 #define MBEDTLS_OID_PKCS12_PBE_SHA1_DES2_EDE_CBC                                                   \
 	MBEDTLS_OID_PKCS12_PBE                                                                         \
-	    "\x04" /**< pbeWithSHAAnd2-KeyTripleDES-CBC OBJECT IDENTIFIER ::= {pkcs-12PbeIds 4} */
+	"\x04" /**< pbeWithSHAAnd2-KeyTripleDES-CBC OBJECT IDENTIFIER ::= {pkcs-12PbeIds 4} */
 #define MBEDTLS_OID_PKCS12_PBE_SHA1_RC2_128_CBC                                                    \
 	MBEDTLS_OID_PKCS12_PBE                                                                         \
-	    "\x05" /**< pbeWithSHAAnd128BitRC2-CBC OBJECT IDENTIFIER ::= {pkcs-12PbeIds 5} */
+	"\x05" /**< pbeWithSHAAnd128BitRC2-CBC OBJECT IDENTIFIER ::= {pkcs-12PbeIds 5} */
 #define MBEDTLS_OID_PKCS12_PBE_SHA1_RC2_40_CBC                                                     \
 	MBEDTLS_OID_PKCS12_PBE                                                                         \
-	    "\x06" /**< pbeWithSHAAnd40BitRC2-CBC OBJECT IDENTIFIER ::= {pkcs-12PbeIds 6} */
+	"\x06" /**< pbeWithSHAAnd40BitRC2-CBC OBJECT IDENTIFIER ::= {pkcs-12PbeIds 6} */
 
 /*
  * EC key algorithms from RFC 5480

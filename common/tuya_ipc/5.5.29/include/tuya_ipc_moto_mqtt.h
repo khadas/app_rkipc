@@ -33,7 +33,7 @@ typedef struct {
 	PUBLIC
 	OPERATE_RET (*BookTopic)(VOID);
 	OPERATE_RET (*BookTopicForce)(VOID);
-	OPERATE_RET (*PublishMqttMsg)
+	OPERATE_RET(*PublishMqttMsg)
 	(IN CONST CHAR_T *motoId, IN CONST UINT_T protocol, IN CONST BYTE_T *p_data);
 } MOTO_MQTT_T;
 

@@ -63,12 +63,13 @@
 #define MBEDTLS_ERR_X509_UNKNOWN_OID -0x2100 /**< Requested OID is unknown. */
 #define MBEDTLS_ERR_X509_INVALID_FORMAT                                                            \
 	-0x2180 /**< The CRT/CRL/CSR format is invalid, e.g. different type expected. */
-#define MBEDTLS_ERR_X509_INVALID_VERSION -0x2200 /**< The CRT/CRL/CSR version element is invalid.  \
-	                                              */
-#define MBEDTLS_ERR_X509_INVALID_SERIAL -0x2280  /**< The serial tag or value is invalid. */
-#define MBEDTLS_ERR_X509_INVALID_ALG -0x2300     /**< The algorithm tag or value is invalid. */
-#define MBEDTLS_ERR_X509_INVALID_NAME -0x2380    /**< The name tag or value is invalid. */
-#define MBEDTLS_ERR_X509_INVALID_DATE -0x2400    /**< The date tag or value is invalid. */
+#define MBEDTLS_ERR_X509_INVALID_VERSION                                                           \
+	-0x2200                                     /**< The CRT/CRL/CSR version element is invalid.   \
+	                                             */
+#define MBEDTLS_ERR_X509_INVALID_SERIAL -0x2280 /**< The serial tag or value is invalid. */
+#define MBEDTLS_ERR_X509_INVALID_ALG -0x2300    /**< The algorithm tag or value is invalid. */
+#define MBEDTLS_ERR_X509_INVALID_NAME -0x2380   /**< The name tag or value is invalid. */
+#define MBEDTLS_ERR_X509_INVALID_DATE -0x2400   /**< The date tag or value is invalid. */
 #define MBEDTLS_ERR_X509_INVALID_SIGNATURE -0x2480  /**< The signature tag or value invalid. */
 #define MBEDTLS_ERR_X509_INVALID_EXTENSIONS -0x2500 /**< The extension tag or value is invalid. */
 #define MBEDTLS_ERR_X509_UNKNOWN_VERSION                                                           \

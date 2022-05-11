@@ -21,12 +21,12 @@ extern "C" {
     配网类型的宏定义由32bits整型表示:
     | high 16bits 	| low 16bits 	|
     |	vendor type	|	cfg type	|
-    
+    
     1)固定前缀netcfg
     2)协议提供方：ty,jd,
     3)链路方式wifi,ble,camera等，品牌
     4)特性后缀，如smartcfg,ap,airkiss
-    
+    
     NETCFG_TY_WIFI_SMARTCFG
     NETCFG_TY_WIFI_AP
     NETCFG_JD_WIFI_SMART

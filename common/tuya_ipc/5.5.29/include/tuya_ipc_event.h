@@ -68,9 +68,9 @@ typedef struct {
 	BOOL_T force;        //是否强制上报，与event无关的上报，如封面图
 	INT_T resource_type; //参考上面的RESOURCE_xx宏,表明下面的资源有哪些类型
 	CHAR_T
-	    *extra_data; //额外字段，添加到上报信息中，需为去掉大括号的json格式，如"aaa":3，若无写NULL
-	CHAR_T *pic_buf; //图片缓存
-	INT_T pic_size;  //图片大小
+	*extra_data; //额外字段，添加到上报信息中，需为去掉大括号的json格式，如"aaa":3，若无写NULL
+	CHAR_T *pic_buf;            //图片缓存
+	INT_T pic_size;             //图片大小
 	TUYA_ALARM_TEXT_T *context; //文字告警的信息，若无写NULL
 	INT_T context_cnt;          // TUYA_ALARM_TEXT_T的数量,若无写0
 	NOTIFICATION_UNIT_T *media; //音视频的资源信息，若无写NULL

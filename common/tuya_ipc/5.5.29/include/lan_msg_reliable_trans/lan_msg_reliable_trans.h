@@ -41,7 +41,7 @@ typedef struct {
 	USHORT_T max_total_retry_cnt; //最大的连续重试次数，如果超过，就开始丢消息drop_msg_cnt个
 	USHORT_T drop_msg_cnt; //一次丢消息的个数
 	USHORT_T
-	    cache_msg_max_cnt_per_peer; //每个对端存储的最大的消息个数，一旦超过。视为消息堆积，快速丢弃一半的新报文
+	cache_msg_max_cnt_per_peer; //每个对端存储的最大的消息个数，一旦超过。视为消息堆积，快速丢弃一半的新报文
 } LAN_MSG_MOD_INIT_PARAM;
 
 //为不同类型的消息，提供差异的部分
@@ -53,7 +53,7 @@ typedef struct {
 	VOID *func_msgMerge_param;
 
 	LAN_SEND_MSG_RET func_msgRet; //消息发送结果回调，非必须,
-	                              //TODO,是否所有场景都回调？当前只保证正常发送后回调，异常时不一定
+	                              // TODO,是否所有场景都回调？当前只保证正常发送后回调，异常时不一定
 	// VOID *func_msgRet_param;			//发送结果回调的参数在调用发送接口处传入
 
 	LAN_SEND_BUF_FREE func_buf_free; //内存释放接口，非必须，空时内部使用Free释放.

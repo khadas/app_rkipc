@@ -279,7 +279,7 @@ typedef void *THREAD_HANDLE;
 typedef void (*THREAD_FUNC_T)(void *);
 
 typedef struct {
-	OPERATE_RET (*create)
+	OPERATE_RET(*create)
 	(THREAD_HANDLE *thread, CONST char *name, UINT_T stack_size, UINT_T priority,
 	 THREAD_FUNC_T func, VOID_T *CONST arg);
 	OPERATE_RET (*release)(THREAD_HANDLE thread);
@@ -552,12 +552,12 @@ typedef struct {
 	OPERATE_RET (*get_ability)(VOID_T);
 	OPERATE_RET (*set_mac)(CONST NW_MAC_S *mac);
 	OPERATE_RET (*get_mac)(NW_MAC_S *mac);
-	OPERATE_RET (*send_beacon)
+	OPERATE_RET(*send_beacon)
 	(tuya_ble_data_buf_t *adv, tuya_ble_data_buf_t *scan_resp, UINT16_T interval, UINT16_T timeout);
 
 	OPERATE_RET (*central_init)(ty_ble_central_param_t *p);
 	OPERATE_RET (*central_deinit)(VOID_T);
-	OPERATE_RET (*master_connect)
+	OPERATE_RET(*master_connect)
 	(UINT8_T mac[6], ty_ble_addr_type_t type, UINT_T timeout_ms, ty_ble_gap_conn_params_t *params);
 	OPERATE_RET (*master_disconnect)(UINT8_T mac[6], ty_ble_addr_type_t type);
 	OPERATE_RET (*master_scan)(BOOL_T enable);
@@ -578,7 +578,7 @@ typedef struct {
 	OPERATE_RET (*mesh_prov_scan)(BOOL_T enable);
 	OPERATE_RET (*mesh_prov_add_dev)(UINT8_T uuid[16], UINT8_T mac[6], UINT16_T mesh_addr);
 	OPERATE_RET (*mesh_prov_del_dev_with_addr)(UINT16_T mesh_addr, UINT8_T dev_key[16]);
-	OPERATE_RET (*mesh_prov_send_data)
+	OPERATE_RET(*mesh_prov_send_data)
 	(UINT_T opcode, UINT16_T mesh_addr, UINT8_T *data, UINT_T length, UINT8_T dev_key[16]);
 	OPERATE_RET (*mesh_prov_node_reset)(VOID_T);
 } TUYA_OS_BLE_MESH_RPOV_INTF;
@@ -934,7 +934,7 @@ typedef enum {
 
 typedef struct {
 	OPERATE_RET (*start)(UINT_T file_size, OTA_TYPE type);
-	OPERATE_RET (*process)
+	OPERATE_RET(*process)
 	(CONST UINT_T total_len, CONST UINT_T offset, CONST UCHAR_T *data, CONST UINT_T len,
 	 UINT_T *remain_len, void *pri_data);
 	OPERATE_RET (*end)(BOOL_T reset);

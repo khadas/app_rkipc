@@ -31,7 +31,7 @@ typedef struct {
 static Ring_Buffer_User_Handle_S audio_handle;
 static Ring_Buffer_User_Handle_S video_handle;
 static TUYA_APP_P2P_MGR s_p2p_mgr = {0};
-static IPC_MEDIA_INFO_S s_media_info;
+static IPC_MEDIA_INFO_S s_media_info = {0};
 static int g_init = 0;
 static bool cloud_connected_ = 0;
 static MEDIA_FRAME_S video_frame, audio_frame;
@@ -88,6 +88,10 @@ STATIC VOID __TUYA_APP_rev_audio_cb(IN CONST TRANSFER_AUDIO_FRAME_S *p_audio_fra
 /* Callback functions for transporting events */
 STATIC VOID __TUYA_APP_p2p_event_cb(IN CONST TRANSFER_EVENT_E event, IN CONST PVOID_T args) {
 	LOG_INFO("p2p rev event cb=[%d]\n", event);
+	if (args == NULL) {
+		LOG_DEBUG("p2p rev event args null ");
+		return NULL;
+	}
 	switch (event) {
 	case TRANS_LIVE_VIDEO_START: {
 		C2C_TRANS_CTRL_VIDEO_START *parm = (C2C_TRANS_CTRL_VIDEO_START *)args;
@@ -189,161 +193,6 @@ STATIC VOID __TUYA_APP_p2p_event_cb(IN CONST TRANSFER_EVENT_E event, IN CONST PV
 	}
 }
 
-int rk_tuya_fill_media_param() {
-	s_media_info.video_fps[E_IPC_STREAM_VIDEO_MAIN] =
-	    rk_param_get_int("video.0:dst_frame_rate_num", 30);
-	const char *value = rk_param_get_string("video.0:output_data_type", "H.264");
-	if (!strcmp(value, "H.264"))
-		s_media_info.video_fps[E_IPC_STREAM_VIDEO_MAIN] = TUYA_CODEC_VIDEO_H264;
-	else
-		s_media_info.video_fps[E_IPC_STREAM_VIDEO_MAIN] = TUYA_CODEC_VIDEO_H265;
-	s_media_info.video_width[E_IPC_STREAM_VIDEO_MAIN] = rk_param_get_int("video.0:width", 1920);
-	s_media_info.video_height[E_IPC_STREAM_VIDEO_MAIN] = rk_param_get_int("video.0:height", 1080);
-	s_media_info.video_gop[E_IPC_STREAM_VIDEO_MAIN] = rk_param_get_int("video.0:gop", 50);
-
-	value = rk_param_get_string("audio.0:encode_type", "G711A");
-	if (!strcmp(value, "G711A"))
-		s_media_info.audio_codec[E_IPC_STREAM_AUDIO_MAIN] = TUYA_CODEC_AUDIO_G711A;
-	else if (!strcmp(value, "PCM"))
-		s_media_info.audio_codec[E_IPC_STREAM_AUDIO_MAIN] = TUYA_CODEC_AUDIO_PCM;
-	else
-		LOG_ERROR("audio_codec %s is unsupport\n", value);
-
-	int sample_rate = rk_param_get_int("audio.0:sample_rate", 8000);
-	if (sample_rate == 8000)
-		s_media_info.audio_sample[E_IPC_STREAM_AUDIO_MAIN] = TUYA_AUDIO_SAMPLE_8K;
-	else if (sample_rate == 16000)
-		s_media_info.audio_sample[E_IPC_STREAM_AUDIO_MAIN] = TUYA_AUDIO_SAMPLE_16K;
-	else
-		LOG_ERROR("audio_sample %d is unsupport\n", sample_rate);
-
-	value = rk_param_get_string("audio.0:format", "S16");
-	if (!strcmp(value, "S16"))
-		s_media_info.audio_databits[E_IPC_STREAM_AUDIO_MAIN] = TUYA_AUDIO_DATABITS_16;
-	else
-		s_media_info.audio_databits[E_IPC_STREAM_AUDIO_MAIN] = TUYA_AUDIO_DATABITS_8;
-
-	int channels = rk_param_get_int("audio.0:channels", 2);
-	if (channels == 2)
-		s_media_info.audio_channel[E_IPC_STREAM_AUDIO_MAIN] = TUYA_AUDIO_CHANNEL_STERO;
-	else
-		s_media_info.audio_channel[E_IPC_STREAM_AUDIO_MAIN] = TUYA_AUDIO_CHANNEL_MONO;
-}
-
-int rk_tuya_init_ring_buffer(void) {
-	static bool s_ring_buffer_inited = false;
-	if (s_ring_buffer_inited == true) {
-		LOG_INFO("The Ring Buffer Is Already Inited\n");
-		return OPRT_OK;
-	}
-
-	int ret;
-	Ring_Buffer_Init_Param_S param = {0};
-	for (int i = E_IPC_STREAM_VIDEO_MAIN; i < E_IPC_STREAM_MAX; i++) {
-		IPC_STREAM_E channel = i;
-		LOG_DEBUG("init ring buffer Channel:%d Enable:%d\n", channel,
-		          s_media_info.channel_enable[channel]);
-		if (s_media_info.channel_enable[channel] == TRUE) {
-			if (channel == E_IPC_STREAM_AUDIO_MAIN) {
-				LOG_INFO("audio_sample %d, audio_databits %d, audio_fps %d\n",
-				         s_media_info.audio_sample[E_IPC_STREAM_AUDIO_MAIN],
-				         s_media_info.audio_databits[E_IPC_STREAM_AUDIO_MAIN],
-				         s_media_info.audio_fps[E_IPC_STREAM_AUDIO_MAIN]);
-				param.bitrate = s_media_info.audio_sample[E_IPC_STREAM_AUDIO_MAIN] *
-				                s_media_info.audio_databits[E_IPC_STREAM_AUDIO_MAIN] / 1024;
-				param.fps = s_media_info.audio_fps[E_IPC_STREAM_AUDIO_MAIN];
-				param.max_buffer_seconds = 0;
-				param.requestKeyFrameCB = NULL;
-				ret = tuya_ipc_ring_buffer_init(0, 0, channel, &param);
-			} else {
-				LOG_INFO("video_bitrate %d, video_fps %d\n", s_media_info.video_bitrate[channel],
-				         s_media_info.video_fps[channel]);
-				param.bitrate = s_media_info.video_bitrate[channel];
-				param.fps = s_media_info.video_fps[channel];
-				param.max_buffer_seconds = 0;
-				param.requestKeyFrameCB = NULL;
-				ret = tuya_ipc_ring_buffer_init(0, 0, channel, &param);
-			}
-			if (ret != 0) {
-				LOG_ERROR("init ring buffer fails. %d %d\n", channel, ret);
-				return OPRT_MALLOC_FAILED;
-			}
-			LOG_INFO("init ring buffer success. channel:%d\n", channel);
-		}
-	}
-
-	s_ring_buffer_inited = TRUE;
-
-	return OPRT_OK;
-}
-
-void rk_tuya_get_net_status_cb(unsigned char stat) {
-	LOG_INFO("Net status change to:%d\n", stat);
-	switch (stat) {
-	case STAT_CLOUD_CONN:    // for wifi ipc
-	case STAT_MQTT_ONLINE:   // for low-power wifi ipc
-	case GB_STAT_CLOUD_CONN: // for wired ipc
-	{
-		// IPC_APP_Notify_LED_Sound_Status_CB(IPC_MQTT_ONLINE);
-		LOG_INFO("mqtt is online\r\n");
-		cloud_connected_ = 1;
-		break;
-	}
-	default: { break; }
-	}
-}
-
-int rk_tuya_p2p_init() {
-	if (s_p2p_mgr.enabled == TRUE) {
-		LOG_INFO("P2P Is Already Inited\n");
-		return OPRT_OK;
-	}
-
-	LOG_INFO("Init P2P With Max Users:%u\n", MAX_P2P_USER);
-
-	s_p2p_mgr.enabled = TRUE;
-	s_p2p_mgr.max_users = MAX_P2P_USER;
-	s_p2p_mgr.p2p_audio_codec = s_media_info.audio_codec[E_IPC_STREAM_AUDIO_MAIN];
-
-	TUYA_IPC_TRANSFER_VAR_S p2p_var = {0};
-	p2p_var.online_cb = __depereated_online_cb;
-	p2p_var.on_rev_audio_cb = __TUYA_APP_rev_audio_cb;
-	/*speak data format  app->ipc*/
-	const char *value = rk_param_get_string("audio.0:encode_type", "G711A");
-	if (!strcmp(value, "G711A"))
-		p2p_var.rev_audio_codec = TUYA_CODEC_AUDIO_G711A;
-	else if (!strcmp(value, "PCM"))
-		p2p_var.rev_audio_codec = TUYA_CODEC_AUDIO_PCM;
-	else
-		LOG_ERROR("audio_codec %s is unsupport\n", value);
-
-	int sample_rate = rk_param_get_int("audio.0:sample_rate", 8000);
-	if (sample_rate == 8000)
-		p2p_var.audio_sample = TUYA_AUDIO_SAMPLE_8K;
-	else if (sample_rate == 16000)
-		p2p_var.audio_sample = TUYA_AUDIO_SAMPLE_16K;
-	else
-		LOG_ERROR("audio_sample %d is unsupport\n", sample_rate);
-
-	value = rk_param_get_string("audio.0:format", "S16");
-	if (!strcmp(value, "S16"))
-		p2p_var.audio_databits = TUYA_AUDIO_DATABITS_16;
-	else
-		p2p_var.audio_databits = TUYA_AUDIO_DATABITS_8;
-
-	int channels = rk_param_get_int("audio.0:channels", 2);
-	if (channels == 2)
-		p2p_var.audio_channel = TUYA_AUDIO_CHANNEL_STERO;
-	else
-		p2p_var.audio_channel = TUYA_AUDIO_CHANNEL_MONO;
-	/*end*/
-	p2p_var.on_event_cb = __TUYA_APP_p2p_event_cb;
-	p2p_var.live_quality = TRANS_LIVE_QUALITY_MAX;
-	p2p_var.max_client_num = MAX_P2P_USER;
-	memcpy(&p2p_var.AVInfo, &s_media_info, sizeof(IPC_MEDIA_INFO_S));
-	tuya_ipc_tranfser_init(&p2p_var);
-}
-
 int rk_tuya_low_power_enable() {
 	LOG_INFO("tuya low power mode enable\n");
 	BOOL_T doorStat = FALSE;
@@ -411,166 +260,668 @@ int rk_tuya_low_power_disable() {
 	return ret;
 }
 
-int rk_tuya_sync_utc_time(VOID) {
+STATIC INT_T s_mqtt_status = 0;
+VOID IPC_APP_Net_Status_cb(IN CONST BYTE_T stat) {
+	LOG_DEBUG("Net status change to:%d", stat);
+	switch (stat) {
+#if defined(WIFI_GW) && (WIFI_GW == 1)
+	case STAT_CLOUD_CONN:  // for wifi ipc
+	case STAT_MQTT_ONLINE: // for low-power wifi ipc
+#endif
+#if defined(WIFI_GW) && (WIFI_GW == 0)
+	case GB_STAT_CLOUD_CONN: // for wired ipc
+#endif
+	{
+		// IPC_APP_Notify_LED_Sound_Status_CB(IPC_MQTT_ONLINE);
+		LOG_DEBUG("mqtt is online\r\n");
+		s_mqtt_status = 1;
+		break;
+	}
+	default: { break; }
+	}
+}
+
+INT_T IPC_APP_Get_MqttStatus() { return s_mqtt_status; }
+
+VOID IPC_APP_handle_dp_query_objs(IN CONST TY_DP_QUERY_S *dp_query) {
+	LOG_DEBUG("tmp do nothing\n");
+	// INT_T table_idx = 0;
+	// INT_T table_count = ( sizeof(s_dp_table) / sizeof(s_dp_table[0]) );
+	// INT_T index = 0;
+	// for(index = 0; index < dp_query->cnt; index++)
+	// {
+	//     if(dp_simulation_filter)
+	//     {
+	//         if(dp_simulation_filter(dp_query->dpid) == 0)
+	//         {
+	//             continue;
+	//         }
+	//     }
+	//     for(table_idx = 0; table_idx < table_count; table_idx++)
+	//     {
+	//         if(s_dp_table[table_idx].dp_id == dp_query->dpid[index])
+	//         {
+	//             s_dp_table[table_idx].handler(NULL);
+	//             break;
+	//         }
+	//     }
+	// }
+}
+
+VOID IPC_APP_handle_raw_dp_cmd_objs(IN CONST TY_RECV_RAW_DP_S *dp_rev) {
+	LOG_DEBUG("tmp do nothing\n");
+	// INT_T table_idx = 0;
+	// INT_T table_count = ( sizeof(s_raw_dp_table) / sizeof(s_raw_dp_table[0]) );
+	// INT_T index = 0;
+
+	// for(table_idx = 0; table_idx < table_count; table_idx++)
+	// {
+	//     if(s_raw_dp_table[table_idx].dp_id == dp_rev->dpid)
+	//     {
+	//         s_raw_dp_table[table_idx].handler(dp_rev);
+	//         break;
+	//     }
+	// }
+}
+
+VOID IPC_APP_handle_dp_cmd_objs(IN CONST TY_RECV_OBJ_DP_S *dp_rev) {
+	LOG_DEBUG("tmp do nothing\n");
+	// TY_OBJ_DP_S *dp_data = (TY_OBJ_DP_S *)(dp_rev->dps);
+	// UINT_T cnt = dp_rev->dps_cnt;
+	// INT_T table_idx = 0;
+	// INT_T table_count = ( sizeof(s_dp_table) / sizeof(s_dp_table[0]) );
+	// INT_T index = 0;
+	// for(index = 0; index < cnt; index++)
+	// {
+	//     TY_OBJ_DP_S *p_dp_obj = dp_data + index;
+
+	//     if(dp_simulation_filter)
+	//     {
+	//         if(dp_simulation_filter(p_dp_obj->dpid) == 0)
+	//         {
+	//             continue;
+	//         }
+	//     }
+
+	//     for(table_idx = 0; table_idx < table_count; table_idx++)
+	//     {
+	//         if(s_dp_table[table_idx].dp_id == p_dp_obj->dpid)
+	//         {
+	//             s_dp_table[table_idx].handler(p_dp_obj);
+	//             break;
+	//         }
+	//     }
+	// }
+}
+
+INT_T IPC_APP_Upgrade_Inform_cb(IN CONST FW_UG_S *fw) {
+	LOG_DEBUG("Rev Upgrade Info");
+	LOG_DEBUG("fw->fw_url:%s", fw->fw_url);
+	LOG_DEBUG("fw->sw_ver:%s", fw->sw_ver);
+	LOG_DEBUG("fw->file_size:%u", fw->file_size);
+
+	// FILE *p_upgrade_fd = fopen(IPC_APP_UPGRADE_FILE, "w+b");
+	// tuya_ipc_upgrade_sdk(fw, __IPC_APP_get_file_data_cb, __IPC_APP_upgrade_notify_cb,
+	// (PVOID_T)p_upgrade_fd);
+
+	return 0;
+}
+
+/*
+Callback when the user clicks on the APP to remove the device
+*/
+VOID IPC_APP_Reset_System_CB(GW_RESET_TYPE_E type) {
+	printf("reset ipc success. please restart the ipc %d\n", type);
+	// IPC_APP_Notify_LED_Sound_Status_CB(IPC_RESET_SUCCESS);
+	// TODO
+	/* Developers need to restart IPC operations */
+}
+
+VOID IPC_APP_Restart_Process_CB(VOID) {
+	printf("sdk internal restart request. please restart the ipc\n");
+	// TODO
+	/* Developers need to implement restart operations. Restart the process or restart the device.
+	 */
+}
+
+IPC_MEDIA_INFO_S *IPC_APP_Get_Media_Info() { return &s_media_info; }
+
+OPERATE_RET TUYA_APP_Enable_P2PTransfer(IN TUYA_IPC_SDK_P2P_S *p2p_infos) {
+	if (s_p2p_mgr.enabled == TRUE) {
+		LOG_DEBUG("P2P Is Already Inited");
+		return OPRT_OK;
+	}
+
+	if (p2p_infos == NULL) {
+		LOG_DEBUG("Init P2PTransfer fail. Param is null");
+		return OPRT_INVALID_PARM;
+	}
+
+	if (p2p_infos->enable == FALSE) {
+		return OPRT_OK;
+	}
+
+	IPC_MEDIA_INFO_S *p_media_info = IPC_APP_Get_Media_Info();
+	if (p_media_info == NULL) {
+		return OPRT_COM_ERROR;
+	}
+
+	LOG_DEBUG("Init P2P With Max Users:%u", p2p_infos->max_p2p_client);
+
+	s_p2p_mgr.enabled = TRUE;
+	s_p2p_mgr.max_users = p2p_infos->max_p2p_client;
+	s_p2p_mgr.p2p_audio_codec = p_media_info->audio_codec[E_IPC_STREAM_AUDIO_MAIN];
+
+	TUYA_IPC_TRANSFER_VAR_S p2p_var = {0};
+	p2p_var.online_cb = __depereated_online_cb;
+	p2p_var.on_rev_audio_cb = p2p_infos->rev_audio_cb;
+	/*speak data format  app->ipc*/
+	p2p_var.rev_audio_codec = TUYA_CODEC_AUDIO_G711U;
+	p2p_var.audio_sample = TUYA_AUDIO_SAMPLE_8K;
+	p2p_var.audio_databits = TUYA_AUDIO_DATABITS_16;
+	p2p_var.audio_channel = TUYA_AUDIO_CHANNEL_MONO;
+	/*end*/
+	p2p_var.on_event_cb = p2p_infos->transfer_event_cb;
+	p2p_var.live_quality = TRANS_LIVE_QUALITY_MAX;
+	p2p_var.max_client_num = p2p_infos->max_p2p_client;
+	p2p_var.lowpower = p2p_infos->is_lowpower;
+	memcpy(&p2p_var.AVInfo, p_media_info, sizeof(IPC_MEDIA_INFO_S));
+	tuya_ipc_tranfser_init(&p2p_var);
+
+	return OPRT_OK;
+}
+
+STATIC TUYA_IPC_SDK_RUN_VAR_S g_sdk_run_info = {0};
+
+STATIC VOID *tuya_ipc_sdk_low_power_p2p_init_proc(VOID *args) {
+	LOG_DEBUG("start low power p2p\n");
+	// todo process fail
+	TUYA_APP_Enable_P2PTransfer(&(g_sdk_run_info.p2p_info));
+	return NULL;
+}
+
+STATIC VOID respone_dp_value(BYTE_T dp_id, INT_T val);
+STATIC VOID respone_dp_bool(BYTE_T dp_id, BOOL_T true_false);
+STATIC VOID respone_dp_enum(BYTE_T dp_id, CHAR_T *p_val_enum);
+STATIC VOID respone_dp_str(BYTE_T dp_id, CHAR_T *p_val_str);
+STATIC VOID handle_DP_SD_STORAGE_ONLY_GET(IN TY_OBJ_DP_S *p_obj_dp);
+
+//------------------------------------------
+VOID IPC_APP_upload_all_status(VOID) {
+#ifdef TUYA_DP_SLEEP_MODE
+	respone_dp_bool(TUYA_DP_SLEEP_MODE, IPC_APP_get_sleep_mode());
+#endif
+
+#ifdef TUYA_DP_LIGHT
+	respone_dp_bool(TUYA_DP_LIGHT, IPC_APP_get_light_onoff());
+#endif
+
+#ifdef TUYA_DP_FLIP
+	respone_dp_bool(TUYA_DP_FLIP, IPC_APP_get_flip_onoff());
+#endif
+
+#ifdef TUYA_DP_WATERMARK
+	respone_dp_bool(TUYA_DP_WATERMARK, IPC_APP_get_watermark_onoff());
+#endif
+
+#ifdef TUYA_DP_WDR
+	respone_dp_bool(TUYA_DP_WDR, IPC_APP_get_wdr_onoff());
+#endif
+
+#ifdef TUYA_DP_NIGHT_MODE
+	respone_dp_enum(TUYA_DP_NIGHT_MODE, IPC_APP_get_night_mode());
+#endif
+
+#ifdef TUYA_DP_ALARM_FUNCTION
+	respone_dp_bool(TUYA_DP_ALARM_FUNCTION, IPC_APP_get_alarm_function_onoff());
+#endif
+
+#ifdef TUYA_DP_ALARM_SENSITIVITY
+	respone_dp_enum(TUYA_DP_ALARM_SENSITIVITY, IPC_APP_get_alarm_sensitivity());
+#endif
+
+#ifdef TUYA_DP_ALARM_ZONE_ENABLE
+	respone_dp_bool(TUYA_DP_ALARM_ZONE_ENABLE, IPC_APP_get_alarm_zone_onoff());
+#endif
+
+#ifdef TUYA_DP_ALARM_ZONE_DRAW
+	respone_dp_str(TUYA_DP_ALARM_ZONE_DRAW, IPC_APP_get_alarm_zone_draw());
+#endif
+
+#ifdef TUYA_DP_SD_STATUS_ONLY_GET
+	respone_dp_value(TUYA_DP_SD_STATUS_ONLY_GET, IPC_APP_get_sd_status());
+#endif
+
+#ifdef TUYA_DP_SD_STORAGE_ONLY_GET
+	handle_DP_SD_STORAGE_ONLY_GET(NULL);
+#endif
+
+#ifdef TUYA_DP_SD_RECORD_ENABLE
+	respone_dp_bool(TUYA_DP_SD_RECORD_ENABLE, IPC_APP_get_sd_record_onoff());
+#endif
+
+#ifdef TUYA_DP_SD_RECORD_MODE
+	CHAR_T sd_mode[4];
+	snprintf(sd_mode, 4, "%d", IPC_APP_get_sd_record_mode());
+	respone_dp_enum(TUYA_DP_SD_RECORD_MODE, sd_mode);
+#endif
+
+#ifdef TUYA_DP_SD_FORMAT_STATUS_ONLY_GET
+	respone_dp_value(TUYA_DP_SD_FORMAT_STATUS_ONLY_GET, 0);
+#endif
+
+#ifdef TUYA_DP_BLUB_SWITCH
+	respone_dp_bool(TUYA_DP_BLUB_SWITCH, IPC_APP_get_blub_onoff());
+#endif
+
+#ifdef TUYA_DP_POWERMODE
+	IPC_APP_update_battery_status();
+#endif
+}
+
+STATIC VOID *tuya_ipc_sdk_mqtt_online_proc(PVOID_T arg) {
+	LOG_DEBUG("tuya_ipc_sdk_mqtt_online_proc thread start success\n");
+	while (IPC_APP_Get_MqttStatus() == FALSE) {
+		sleep(1);
+	}
+	LOG_DEBUG("tuya_ipc_sdk_mqtt_online_proc is start run\n");
+	int ret;
+	//同步服务器时间
 	TIME_T time_utc;
 	INT_T time_zone;
-	LOG_INFO("Get Server Time\n");
-	int ret = tuya_ipc_get_service_time_force(&time_utc, &time_zone);
-	if (ret != OPRT_OK) {
+	do {
+		//需要SDK同步到时间后才能开启下面的业务
+		ret = tuya_ipc_get_service_time_force(&time_utc, &time_zone);
+
+	} while (ret != OPRT_OK);
+
+	if (FALSE == g_sdk_run_info.quick_start_info.enable) {
+		TUYA_APP_Enable_P2PTransfer(&(g_sdk_run_info.p2p_info));
+	}
+
+	// if (g_sdk_run_info.local_storage_info.enable) {
+	// 	ret = TUYA_APP_Init_Stream_Storage(&(g_sdk_run_info.local_storage_info));
+	// 	LOG_DEBUG("local storage init result is %d\n", ret);
+	// }
+
+	// if (g_sdk_run_info.cloud_ai_detct_info.enable) {
+	// 	ret = TUYA_APP_Enable_AI_Detect();
+	// 	LOG_DEBUG("ai detect result is %d\n", ret);
+	// }
+
+	// if (g_sdk_run_info.video_msg_info.enable) {
+	// 	ret = TUYA_APP_Enable_Video_Msg(&(g_sdk_run_info.video_msg_info));
+	// 	LOG_DEBUG("door bell init result is %d\n", ret);
+	// }
+
+	// if (g_sdk_run_info.cloud_storage_info.enable) {
+	// 	ret = TUYA_APP_Enable_CloudStorage(&(g_sdk_run_info.cloud_storage_info));
+	// 	LOG_DEBUG("cloud storage init result is %d\n", ret);
+	// }
+
+	IPC_APP_upload_all_status();
+
+	tuya_ipc_upload_skills();
+	LOG_DEBUG("tuya_ipc_sdk_mqtt_online_proc is end run\n");
+
+	return NULL;
+}
+
+OPERATE_RET TUYA_APP_Init_Ring_Buffer(VOID) {
+	OPERATE_RET ret = OPRT_OK;
+
+	STATIC BOOL_T s_ring_buffer_inited = FALSE;
+	if (s_ring_buffer_inited == TRUE) {
+		LOG_DEBUG("The Ring Buffer Is Already Inited");
+		return OPRT_OK;
+	}
+
+	IPC_STREAM_E ringbuffer_stream_type;
+	// CHANNEL_E channel;
+	Ring_Buffer_Init_Param_S param = {0};
+	for (ringbuffer_stream_type = E_IPC_STREAM_VIDEO_MAIN;
+	     ringbuffer_stream_type < E_IPC_STREAM_MAX; ringbuffer_stream_type++) {
+		LOG_DEBUG("init ring buffer Channel:%d Enable:%d", ringbuffer_stream_type,
+		          s_media_info.channel_enable[ringbuffer_stream_type]);
+		if (s_media_info.channel_enable[ringbuffer_stream_type] == TRUE) {
+			if (ringbuffer_stream_type >= E_IPC_STREAM_AUDIO_MAIN) {
+				param.bitrate = s_media_info.audio_sample[E_IPC_STREAM_AUDIO_MAIN] *
+				                s_media_info.audio_databits[E_IPC_STREAM_AUDIO_MAIN] / 1024;
+				param.fps = s_media_info.audio_fps[E_IPC_STREAM_AUDIO_MAIN];
+				param.max_buffer_seconds = 0;
+				param.requestKeyFrameCB = NULL;
+				LOG_DEBUG("audio_sample %d, audio_databits %d, audio_fps %d",
+				          s_media_info.audio_sample[E_IPC_STREAM_AUDIO_MAIN],
+				          s_media_info.audio_databits[E_IPC_STREAM_AUDIO_MAIN],
+				          s_media_info.audio_fps[E_IPC_STREAM_AUDIO_MAIN]);
+				ret = tuya_ipc_ring_buffer_init(0, 0, ringbuffer_stream_type, &param);
+			} else {
+				param.bitrate = s_media_info.video_bitrate[ringbuffer_stream_type];
+				param.fps = s_media_info.video_fps[ringbuffer_stream_type];
+				param.max_buffer_seconds = 0;
+				param.requestKeyFrameCB = NULL;
+				LOG_DEBUG("video_bitrate %d, video_fps %d",
+				          s_media_info.video_bitrate[ringbuffer_stream_type],
+				          s_media_info.video_fps[ringbuffer_stream_type]);
+				ret = tuya_ipc_ring_buffer_init(0, 0, ringbuffer_stream_type, &param);
+			}
+			if (ret != 0) {
+				LOG_ERROR("init ring buffer fails. %d %d", ringbuffer_stream_type, ret);
+				return OPRT_MALLOC_FAILED;
+			}
+			LOG_DEBUG("init ring buffer success. channel:%d", ringbuffer_stream_type);
+		}
+	}
+
+	s_ring_buffer_inited = TRUE;
+
+	return OPRT_OK;
+}
+
+/* Set audio and video properties */
+VOID IPC_APP_Set_Media_Info(IPC_MEDIA_INFO_S *media) {
+	memcpy(&s_media_info, media, sizeof(IPC_MEDIA_INFO_S));
+
+	LOG_DEBUG("channel_enable:%d %d %d", s_media_info.channel_enable[0],
+	          s_media_info.channel_enable[1], s_media_info.channel_enable[2]);
+
+	LOG_DEBUG("fps:%u", s_media_info.video_fps[E_IPC_STREAM_VIDEO_MAIN]);
+	LOG_DEBUG("gop:%u", s_media_info.video_gop[E_IPC_STREAM_VIDEO_MAIN]);
+	LOG_DEBUG("bitrate:%u kbps", s_media_info.video_bitrate[E_IPC_STREAM_VIDEO_MAIN]);
+	LOG_DEBUG("video_main_width:%u", s_media_info.video_width[E_IPC_STREAM_VIDEO_MAIN]);
+	LOG_DEBUG("video_main_height:%u", s_media_info.video_height[E_IPC_STREAM_VIDEO_MAIN]);
+	LOG_DEBUG("video_freq:%u", s_media_info.video_freq[E_IPC_STREAM_VIDEO_MAIN]);
+	LOG_DEBUG("video_codec:%d", s_media_info.video_codec[E_IPC_STREAM_VIDEO_MAIN]);
+
+	LOG_DEBUG("audio_codec:%d", s_media_info.audio_codec[E_IPC_STREAM_AUDIO_MAIN]);
+	LOG_DEBUG("audio_sample:%d", s_media_info.audio_sample[E_IPC_STREAM_AUDIO_MAIN]);
+	LOG_DEBUG("audio_databits:%d", s_media_info.audio_databits[E_IPC_STREAM_AUDIO_MAIN]);
+	LOG_DEBUG("audio_channel:%d", s_media_info.audio_channel[E_IPC_STREAM_AUDIO_MAIN]);
+}
+
+OPERATE_RET tuya_ipc_app_start(IN CONST TUYA_IPC_SDK_RUN_VAR_S *pRunInfo) {
+	if (NULL == pRunInfo) {
+		LOG_ERROR("start sdk para is NULL\n");
+		return OPRT_INVALID_PARM;
+	}
+
+	OPERATE_RET ret = 0;
+	STATIC BOOL_T s_ipc_sdk_started = FALSE;
+	if (TRUE == s_ipc_sdk_started) {
+		LOG_DEBUG("IPC SDK has started\n");
 		return ret;
 	}
-	// The API returns OK, indicating that UTC time has been successfully
-	// obtained.
-	// If it return not OK, the time has not been fetched.
 
-	LOG_INFO("Get Server Time Success: %lu %d\n", time_utc, time_zone);
-	return OPRT_OK;
-}
+	memcpy(&g_sdk_run_info, pRunInfo, SIZEOF(TUYA_IPC_SDK_RUN_VAR_S));
 
-void rk_tuya_set_media_info(void) {
-	/* main stream(HD), video configuration*/
-	/* NOTE
-	FIRST:If the main stream supports multiple video stream configurations, set
-	each item to the upper limit of the allowed configuration.
-	SECOND:E_IPC_STREAM_VIDEO_MAIN must exist.It is the data source of SDK.
-	please close the E_CHANNEL_VIDEO_SUB for only one stream*/
-	s_media_info.channel_enable[E_IPC_STREAM_VIDEO_MAIN] = TRUE;
-	s_media_info.video_bitrate[E_IPC_STREAM_VIDEO_MAIN] = TUYA_VIDEO_BITRATE_1_5M;
-	s_media_info.video_freq[E_IPC_STREAM_VIDEO_MAIN] = 90000; /* Clock frequency */
+	/* 将码流信息保存到s_media_info，用于P2P的一些回调中匹配。客户可以根据自己的逻辑来实现。此处仅作参考
+	 */
+	IPC_APP_Set_Media_Info(&(g_sdk_run_info.media_info.media_info));
 
-	/* Audio stream configuration.
-	Note: The internal P2P preview, cloud storage, and local storage of the SDK
-	are all use E_IPC_STREAM_AUDIO_MAIN data. */
-	s_media_info.channel_enable[E_IPC_STREAM_AUDIO_MAIN] = TRUE;
-	s_media_info.audio_fps[E_IPC_STREAM_AUDIO_MAIN] = 25; /* Fragments per second */
+	//低功耗 优先开启P2P
+	if (g_sdk_run_info.quick_start_info.enable) {
+		pthread_t low_power_p2p_thread_handler;
+		int op_ret = pthread_create(&low_power_p2p_thread_handler, NULL,
+		                            tuya_ipc_sdk_low_power_p2p_init_proc, NULL);
+		if (op_ret < 0) {
+			LOG_ERROR("create p2p start thread is error\n");
+			return -1;
+		}
+	}
 
-	LOG_INFO("channel_enable:%d %d %d\n", s_media_info.channel_enable[0],
-	         s_media_info.channel_enable[1], s_media_info.channel_enable[2]);
-
-	LOG_INFO("fps:%u\n", s_media_info.video_fps[E_IPC_STREAM_VIDEO_MAIN]);
-	LOG_INFO("gop:%u\n", s_media_info.video_gop[E_IPC_STREAM_VIDEO_MAIN]);
-	LOG_INFO("bitrate:%u kbps\n", s_media_info.video_bitrate[E_IPC_STREAM_VIDEO_MAIN]);
-	LOG_INFO("video_main_width:%u\n", s_media_info.video_width[E_IPC_STREAM_VIDEO_MAIN]);
-	LOG_INFO("video_main_height:%u\n", s_media_info.video_height[E_IPC_STREAM_VIDEO_MAIN]);
-	LOG_INFO("video_freq:%u\n", s_media_info.video_freq[E_IPC_STREAM_VIDEO_MAIN]);
-	LOG_INFO("video_codec:%d\n", s_media_info.video_codec[E_IPC_STREAM_VIDEO_MAIN]);
-
-	LOG_INFO("audio_codec:%d\n", s_media_info.audio_codec[E_IPC_STREAM_AUDIO_MAIN]);
-	LOG_INFO("audio_sample:%d\n", s_media_info.audio_sample[E_IPC_STREAM_AUDIO_MAIN]);
-	LOG_INFO("audio_databits:%d\n", s_media_info.audio_databits[E_IPC_STREAM_AUDIO_MAIN]);
-	LOG_INFO("audio_channel:%d\n", s_media_info.audio_channel[E_IPC_STREAM_AUDIO_MAIN]);
-}
-
-int rk_tuya_init_sdk(WIFI_INIT_MODE_E init_mode, char *p_token) {
-	LOG_INFO("SDK Version:%s\r\n", tuya_ipc_get_sdk_info());
-
-	rk_tuya_set_media_info();
-	rk_tuya_init_ring_buffer();
-	// IPC_APP_Notify_LED_Sound_Status_CB(IPC_BOOTUP_FINISH);
-
-	TUYA_IPC_ENV_VAR_S env;
-	memset(&env, 0, sizeof(TUYA_IPC_ENV_VAR_S));
-	strcpy(env.storage_path, IPC_APP_STORAGE_PATH);
-
-	int index = 0;
-	char *token;
-	char vendor_data[256] = {0};
-	if (rkvendor_read(VENDOR_TUYA_LICENSE_ID, vendor_data,
-	                  sizeof(vendor_data) / sizeof(vendor_data[0]))) {
-		LOG_INFO("rkvendor_read fail\n");
-		system("aplay /etc/no_key.wav &");
+	// setup1:创建等待mqtt上线进程，mqtt上线后，再开启与网络相关的业务
+	pthread_t mqtt_status_change_handle;
+	int op_ret =
+	    pthread_create(&mqtt_status_change_handle, NULL, tuya_ipc_sdk_mqtt_online_proc, NULL);
+	if (op_ret < 0) {
+		LOG_ERROR("create tuya_ipc_sdk_mqtt_online_proc  thread is error\n");
 		return -1;
 	}
-	LOG_INFO("vendor_data is %s\n", vendor_data);
-	token = strtok(vendor_data, "\"");
-	while (token != NULL) {
-		LOG_INFO("%s\n", token);
-		token = strtok(NULL, "\"");
-		if (index == 2)
-			strcpy(env.product_key, token);
-		if (index == 6)
-			strcpy(env.uuid, token);
-		if (index == 10)
-			strcpy(env.auth_key, token);
-		index++;
+
+	// setup2:init sdk
+	TUYA_IPC_ENV_VAR_S env;
+	memset(&env, 0, sizeof(TUYA_IPC_ENV_VAR_S));
+	strcpy(env.storage_path, pRunInfo->iot_info.cfg_storage_path);
+	strcpy(env.product_key, pRunInfo->iot_info.product_key);
+	strcpy(env.uuid, pRunInfo->iot_info.uuid);
+	strcpy(env.auth_key, pRunInfo->iot_info.auth_key);
+	strcpy(env.dev_sw_version, pRunInfo->iot_info.dev_sw_version);
+	strcpy(env.dev_serial_num, "tuya_ipc");
+	// TODO:raw
+	env.dev_raw_dp_cb = pRunInfo->dp_info.raw_dp_cmd_proc;
+	env.dev_obj_dp_cb = pRunInfo->dp_info.common_dp_cmd_proc;
+	env.dev_dp_query_cb = pRunInfo->dp_info.dp_query;
+	env.status_changed_cb = pRunInfo->net_info.net_status_change_cb;
+	env.upgrade_cb_info.upgrade_cb = pRunInfo->upgrade_info.upgrade_cb;
+	env.gw_rst_cb = pRunInfo->iot_info.gw_reset_cb;
+	env.gw_restart_cb = pRunInfo->iot_info.gw_restart_cb;
+#if defined(QRCODE_ACTIVE_MODE) && (QRCODE_ACTIVE_MODE == 1)
+	env.qrcode_active_cb = pRunInfo->qrcode_active_cb;
+#endif
+	env.dev_type = pRunInfo->iot_info.dev_type;
+	ret = tuya_ipc_init_sdk(&env);
+	if (OPRT_OK != ret) {
+		LOG_ERROR("init sdk is error\n");
+		return ret;
 	}
 
-	LOG_INFO("env.product_key is %s\n", env.product_key);
-	LOG_INFO("env.uuid is %s\n", env.uuid);
-	LOG_INFO("env.auth_key is %s\n", env.auth_key);
-	strcpy(env.dev_sw_version, IPC_APP_VERSION);
-	strcpy(env.dev_serial_num, "tuya_ipc");
-	// env.dev_obj_dp_cb = IPC_APP_handle_dp_cmd_objs;
-	// env.dev_dp_query_cb = IPC_APP_handle_dp_query_objs;
-	env.status_changed_cb = rk_tuya_get_net_status_cb;
-	// env.gw_ug_cb = IPC_APP_Upgrade_Inform_cb;
-	// env.gw_rst_cb = IPC_APP_Reset_System_CB;
-	// env.gw_restart_cb = IPC_APP_Restart_Process_CB;
-	env.mem_save_mode = FALSE;
-	LOG_INFO("tuya_ipc_init_sdk\n");
-	tuya_ipc_init_sdk(&env);
+	//设置日志等级
+	tuya_ipc_set_log_attr(pRunInfo->debug_info.log_level, NULL);
 
-	LOG_INFO("init_mode is %d, p_token is %s\n", init_mode, p_token);
-	tuya_ipc_start_sdk(init_mode, p_token);
+	// ring buffer 创建。
+	ret = TUYA_APP_Init_Ring_Buffer();
+	if (OPRT_OK != ret) {
+		LOG_ERROR("create ring buffer is error\n");
+		return ret;
+	}
 
-	return OPRT_OK;
+	ret = tuya_ipc_start_sdk(pRunInfo->net_info.connect_mode, pRunInfo->debug_info.qrcode_token);
+	if (OPRT_OK != ret) {
+		LOG_ERROR("start sdk is error\n");
+		return ret;
+	}
+
+	s_ipc_sdk_started = true;
+	LOG_DEBUG("tuya ipc sdk start is complete\n");
+	return ret;
 }
 
-int rk_tuya_init_device() {
-	LOG_INFO("before init tuya\n");
-	if (g_init) {
-		printf("tuya already init\n");
-		return 0;
+OPERATE_RET TUYA_IPC_SDK_START(WIFI_INIT_MODE_E connect_mode, CHAR_T *p_token) {
+	LOG_DEBUG("SDK Version:%s\r\n", tuya_ipc_get_sdk_info());
+	const char *value;
+	TUYA_IPC_SDK_RUN_VAR_S ipc_sdk_run_var = {0};
+
+	memset(&ipc_sdk_run_var, 0, sizeof(ipc_sdk_run_var));
+	/*certification information(essential)*/
+	strcpy(ipc_sdk_run_var.iot_info.product_key, "4wrrx6gmxh1czhcv");
+	strcpy(ipc_sdk_run_var.iot_info.uuid, "tuya943c2c4f36a4217c");
+	strcpy(ipc_sdk_run_var.iot_info.auth_key, "WZUXGSw3Mf0D8C1699rD0Tqi4JUO1M3B");
+	strcpy(ipc_sdk_run_var.iot_info.dev_sw_version, IPC_APP_VERSION);
+	strcpy(ipc_sdk_run_var.iot_info.cfg_storage_path, IPC_APP_STORAGE_PATH);
+
+	// normal device
+	ipc_sdk_run_var.iot_info.dev_type = NORMAL_POWER_DEV;
+	// if needed, change to low power device
+	// ipc_sdk_run_var.iot_info.dev_type= LOW_POWER_DEV;
+
+	/*connect mode (essential)*/
+	ipc_sdk_run_var.net_info.connect_mode = connect_mode;
+	ipc_sdk_run_var.net_info.net_status_change_cb = IPC_APP_Net_Status_cb;
+	if (p_token) {
+		strcpy(ipc_sdk_run_var.debug_info.qrcode_token, p_token);
 	}
+	/* 0-5, the bigger, the more log */
+	ipc_sdk_run_var.debug_info.log_level = 4;
+	/*media info (essential)*/
+	/* main stream(HD), video configuration*/
+	/* NOTE
+	FIRST:If the main stream supports multiple video stream configurations, set each item to the
+	upper limit of the allowed configuration. SECOND:E_IPC_STREAM_VIDEO_MAIN must exist.It is the
+	data source of SDK. please close the E_IPC_STREAM_VIDEO_SUB for only one stream*/
+	ipc_sdk_run_var.media_info.media_info.channel_enable[E_IPC_STREAM_VIDEO_MAIN] =
+	    TRUE; /* Whether to enable local HD video streaming */
+	ipc_sdk_run_var.media_info.media_info.video_fps[E_IPC_STREAM_VIDEO_MAIN] =
+	    rk_param_get_int("video.0:dst_frame_rate_num", 30);
+	ipc_sdk_run_var.media_info.media_info.video_gop[E_IPC_STREAM_VIDEO_MAIN] =
+	    rk_param_get_int("video.0:gop", 50);
+	ipc_sdk_run_var.media_info.media_info.video_bitrate[E_IPC_STREAM_VIDEO_MAIN] =
+	    TUYA_VIDEO_BITRATE_1_5M; /* Rate limit */
+	ipc_sdk_run_var.media_info.media_info.video_width[E_IPC_STREAM_VIDEO_MAIN] =
+	    rk_param_get_int("video.0:width", 1920);
+	ipc_sdk_run_var.media_info.media_info.video_height[E_IPC_STREAM_VIDEO_MAIN] =
+	    rk_param_get_int("video.0:height", 1080);
+	ipc_sdk_run_var.media_info.media_info.video_freq[E_IPC_STREAM_VIDEO_MAIN] =
+	    90000; /* Clock frequency */
+	value = rk_param_get_string("video.0:output_data_type", "H.264");
+	if (!strcmp(value, "H.264"))
+		ipc_sdk_run_var.media_info.media_info.video_codec[E_IPC_STREAM_VIDEO_MAIN] =
+		    TUYA_CODEC_VIDEO_H264;
+	else
+		ipc_sdk_run_var.media_info.media_info.video_codec[E_IPC_STREAM_VIDEO_MAIN] =
+		    TUYA_CODEC_VIDEO_H265;
 
-	WIFI_INIT_MODE_E mode = WIFI_INIT_AUTO; // for wired and wifi qrcode
-	                                        // The demo mode is set to WIFI_INIT_DEBUG,
-	// token needs to be scanned with WeChat to get a ten-minute valid.
-	// so before running this main process,
-	// developers need to make sure that devices are connected to the Internet.
+	// /* substream(HD), video configuration */
+	// /* Please note that if the substream supports multiple video stream configurations, please
+	// set each item to the upper limit of the allowed configuration. */
+	// ipc_sdk_run_var.media_info.media_info.channel_enable[E_IPC_STREAM_VIDEO_SUB] = TRUE;     /*
+	// Whether to enable local SD video stream */
+	// ipc_sdk_run_var.media_info.media_info.video_fps[E_IPC_STREAM_VIDEO_SUB] = 30;  /* FPS */
+	// ipc_sdk_run_var.media_info.media_info.video_gop[E_IPC_STREAM_VIDEO_SUB] = 30;  /* GOP */
+	// ipc_sdk_run_var.media_info.media_info.video_bitrate[E_IPC_STREAM_VIDEO_SUB] =
+	// TUYA_VIDEO_BITRATE_512K; /* Rate limit */
+	// ipc_sdk_run_var.media_info.media_info.video_width[E_IPC_STREAM_VIDEO_SUB] = 640; /* Single
+	// frame resolution of width */
+	// ipc_sdk_run_var.media_info.media_info.video_height[E_IPC_STREAM_VIDEO_SUB] = 360;/* Single
+	// frame resolution of height */
+	// ipc_sdk_run_var.media_info.media_info.video_freq[E_IPC_STREAM_VIDEO_SUB] = 90000; /* Clock
+	// frequency */ ipc_sdk_run_var.media_info.media_info.video_codec[E_IPC_STREAM_VIDEO_SUB] =
+	// TUYA_CODEC_VIDEO_H264; /* Encoding format */
 
-#if 1
-	rk_tuya_init_sdk(mode, NULL);
-#else
-	rk_tuya_init_sdk(WIFI_INIT_DEBUG, "AYgTyyjwMfeZ2W");
-#endif
-	LOG_INFO("after rk_tuya_init_sdk\n");
+	/* Audio stream configuration.
+	Note: The internal P2P preview, cloud storage, and local storage of the SDK are all use
+	E_IPC_STREAM_AUDIO_MAIN data. */
+	ipc_sdk_run_var.media_info.media_info.channel_enable[E_IPC_STREAM_AUDIO_MAIN] =
+	    TRUE; /* Whether to enable local sound collection */
+	value = rk_param_get_string("audio.0:encode_type", "G711A");
+	if (!strcmp(value, "G711A"))
+		ipc_sdk_run_var.media_info.media_info.audio_codec[E_IPC_STREAM_AUDIO_MAIN] =
+		    TUYA_CODEC_AUDIO_G711A;
+	else if (!strcmp(value, "PCM"))
+		ipc_sdk_run_var.media_info.media_info.audio_codec[E_IPC_STREAM_AUDIO_MAIN] =
+		    TUYA_CODEC_AUDIO_PCM;
+	else
+		LOG_ERROR("audio_codec %s is unsupport\n", value);
 
-	rk_tuya_p2p_init();
+	int sample_rate = rk_param_get_int("audio.0:sample_rate", 8000);
+	if (sample_rate == 8000)
+		ipc_sdk_run_var.media_info.media_info.audio_sample[E_IPC_STREAM_AUDIO_MAIN] =
+		    TUYA_AUDIO_SAMPLE_8K;
+	else if (sample_rate == 16000)
+		ipc_sdk_run_var.media_info.media_info.audio_sample[E_IPC_STREAM_AUDIO_MAIN] =
+		    TUYA_AUDIO_SAMPLE_16K;
+	else
+		LOG_ERROR("audio_sample %d is unsupport\n", sample_rate);
 
-	/* whether SDK is connected to MQTT */
-	while (cloud_connected_ != 1) {
-		usleep(100000);
+	value = rk_param_get_string("audio.0:format", "S16");
+	if (!strcmp(value, "S16"))
+		ipc_sdk_run_var.media_info.media_info.audio_databits[E_IPC_STREAM_AUDIO_MAIN] =
+		    TUYA_AUDIO_DATABITS_16;
+	else
+		ipc_sdk_run_var.media_info.media_info.audio_databits[E_IPC_STREAM_AUDIO_MAIN] =
+		    TUYA_AUDIO_DATABITS_8;
+
+	int channels = rk_param_get_int("audio.0:channels", 2);
+	if (channels == 2)
+		ipc_sdk_run_var.media_info.media_info.audio_channel[E_IPC_STREAM_AUDIO_MAIN] =
+		    TUYA_AUDIO_CHANNEL_STERO;
+	else
+		ipc_sdk_run_var.media_info.media_info.audio_channel[E_IPC_STREAM_AUDIO_MAIN] =
+		    TUYA_AUDIO_CHANNEL_MONO;
+
+	ipc_sdk_run_var.media_info.media_info.audio_fps[E_IPC_STREAM_AUDIO_MAIN] =
+	    25; /* Fragments per second */
+
+	// /*local storage (customer whether enable or not)*/
+	// ipc_sdk_run_var.local_storage_info.enable = 1;
+	// ipc_sdk_run_var.local_storage_info.max_event_num_per_day = 500;
+	// ipc_sdk_run_var.local_storage_info.skills = 0;//0 means all skills
+	// ipc_sdk_run_var.local_storage_info.sd_status_cb = tuya_ipc_sd_status_upload ;
+	// strcpy(ipc_sdk_run_var.local_storage_info.storage_path, IPC_APP_SD_BASE_PATH);
+
+	// /*cloud storage (custome whether enable or not)*/
+	// /*if no AES, ipc_sdk_run_var.aes_hw_info.aes_fun.* can equal NULL;*/
+	// ipc_sdk_run_var.cloud_storage_info.enable = TRUE;
+	// ipc_sdk_run_var.cloud_storage_info.en_audio_record = TRUE;
+	// ipc_sdk_run_var.cloud_storage_info.pre_record_time = -1; //set -1 to ignore it. default 2
+	// seconds.
+
+	/*p2p function (essential)*/
+	ipc_sdk_run_var.p2p_info.enable = TRUE;
+	ipc_sdk_run_var.p2p_info.is_lowpower = FALSE;
+	ipc_sdk_run_var.p2p_info.max_p2p_client = 5;
+	ipc_sdk_run_var.p2p_info.live_mode = TRANS_DEFAULT_HIGH; // TRANS_DEFAULT_STANDARD;
+	ipc_sdk_run_var.p2p_info.transfer_event_cb = __TUYA_APP_p2p_event_cb;
+	ipc_sdk_run_var.p2p_info.rev_audio_cb = __TUYA_APP_rev_audio_cb;
+
+	// /*AI detect (custome whether enable or not)*/
+	// ipc_sdk_run_var.cloud_ai_detct_info.enable = 1;
+
+	// /*door bell (custome whether enable or not)*/
+	// ipc_sdk_run_var.video_msg_info.enable = 1;
+	// ipc_sdk_run_var.video_msg_info.type = MSG_BOTH;
+	// ipc_sdk_run_var.video_msg_info.msg_duration = 10;
+
+	/*dp function(essential)*/
+	ipc_sdk_run_var.dp_info.dp_query = IPC_APP_handle_dp_query_objs;
+	ipc_sdk_run_var.dp_info.raw_dp_cmd_proc = IPC_APP_handle_raw_dp_cmd_objs;
+	ipc_sdk_run_var.dp_info.common_dp_cmd_proc = IPC_APP_handle_dp_cmd_objs;
+
+	/*upgrade function(essential)*/
+	ipc_sdk_run_var.upgrade_info.enable = true;
+	ipc_sdk_run_var.upgrade_info.upgrade_cb = IPC_APP_Upgrade_Inform_cb;
+
+	ipc_sdk_run_var.iot_info.gw_reset_cb = IPC_APP_Reset_System_CB;
+	ipc_sdk_run_var.iot_info.gw_restart_cb = IPC_APP_Restart_Process_CB;
+
+	// 	/*QR-active function(essential)*/
+	// #if defined(QRCODE_ACTIVE_MODE) && (QRCODE_ACTIVE_MODE == 1)
+	// 	ipc_sdk_run_var.qrcode_active_cb = IPC_APP_qrcode_shorturl_cb;
+	// #endif
+
+	OPERATE_RET ret;
+	ret = tuya_ipc_app_start(&ipc_sdk_run_var);
+	if (ret != 0) {
+		LOG_DEBUG("ipc sdk start fail,please check run parameter, ret=%d\n", ret);
 	}
-
-	rk_tuya_low_power_disable(); // report device online
-	/*At least one system time synchronization after networking*/
-	rk_tuya_sync_utc_time();
-	LOG_INFO("after rk_tuya_sync_utc_time\n");
-	/* Upload all local configuration item (DP) status when MQTT connection is
-	 * successful */
-	// IPC_APP_upload_all_status();
-	// TUYA_APP_Enable_CloudStorage();
-	// TUYA_APP_Enable_AI_Detect();
-	/*!!!very important! After all module inited, update skill to tuya cloud */
-	tuya_ipc_upload_skills();
-	g_init = 1;
-	LOG_INFO("tuya init ok\n");
+	return ret;
 }
 
 int rk_tuya_init() {
-	rk_tuya_fill_media_param();
-	rk_tuya_init_device();
+	WIFI_INIT_MODE_E mode = WIFI_INIT_AUTO;
+	OPERATE_RET ret = OPRT_OK;
+	ret = TUYA_IPC_SDK_START(mode, NULL);
+	if (ret != OPRT_OK) {
+		LOG_ERROR("TUYA_IPC_SDK_START fail\n");
+		return ret;
+	}
+
+	// IPC_APP_Init_Media_Task();
 	audio_handle = tuya_ipc_ring_buffer_open(0, 0, E_IPC_STREAM_AUDIO_MAIN, E_RBUF_WRITE);
-	video_handle = tuya_ipc_ring_buffer_open(0, 0, 0, E_RBUF_WRITE);
+	video_handle = tuya_ipc_ring_buffer_open(0, 0, E_IPC_STREAM_VIDEO_MAIN, E_RBUF_WRITE);
+
+	/* whether SDK is connected to MQTT */
+	while (IPC_APP_Get_MqttStatus() != 1) {
+		usleep(100000);
+	}
+	LOG_INFO("---------------SDK is connected to MQTT---------------\n");
 
 	return 0;
 }
 
 int rk_tuya_deinit() {
 	tuya_ipc_ring_buffer_close(audio_handle);
-
 	tuya_ipc_ring_buffer_close(video_handle);
+
 	return 0;
 }
 
@@ -621,7 +972,7 @@ int rk_tuya_push_audio(unsigned char *buffer, unsigned int buffer_size, int64_t 
 	return 0;
 }
 
-VOID tuya_ipc_get_snapshot_cb(char *pjbuf, unsigned int *size) {
-	printf("+++%s\n", __FUNCTION__);
-	// get_motion_snapshot(pjbuf,size);
-}
+// VOID tuya_ipc_get_snapshot_cb(char *pjbuf, unsigned int *size) {
+// 	printf("+++%s\n", __FUNCTION__);
+// 	// get_motion_snapshot(pjbuf,size);
+// }

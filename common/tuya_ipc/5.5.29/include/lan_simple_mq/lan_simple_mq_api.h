@@ -31,7 +31,7 @@ typedef struct {
 	VOID *func_msgMerge_param;
 
 	LAN_SEND_MSG_RET func_msgRet; //消息发送结果回调，非必须,
-	                              //TODO,是否所有场景都回调？当前只保证正常发送后回调，异常时不一定
+	                              // TODO,是否所有场景都回调？当前只保证正常发送后回调，异常时不一定
 	// VOID *func_msgRet_param;
 
 	LAN_SEND_BUF_FREE func_buf_free; //内存释放接口，非必须，空时内部使用Free释放.

@@ -78,8 +78,8 @@ static void *rkipc_get_vi_1(void *arg) {
 		ret = RK_MPI_VI_GetChnFrame(pipe_id_, VIDEO_PIPE_1, &stViFrame, 1000);
 		if (ret == RK_SUCCESS) {
 			uint64_t phy_data = RK_MPI_MB_Handle2PhysAddr(stViFrame.stVFrame.pMbBlk);
-			LOG_DEBUG("phy_data %p, loop:%d pts:%" PRId64 " ms\n", phy_data, loopCount,
-			          stViFrame.stVFrame.u64PTS / 1000);
+			// LOG_DEBUG("phy_data %p, loop:%d pts:%" PRId64 " ms\n", phy_data, loopCount,
+			//           stViFrame.stVFrame.u64PTS / 1000);
 
 			ret = rkipc_rknn_object_get(&ba_result);
 			if ((!ret && ba_result.objNum) ||
@@ -211,12 +211,17 @@ static void *rkipc_get_venc_0(void *arg) {
 				rtsp_do_event(g_rtsplive);
 				pthread_mutex_unlock(&g_rtsp_mutex);
 			}
-			// if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
-			//     (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
-			// 	rk_tuya_push_video(data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS, 1);
-			// } else {
-			// 	rk_tuya_push_video(data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS, 0);
-			// }
+
+			if (rk_param_get_int("tuya:enable", 0)) {
+				if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_IDRSLICE) ||
+				    (stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
+				    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_IDRSLICE) ||
+				    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
+					rk_tuya_push_video(data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS, 1);
+				} else {
+					rk_tuya_push_video(data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS, 0);
+				}
+			}
 
 			// 7.release the frame
 			ret = RK_MPI_VENC_ReleaseStream(VIDEO_PIPE_0, &stFrame);

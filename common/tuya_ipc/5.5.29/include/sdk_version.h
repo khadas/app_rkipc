@@ -113,11 +113,17 @@ IOT_BV(BS_VER) 40.00 < - > IOT_SDK 4.2.0
 #define SDK_INFO_2                                                                                 \
 	"< BUILD AT:" BUILD_DATE "_" BUILD_TIME " BY " GIT_USER " FOR " PROJECT_NAME                   \
 	" AT " TARGET_PLATFORM " >"
-#define SDK_IOT_ATTR                                                                                                                                                                                                                                                                                                                                                                          \
-	"IOT DEFS <"                                                                                                                                                                                                                                                                                                                                                                              \
-	" WIFI_GW:" I2S(WIFI_GW) " DEBUG:" I2S(TUYA_IOT_DEBUG) " KV_FILE:" I2S(KV_FILE) " SHUTDOWN_"                                                                                                                                                                                                                                                                                              \
-	                                                                                "MODE:" I2S(SHUTDOWN_MODE) " LITTLE_END:" I2S(LITTLE_END) " TLS_MODE:" I2S(TLS_MODE) " ENABLE_CLOUD_OPERATION:" I2S(ENABLE_CLOUD_OPERATION) " OPERATING_SYSTEM:" I2S(OPERATING_SYSTEM) " ENABLE_SYS_RPC:" I2S(ENABLE_SYS_RPC) " RELIABLE_TRANSFER:" I2S(RELIABLE_TRANSFER) " ENABLE_LAN_ENCRYPTION:" I2S( \
-	                                                                                    ENABLE_LAN_ENCRYPTION) " ENABLE_LAN_LINKAGE:" I2S(ENABLE_LAN_LINKAGE) " ENABLE_LAN_DEV:" I2S(ENABLE_LAN_DEV) " >"
+#define SDK_IOT_ATTR                                                                                                                                                                   \
+	"IOT DEFS <"                                                                                                                                                                       \
+	" WIFI_GW:" I2S(WIFI_GW) " DEBUG:" I2S(TUYA_IOT_DEBUG) " KV_FILE:" I2S(                                                                                                            \
+	    KV_FILE) " SHUTDOWN_"                                                                                                                                                          \
+	             "MODE:" I2S(SHUTDOWN_MODE) " LITTLE_END:" I2S(LITTLE_END) " TLS_MODE:" I2S(TLS_MODE) " ENABLE_CLOUD_OPERATION:" I2S(ENABLE_CLOUD_OPERATION) " OPERATING_SYSTEM:" I2S( \
+	                 OPERATING_SYSTEM) " ENABLE_SYS_RPC:" I2S(ENABLE_SYS_RPC) " RELIABLE_"                                                                                             \
+	                                                                          "TRANSFER:" I2S(                                                                                         \
+	                                                                              RELIABLE_TRANSFER) " ENABLE_LAN_"                                                                    \
+	                                                                                                 "ENCRYPTION"                                                                      \
+	                                                                                                 ":" I2S(ENABLE_LAN_ENCRYPTION) " ENABLE_LAN_LINKAGE:" I2S(                        \
+	                                                                                                     ENABLE_LAN_LINKAGE) " ENABLE_LAN_DEV:" I2S(ENABLE_LAN_DEV) " >"
 
 #define SDK_INFO SDK_INFO_1 "\r\n" SDK_INFO_2 "\r\n" SDK_IOT_ATTR "\r\n"
 

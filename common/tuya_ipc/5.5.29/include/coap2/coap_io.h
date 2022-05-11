@@ -171,7 +171,7 @@ struct coap_packet_t {
 	coap_address_t src; /**< the packet's source address */
 	coap_address_t dst; /**< the packet's destination address */
 	int ifindex;        /**< the interface index */
-	//  uint16_t srcport;
+	                    //  uint16_t srcport;
 };
 #else
 struct coap_packet_t {

@@ -206,10 +206,11 @@ const char *coap_response_phrase(unsigned char code);
 #define COAP_MEDIATYPE_APPLICATION_CBOR 60         /* application/cbor  */
 
 /* Content formats from RFC 8152 */
-#define COAP_MEDIATYPE_APPLICATION_COSE_SIGN 98    /* application/cose; cose-type="cose-sign"     */
-#define COAP_MEDIATYPE_APPLICATION_COSE_SIGN1 18   /* application/cose; cose-type="cose-sign1"    */
-#define COAP_MEDIATYPE_APPLICATION_COSE_ENCRYPT 96 /* application/cose; cose-type="cose-encrypt"   \
-	                                                */
+#define COAP_MEDIATYPE_APPLICATION_COSE_SIGN 98  /* application/cose; cose-type="cose-sign"     */
+#define COAP_MEDIATYPE_APPLICATION_COSE_SIGN1 18 /* application/cose; cose-type="cose-sign1"    */
+#define COAP_MEDIATYPE_APPLICATION_COSE_ENCRYPT                                                    \
+	96 /* application/cose; cose-type="cose-encrypt"                                               \
+	    */
 #define COAP_MEDIATYPE_APPLICATION_COSE_ENCRYPT0                                                   \
 	16                                          /* application/cose; cose-type="cose-encrypt0" */
 #define COAP_MEDIATYPE_APPLICATION_COSE_MAC 97  /* application/cose; cose-type="cose-mac"      */

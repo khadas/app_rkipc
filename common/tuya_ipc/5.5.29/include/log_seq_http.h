@@ -45,11 +45,10 @@ typedef enum {
 	                                // location:http_get_response_hdr
 	LOGSEQ_HTTP_CHK_RESP_RET =
 	    31, // type:error code, value:return value of http response error, location:NULL
-	LOGSEQ_HTTP_RECV_RESP = 32, // type:error code, value:http failed to accept response data,
-	                            // location:__httpc_return_json_cb和__httpc_gw_common_cb
-	LOGSEQ_HTTP_RECV_BODY_CJSON =
-	    33, // type:error code, value:http received response data decode
-	        // failed,location:__httpc_return_json_cb和__httpc_gw_common_cb
+	LOGSEQ_HTTP_RECV_RESP = 32,       // type:error code, value:http failed to accept response data,
+	                                  // location:__httpc_return_json_cb和__httpc_gw_common_cb
+	LOGSEQ_HTTP_RECV_BODY_CJSON = 33, // type:error code, value:http received response data decode
+	// failed,location:__httpc_return_json_cb和__httpc_gw_common_cb
 	LOGSEQ_HTTP_RECV_DECODE =
 	    34, // type:error code, value:http decryption failed, location:__httpc_gw_common_cb
 	LOGSEQ_HTTP_RECV_CONTENT = 35, // type:error code, value:http content error, location:NULL

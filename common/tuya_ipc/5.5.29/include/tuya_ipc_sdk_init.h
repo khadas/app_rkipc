@@ -58,7 +58,7 @@ typedef struct {
 
 	CHAR_T product_key[IPC_PRODUCT_KEY_LEN + 1]; /* one product key(PID) for one product  */
 	CHAR_T
-	    uuid[IPC_UUID_LEN + 1]; /* one uuid-authkey pair for one device, to register on TUYA coud */
+	uuid[IPC_UUID_LEN + 1]; /* one uuid-authkey pair for one device, to register on TUYA coud */
 	CHAR_T auth_key[IPC_AUTH_KEY_LEN + 1];
 	CHAR_T p2p_id[IPC_P2P_ID_LEN + 1]; /* this param is not used now */
 
@@ -67,9 +67,9 @@ typedef struct {
 	CHAR_T dev_serial_num[IPC_SERIAL_NUM_LEN + 1]; /* this param is not used in IPC now */
 
 	DEV_OBJ_DP_CMD_CB
-	    dev_obj_dp_cb; /* dp cmd callback function, which hanles cmd from TUYA cloud and APP */
+	dev_obj_dp_cb; /* dp cmd callback function, which hanles cmd from TUYA cloud and APP */
 	DEV_RAW_DP_CMD_CB
-	    dev_raw_dp_cb; /* raw dp cmd callback function, which hanles cmd from TUYA cloud and APP */
+	dev_raw_dp_cb; /* raw dp cmd callback function, which hanles cmd from TUYA cloud and APP */
 	DEV_DP_QUERY_CB dev_dp_query_cb; /* dp query callback function */
 
 	GW_STATUS_CHANGED_CB status_changed_cb; /* status change callback function for developer, could
@@ -79,9 +79,9 @@ typedef struct {
 	                                           be NULL if not needed */
 #endif
 	TUYA_IPC_SDK_UPGRADE_S
-	    upgrade_cb_info; /* OTA callback function, triggered by uprading from APP and TUYA cloud */
+	upgrade_cb_info; /* OTA callback function, triggered by uprading from APP and TUYA cloud */
 	TUYA_RST_INFORM_CB
-	    gw_rst_cb; /* reset callback fucntion, triggered when user unbind device from a account */
+	gw_rst_cb; /* reset callback fucntion, triggered when user unbind device from a account */
 	TUYA_RESTART_INFORM_CB gw_restart_cb; /* restart callback function */
 #if defined(QRCODE_ACTIVE_MODE) && (QRCODE_ACTIVE_MODE == 1)
 	TUYA_QRCODE_ACTIV_CB qrcode_active_cb; /*qrcode active get short  url callback*/

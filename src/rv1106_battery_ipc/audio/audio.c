@@ -77,14 +77,6 @@ void *save_aenc_thread(void *ptr) {
 			if (buffer) {
 				// LOG_INFO("get frame data = %p, size = %d, pts is %lld, seq is %d\n", buffer,
 				//          pstStream.u32Len, pstStream.u64TimeStamp, pstStream.u32Seq);
-#if 0
-				// fake 72ms
-				fake_time += 72000;
-				// LOG_INFO("fake pts is %lld\n", fake_time);
-				rk_storage_write_audio_frame(0, buffer, pstStream.u32Len, fake_time);
-				rk_storage_write_audio_frame(1, buffer, pstStream.u32Len, fake_time);
-				rk_storage_write_audio_frame(2, buffer, pstStream.u32Len, fake_time);
-#endif
 				if (g_rtsplive && g_rtsp_session_0) {
 					pthread_mutex_lock(&g_rtsp_mutex);
 					rtsp_tx_audio(g_rtsp_session_0, buffer, pstStream.u32Len,
@@ -99,6 +91,8 @@ void *save_aenc_thread(void *ptr) {
 					rtsp_do_event(g_rtsplive);
 					pthread_mutex_unlock(&g_rtsp_mutex);
 				}
+				if (rk_param_get_int("tuya:enable", 0))
+					rk_tuya_push_audio(buffer, pstStream.u32Len, pstStream.u64TimeStamp);
 				// if (file) {
 				// 	fwrite(buffer, pstStream.u32Len, 1, file);
 				// 	fflush(file);
