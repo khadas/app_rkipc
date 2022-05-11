@@ -670,9 +670,8 @@ int rk_network_get_cable_state() {
 	struct sockaddr_nl addr;
 	struct nlmsghdr *nh;
 	struct ifinfomsg *ifinfo;
+	char name[IFNAMSIZ], cmd1[32], cmd2[32];
 	// struct rtattr *attr;
-
-	system("killall -9 udhcpc");
 
 	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
 	netlink_fd = fd;
@@ -691,14 +690,24 @@ int rk_network_get_cable_state() {
 			else if (nh->nlmsg_type != RTM_NEWLINK)
 				continue;
 			ifinfo = NLMSG_DATA(nh);
-			LOG_INFO("\nCable State: %s\n", (ifinfo->ifi_flags & IFF_LOWER_UP) ? "on" : "off");
+
+			if_indextoname(ifinfo->ifi_index, name);
+			LOG_INFO("\n[%s] link %s\n", name, (ifinfo->ifi_flags & IFF_LOWER_UP) ? "up" : "down");
+
+			memset(cmd1, 0, 32);
+			memset(cmd2, 0, 32);
+			sprintf(cmd1, "udhcpc -i %s -T 1 -A 0 -b -q", name);
+			sprintf(cmd2, "ifconfig %s 0.0.0.0", name);
 
 			if (ifinfo->ifi_flags & IFF_LOWER_UP) {
 				status = 1;
-				system("udhcpc -T 1 -A 0 -b -q");
+				system("killall -9 udhcpc");
+				system("route del default gw 0.0.0.0");
+				system("cat /dev/null > /etc/resolv.conf");
+				system(cmd1);
 			} else {
 				status = 0;
-				system("ifconfig eth0 0.0.0.0");
+				system(cmd2);
 			}
 
 			if (rk_cb)
