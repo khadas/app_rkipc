@@ -576,8 +576,8 @@ int rkipc_pipe_0_init() {
 	VI_CHN_BUF_WRAP_S stViWrap;
 	memset(&stViWrap, 0, sizeof(VI_CHN_BUF_WRAP_S));
 	if (enable_wrap) {
-		if (buffer_line < 128 || buffer_line > video_height) {
-			LOG_ERROR("wrap mode buffer line must between [128, H]\n");
+		if (buffer_line < 64  || buffer_line > video_height) {
+			LOG_ERROR("wrap mode buffer line must between [64, H]\n");
 			return -1;
 		}
 		stViWrap.bEnable = enable_wrap;
