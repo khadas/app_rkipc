@@ -761,6 +761,7 @@ int rkipc_pipe_0_init() {
 	memset(&stVencChnBufWrap, 0, sizeof(stVencChnBufWrap));
 	if (enable_wrap) {
 		stVencChnBufWrap.bEnable = enable_wrap;
+		stVencChnBufWrap.u32BufLine = rk_param_get_int("video.source:buffer_line", 128);
 		RK_MPI_VENC_SetChnBufWrapAttr(VIDEO_PIPE_0, &stVencChnBufWrap);
 	}
 
@@ -823,7 +824,7 @@ int rkipc_pipe_1_init() {
 	int ret;
 	int video_width = rk_param_get_int("video.1:width", 1920);
 	int video_height = rk_param_get_int("video.1:height", 1080);
-	int buf_cnt = 2;
+	int buf_cnt = rk_param_get_int("video.1:input_buffer_count", 2);
 
 	// VI
 	VI_CHN_ATTR_S vi_chn_attr;
@@ -1693,8 +1694,6 @@ int rk_video_set_resolution(int stream_id, const char *value) {
 	rk_param_set_int(entry, width);
 	snprintf(entry, 127, "video.%d:height", stream_id);
 	rk_param_set_int(entry, height);
-	snprintf(entry, 127, "video.source:buffer_line");
-	rk_param_set_int(entry, height / 2);
 	rk_video_restart();
 
 	return 0;

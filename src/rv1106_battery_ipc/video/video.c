@@ -576,7 +576,7 @@ int rkipc_pipe_1_init() {
 	int video_width = rk_param_get_int("video.1:width", 640);
 	int video_height = rk_param_get_int("video.1:height", 480);
 	const char *video_device_name = rk_param_get_string("video.1:src_node", "rkisp_selfpath");
-	int buf_cnt = 2;
+	int buf_cnt = 1;
 	int ret = 0;
 
 	// VI init
