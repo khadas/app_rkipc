@@ -193,7 +193,7 @@ VOID tuya_ipc_sd_get_capacity(UINT_T *p_total, UINT_T *p_used, UINT_T *p_free) {
 CHAR_T *tuya_ipc_get_sd_mount_path(VOID) { return SD_MOUNT_PATH; }
 
 INT_T tuya_ipc_sd_status_upload(INT_T status) {
-	IPC_APP_report_sd_status_changed(status);
+	// IPC_APP_report_sd_status_changed(status);
 	return 0;
 }
 

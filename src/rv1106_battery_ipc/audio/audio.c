@@ -4,10 +4,12 @@
 #include "common.h"
 #include "log.h"
 #include "rtsp_demo.h"
+#include "tuya_ipc.h"
 
 #include <rk_debug.h>
 #include <rk_mpi_aenc.h>
 #include <rk_mpi_ai.h>
+#include <rk_mpi_ao.h>
 #include <rk_mpi_mb.h>
 #include <rk_mpi_sys.h>
 
@@ -378,6 +380,90 @@ int rkipc_aenc_deinit() {
 	return 0;
 }
 
+int rkipc_ao_init() {
+	int ret;
+	AIO_ATTR_S aoAttr;
+	memset(&aoAttr, 0, sizeof(AIO_ATTR_S));
+
+	const char *card_name = rk_param_get_string("audio.0:card_name", "default");
+	snprintf(aoAttr.u8CardName, sizeof(aoAttr.u8CardName), "%s", card_name);
+	LOG_INFO("aoAttr.u8CardName is %s\n", aoAttr.u8CardName);
+
+	aoAttr.soundCard.channels = 1;
+	aoAttr.soundCard.sampleRate = rk_param_get_int("audio.0:sample_rate", 8000);
+	aoAttr.soundCard.bitWidth = AUDIO_BIT_WIDTH_16;
+
+	aoAttr.enBitwidth = AUDIO_BIT_WIDTH_16;
+	aoAttr.enSamplerate = AUDIO_SAMPLE_RATE_8000; // tuya received must 8k
+	aoAttr.enSoundmode = AUDIO_SOUND_MODE_MONO;
+	aoAttr.u32FrmNum = 4;
+	aoAttr.u32PtNumPerFrm = 1024;
+	aoAttr.u32EXFlag = 0;
+	aoAttr.u32ChnCnt = 1;
+
+	ret = RK_MPI_AO_SetPubAttr(0, &aoAttr);
+	if (ret)
+		LOG_ERROR("RK_MPI_AO_SetPubAttr fail %#x\n", ret);
+	LOG_INFO("RK_MPI_AO_SetPubAttr success\n");
+	ret = RK_MPI_AO_Enable(0);
+	if (ret)
+		LOG_ERROR("RK_MPI_AO_Enable fail %#x\n", ret);
+	LOG_INFO("RK_MPI_AO_Enable success\n");
+	ret = RK_MPI_AO_EnableChn(0, 0);
+	if (ret)
+		LOG_ERROR("RK_MPI_AO_EnableChn fail %#x\n", ret);
+	LOG_INFO("RK_MPI_AO_EnableChn success\n");
+
+	ret = RK_MPI_AO_SetTrackMode(0, AUDIO_TRACK_OUT_STEREO);
+	if (ret)
+		LOG_ERROR("RK_MPI_AO_EnableChn fail %#x\n", ret);
+	LOG_INFO("RK_MPI_AO_EnableChn success\n");
+
+	return 0;
+}
+
+int rkipc_ao_deinit() {
+	int ret;
+	ret = RK_MPI_AO_DisableChn(0, 0);
+	if (ret)
+		LOG_ERROR("RK_MPI_AO_DisableChn fail %#x\n", ret);
+	ret = RK_MPI_AO_Disable(0);
+	if (ret)
+		LOG_ERROR("RK_MPI_AO_Disable fail %#x\n", ret);
+
+	return 0;
+}
+
+int rkipc_ao_write(unsigned char *data, int data_len) {
+	int ret;
+	AUDIO_FRAME_S frame;
+	MB_EXT_CONFIG_S extConfig;
+	if (data_len <= 0) {
+		LOG_INFO("eof");
+		return 0;
+	}
+
+	memset(&frame, 0, sizeof(frame));
+	frame.u32Len = data_len;
+	frame.u64TimeStamp = 0;
+	frame.enBitWidth = AUDIO_BIT_WIDTH_16;
+	frame.enSoundMode = AUDIO_SOUND_MODE_MONO;
+	frame.bBypassMbBlk = RK_FALSE;
+
+	memset(&extConfig, 0, sizeof(extConfig));
+	extConfig.pOpaque = data;
+	extConfig.pu8VirAddr = data;
+	extConfig.u64Size = data_len;
+	RK_MPI_SYS_CreateMB(&(frame.pMbBlk), &extConfig);
+
+	ret = RK_MPI_AO_SendFrame(0, 0, &frame, 1000);
+	if (ret)
+		LOG_ERROR("send frame fail, result = %#x\n", ret);
+	RK_MPI_MB_ReleaseMB(frame.pMbBlk);
+
+	return 0;
+}
+
 int rkipc_audio_init() {
 	LOG_DEBUG("%s\n", __func__);
 	int ret = rkipc_ai_init();
@@ -401,6 +487,11 @@ int rkipc_audio_init() {
 	rtsp_set_audio(g_rtsp_session_1, RTSP_CODEC_ID_AUDIO_G711A, NULL, 0);
 	rtsp_sync_audio_ts(g_rtsp_session_0, rtsp_get_reltime(), rtsp_get_ntptime());
 	rtsp_sync_audio_ts(g_rtsp_session_1, rtsp_get_reltime(), rtsp_get_ntptime());
+	if (rk_param_get_int("tuya:enable", 0)) {
+		rk_tuya_ao_create_register(rkipc_ao_init);
+		rk_tuya_ao_write_register(rkipc_ao_write);
+		rk_tuya_ao_destroy_register(rkipc_ao_deinit);
+	}
 
 	return ret;
 }
@@ -427,44 +518,3 @@ int rkipc_audio_deinit() {
 
 	return ret;
 }
-
-// int rk_ao_deinit() {
-// 	int ret;
-// 	ret = RK_MPI_AO_DisableChn(0, 0);
-// 	if (ret)
-// 		LOG_ERROR("RK_MPI_AO_DisableChn fail %#x\n", ret);
-// 	ret = RK_MPI_AO_Disable(0);
-// 	if (ret)
-// 		LOG_ERROR("RK_MPI_AO_Disable fail %#x\n", ret);
-
-// 	return 0;
-// }
-
-// int rk_ao_write(unsigned char *data, int data_len) {
-// 	int ret;
-// 	AUDIO_FRAME_S frame;
-// 	MB_EXT_CONFIG_S extConfig;
-// 	if (data_len <= 0) {
-// 		LOG_INFO("eof");
-// 		return 0;
-// 	}
-
-// 	memset(&frame, 0, sizeof(frame));
-// 	frame.u32Len = data_len;
-// 	frame.u64TimeStamp = 0;
-// 	frame.enBitWidth = AUDIO_BIT_WIDTH_16;
-// 	frame.enSoundMode = AUDIO_SOUND_MODE_MONO;
-// 	frame.bBypassMbBlk = RK_FALSE;
-
-// 	memset(&extConfig, 0, sizeof(extConfig));
-// 	extConfig.pu8VirAddr = data;
-// 	extConfig.u64Size = data_len;
-// 	RK_MPI_SYS_CreateMB(&(frame.pMbBlk), &extConfig);
-
-// 	ret = RK_MPI_AO_SendFrame(0, 0, &frame, 300);
-// 	if (ret < 0)
-// 		LOG_ERROR("send frame fail, result = %#x\n", ret);
-// 	RK_MPI_MB_ReleaseMB(frame.pMbBlk);
-
-// 	return 0;
-// }

@@ -190,7 +190,7 @@ OPERATE_RET tuya_adapter_wifi_assign_ap_scan(IN CONST CHAR_T *ssid, OUT AP_IF_S 
 	AP_IF_S *pTotalAp = NULL;
 	UINT_T tatalNum = 0;
 	int index = 0;
-	tuya_hal_wifi_all_ap_scan(&pTotalAp, &tatalNum);
+	// tuya_hal_wifi_all_ap_scan(&pTotalAp, &tatalNum);
 
 	*ap = NULL;
 

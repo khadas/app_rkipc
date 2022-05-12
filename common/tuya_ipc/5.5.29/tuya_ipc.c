@@ -61,8 +61,12 @@ STATIC VOID __depereated_online_cb(IN TRANSFER_ONLINE_E status) {
 	LOG_INFO("status is %d\n", status);
 }
 
-char ao_data[2048];
+unsigned char ao_data[2048];
 int TUYA_APP_Enable_Speaker_CB(int enable) {
+	if ((rk_tuya_ao_create_ == NULL) || (rk_tuya_ao_destroy_ == NULL)) {
+		LOG_ERROR("rk_tuya_ao_create_ or rk_tuya_ao_destroy_ is null\n");
+		return -1;
+	}
 	if (enable)
 		rk_tuya_ao_create_();
 	else
@@ -78,19 +82,18 @@ STATIC VOID __TUYA_APP_rev_audio_cb(IN CONST TRANSFER_AUDIO_FRAME_S *p_audio_fra
 	//           p_audio_frame->buf_len, p_audio_frame->audio_codec, p_audio_frame->audio_sample,
 	//           p_audio_frame->audio_databits, p_audio_frame->audio_channel);
 	int data_len;
-	// tuya_g711_decode(TUYA_G711_MU_LAW, p_audio_frame->p_audio_buf, p_audio_frame->buf_len,
-	// ao_data,
-	//                  &data_len);
-	// LOG_DEBUG("data_len is %d\n", data_len);
-	rk_tuya_ao_write_(&ao_data, data_len);
+	tuya_g711_decode(TUYA_G711_A_LAW, (unsigned short *)p_audio_frame->p_audio_buf,
+	                 p_audio_frame->buf_len, ao_data, &data_len);
+	// LOG_INFO("p_audio_frame->buf_len is %d, data_len is %d\n", p_audio_frame->buf_len, data_len);
+	rk_tuya_ao_write_(ao_data, data_len);
 }
 
 /* Callback functions for transporting events */
-STATIC VOID __TUYA_APP_p2p_event_cb(IN CONST TRANSFER_EVENT_E event, IN CONST PVOID_T args) {
+INT_T __TUYA_APP_p2p_event_cb(IN CONST TRANSFER_EVENT_E event, IN CONST PVOID_T args) {
 	LOG_INFO("p2p rev event cb=[%d]\n", event);
 	if (args == NULL) {
 		LOG_DEBUG("p2p rev event args null ");
-		return NULL;
+		return -1;
 	}
 	switch (event) {
 	case TRANS_LIVE_VIDEO_START: {
@@ -191,9 +194,13 @@ STATIC VOID __TUYA_APP_p2p_event_cb(IN CONST TRANSFER_EVENT_E event, IN CONST PV
 	default:
 		break;
 	}
+
+	return 0;
 }
 
 int rk_tuya_low_power_enable() {
+	// TODO: 5.x SDK需要基于官网文档重新适配
+
 	LOG_INFO("tuya low power mode enable\n");
 	BOOL_T doorStat = FALSE;
 	int ret = 0;
@@ -208,11 +215,11 @@ int rk_tuya_low_power_enable() {
 		LOG_ERROR("dp report failed\n");
 		return ret;
 	}
-	ret = tuya_ipc_book_wakeup_topic();
-	if (OPRT_OK != ret) {
-		LOG_ERROR("tuya_ipc_book_wakeup_topic failed\n");
-		return ret;
-	}
+	// ret = tuya_ipc_book_wakeup_topic();
+	// if (OPRT_OK != ret) {
+	// 	LOG_ERROR("tuya_ipc_book_wakeup_topic failed\n");
+	// 	return ret;
+	// }
 
 	// Get fd for server to wakeup
 	s_mqtt_socket_fd = tuya_ipc_low_power_socket_fd_get();
@@ -416,10 +423,10 @@ OPERATE_RET TUYA_APP_Enable_P2PTransfer(IN TUYA_IPC_SDK_P2P_S *p2p_infos) {
 	p2p_var.online_cb = __depereated_online_cb;
 	p2p_var.on_rev_audio_cb = p2p_infos->rev_audio_cb;
 	/*speak data format  app->ipc*/
-	p2p_var.rev_audio_codec = TUYA_CODEC_AUDIO_G711U;
-	p2p_var.audio_sample = TUYA_AUDIO_SAMPLE_8K;
-	p2p_var.audio_databits = TUYA_AUDIO_DATABITS_16;
-	p2p_var.audio_channel = TUYA_AUDIO_CHANNEL_MONO;
+	p2p_var.rev_audio_codec = p_media_info->audio_codec[E_IPC_STREAM_AUDIO_MAIN];
+	p2p_var.audio_sample = p_media_info->audio_sample[E_IPC_STREAM_AUDIO_MAIN];
+	p2p_var.audio_databits = p_media_info->audio_databits[E_IPC_STREAM_AUDIO_MAIN];
+	p2p_var.audio_channel = p_media_info->audio_channel[E_IPC_STREAM_AUDIO_MAIN];
 	/*end*/
 	p2p_var.on_event_cb = p2p_infos->transfer_event_cb;
 	p2p_var.live_quality = TRANS_LIVE_QUALITY_MAX;
@@ -754,7 +761,7 @@ OPERATE_RET TUYA_IPC_SDK_START(WIFI_INIT_MODE_E connect_mode, CHAR_T *p_token) {
 		LOG_INFO("vendor_data is %s\n", vendor_data);
 		token = strtok(vendor_data, "\"");
 		while (token != NULL) {
-			LOG_INFO("%s\n", token);
+			LOG_DEBUG("%s\n", token);
 			token = strtok(NULL, "\"");
 			if (index == 2)
 				strcpy(ipc_sdk_run_var.iot_info.product_key, token);

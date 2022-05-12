@@ -224,7 +224,7 @@ int rk_aenc_deinit() {
 	return 0;
 }
 
-int rk_ao_init() {
+int rkipc_ao_init() {
 	int ret;
 	AIO_ATTR_S aoAttr;
 	memset(&aoAttr, 0, sizeof(AIO_ATTR_S));
@@ -262,7 +262,7 @@ int rk_ao_init() {
 	return 0;
 }
 
-int rk_ao_deinit() {
+int rkipc_ao_deinit() {
 	int ret;
 	ret = RK_MPI_AO_DisableChn(0, 0);
 	if (ret)
@@ -274,7 +274,7 @@ int rk_ao_deinit() {
 	return 0;
 }
 
-int rk_ao_write(unsigned char *data, int data_len) {
+int rkipc_ao_write(unsigned char *data, int data_len) {
 	int ret;
 	AUDIO_FRAME_S frame;
 	MB_EXT_CONFIG_S extConfig;
@@ -321,9 +321,9 @@ int rk_audio_init() {
 		LOG_ERROR("RK_MPI_SYS_Bind fail %x\n", ret);
 	}
 	LOG_INFO("RK_MPI_SYS_Bind success\n");
-	rk_tuya_ao_create_register(rk_ao_init);
-	rk_tuya_ao_write_register(rk_ao_write);
-	rk_tuya_ao_destroy_register(rk_ao_deinit);
+	rk_tuya_ao_create_register(rkipc_ao_init);
+	rk_tuya_ao_write_register(rkipc_ao_write);
+	rk_tuya_ao_destroy_register(rkipc_ao_deinit);
 
 	return ret;
 }
