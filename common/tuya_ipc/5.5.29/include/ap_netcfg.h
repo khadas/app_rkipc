@@ -25,7 +25,6 @@ typedef OPERATE_RET (*AP_CFG_FINISH_CB)(IN CONST CHAR_T *ssid, IN CONST CHAR_T *
         input:
         out:
     return:
-        
 */
 int wifi_ap_netcfg_start(FN_NETCFG_CB cb, void *args, int type);
 

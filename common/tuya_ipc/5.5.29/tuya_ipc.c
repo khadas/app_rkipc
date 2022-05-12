@@ -733,9 +733,41 @@ OPERATE_RET TUYA_IPC_SDK_START(WIFI_INIT_MODE_E connect_mode, CHAR_T *p_token) {
 
 	memset(&ipc_sdk_run_var, 0, sizeof(ipc_sdk_run_var));
 	/*certification information(essential)*/
-	strcpy(ipc_sdk_run_var.iot_info.product_key, "4wrrx6gmxh1czhcv");
-	strcpy(ipc_sdk_run_var.iot_info.uuid, "tuya943c2c4f36a4217c");
-	strcpy(ipc_sdk_run_var.iot_info.auth_key, "WZUXGSw3Mf0D8C1699rD0Tqi4JUO1M3B");
+	if (rk_param_get_int("tuya:use_ini_key", 0)) {
+		const char *value;
+		value = rk_param_get_string("tuya:product_key", NULL);
+		strcpy(ipc_sdk_run_var.iot_info.product_key, value);
+		value = rk_param_get_string("tuya:uuid", NULL);
+		strcpy(ipc_sdk_run_var.iot_info.uuid, value);
+		value = rk_param_get_string("tuya:auth_key", NULL);
+		strcpy(ipc_sdk_run_var.iot_info.auth_key, value);
+	} else {
+		int index = 0;
+		char *token;
+		char vendor_data[256] = {0};
+		if (rkvendor_read(VENDOR_TUYA_LICENSE_ID, vendor_data,
+		                  sizeof(vendor_data) / sizeof(vendor_data[0]))) {
+			LOG_INFO("rkvendor_read fail\n");
+			system("aplay /etc/no_key.wav &");
+			return -1;
+		}
+		LOG_INFO("vendor_data is %s\n", vendor_data);
+		token = strtok(vendor_data, "\"");
+		while (token != NULL) {
+			LOG_INFO("%s\n", token);
+			token = strtok(NULL, "\"");
+			if (index == 2)
+				strcpy(ipc_sdk_run_var.iot_info.product_key, token);
+			if (index == 6)
+				strcpy(ipc_sdk_run_var.iot_info.uuid, token);
+			if (index == 10)
+				strcpy(ipc_sdk_run_var.iot_info.auth_key, token);
+			index++;
+		}
+	}
+	LOG_INFO("product_key is %s, uuid is %s, auth_key is %s\n",
+	         ipc_sdk_run_var.iot_info.product_key, ipc_sdk_run_var.iot_info.uuid,
+	         ipc_sdk_run_var.iot_info.auth_key);
 	strcpy(ipc_sdk_run_var.iot_info.dev_sw_version, IPC_APP_VERSION);
 	strcpy(ipc_sdk_run_var.iot_info.cfg_storage_path, IPC_APP_STORAGE_PATH);
 
