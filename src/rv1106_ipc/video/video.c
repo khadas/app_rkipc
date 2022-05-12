@@ -199,8 +199,8 @@ static void *rkipc_get_vi_1(void *arg) {
 		ret = RK_MPI_VI_GetChnFrame(pipe_id_, VIDEO_PIPE_1, &stViFrame, 1000);
 		if (ret == RK_SUCCESS) {
 			uint64_t phy_data = RK_MPI_MB_Handle2PhysAddr(stViFrame.stVFrame.pMbBlk);
-			LOG_DEBUG("phy_data %p, loop:%d pts:%" PRId64 " ms\n", phy_data, loopCount,
-			          stViFrame.stVFrame.u64PTS / 1000);
+			// LOG_DEBUG("phy_data %p, loop:%d pts:%" PRId64 " ms\n", phy_data, loopCount,
+			//           stViFrame.stVFrame.u64PTS / 1000);
 
 			ret = rkipc_rknn_object_get(&ba_result);
 			if ((!ret && ba_result.objNum) ||
@@ -1798,7 +1798,7 @@ int rk_video_set_frame_rate_in(int stream_id, const char *value) {
 }
 
 int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
-	LOG_INFO("id is %d\n", id);
+	LOG_DEBUG("id is %d\n", id);
 	int ret = 0;
 	RGN_HANDLE coverHandle = id;
 	RGN_ATTR_S stCoverAttr;
@@ -1827,7 +1827,7 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 	stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y = osd_data->origin_y;
 	stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width = osd_data->width;
 	stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height = osd_data->height;
-	stCoverChnAttr.unChnAttr.stCoverChn.u32Color = 0xffffff;
+	stCoverChnAttr.unChnAttr.stCoverChn.u32Color = 0xffffffff;
 	stCoverChnAttr.unChnAttr.stCoverChn.u32Layer = id;
 	LOG_DEBUG("cover region to chn success\n");
 	if (enable_venc_0) {
@@ -1839,12 +1839,13 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 		}
 		ret = RK_MPI_RGN_SetDisplayAttr(coverHandle, &stCoverChn, &stCoverChnAttr);
 		if (RK_SUCCESS != ret) {
-			LOG_ERROR("0 RK_MPI_RGN_SetDisplayAttr failed with %#x!", ret);
+			LOG_ERROR("0 RK_MPI_RGN_SetDisplayAttr failed with %#x\n", ret);
 			return RK_FAILURE;
 		}
-		LOG_DEBUG("RK_MPI_RGN_AttachToChn to venc0 success\n");
+		LOG_DEBUG("RK_MPI_RGN_AttachToChn to vi 0 success\n");
 	}
 	if (enable_venc_1) {
+		stCoverChn.s32ChnId = 1;
 		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X =
 		    UPALIGNTO16(osd_data->origin_x * rk_param_get_int("video.1:width", 1) /
 		                rk_param_get_int("video.0:width", 1));
@@ -1857,7 +1858,6 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height =
 		    UPALIGNTO16(osd_data->height * rk_param_get_int("video.1:height", 1) /
 		                rk_param_get_int("video.0:height", 1));
-		stCoverChn.s32ChnId = 1;
 		ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
 		if (RK_SUCCESS != ret) {
 			LOG_ERROR("1 RK_MPI_RGN_AttachToChn (%d) failed with %#x\n", coverHandle, ret);
@@ -1865,10 +1865,10 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 		}
 		ret = RK_MPI_RGN_SetDisplayAttr(coverHandle, &stCoverChn, &stCoverChnAttr);
 		if (RK_SUCCESS != ret) {
-			LOG_ERROR("1 RK_MPI_RGN_SetDisplayAttr failed with %#x!", ret);
+			LOG_ERROR("1 RK_MPI_RGN_SetDisplayAttr failed with %#x\n", ret);
 			return RK_FAILURE;
 		}
-		LOG_DEBUG("RK_MPI_RGN_AttachToChn to venc1 success\n");
+		LOG_DEBUG("RK_MPI_RGN_AttachToChn to vi 1 success\n");
 	}
 
 	return ret;
@@ -1880,25 +1880,26 @@ int rkipc_osd_cover_destroy(int id) {
 	// Detach osd from chn
 	MPP_CHN_S stMppChn;
 	RGN_HANDLE RgnHandle = id;
-	stMppChn.enModId = RK_ID_VENC;
+
+	stMppChn.enModId = RK_ID_VI;
 	stMppChn.s32DevId = 0;
 	if (enable_venc_0) {
 		stMppChn.s32ChnId = 0;
 		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 		if (RK_SUCCESS != ret) {
-			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc0 failed with %#x\n", RgnHandle, ret);
+			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to vi 0 failed with %#x\n", RgnHandle, ret);
 			return RK_FAILURE;
 		}
-		LOG_DEBUG("RK_MPI_RGN_DetachFromChn to venc0 success\n");
+		LOG_DEBUG("RK_MPI_RGN_DetachFromChn to vi 0 success\n");
 	}
 	if (enable_venc_1) {
 		stMppChn.s32ChnId = 1;
 		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 		if (RK_SUCCESS != ret) {
-			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc1 failed with %#x\n", RgnHandle, ret);
+			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to vi 1 failed with %#x\n", RgnHandle, ret);
 			return RK_FAILURE;
 		}
-		LOG_DEBUG("RK_MPI_RGN_DetachFromChn to venc1 success\n");
+		LOG_DEBUG("RK_MPI_RGN_DetachFromChn to vi 1 success\n");
 	}
 
 	// destory region

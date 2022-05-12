@@ -401,6 +401,10 @@ int rk_osd_deinit() {
 		osd_type = rk_param_get_string(entry, NULL);
 		if (osd_type == NULL)
 			continue;
+		// Because enable has been set to 0, after skipping here, the destroy will also be skipped
+		// snprintf(entry, 127, "osd.%d:enabled", i);
+		// if (rk_param_get_int(entry, 0) == 0)
+		// 	continue;
 		LOG_DEBUG("i is %d, osd_type is %s\n", i, osd_type);
 
 		if (!strcmp(osd_type, "channelName")) {
