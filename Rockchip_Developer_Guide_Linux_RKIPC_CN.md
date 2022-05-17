@@ -2,9 +2,9 @@
 
 文件标识：TODO
 
-发布版本：V0.9.0
+发布版本：V1.0.0
 
-日期：2022-05-16
+日期：2022-05-19
 
 文件密级：□绝密   □秘密   □内部资料   ■公开
 
@@ -73,6 +73,7 @@ Rockchip Electronics Co., Ltd.
 | V0.7.0     | 林刘迪铭 | 2022-05-05   | 更新RV1106电池类IPC框图 |
 | V0.8.0     | 林刘迪铭 | 2022-05-11   | 添加ini参数说明         |
 | V0.9.0     | 林刘迪铭 | 2022-05-16   | 修改RV1106 IPC框图      |
+| V1.0.0     | 林刘迪铭 | 2022-05-19   | 调试ini中的isp相关参数  |
 
 ---
 
@@ -853,6 +854,7 @@ enable_aed = 0 ; 是否使能声音检测
 enable_bcd = 0 ; 是否使能哭声检测
 enable_vqe = 1 ; 是否使能音频3A算法
 vqe_cfg = /oem/usr/share/vqefiles/config_aivqe.json ; 音频3A算法配置文件路径
+rt_audio_period_size = 1024 ; 音频period_size
 ```
 
 ### 视频模块
@@ -900,11 +902,27 @@ h264_profile = high ; h264的profile
 gop = 50 ; I帧间隔
 tsvc = close ; 是否开启分层编码
 stream_smooth = 50 ; 码流平滑度，目前未使用
+
+[video.1]
+input_buffer_count = 1 ; 输入buffer个数，1106比较特殊，子码流支持单个buffer
 ```
 
 ### ISP模块
 
+isp.0中的0代表场景编号，场景编号scenario_id = cam_id * MAX_SCENARIO_NUM + current_scenario_id。例如：当MAX_SCENARIO_NUM为2时，摄像头0的场景2，编号为`0*2+2=2`，摄像头2的场景1，编号为`2*2+1=5`
+
+init_form_ini主要用于IQ调试，值为0时，不会读取ini的参数进行初始化，实际生效的是IQ文件的参数。
+
+
+
 ```ini
+[isp]
+scenario = normal ; normal or custom1
+init_form_ini = 1 ; 是否使用ini参数覆盖IQ参数进行初始化
+normal_scene = day ; 对应IQ文件中第一个场景的sub_scene字段
+custom1_scene = night ; 对应IQ文件中第二个场景的sub_scene字段
+
+; isp.0
 [isp.0.adjustment]
 contrast    = 50 ; 对比度
 brightness  = 50 ; 亮度

@@ -100,7 +100,8 @@ int main(int argc, char **argv) {
 	if (rk_param_get_int("video.source:enable_aiq", 1)) {
 		rk_isp_init(0, rkipc_iq_file_path_);
 		rk_isp_set_frame_rate(0, rk_param_get_int("isp.0.adjustment:fps", 30));
-		rk_isp_set_from_ini(0);
+		if (rk_param_get_int("isp:init_form_ini", 1))
+			rk_isp_set_from_ini(0);
 	}
 	if (rk_param_get_int("video.source:enable_npu", 0))
 		rkipc_rockiva_init();

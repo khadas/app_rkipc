@@ -360,7 +360,7 @@ static void *rkipc_get_jpeg(void *arg) {
 			struct tm tm = *localtime(&t);
 			snprintf(file_name, 128, "%s/%d%02d%02d%02d%02d%02d.jpeg", file_path, tm.tm_year + 1900,
 			         tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-			LOG_INFO("file_name is %s, u32Len is %d\n", file_name,stFrame.pstPack->u32Len);
+			LOG_INFO("file_name is %s, u32Len is %d\n", file_name, stFrame.pstPack->u32Len);
 			FILE *fp = fopen(file_name, "wb");
 			if (fp == NULL) {
 				LOG_ERROR("fp is NULL\n");
@@ -768,7 +768,8 @@ int rkipc_pipe_0_init() {
 	memset(&stVencChnBufWrap, 0, sizeof(stVencChnBufWrap));
 	if (enable_wrap) {
 		stVencChnBufWrap.bEnable = enable_wrap;
-		stVencChnBufWrap.u32BufLine = rk_param_get_int("video.source:buffer_line", video_height / 4);
+		stVencChnBufWrap.u32BufLine =
+		    rk_param_get_int("video.source:buffer_line", video_height / 4);
 		RK_MPI_VENC_SetChnBufWrapAttr(VIDEO_PIPE_0, &stVencChnBufWrap);
 	}
 
@@ -1320,7 +1321,8 @@ int rkipc_pipe_3_init() {
 	memset(&stVencChnBufWrap, 0, sizeof(stVencChnBufWrap));
 	if (enable_wrap) {
 		stVencChnBufWrap.bEnable = enable_wrap;
-		stVencChnBufWrap.u32BufLine = rk_param_get_int("video.source:buffer_line", video_height / 4);
+		stVencChnBufWrap.u32BufLine =
+		    rk_param_get_int("video.source:buffer_line", video_height / 4);
 		RK_MPI_VENC_SetChnBufWrapAttr(JPEG_VENC_CHN, &stVencChnBufWrap);
 	}
 
@@ -2477,7 +2479,8 @@ int rk_video_restart() {
 		ret |= rk_isp_deinit(0);
 	if (rk_param_get_int("video.source:enable_aiq", 1)) {
 		ret |= rk_isp_init(0, rkipc_iq_file_path_);
-		ret |= rk_isp_set_from_ini(0);
+		if (rk_param_get_int("isp:init_form_ini", 1))
+			ret |= rk_isp_set_from_ini(0);
 	}
 	ret |= rk_video_init();
 	if (rk_param_get_int("audio.0:enable", 0))

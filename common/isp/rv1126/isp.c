@@ -105,6 +105,20 @@ int rk_isp_set_frame_rate(int cam_id, int uFps) {
 	return ret;
 }
 
+// isp scenario
+
+int rk_isp_get_scenario(int cam_id, const char **value) {
+	*value = rk_param_get_string("isp:scenario", NULL);
+
+	return 0;
+}
+
+int rk_isp_set_scenario(int cam_id, const char *value) {
+	rk_param_set_string("isp:scenario", value);
+
+	return 0;
+}
+
 // image adjustment
 
 int rk_isp_get_contrast(int cam_id, int *value) {

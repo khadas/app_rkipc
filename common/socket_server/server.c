@@ -107,6 +107,52 @@ int ser_rk_audio_set(int fd) {
 	return 0;
 }
 
+// isp scenario
+int ser_rk_isp_get_scenario(int fd) {
+	int err = 0;
+	int id, len;
+	const char *value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_isp_get_scenario(id, &value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_isp_set_scenario(int fd) {
+	int ret = 0;
+	int id, len;
+	char *value = NULL;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_INFO("id is %d, value is %s\n", id, value);
+		ret = rk_isp_set_scenario(id, value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
+
+	return 0;
+}
+
 // isp adjustment
 
 int ser_rk_isp_get_contrast(int fd) {
@@ -4910,6 +4956,9 @@ static const struct FunMap map[] = {
     {(char *)"rk_isp_set", &ser_rk_isp_set},
     {(char *)"rk_video_set", &ser_rk_video_set},
     {(char *)"rk_audio_set", &ser_rk_audio_set},
+    // isp scenario
+    {(char *)"rk_isp_get_scenario", &ser_rk_isp_get_scenario},
+    {(char *)"rk_isp_set_scenario", &ser_rk_isp_set_scenario},
     // isp adjustment
     {(char *)"rk_isp_get_contrast", &ser_rk_isp_get_contrast},
     {(char *)"rk_isp_set_contrast", &ser_rk_isp_set_contrast},
