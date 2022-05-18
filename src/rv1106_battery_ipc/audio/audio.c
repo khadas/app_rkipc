@@ -266,8 +266,8 @@ int rkipc_ai_init() {
 	aiAttr.u32FrmNum = 4;
 	aiAttr.u32PtNumPerFrm = rk_param_get_int("audio.0:frame_size", 1024);
 	aiAttr.u32EXFlag = 0;
-	aiAttr.u32ChnCnt = rk_param_get_int("audio.0:channels", 2);
-	if (aiAttr.u32ChnCnt == 2)
+	aiAttr.u32ChnCnt = 2;
+	if (rk_param_get_int("audio.0:channels", 2) == 2)
 		aiAttr.enSoundmode = AUDIO_SOUND_MODE_STEREO;
 	else
 		aiAttr.enSoundmode = AUDIO_SOUND_MODE_MONO;
@@ -311,7 +311,9 @@ int rkipc_ai_init() {
 	// }
 
 	// RK_MPI_AI_SetVolume(ai_dev_id, rk_param_get_int("audio.0:volume", 50));
-	// RK_MPI_AI_SetTrackMode(ai_dev_id, AUDIO_TRACK_FRONT_LEFT);
+	if (rk_param_get_int("audio.0:channels", 2) == 1) {
+		RK_MPI_AI_SetTrackMode(ai_dev_id, AUDIO_TRACK_FRONT_LEFT);
+	}
 
 	// pthread_create(&save_ai_tid, RK_NULL, save_ai_thread, NULL);
 
