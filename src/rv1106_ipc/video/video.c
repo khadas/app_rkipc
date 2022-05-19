@@ -708,8 +708,14 @@ int rkipc_pipe_0_init() {
 	// venc_chn_attr.stVencAttr.u32Depth = 1;
 	ret = RK_MPI_VENC_CreateChn(VIDEO_PIPE_0, &venc_chn_attr);
 	if (ret) {
-		LOG_ERROR("ERROR: create VENC error! ret=%d\n", ret);
+		LOG_ERROR("ERROR: create VENC error! ret=%#x\n", ret);
 		return -1;
+	}
+
+	if (rk_param_get_int("video.0:enable_motion_deblur", 0)) {
+		ret = RK_MPI_VENC_EnableMotionDeblur(VIDEO_PIPE_0, true);
+		if (ret)
+			LOG_ERROR("RK_MPI_VENC_EnableMotionDeblur error! ret=%#x\n", ret);
 	}
 
 	// VENC_RC_PARAM_S h265_RcParam;
@@ -962,8 +968,14 @@ int rkipc_pipe_1_init() {
 	// venc_chn_attr.stVencAttr.u32Depth = 1;
 	ret = RK_MPI_VENC_CreateChn(VIDEO_PIPE_1, &venc_chn_attr);
 	if (ret) {
-		LOG_ERROR("ERROR: create VENC error! ret=%d\n", ret);
+		LOG_ERROR("ERROR: create VENC error! ret=%#x\n", ret);
 		return -1;
+	}
+
+	if (rk_param_get_int("video.1:enable_motion_deblur", 0)) {
+		ret = RK_MPI_VENC_EnableMotionDeblur(VIDEO_PIPE_1, true);
+		if (ret)
+			LOG_ERROR("RK_MPI_VENC_EnableMotionDeblur error! ret=%#x\n", ret);
 	}
 
 	tmp_rc_quality = rk_param_get_string("video.1:rc_quality", NULL);
