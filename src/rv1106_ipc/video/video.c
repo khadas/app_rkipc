@@ -360,7 +360,7 @@ static void *rkipc_get_jpeg(void *arg) {
 			struct tm tm = *localtime(&t);
 			snprintf(file_name, 128, "%s/%d%02d%02d%02d%02d%02d.jpeg", file_path, tm.tm_year + 1900,
 			         tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-			LOG_INFO("file_name is %s\n", file_name);
+			LOG_INFO("file_name is %s, u32Len is %d\n", file_name,stFrame.pstPack->u32Len);
 			FILE *fp = fopen(file_name, "wb");
 			if (fp == NULL) {
 				LOG_ERROR("fp is NULL\n");
@@ -1320,6 +1320,7 @@ int rkipc_pipe_3_init() {
 	memset(&stVencChnBufWrap, 0, sizeof(stVencChnBufWrap));
 	if (enable_wrap) {
 		stVencChnBufWrap.bEnable = enable_wrap;
+		stVencChnBufWrap.u32BufLine = rk_param_get_int("video.source:buffer_line", video_height / 4);
 		RK_MPI_VENC_SetChnBufWrapAttr(JPEG_VENC_CHN, &stVencChnBufWrap);
 	}
 
@@ -2434,8 +2435,10 @@ int rk_video_deinit() {
 	LOG_DEBUG("%s\n", __func__);
 	g_video_run_ = 0;
 	int ret = 0;
-	if (enable_npu)
+	if (enable_npu) {
+		ret |= rkipc_osd_draw_nn_deinit();
 		ret |= rkipc_vpss_bgr_deinit();
+	}
 	// rk_region_clip_set_callback_register(NULL);
 	rk_roi_set_callback_register(NULL);
 	if (enable_osd)
