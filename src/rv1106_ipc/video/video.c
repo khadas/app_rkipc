@@ -1291,7 +1291,7 @@ int rkipc_pipe_3_init() {
 	// VENC[3] init
 	VENC_CHN_ATTR_S jpeg_chn_attr;
 	memset(&jpeg_chn_attr, 0, sizeof(jpeg_chn_attr));
-	jpeg_chn_attr.stVencAttr.enType = RK_VIDEO_ID_MJPEG;
+	jpeg_chn_attr.stVencAttr.enType = RK_VIDEO_ID_JPEG;
 	jpeg_chn_attr.stVencAttr.enPixelFormat = RK_FMT_YUV420SP;
 	jpeg_chn_attr.stVencAttr.u32PicWidth = video_width;
 	jpeg_chn_attr.stVencAttr.u32PicHeight = video_height;
@@ -1299,13 +1299,6 @@ int rkipc_pipe_3_init() {
 	jpeg_chn_attr.stVencAttr.u32VirHeight = video_height;
 	jpeg_chn_attr.stVencAttr.u32StreamBufCnt = 1;
 	jpeg_chn_attr.stVencAttr.u32BufSize = rk_param_get_int("video.source:jpeg_buffer_size", 204800);
-
-	jpeg_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_MJPEGCBR;
-	jpeg_chn_attr.stRcAttr.stMjpegCbr.u32BitRate = rk_param_get_int("video.0:max_rate", -1);
-	jpeg_chn_attr.stRcAttr.stMjpegCbr.fr32DstFrameRateDen = 1;
-	jpeg_chn_attr.stRcAttr.stMjpegCbr.fr32DstFrameRateNum = 1;
-	jpeg_chn_attr.stRcAttr.stMjpegCbr.u32SrcFrameRateDen = 1;
-	jpeg_chn_attr.stRcAttr.stMjpegCbr.u32SrcFrameRateNum = 1;
 	// jpeg_chn_attr.stVencAttr.u32Depth = 1;
 	ret = RK_MPI_VENC_CreateChn(JPEG_VENC_CHN, &jpeg_chn_attr);
 	if (ret) {
@@ -1314,7 +1307,7 @@ int rkipc_pipe_3_init() {
 	}
 	VENC_JPEG_PARAM_S stJpegParam;
 	memset(&stJpegParam, 0, sizeof(stJpegParam));
-	stJpegParam.u32Qfactor = 95;
+	stJpegParam.u32Qfactor = rk_param_get_int("video.source:jpeg_qfactor", 70);
 	RK_MPI_VENC_SetJpegParam(JPEG_VENC_CHN, &stJpegParam);
 
 	VENC_CHN_BUF_WRAP_S stVencChnBufWrap;
