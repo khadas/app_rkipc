@@ -1061,9 +1061,13 @@ int rk_isp_get_dehaze_level(int cam_id, int *value) {
 int rk_isp_set_dehaze_level(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "isp.%d.enhancement:dehaze", cam_id);
+	const char *mode = rk_param_get_string(entry, "close");
+	if (!strcmp(mode, "close"))
+		return 0;
 
 	ret = rk_aiq_uapi2_setMDehazeStrth(rkipc_aiq_get_ctx(cam_id), value);
-	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.enhancement:dehaze_level", rkipc_get_scenario_id(cam_id));
 	rk_param_set_int(entry, value);
 
