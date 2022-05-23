@@ -1944,11 +1944,6 @@ int rk_video_set_resolution(int stream_id, const char *value) {
 		ret = RK_MPI_VENC_SetChnAttr(JPEG_VENC_CHN, &venc_chn_attr);
 		if (ret)
 			LOG_ERROR("JPEG RK_MPI_VENC_SetChnAttr error! ret=%#x\n", ret);
-		VENC_COMBO_ATTR_S stComboAttr;
-		memset(&stComboAttr, 0, sizeof(VENC_COMBO_ATTR_S));
-		stComboAttr.bEnable = RK_TRUE;
-		stComboAttr.s32ChnId = VIDEO_PIPE_0;
-		RK_MPI_VENC_SetComboAttr(JPEG_VENC_CHN, &stComboAttr);
 	}
 
 	VI_CHN_ATTR_S vi_chn_attr;
