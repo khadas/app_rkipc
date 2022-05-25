@@ -110,8 +110,6 @@ rcS
 
 ulimit -c unlimited
 echo "/data/core-%p-%e" > /proc/sys/kernel/core_pattern
-io -4 0xff150008 0x303
-io -4 0xff140088 0x2
 # echo 0 > /sys/devices/platform/rkcif-mipi-lvds/is_use_dummybuf
 
 echo 1 > /proc/sys/vm/overcommit_memory
