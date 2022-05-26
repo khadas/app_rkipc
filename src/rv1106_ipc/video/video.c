@@ -106,7 +106,7 @@ static void *get_vi_send_vo(void *arg) {
 
 static void *rkipc_get_venc_0(void *arg) {
 	LOG_DEBUG("#Start %s thread, arg:%p\n", __func__, arg);
-	prctl(PR_SET_NAME, "rkipc_get_venc_0", 0, 0, 0);
+	prctl(PR_SET_NAME, "RkipcVenc0", 0, 0, 0);
 	VENC_STREAM_S stFrame;
 	VI_CHN_STATUS_S stChnStatus;
 	int loopCount = 0;
@@ -181,7 +181,7 @@ static int rga_nv12_border(rga_buffer_t buf, int x, int y, int width, int height
 
 static void *rkipc_get_vi_draw_send_venc(void *arg) {
 	LOG_DEBUG("#Start %s thread, arg:%p\n", __func__, arg);
-	prctl(PR_SET_NAME, "rkipc_get_vi_draw_send_venc", 0, 0, 0);
+	prctl(PR_SET_NAME, "RkipcVi2Venc", 0, 0, 0);
 	VIDEO_FRAME_INFO_S stViFrame;
 	VI_CHN_STATUS_S stChnStatus;
 	int loopCount = 0;
@@ -274,7 +274,7 @@ static void *rkipc_get_vi_draw_send_venc(void *arg) {
 
 static void *rkipc_get_venc_1(void *arg) {
 	LOG_DEBUG("#Start %s thread, arg:%p\n", __func__, arg);
-	prctl(PR_SET_NAME, "rkipc_get_venc_1", 0, 0, 0);
+	prctl(PR_SET_NAME, "RkipcVenc1", 0, 0, 0);
 	VENC_STREAM_S stFrame;
 	VI_CHN_STATUS_S stChnStatus;
 	int loopCount = 0;
@@ -329,7 +329,7 @@ static void *rkipc_get_venc_1(void *arg) {
 
 static void *rkipc_get_jpeg(void *arg) {
 	LOG_DEBUG("#Start %s thread, arg:%p\n", __func__, arg);
-	prctl(PR_SET_NAME, "rkipc_get_jpeg", 0, 0, 0);
+	prctl(PR_SET_NAME, "RkipcGetJpeg", 0, 0, 0);
 	VENC_STREAM_S stFrame;
 	VI_CHN_STATUS_S stChnStatus;
 	int loopCount = 0;
@@ -391,7 +391,7 @@ static void *rkipc_get_jpeg(void *arg) {
 
 static void *rkipc_cycle_snapshot(void *arg) {
 	LOG_DEBUG("#Start %s thread, arg:%p\n", __func__, arg);
-	prctl(PR_SET_NAME, "rkipc_cycle_snapshot", 0, 0, 0);
+	prctl(PR_SET_NAME, "RkipcCycleSnapshot", 0, 0, 0);
 	int snapshot_interval_ms = rk_param_get_int("video.source:snapshot_interval_ms", 1000);
 	const char *mount_path = rk_param_get_string("storage:mount_path", "/userdata");
 	char cmd[128] = {'\0'};
@@ -408,7 +408,7 @@ static void *rkipc_cycle_snapshot(void *arg) {
 
 static void *rkipc_get_vpss_bgr(void *arg) {
 	LOG_DEBUG("#Start %s thread, arg:%p\n", __func__, arg);
-	prctl(PR_SET_NAME, "rkipc_get_vpss_bgr", 0, 0, 0);
+	prctl(PR_SET_NAME, "RkipcGetVpssBgr", 0, 0, 0);
 	VIDEO_FRAME_INFO_S frame;
 	VI_CHN_STATUS_S stChnStatus;
 	int32_t loopCount = 0;
@@ -1407,7 +1407,7 @@ RK_S32 draw_rect_2bpp(RK_U8 *buffer, RK_U32 width, RK_U32 height, int rgn_x, int
 
 static void *rkipc_get_nn_update_osd(void *arg) {
 	LOG_DEBUG("#Start %s thread, arg:%p\n", __func__, arg);
-	prctl(PR_SET_NAME, "rkipc_get_nn_update_osd", 0, 0, 0);
+	prctl(PR_SET_NAME, "RkipcNpuOsd", 0, 0, 0);
 
 	int ret = 0;
 	int line_pixel = 1;
