@@ -4,3 +4,15 @@
 int rkipc_audio_rtsp_init();
 int rkipc_audio_init();
 int rkipc_audio_deinit();
+// export api
+int rk_audio_restart();
+int rk_audio_get_bit_rate(int stream_id, int *value);
+int rk_audio_set_bit_rate(int stream_id, int value);
+int rk_audio_get_sample_rate(int stream_id, int *value);
+int rk_audio_set_sample_rate(int stream_id, int value);
+int rk_audio_get_volume(int stream_id, int *value);
+int rk_audio_set_volume(int stream_id, int value);
+int rk_audio_get_enable_vqe(int stream_id, int *value);
+int rk_audio_set_enable_vqe(int stream_id, int value);
+int rk_audio_get_encode_type(int stream_id, const char **value);
+int rk_audio_set_encode_type(int stream_id, const char *value);

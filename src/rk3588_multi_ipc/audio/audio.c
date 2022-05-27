@@ -259,3 +259,93 @@ int rkipc_audio_deinit() {
 
 	return ret;
 }
+
+// export api
+
+int rk_audio_restart() {
+	int ret;
+	ret |= rkipc_audio_deinit();
+	ret |= rkipc_audio_init();
+
+	return ret;
+}
+
+int rk_audio_get_bit_rate(int stream_id, int *value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "audio.%d:bit_rate", stream_id);
+	*value = rk_param_get_int(entry, 16000);
+
+	return 0;
+}
+
+int rk_audio_set_bit_rate(int stream_id, int value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "audio.%d:bit_rate", stream_id);
+	rk_param_set_int(entry, value);
+
+	return 0;
+}
+
+int rk_audio_get_sample_rate(int stream_id, int *value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "audio.%d:sample_rate", stream_id);
+	*value = rk_param_get_int(entry, 8000);
+
+	return 0;
+}
+
+int rk_audio_set_sample_rate(int stream_id, int value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "audio.%d:sample_rate", stream_id);
+	rk_param_set_int(entry, value);
+
+	return 0;
+}
+
+int rk_audio_get_volume(int stream_id, int *value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "audio.%d:volume", stream_id);
+	*value = rk_param_get_int(entry, 50);
+
+	return 0;
+}
+
+int rk_audio_set_volume(int stream_id, int value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "audio.%d:volume", stream_id);
+	rk_param_set_int(entry, value);
+
+	return 0;
+}
+
+int rk_audio_get_enable_vqe(int stream_id, int *value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "audio.%d:enable_vqe", stream_id);
+	*value = rk_param_get_int(entry, 1);
+
+	return 0;
+}
+
+int rk_audio_set_enable_vqe(int stream_id, int value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "audio.%d:enable_vqe", stream_id);
+	rk_param_set_int(entry, value);
+
+	return 0;
+}
+
+int rk_audio_get_encode_type(int stream_id, const char **value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "audio.%d:encode_type", stream_id);
+	*value = rk_param_get_string(entry, "G711A");
+
+	return 0;
+}
+
+int rk_audio_set_encode_type(int stream_id, const char *value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "audio.%d:encode_type", stream_id);
+	rk_param_set_string(entry, value);
+
+	return 0;
+}

@@ -24,6 +24,7 @@
 #include "system.h"
 
 // set by CMakeList.txt
+#include "audio.h"
 #include "isp.h"
 #include "osd.h"
 #include "region_clip.h"
@@ -1628,6 +1629,200 @@ int ser_rk_isp_af_focus_once(int fd) {
 	ret = rk_isp_af_focus_once(id);
 	if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
+
+	return 0;
+}
+
+// audio
+int ser_rk_audio_restart(int fd) {
+	int err = 0;
+
+	LOG_DEBUG("restart begin\n");
+	err = rk_audio_restart();
+	LOG_DEBUG("restart end\n");
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_audio_get_bit_rate(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_audio_get_bit_rate(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_audio_set_bit_rate(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_audio_set_bit_rate(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_audio_get_sample_rate(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_audio_get_sample_rate(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_audio_set_sample_rate(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_audio_set_sample_rate(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_audio_get_volume(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_audio_get_volume(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_audio_set_volume(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_audio_set_volume(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_audio_get_enable_vqe(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_audio_get_enable_vqe(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_audio_set_enable_vqe(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_audio_set_enable_vqe(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_audio_get_encode_type(int fd) {
+	int err = 0;
+	int id, len;
+	const char *value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_audio_get_encode_type(id, &value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_audio_set_encode_type(int fd) {
+	int ret = 0;
+	int id, len;
+	char *value = NULL;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_INFO("id is %d, value is %s\n", id, value);
+		ret = rk_audio_set_encode_type(id, value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
 
 	return 0;
 }
@@ -5044,6 +5239,18 @@ static const struct FunMap map[] = {
     {(char *)"rk_isp_af_focus_in", &ser_rk_isp_af_focus_in},
     {(char *)"rk_isp_af_focus_out", &ser_rk_isp_af_focus_out},
     {(char *)"rk_isp_af_focus_once", &ser_rk_isp_af_focus_once},
+    // audio
+    {(char *)"rk_audio_restart", &ser_rk_audio_restart},
+    {(char *)"rk_audio_get_bit_rate", &ser_rk_audio_get_bit_rate},
+    {(char *)"rk_audio_set_bit_rate", &ser_rk_audio_set_bit_rate},
+    {(char *)"rk_audio_get_sample_rate", &ser_rk_audio_get_sample_rate},
+    {(char *)"rk_audio_set_sample_rate", &ser_rk_audio_set_sample_rate},
+    {(char *)"rk_audio_get_volume", &ser_rk_audio_get_volume},
+    {(char *)"rk_audio_set_volume", &ser_rk_audio_set_volume},
+    {(char *)"rk_audio_get_enable_vqe", &ser_rk_audio_get_enable_vqe},
+    {(char *)"rk_audio_set_enable_vqe", &ser_rk_audio_set_enable_vqe},
+    {(char *)"rk_audio_get_encode_type", &ser_rk_audio_get_encode_type},
+    {(char *)"rk_audio_set_encode_type", &ser_rk_audio_set_encode_type},
     // video
     {(char *)"rk_video_restart", &ser_rk_video_restart},
     {(char *)"rk_video_get_gop", &ser_rk_video_get_gop},
