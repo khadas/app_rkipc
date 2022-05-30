@@ -10,8 +10,11 @@
 
 #define STORAGE_NUM 3
 
+static int record_flag[STORAGE_NUM] = {-1};
 static void *g_sd_phandle = NULL;
 static rkipc_str_dev_attr g_sd_dev_attr;
+static int rk_storage_muxer_init_by_id(int id);
+static int rk_storage_muxer_deinit_by_id(int id);
 
 static rk_storage_muxer_struct rk_storage_muxer_group[STORAGE_NUM];
 
@@ -63,6 +66,7 @@ int rkipc_storage_set_dev_attr(rkipc_str_dev_attr *pstDevAttr) {
 	char dev_path[64];
 	char type[64];
 	char attributes[128];
+	char entry[128] = {'\0'};
 	memset(dev_path, 0, sizeof(dev_path));
 	memset(type, 0, sizeof(type));
 	memset(attributes, 0, sizeof(attributes));
@@ -74,14 +78,19 @@ int rkipc_storage_set_dev_attr(rkipc_str_dev_attr *pstDevAttr) {
 	sprintf(pstDevAttr->mount_path, mount_path);
 	rkipc_storage_get_mount_dev(mount_path, dev_path, type, attributes);
 	if (strlen(dev_path) == 0) {
-		char entry[128] = {'\0'};
-		LOG_ERROR("unrecognized dev_path,stop record!\n");
-		for (int i = 0; i < STORAGE_NUM; i++) {
-			snprintf(entry, 127, "storage.%d:enable", i);
-			rk_param_set_int(entry, 0);
+		for (int i = 0; i < STORAGE_NUM-1; i++) {
+			record_flag[i] = 0;
 		}
+		LOG_ERROR("unrecognized dev_path,stop record!\n");
 	} else {
 		sprintf(pstDevAttr->dev_path, dev_path);
+		for (int i = 0; i < STORAGE_NUM-1; i++) {
+			snprintf(entry, 127, "storage.%d:enable", i);
+			if(rk_param_get_int(entry, 0) == 0)
+				record_flag[i] = 0;
+			else 
+				record_flag[i] = 1;
+		}
 	}
 	LOG_INFO("mount path is %s, dev_path is %s\n", mount_path, dev_path);
 
@@ -1148,17 +1157,40 @@ static void *rkipc_storage_msg_rec_msg_thread(void *arg) {
 
 static int rkipc_storage_msg_rec_cb(void *hd, int msg, void *data, int data_len, void *pHandle) {
 	LOG_INFO("msg = %d\n", msg);
+	rkipc_storage_handle *ppHandle = (rkipc_storage_handle *)pHandle;
 	switch (msg) {
 	case MSG_DEV_ADD:
-		if (rkipc_storage_dev_add((char *)data, (rkipc_storage_handle *)pHandle)) {
+		if (rkipc_storage_dev_add((char *)data, ppHandle)) {
 			LOG_ERROR("DevAdd failed\n");
 			return -1;
 		}
+		if(ppHandle->dev_sta.dev_path != NULL){
+			char entry[128] = {'\0'};
+			LOG_INFO("recognized dev_path\n");
+			for (int i = 0; i < STORAGE_NUM-1; i++) {
+				snprintf(entry, 127, "storage.%d:enable", i);
+				if (rk_param_get_int(entry, 0) == 1){
+					LOG_INFO("start record!\n");
+					record_flag[i] = 1;
+					rk_storage_muxer_deinit_by_id(i);
+					rk_storage_muxer_init_by_id(i);
+				}
+				else if (rk_param_get_int(entry, 0) == 0){
+					record_flag[i] = 0;
+					rk_storage_muxer_deinit_by_id(i);
+				}
+			}
+		}
 		break;
 	case MSG_DEV_REMOVE:
-		if (rkipc_storage_dev_remove((char *)data, (rkipc_storage_handle *)pHandle)) {
+		if (rkipc_storage_dev_remove((char *)data, ppHandle)) {
 			LOG_ERROR("DevRemove failed\n");
 			return -1;
+		}
+		LOG_ERROR("unrecognized dev_path,stop record!\n");
+		for (int i = 0; i < STORAGE_NUM-1; i++) {
+			record_flag[i] = 0;
+			rk_storage_muxer_deinit_by_id(i);
 		}
 		break;
 	case MSG_DEV_CHANGED:
@@ -1333,6 +1365,9 @@ static void *rkipc_storage_event_listener_thread(void *arg) {
 							LOG_ERROR("Send msg: MSG_DEV_ADD failed.\n");
 					} else if (rkipc_storage_str_search(buf, len, "ACTION=remove")) {
 						LOG_INFO("%s remove\n", dev);
+						for (int i = 0; i < STORAGE_NUM; i++) {
+							rk_storage_muxer_group[i].g_record_run_ = 0;
+						}
 						if (rkipc_storage_msg_send_msg(MSG_DEV_REMOVE, dev, strlen(dev) + 1,
 						                               &(pHandle->msg_hd)))
 							LOG_ERROR("Send msg: MSG_DEV_REMOVE failed.");
@@ -1891,7 +1926,7 @@ static void *rk_storage_record(void *arg) {
 	int id = *id_ptr;
 	printf("id: %d, #Start %s thread, arg:%p\n", id, __func__, arg);
 	prctl(PR_SET_NAME, "rk_storage_record", 0, 0, 0);
-	while (rk_storage_muxer_group[id].g_record_run_) {
+	while (rk_storage_muxer_group[id].g_record_run_ && record_flag[id] == 1) {
 		time_t t = time(NULL);
 		struct tm tm = *localtime(&t);
 		snprintf(rk_storage_muxer_group[id].file_name, 512, "%s/%d%02d%02d%02d%02d%02d.%s",
