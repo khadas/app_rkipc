@@ -1395,8 +1395,8 @@ int rk_isp_set_from_ini(int cam_id) {
 	snprintf(entry, 127, "isp.%d.enhancement:gray_scale_mode", rkipc_get_scenario_id(cam_id));
 	strcpy(value, rk_param_get_string(entry, "[0-255]"));
 	rk_isp_set_gray_scale_mode(cam_id, value);
-	snprintf(entry, 127, "isp.%d.enhancement:distortion_correction",
-	rkipc_get_scenario_id(cam_id)); strcpy(value, rk_param_get_string(entry, "close"));
+	snprintf(entry, 127, "isp.%d.enhancement:distortion_correction", rkipc_get_scenario_id(cam_id));
+	strcpy(value, rk_param_get_string(entry, "close"));
 	rk_isp_set_distortion_correction(cam_id, value);
 	snprintf(entry, 127, "isp.%d.enhancement:spatial_denoise_level", rkipc_get_scenario_id(cam_id));
 	rk_isp_set_spatial_denoise_level(cam_id, rk_param_get_int(entry, 50));
