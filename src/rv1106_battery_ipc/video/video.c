@@ -524,6 +524,7 @@ int rkipc_pipe_0_init() {
 
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
+	stRecvParam.s32RecvPicNum = -1;
 	RK_MPI_VENC_StartRecvFrame(VIDEO_PIPE_0, &stRecvParam);
 
 	pthread_create(&venc_thread_id, NULL, rkipc_get_venc_0, NULL);
@@ -711,6 +712,7 @@ int rkipc_pipe_1_init() {
 
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
+	stRecvParam.s32RecvPicNum = -1;
 	RK_MPI_VENC_StartRecvFrame(VIDEO_PIPE_1, &stRecvParam);
 
 	pthread_create(&venc_thread_id, NULL, rkipc_get_venc_1, NULL);
