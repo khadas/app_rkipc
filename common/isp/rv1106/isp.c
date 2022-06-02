@@ -1,5 +1,7 @@
 #include "isp.h"
 #include "common.h"
+#include "rk_gpio.h"
+#include "rk_pwm.h"
 #include "video.h"
 
 #include <rk_aiq_user_api2_acgc.h>
@@ -24,6 +26,8 @@
 char g_iq_file_dir_[256];
 char main_scene[32];
 char sub_scene[32];
+static int light_level = -1;
+static int light_state = -1;
 static int current_scenario_id = 0;
 static rk_aiq_sys_ctx_t *g_aiq_ctx[MAX_AIQ_CTX];
 rk_aiq_working_mode_t g_WDRMode[MAX_AIQ_CTX];
@@ -131,6 +135,53 @@ int rk_isp_get_frame_rate(int cam_id, int *value) {
 	*value = rk_param_get_int(entry, -1);
 
 	return 0;
+}
+
+int rk_isp_enableircut(bool on) {
+	uint32_t open_gpio = GPIO(RK_GPIO1, RK_PA4);
+	uint32_t close_gpio = GPIO(RK_GPIO1, RK_PA3);
+	int ret;
+
+	ret = rk_gpio_export_direction(open_gpio, false);
+	ret |= rk_gpio_export_direction(close_gpio, false);
+
+	if (on) {
+		rk_gpio_set_value(open_gpio, 1);
+		usleep(100 * 1000);
+		rk_gpio_set_value(open_gpio, 0);
+
+	} else {
+		rk_gpio_set_value(close_gpio, 1);
+		usleep(100 * 1000);
+		rk_gpio_set_value(close_gpio, 0);
+	}
+
+	rk_gpio_unexport(open_gpio);
+	rk_gpio_unexport(close_gpio);
+
+	return ret;
+}
+
+int rk_isp_set_light_strength(uint32_t pwm, uint32_t period, uint32_t duty,
+                              enum pwm_polarity polarity) {
+	int ret;
+
+	ret = rk_pwm_init(pwm, period, duty, polarity);
+	if (ret) {
+		LOG_ERROR("pwm%d init failed %d\n", pwm, ret);
+		light_state = 0;
+		return ret;
+	}
+	light_state = 1;
+	ret = rk_pwm_set_enable(pwm, true);
+}
+
+int rk_isp_close_light(uint32_t pwm) {
+	int ret;
+	light_state = 0;
+	ret = rk_pwm_deinit(pwm);
+	if (ret)
+		LOG_ERROR("pwm%d deinit failed %d\n", pwm, ret);
 }
 
 int rk_isp_set_frame_rate(int cam_id, int value) {
@@ -467,10 +518,15 @@ int rk_isp_set_night_to_day(int cam_id, const char *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	aie_attrib_t attr;
 	rk_aiq_user_api2_aie_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
-	if (!strcmp(value, "night"))
+	if (!strcmp(value, "night")) {
+		rk_isp_enableircut(false);
 		attr.mode = RK_AIQ_IE_EFFECT_BW;
-	else
+	} else {
+		rk_isp_enableircut(true);
+		if (light_state == 1)
+			rk_isp_close_light(3);
 		attr.mode = RK_AIQ_IE_EFFECT_NONE;
+	}
 	rk_aiq_user_api2_aie_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.night_to_day:night_to_day", rkipc_get_scenario_id(cam_id));
@@ -491,6 +547,7 @@ int rk_isp_get_fill_light_mode(int cam_id, const char **value) {
 int rk_isp_set_fill_light_mode(int cam_id, const char *value) {
 	int ret;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
+#if 0
 	rk_aiq_cpsl_cfg_t cpsl_cfg;
 	if (!strcmp(value, "IR")) {
 		cpsl_cfg.lght_src = RK_AIQ_CPSLS_IR;
@@ -498,6 +555,7 @@ int rk_isp_set_fill_light_mode(int cam_id, const char *value) {
 		cpsl_cfg.lght_src = RK_AIQ_CPSLS_LED;
 	}
 	ret = rk_aiq_uapi2_sysctl_setCpsLtCfg(rkipc_aiq_get_ctx(cam_id), &cpsl_cfg);
+#endif
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.night_to_day:fill_light_mode", rkipc_get_scenario_id(cam_id));
 	rk_param_set_string(entry, value);
@@ -515,16 +573,21 @@ int rk_isp_get_light_brightness(int cam_id, int *value) {
 }
 
 int rk_isp_set_light_brightness(int cam_id, int value) {
+	if (light_level == value) {
+		LOG_INFO("light brightness unchanged\n");
+		return 0;
+	}
 	int ret;
+	uint32_t pwm, period, duty = 0;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	rk_aiq_cpsl_cfg_t cpsl_cfg;
-	cpsl_cfg.u.m.strength_led = value;
-	cpsl_cfg.u.m.strength_ir = value;
-	ret = rk_aiq_uapi2_sysctl_setCpsLtCfg(rkipc_aiq_get_ctx(cam_id), &cpsl_cfg);
+	pwm = 3;
+	period = 10000;
+	duty = 5000;
+	ret = rk_isp_set_light_strength(pwm, period, duty, PWM_POLARITY_NORMAL);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.night_to_day:light_brightness", rkipc_get_scenario_id(cam_id));
 	rk_param_set_int(entry, value);
-
+	light_level = value;
 	return ret;
 }
 
