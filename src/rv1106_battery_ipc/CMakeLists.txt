@@ -20,6 +20,8 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/common/param SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/tuya_ipc/5.5.29 SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/vendor_storage SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/rockiva SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/sysutil SRCS)
+
 
 include_directories(audio
 					${PROJECT_SOURCE_DIR}/common/isp/rv1106
@@ -29,6 +31,7 @@ include_directories(audio
 					${PROJECT_SOURCE_DIR}/common/param
 					${PROJECT_SOURCE_DIR}/common/rockiva
 					${PROJECT_SOURCE_DIR}/common/rkbar
+					${PROJECT_SOURCE_DIR}/common/sysutil
 					${PROJECT_SOURCE_DIR}/common/tuya_ipc/5.5.29/include
 					${PROJECT_SOURCE_DIR}/common/tuya_ipc/5.5.29
 					${PROJECT_SOURCE_DIR}/common/vendor_storage)
