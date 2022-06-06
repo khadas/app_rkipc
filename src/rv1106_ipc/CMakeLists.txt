@@ -62,7 +62,7 @@ add_definitions(-Os)
 # link_libraries(asan)
 
 add_executable(${PROJECT_NAME} ${SRCS})
-target_link_libraries(${PROJECT_NAME} pthread rockit stdc++ rockchip_mpp rkaiq rtsp rkaudio_detect aec_bf_process wpa_client m rkmuxer rkfsmk freetype rockiva iconv rknnmrt rga)
+target_link_libraries(${PROJECT_NAME} pthread rockit rockchip_mpp rkaiq rtsp rkaudio_detect aec_bf_process wpa_client m rkmuxer rkfsmk freetype rockiva iconv rknnmrt rga stdc++)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 install(FILES rkipc-300w.ini DESTINATION share)
