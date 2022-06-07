@@ -73,24 +73,38 @@ post_chk()
 	check_linker /userdata   /usr/www/userdata
 	check_linker /media/usb0 /usr/www/usb0
 	check_linker /mnt/sdcard /usr/www/sdcard
+	# if /data/rkipc not exist, cp /usr/share
+	rkipc_ini=/userdata/rkipc.ini
+	default_rkipc_ini=/userdata/rkipc-factory-config.ini
 
 	if [ ! -f "/oem/usr/share/rkipc.ini" ]; then
 		lsmod | grep sc530ai
 		if [ $? -eq 0 ] ;then
-			ln -s -f /oem/usr/share/rkipc-500w.ini /userdata/rkipc-factory-config.ini
+			ln -s -f /oem/usr/share/rkipc-500w.ini $default_rkipc_ini
 		fi
 		lsmod | grep sc4336
 		if [ $? -eq 0 ] ;then
-			ln -s -f /oem/usr/share/rkipc-400w.ini /userdata/rkipc-factory-config.ini
+			ln -s -f /oem/usr/share/rkipc-400w.ini $default_rkipc_ini
 		fi
 		lsmod | grep sc3336
 		if [ $? -eq 0 ] ;then
-			ln -s -f /oem/usr/share/rkipc-300w.ini /userdata/rkipc-factory-config.ini
+			ln -s -f /oem/usr/share/rkipc-300w.ini $default_rkipc_ini
 		fi
 	fi
-	# if /data/rkipc not exist, cp /usr/share
-	rkipc_ini=/userdata/rkipc.ini
-	default_rkipc_ini=/userdata/rkipc-factory-config.ini
+	tmp_md5=/tmp/.rkipc-ini.md5sum
+	data_md5=/userdata/.rkipc-default.md5sum
+	md5sum $default_rkipc_ini > $tmp_md5
+	chk_rkipc=`cat $tmp_md5|awk '{print $1}'`
+	rm $tmp_md5
+	if [ ! -f $data_md5 ];then
+		md5sum $default_rkipc_ini > $data_md5
+	fi
+	grep -w $chk_rkipc $data_md5
+	if [ $? -ne 0 ] ;then
+		rm -f $rkipc_ini
+		echo "$chk_rkipc" > $data_md5
+	fi
+
 	if [ ! -f "$default_rkipc_ini" ];then
 		echo "Error: not found rkipc.ini !!!"
 		exit -1
