@@ -94,25 +94,11 @@ static void uart_to_mcu_poweroff() {
 
 static void sigterm_handler(int signo) {
 	LOG_INFO("received signo %d \n", signo);
-	if (signo != SIGQUIT) {
-		g_main_run_ = 0;
-		return;
-	}
 
-	// rk_tuya_low_power_enable();
-	int fd, size;
-	char buf[200];
-	// fd = open("/sys/kernel/debug/tcp_keepalive_param/tcp_param", O_RDONLY);
-	fd = open("/proc/tcp_params", O_RDONLY);
-	memset(buf, 0, 200);
-	size = read(fd, buf, 200);
-	printf("[3 tcp_param: %d]: %s\n", size, buf);
-	system(buf);
-	system("dhd_priv wl tcpka_conn_enable 1 1 180 1 8");
-	system("dhd_priv setsuspendmode 1");
+	rk_tuya_low_power_enable();
 
-	uart_to_mcu_poweroff();
-	LOG_WARN("after uart_to_mcu_poweroff\n");
+	// system("poweroff");
+	LOG_WARN("after poweroff\n");
 	g_main_run_ = 0;
 }
 
@@ -166,6 +152,8 @@ void rkipc_get_opt(int argc, char *argv[]) {
 	}
 }
 
+extern void ioctl_msg_func(int sig_num);
+
 int main(int argc, char **argv) {
 	LOG_INFO("main begin\n");
 	signal(SIGINT, sigterm_handler);
@@ -181,9 +169,6 @@ int main(int argc, char **argv) {
 	if (rkipc_ini_path_ == NULL)
 		rkipc_ini_path_ = "/usr/share/rkipc.ini";
 
-	LOG_INFO("tb_start_wifi.sh begin\n");
-	system("tb_start_wifi.sh &");
-	LOG_INFO("tb_start_wifi.sh over\n");
 	// init
 	rk_param_init(rkipc_ini_path_);
 	rk_isp_init(0, rkipc_iq_file_path_);
@@ -194,6 +179,16 @@ int main(int argc, char **argv) {
 	rk_video_init();
 	if (rk_param_get_int("audio.0:enable", 0))
 		rkipc_audio_init();
+
+	atbm_init();
+
+	// enable_network("TP-LINK_YYLX", "12345678");
+	// enable_network("Rktest", "12345678");
+	// sleep(3);
+	system("ifconfig wlan0 192.168.1.101");
+	system("echo \"nameserver 192.168.1.1\" > /etc/resolv.conf");
+	system("route add default gw 192.168.1.1");
+
 	if (rk_param_get_int("tuya:enable", 0))
 		rk_tuya_init();
 

@@ -18,6 +18,7 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/common/isp/rv1106 SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/ SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/param SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/tuya_ipc/5.5.29 SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/tuya_ipc/5.5.29/atbm6441 SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/vendor_storage SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/rockiva SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/sysutil SRCS)
@@ -47,3 +48,4 @@ target_link_libraries(${PROJECT_NAME} libpthread.a librockit.a librockchip_mpp.a
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION root/usr/bin)
 install(FILES rkipc.ini DESTINATION root/usr/share)
+install(PROGRAMS vendor_storage DESTINATION bin)

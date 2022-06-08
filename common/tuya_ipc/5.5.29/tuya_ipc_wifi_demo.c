@@ -210,16 +210,16 @@ OPERATE_RET tuya_adapter_wifi_release_ap(IN AP_IF_S *ap) { // Static variables, 
 
 static int s_curr_channel = 1;
 OPERATE_RET tuya_adapter_wifi_set_cur_channel(IN CONST BYTE_T chan) {
-	char tmpCmd[100] = {0};
-	snprintf(tmpCmd, 100, "iwconfig %s channel %d", WLAN_DEV, chan);
-	exec_cmd(tmpCmd);
-	s_curr_channel = chan;
+	// 	char tmpCmd[100] = {0};
+	// 	snprintf(tmpCmd, 100, "iwconfig %s channel %d", WLAN_DEV, chan);
+	// 	exec_cmd(tmpCmd);
+	// 	s_curr_channel = chan;
 
-	printf("WIFI Set Channel:%d \r\n", chan);
+	// 	printf("WIFI Set Channel:%d \r\n", chan);
 
-#ifdef WIFI_CHIP_7601
-	tuya_linux_wf_wk_mode_set(WWM_SNIFFER);
-#endif
+	// #ifdef WIFI_CHIP_7601
+	// 	tuya_linux_wf_wk_mode_set(WWM_SNIFFER);
+	// #endif
 
 	return OPRT_OK;
 }
@@ -537,60 +537,60 @@ OPERATE_RET tuya_adapter_wifi_set_mac(IN CONST WF_IF_E wf, IN CONST NW_MAC_S *ma
 }
 
 OPERATE_RET tuya_adapter_wifi_set_work_mode(IN CONST WF_WK_MD_E mode) {
-	char tmpCmd[100] = {0};
+	// char tmpCmd[100] = {0};
 
-	snprintf(tmpCmd, 100, "ifconfig %s up", WLAN_DEV);
-	exec_cmd(tmpCmd);
+	// snprintf(tmpCmd, 100, "ifconfig %s up", WLAN_DEV);
+	// exec_cmd(tmpCmd);
 
-	switch (mode) {
-	case WWM_LOWPOWER: {
-		// Linux system does not care about low power
-		break;
-	}
-	case WWM_SNIFFER: {
-#ifndef WIFI_CHIP_7601
-		snprintf(tmpCmd, 100, "ifconfig %s down", WLAN_DEV);
-		exec_cmd(tmpCmd);
-#endif
-		snprintf(tmpCmd, 100, "iwconfig %s mode Monitor", WLAN_DEV);
-		exec_cmd(tmpCmd);
-#ifndef WIFI_CHIP_7601
-		snprintf(tmpCmd, 100, "ifconfig %s up", WLAN_DEV);
-		exec_cmd(tmpCmd);
-#endif
-		break;
-	}
-	case WWM_STATION: {
-#ifndef WIFI_CHIP_7601
-		snprintf(tmpCmd, 100, "ifconfig %s down", WLAN_DEV);
-		exec_cmd(tmpCmd);
-#endif
-		snprintf(tmpCmd, 100, "iwconfig %s mode Managed", WLAN_DEV);
-		exec_cmd(tmpCmd);
-#ifndef WIFI_CHIP_7601
-		snprintf(tmpCmd, 100, "ifconfig %s up", WLAN_DEV);
-		exec_cmd(tmpCmd);
-#endif
-		break;
-	}
-	case WWM_SOFTAP: {
-#ifndef WIFI_CHIP_7601
-		snprintf(tmpCmd, 100, "ifconfig %s down", WLAN_DEV);
-		exec_cmd(tmpCmd);
-#endif
-		snprintf(tmpCmd, 100, "iwconfig %s mode Master", WLAN_DEV);
-		exec_cmd(tmpCmd);
-#ifndef WIFI_CHIP_7601
-		snprintf(tmpCmd, 100, "ifconfig %s up", WLAN_DEV);
-		exec_cmd(tmpCmd);
-#endif
-		break;
-	}
-	case WWM_STATIONAP: { // reserved
-		break;
-	}
-	default: { break; }
-	}
+	// 	switch (mode) {
+	// 	case WWM_LOWPOWER: {
+	// 		// Linux system does not care about low power
+	// 		break;
+	// 	}
+	// 	case WWM_SNIFFER: {
+	// #ifndef WIFI_CHIP_7601
+	// 		snprintf(tmpCmd, 100, "ifconfig %s down", WLAN_DEV);
+	// 		exec_cmd(tmpCmd);
+	// #endif
+	// 		snprintf(tmpCmd, 100, "iwconfig %s mode Monitor", WLAN_DEV);
+	// 		exec_cmd(tmpCmd);
+	// #ifndef WIFI_CHIP_7601
+	// 		snprintf(tmpCmd, 100, "ifconfig %s up", WLAN_DEV);
+	// 		exec_cmd(tmpCmd);
+	// #endif
+	// 		break;
+	// 	}
+	// 	case WWM_STATION: {
+	// #ifndef WIFI_CHIP_7601
+	// 		snprintf(tmpCmd, 100, "ifconfig %s down", WLAN_DEV);
+	// 		exec_cmd(tmpCmd);
+	// #endif
+	// 		snprintf(tmpCmd, 100, "iwconfig %s mode Managed", WLAN_DEV);
+	// 		exec_cmd(tmpCmd);
+	// #ifndef WIFI_CHIP_7601
+	// 		snprintf(tmpCmd, 100, "ifconfig %s up", WLAN_DEV);
+	// 		exec_cmd(tmpCmd);
+	// #endif
+	// 		break;
+	// 	}
+	// 	case WWM_SOFTAP: {
+	// #ifndef WIFI_CHIP_7601
+	// 		snprintf(tmpCmd, 100, "ifconfig %s down", WLAN_DEV);
+	// 		exec_cmd(tmpCmd);
+	// #endif
+	// 		snprintf(tmpCmd, 100, "iwconfig %s mode Master", WLAN_DEV);
+	// 		exec_cmd(tmpCmd);
+	// #ifndef WIFI_CHIP_7601
+	// 		snprintf(tmpCmd, 100, "ifconfig %s up", WLAN_DEV);
+	// 		exec_cmd(tmpCmd);
+	// #endif
+	// 		break;
+	// 	}
+	// 	case WWM_STATIONAP: { // reserved
+	// 		break;
+	// 	}
+	// 	default: { break; }
+	// 	}
 	printf("WIFI Set Mode %d\r\n", mode);
 
 	return OPRT_OK;

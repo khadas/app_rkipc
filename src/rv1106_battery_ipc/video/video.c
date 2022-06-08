@@ -853,41 +853,18 @@ int rkipc_vpss_bgr_deinit() {
 }
 
 static void *wait_key_event(void *arg) {
-	int key_fd;
-	key_fd = open("/dev/input/event0", O_RDONLY);
-	if (key_fd < 0) {
-		LOG_ERROR("can't open /dev/input/event0\n");
-		return NULL;
-	}
-	fd_set rfds;
-	int nfds = key_fd + 1;
-	struct timeval timeout;
-	struct input_event key_event;
 
 	while (g_video_run_) {
-		// The rfds collection must be emptied every time,
-		// otherwise the descriptor changes cannot be detected
-		timeout.tv_sec = 1;
-		FD_ZERO(&rfds);
-		FD_SET(key_fd, &rfds);
-		select(nfds, &rfds, NULL, NULL, &timeout);
-		// wait for the key event to occur
-		if (FD_ISSET(key_fd, &rfds)) {
-			read(key_fd, &key_event, sizeof(key_event));
-			LOG_INFO("[timeval:sec:%d,usec:%d,type:%d,code:%d,value:%d]\n", key_event.time.tv_sec,
-			         key_event.time.tv_usec, key_event.type, key_event.code, key_event.value);
-			if ((key_event.code == 115) && key_event.value) {
-				LOG_INFO("start capture\n");
-				capture_one = 1;
-				retry_time = 30;
-			}
+		// RECOVERY KEY at ADCIN0: iio 0, channel 0; range (0 - 1023)
+		int val = rk_adc_get_value(0, 0);
+		if (val < 100) {
+			LOG_INFO("start capture\n");
+			capture_one = 1;
+			retry_time = 30;
 		}
+		usleep(100 * 1000);
 	}
 
-	if (key_fd) {
-		close(key_fd);
-		key_fd = 0;
-	}
 	LOG_DEBUG("wait key event out\n");
 	return NULL;
 }
@@ -905,11 +882,11 @@ static void *get_vi_send_rkbar(void *arg) {
 			continue;
 		}
 		capture_one = 0;
-		/*// rkbar
+		// rkbar
 		image_t *img = NULL;
 		img = (image_t *)malloc(sizeof(image_t));
-		img->width = rk_param_get_int("video.0:width", -1);
-		img->height = rk_param_get_int("video.0:height", -1);
+		img->width = rk_param_get_int("video.1:width", -1);
+		img->height = rk_param_get_int("video.1:height", -1);
 		img->crop_x = 0;
 		img->crop_y = 0;
 		img->crop_w = img->width;
@@ -920,76 +897,88 @@ static void *get_vi_send_rkbar(void *arg) {
 		void *rkbar_hand = NULL;
 		ret = rkbar_init(&rkbar_hand);
 		if (ret == -1) {
-		    LOG_INFO("rkbar init is err");
-		    rkbar_deinit(rkbar_hand);
-		    if (img->bin)
-		        free(img->bin);
-		    if (img)
-		        free(img);
-		    continue;
+			LOG_INFO("rkbar init is err");
+			rkbar_deinit(rkbar_hand);
+			if (img->bin)
+				free(img->bin);
+			if (img)
+				free(img);
+			continue;
 		}
 		LOG_INFO("rkbar init is success");
 		while (retry_time) {
-		    LOG_INFO("333 retry_time is %d\n", retry_time);
-		    retry_time--;
-		    ret = RK_MPI_VI_GetChnFrame(pipe_id_, VIDEO_PIPE_0, &vi_frame, 1000);
-		    if (ret != RK_SUCCESS) {
-		        LOG_ERROR("RK_MPI_VI_GetChnFrame timeout %#x\n", ret);
-		        continue;
-		    }
-		    void *buffer = RK_MPI_MB_Handle2VirAddr(vi_frame.stVFrame.pMbBlk);
-		    LOG_INFO("RK_MPI_VI_GetChnFrame ok:data %p pts:%" PRId64 " ms\n", buffer,
-		             vi_frame.stVFrame.u64PTS / 1000);
-		    img->data = (uint8_t *)buffer;
-		    ret = rkbar_scan(rkbar_hand, img);
-		    if (ret <= 0) {
-		        LOG_INFO("scan fail\n");
-		        ret = RK_MPI_VI_ReleaseChnFrame(pipe_id_, VIDEO_PIPE_0, &vi_frame);
-		        if (ret != RK_SUCCESS) {
-		            LOG_ERROR("RK_MPI_VI_ReleaseChnFrame fail %x\n", ret);
-		        }
-		        continue;
-		    }
-		    ret = RK_MPI_VI_ReleaseChnFrame(pipe_id_, VIDEO_PIPE_0, &vi_frame);
-		    if (ret != RK_SUCCESS) {
-		        LOG_ERROR("RK_MPI_VI_ReleaseChnFrame fail %x\n", ret);
-		    }
-		    LOG_INFO("scan success\n");
-		    retry_time = 0;
-		    const char *test = rkbar_getresult(rkbar_hand);
-		    char *data = (char *)malloc(strlen(test));
-		    memcpy(data, test, strlen(test));
-		    LOG_INFO("rkbar the decoding result is \" %s \" \n", data);
-		    system("aplay /etc/qr_recognized.wav &");
+			LOG_DEBUG("333 retry_time is %d\n", retry_time);
+			retry_time--;
+			ret = RK_MPI_VI_GetChnFrame(pipe_id_, VIDEO_PIPE_1, &vi_frame, 1000);
+			if (ret != RK_SUCCESS) {
+				LOG_ERROR("RK_MPI_VI_GetChnFrame timeout %#x\n", ret);
+				continue;
+			}
+			void *buffer = RK_MPI_MB_Handle2VirAddr(vi_frame.stVFrame.pMbBlk);
+			LOG_DEBUG("RK_MPI_VI_GetChnFrame ok:data %p pts:%" PRId64 " ms\n", buffer,
+			          vi_frame.stVFrame.u64PTS / 1000);
+			img->data = (uint8_t *)buffer;
+			ret = rkbar_scan(rkbar_hand, img);
+			if (ret <= 0) {
+				LOG_DEBUG("scan fail\n");
+				ret = RK_MPI_VI_ReleaseChnFrame(pipe_id_, VIDEO_PIPE_1, &vi_frame);
+				if (ret != RK_SUCCESS) {
+					LOG_ERROR("RK_MPI_VI_ReleaseChnFrame fail %x\n", ret);
+				}
+				continue;
+			}
+			ret = RK_MPI_VI_ReleaseChnFrame(pipe_id_, VIDEO_PIPE_1, &vi_frame);
+			if (ret != RK_SUCCESS) {
+				LOG_ERROR("RK_MPI_VI_ReleaseChnFrame fail %x\n", ret);
+			}
+			LOG_INFO("scan success\n");
+			retry_time = 0;
+			const char *test = rkbar_getresult(rkbar_hand);
+			char *data = (char *)malloc(strlen(test));
+			memcpy(data, test, strlen(test));
+			LOG_INFO("rkbar the decoding result is \" %s \" \n", data);
+			system("aplay /etc/qr_recognized.wav &");
 
-		    //tuya_ipc_direct_connect(data, TUYA_IPC_DIRECT_CONNECT_QRCODE);
-		    // connect wifi
-		    char ssid[20], psk[20], cmd[100], wifi_ssid[20], wifi_psk[20];
-		    sscanf(data, "%*[^:]:%[^,],%*[^:]:%[^,]", psk, ssid);
-		    memset(wifi_ssid, 0, 20);
-		    memset(wifi_psk, 0, 20);
-		    memcpy(wifi_ssid, &ssid[1], strlen(ssid) - 2);
-		    memcpy(wifi_psk, &psk[1], strlen(psk) - 2);
-		    system("cp /etc/wpa_supplicant.conf /tmp");
-		    sprintf(cmd, "s/SSID/%s/g", ssid);
-		    LOG_INFO("cmd is %s\n", cmd);
-		    system(cmd);
-		    sprintf(cmd, "s/PASSWORD/%s/g", psk);
-		    LOG_INFO("cmd is %s\n", cmd);
-		    system(cmd);
-		    system("wpa_supplicant -B -i wlan0 -c /tmp/wpa_supplicant.conf");
-		    usleep(1000 * 1000);
-		    system("udhcpc -i wlan0");
-		    if (data)
-		        free(data);
+			tuya_ipc_direct_connect(data, 0);
+			// connect wifi
+			char ssid[20], psk[20], cmd[100], wifi_ssid[20], wifi_psk[20];
+			sscanf(data, "%*[^:]:%[^,],%*[^:]:%[^,]", psk, ssid);
+			memset(wifi_ssid, 0, 20);
+			memset(wifi_psk, 0, 20);
+			memcpy(wifi_ssid, &ssid[1], strlen(ssid) - 2);
+			memcpy(wifi_psk, &psk[1], strlen(psk) - 2);
+
+#if 0
+			sprintf(cmd, "/oem/usr/ko/atbm_iot_cli set_network ssid %s", ssid);
+			LOG_INFO("cmd is %s\n", cmd);
+			system(cmd);
+			sprintf(cmd, "/oem/usr/ko/atbm_iot_cli set_network key %s", psk);
+			LOG_INFO("cmd is %s\n", cmd);
+			system(cmd);
+			system("/oem/usr/ko/atbm_iot_cli set_network key_mgmt WPA2");
+			system("/oem/usr/ko/atbm_iot_cli enable_network");
+			usleep(1000 * 1000);
+
+			system("ifconfig wlan0 192.168.1.101");
+			system("echo \"nameserver 192.168.1.1\" > /etc/resolv.conf");
+			system("route add default gw 192.168.1.1");
+#else
+			// tmp do nothing, wait wifi bug fixup
+			// enable_network(ssid, psk);
+			// usleep(1000 * 1000);
+			// system("ifconfig wlan0 192.168.1.101");
+			// system("echo \"nameserver 192.168.1.1\" > /etc/resolv.conf");
+			// system("route add default gw 192.168.1.1");
+#endif
+			if (data)
+				free(data);
 		}
 		// retry_time = 0, or connect success
 		rkbar_deinit(rkbar_hand);
 		if (img->bin)
-		    free(img->bin);
+			free(img->bin);
 		if (img)
-		    free(img);
-		*/
+			free(img);
 	}
 
 	return 0;
@@ -1009,7 +998,9 @@ int rk_video_init() {
 #if 1
 	pthread_t key_id;
 	pthread_t get_vi_id;
-	pthread_create(&key_id, NULL, wait_key_event, NULL);
+	// pthread_create(&key_id, NULL, wait_key_event, NULL);
+	capture_one = 1;
+	retry_time = 3000;
 	pthread_create(&get_vi_id, NULL, get_vi_send_rkbar, NULL);
 #endif
 

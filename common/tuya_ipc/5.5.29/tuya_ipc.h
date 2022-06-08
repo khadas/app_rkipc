@@ -16,6 +16,7 @@
 #include "tuya_ipc_low_power_api.h"
 #include "tuya_ipc_media.h"
 #include "tuya_ipc_p2p.h"
+#include "tuya_ipc_sdk_init.h"
 #include "tuya_ipc_stream_storage.h"
 #include "tuya_ipc_video_msg.h"
 #include "tuya_ring_buffer.h"

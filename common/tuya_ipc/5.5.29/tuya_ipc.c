@@ -10,7 +10,7 @@
 
 #define VENDOR_TUYA_LICENSE_ID 254
 // Path to save tuya sdk DB files, should be readable, writeable and storable
-#define IPC_APP_STORAGE_PATH "/oem/"
+#define IPC_APP_STORAGE_PATH "/userdata/"
 // File with path to download file during OTA
 #define IPC_APP_UPGRADE_FILE "/tmp/upgrade.file"
 // SD card mount directory
@@ -35,13 +35,6 @@ static IPC_MEDIA_INFO_S s_media_info = {0};
 static int g_init = 0;
 static bool cloud_connected_ = 0;
 static MEDIA_FRAME_S video_frame, audio_frame;
-
-// Low Power
-static unsigned char s_wakeup_data[32] = {0};
-static unsigned int s_heartbeat_len = 32;
-static unsigned char s_heartbeat_data[32] = {0};
-static unsigned int s_wakeup_len = 32;
-static int s_mqtt_socket_fd = -1;
 
 rk_tuya_ao_create rk_tuya_ao_create_ = NULL;
 rk_tuya_ao_write rk_tuya_ao_write_ = NULL;
@@ -199,11 +192,19 @@ INT_T __TUYA_APP_p2p_event_cb(IN CONST TRANSFER_EVENT_E event, IN CONST PVOID_T 
 }
 
 int rk_tuya_low_power_enable() {
-	// TODO: 5.x SDK需要基于官网文档重新适配
-
 	LOG_INFO("tuya low power mode enable\n");
 	BOOL_T doorStat = FALSE;
 	int ret = 0;
+	int server_ip, port;
+	int id_len = 64;
+	int key_len = 64;
+	int wakeup_len = 36;
+	int heartbeat_len = 12;
+	unsigned char dev_id[64] = {0};
+	unsigned char dest_key_buf[64] = {0};
+	unsigned char wakeup_data[36] = {0};
+	unsigned char heartbeat_data[12] = {0};
+	int mqtt_socket_fd = -1;
 
 	// Report sleep status to tuya
 	ret = tuya_ipc_dp_report(NULL, TUYA_DP_DOOR_STATUS, PROP_BOOL, &doorStat, 1);
@@ -215,46 +216,75 @@ int rk_tuya_low_power_enable() {
 		LOG_ERROR("dp report failed\n");
 		return ret;
 	}
-	// ret = tuya_ipc_book_wakeup_topic();
+
+	// low power server connect
+	tuya_ipc_low_power_server_get(&server_ip, &port);
+	tuya_ipc_device_id_get(dev_id, &id_len);
+	tuya_ipc_local_key_get(dest_key_buf, &key_len);
+	LOG_INFO("server_ip is %d, port is %d, dev_id is %s, dest_key_buf is %s\n", server_ip, port,
+	         dev_id, dest_key_buf);
+#if 0 // wifi do it
+	// ret = tuya_ipc_low_power_server_connect(server_ip, port, dev_id, strlen(dev_id), dest_key_buf, strlen(dest_key_buf));
 	// if (OPRT_OK != ret) {
-	// 	LOG_ERROR("tuya_ipc_book_wakeup_topic failed\n");
+	// 	LOG_ERROR("tuya_ipc_low_power_server_connect failed\n");
 	// 	return ret;
 	// }
+	// LOG_INFO("tuya_ipc_low_power_server_connect success\n");
 
-	// Get fd for server to wakeup
-	s_mqtt_socket_fd = tuya_ipc_low_power_socket_fd_get();
-	if (-1 == s_mqtt_socket_fd) {
-		LOG_ERROR("tuya_ipc_get_mqtt_socket_fd failed\n");
-		return ret;
-	}
-	LOG_INFO("s_mqtt_socket_fd is %d\n", s_mqtt_socket_fd);
-
-#ifdef ENABLE_CY43438
-	ret = WIFI_Suspend(s_mqtt_socket_fd, true);
-	LOG_INFO("WIFI_Suspend, ret is %d\n", ret);
+	// // Get fd for server to wakeup
+	// mqtt_socket_fd = tuya_ipc_low_power_socket_fd_get();
+	// if (-1 == mqtt_socket_fd) {
+	// 	LOG_ERROR("tuya_ipc_get_mqtt_socket_fd failed\n");
+	// 	return ret;
+	// }
+	// LOG_INFO("mqtt_socket_fd is %d\n", mqtt_socket_fd);
 #endif
-
-	ret = tuya_ipc_low_power_wakeup_data_get(s_wakeup_data, &s_wakeup_len);
+	ret = tuya_ipc_low_power_wakeup_data_get(wakeup_data, &wakeup_len);
 	if (OPRT_OK != ret) {
 		LOG_ERROR("tuya_ipc_get_wakeup_data failed\n");
 		return ret;
 	}
-	LOG_INFO("s_wakeup_data is \n");
-	for (int i = 0; i < s_wakeup_len; i++) {
-		printf("%x ", s_wakeup_data[i]);
+	LOG_INFO("wakeup_data is {");
+	for (int i = 0; i < wakeup_len; i++) {
+		printf("%x ", wakeup_data[i]);
 	}
-	printf("\n");
+	printf("}\n");
 
-	ret = tuya_ipc_low_power_heart_beat_get(s_heartbeat_data, &s_heartbeat_len);
+	ret = tuya_ipc_low_power_heart_beat_get(heartbeat_data, &heartbeat_len);
 	if (OPRT_OK != ret) {
 		LOG_ERROR("tuya_ipc_get_heartbeat_data failed\n");
 		return ret;
 	}
-	LOG_INFO("s_heartbeat_data is \n");
-	for (int i = 0; i < s_heartbeat_len; i++) {
-		printf("%x ", s_heartbeat_data[i]);
+	LOG_INFO("heartbeat_data is {");
+	for (int i = 0; i < heartbeat_len; i++) {
+		printf("%x ", heartbeat_data[i]);
 	}
-	printf("\n");
+	printf("}\n");
+
+	ret = set_filter("ICMP", "0");
+	LOG_INFO("set_filter ICMP ret is %d\n", ret);
+	ret = set_filter("DES", "443");
+	LOG_INFO("set_filter DES ret is %d\n", ret);
+	ret = set_filter("SRC", "443");
+	LOG_INFO("set_filter SRC ret is %d\n", ret);
+	ret = enable_filter();
+	LOG_INFO("set_filter enable_filter ret is %d\n", ret);
+
+	char cmd[256] = {0};
+	sprintf(cmd,
+	        "AT+WIFI_HEART_PKT TEXT keepalive DEVID %s KEY %s PERIOD 80000 SERVER 42.192.35.108 "
+	        "PORT 443",
+	        dev_id, dest_key_buf);
+	LOG_INFO("cmd is %s\n", cmd);
+	ret = fw_at(cmd);
+	LOG_INFO("fw_at AT+WIFI_HEART_PKT ret is %d\n", ret);
+	sleep(3);
+	ret = fw_at("AT+WIFI_LISTEN_ITVL 10");
+	LOG_INFO("fw_at AT+WIFI_LISTEN_ITVL ret is %d\n", ret);
+	ret = fw_at("AT+LIGHT_SLEEP 1");
+	LOG_INFO("fw_at AT+LIGHT_SLEEP ret is %d\n", ret);
+	ret = driver_go_sleep();
+	LOG_INFO("driver_go_sleep ret is %d\n", ret);
 
 	return ret;
 }
@@ -262,6 +292,7 @@ int rk_tuya_low_power_enable() {
 int rk_tuya_low_power_disable() {
 	BOOL_T doorStat = TRUE;
 	int ret = 0;
+
 	ret = tuya_ipc_dp_report(NULL, TUYA_DP_DOOR_STATUS, PROP_BOOL, &doorStat, 1);
 
 	return ret;
@@ -569,6 +600,7 @@ STATIC VOID *tuya_ipc_sdk_mqtt_online_proc(PVOID_T arg) {
 	IPC_APP_upload_all_status();
 
 	tuya_ipc_upload_skills();
+	rk_tuya_low_power_disable();
 	LOG_DEBUG("tuya_ipc_sdk_mqtt_online_proc is end run\n");
 
 	return NULL;
@@ -936,6 +968,12 @@ OPERATE_RET TUYA_IPC_SDK_START(WIFI_INIT_MODE_E connect_mode, CHAR_T *p_token) {
 }
 
 int rk_tuya_init() {
+	fw_at("AT+DEL_KEEPALIVE");
+	set_filter("ICMP", "1");
+	set_filter("DES", "0");
+	set_filter("SRC", "0");
+	enable_filter();
+
 	WIFI_INIT_MODE_E mode = WIFI_INIT_AUTO;
 	OPERATE_RET ret = OPRT_OK;
 	ret = TUYA_IPC_SDK_START(mode, NULL);
@@ -1011,7 +1049,21 @@ int rk_tuya_push_audio(unsigned char *buffer, unsigned int buffer_size, int64_t 
 	return 0;
 }
 
-// VOID tuya_ipc_get_snapshot_cb(char *pjbuf, unsigned int *size) {
-// 	printf("+++%s\n", __FUNCTION__);
-// 	// get_motion_snapshot(pjbuf,size);
-// }
+VOID tuya_ipc_get_snapshot_cb(char *pjbuf, int *size) {
+	printf("+++%s\n", __FUNCTION__);
+	// get_motion_snapshot(pjbuf,size);
+}
+
+VOID tuya_ipc_doorbell_event(char *action) {
+	int status = 0;
+
+	if (0 == memcmp(action, "accept", 6)) {
+		status = 0;
+	} else if (0 == memcmp(action, "stop", 4)) {
+		status = 1;
+	} else if (0 == memcmp(action, "heartbeat", 9)) {
+		status = 2;
+	}
+	// doorbell_mqtt_handler(status);
+	return;
+}

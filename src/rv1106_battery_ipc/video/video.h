@@ -6,6 +6,7 @@
 #include "rkbar_scan_api.h"
 #include "rtsp_demo.h"
 //#include "tuya_ipc.h"
+#include "rk_adc.h"
 #include "rockiva.h"
 
 #include <fcntl.h>

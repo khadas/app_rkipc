@@ -167,8 +167,13 @@ int rk_isp_set_frame_rate_without_ini(int cam_id, int value) {
 	Uapi_ExpSwAttrV2_t expSwAttr;
 	LOG_DEBUG("start %d\n", value);
 	ret = rk_aiq_user_api2_ae_getExpSwAttr(rkipc_aiq_get_ctx(cam_id), &expSwAttr);
-	expSwAttr.stAuto.stFrmRate.isFpsFix = true;
-	expSwAttr.stAuto.stFrmRate.FpsValue = value;
+	if (value == 0) {
+		expSwAttr.stAuto.stFrmRate.isFpsFix = false;
+	} else {
+		expSwAttr.stAuto.stFrmRate.isFpsFix = true;
+		expSwAttr.stAuto.stFrmRate.FpsValue = value;
+	}
+
 	ret = rk_aiq_user_api2_ae_setExpSwAttr(rkipc_aiq_get_ctx(cam_id), expSwAttr);
 	LOG_DEBUG("end, %d\n", value);
 
