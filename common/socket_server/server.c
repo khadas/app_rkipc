@@ -532,7 +532,7 @@ int ser_rk_isp_set_night_to_day(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_isp_set_night_to_day(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -577,7 +577,7 @@ int ser_rk_isp_set_fill_light_mode(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_isp_set_fill_light_mode(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -615,6 +615,74 @@ int ser_rk_isp_set_light_brightness(int fd) {
 		return -1;
 	LOG_DEBUG("value is %d\n", value);
 	err = rk_isp_set_light_brightness(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_isp_get_night_to_day_filter_level(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_isp_get_night_to_day_filter_level(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_isp_set_night_to_day_filter_level(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_isp_set_night_to_day_filter_level(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_isp_get_night_to_day_filter_time(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_isp_get_night_to_day_filter_time(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_isp_set_night_to_day_filter_time(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_isp_set_night_to_day_filter_time(id, value);
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
 
@@ -5181,6 +5249,10 @@ static const struct FunMap map[] = {
     {(char *)"rk_isp_set_fill_light_mode", &ser_rk_isp_set_fill_light_mode},
     {(char *)"rk_isp_get_light_brightness", &ser_rk_isp_get_light_brightness},
     {(char *)"rk_isp_set_light_brightness", &ser_rk_isp_set_light_brightness},
+	{(char *)"rk_isp_get_night_to_day_filter_level", &ser_rk_isp_get_night_to_day_filter_level},
+    {(char *)"rk_isp_set_night_to_day_filter_level", &ser_rk_isp_set_night_to_day_filter_level},
+	{(char *)"rk_isp_get_night_to_day_filter_time", &ser_rk_isp_get_night_to_day_filter_time},
+    {(char *)"rk_isp_set_night_to_day_filter_time", &ser_rk_isp_set_night_to_day_filter_time},
     // isp blc
     {(char *)"rk_isp_get_hdr", &ser_rk_isp_get_hdr},
     {(char *)"rk_isp_set_hdr", &ser_rk_isp_set_hdr},

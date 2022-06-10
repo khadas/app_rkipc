@@ -35,6 +35,10 @@ int rk_isp_get_fill_light_mode(int cam_id, const char **value);
 int rk_isp_set_fill_light_mode(int cam_id, const char *value);
 int rk_isp_get_light_brightness(int cam_id, int *value);
 int rk_isp_set_light_brightness(int cam_id, int value);
+int rk_isp_get_night_to_day_filter_level(int cam_id, int *value);
+int rk_isp_set_night_to_day_filter_level(int cam_id, int value);
+int rk_isp_get_night_to_day_filter_time(int cam_id, int *value);
+int rk_isp_set_night_to_day_filter_time(int cam_id, int value);
 // blc
 int rk_isp_get_hdr(int cam_id, const char **value);
 int rk_isp_set_hdr(int cam_id, const char *value);
