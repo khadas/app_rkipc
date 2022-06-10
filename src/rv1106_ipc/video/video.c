@@ -699,7 +699,6 @@ int rkipc_pipe_0_init() {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC4;
 	} else if (!strcmp(tmp_smart, "open")) { // SVC current only support VENC_GOPMODE_NORMALP
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
-		RK_MPI_VENC_EnableSvc(VIDEO_PIPE_0, 1);
 	} else {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
 	}
@@ -721,6 +720,9 @@ int rkipc_pipe_0_init() {
 		LOG_ERROR("ERROR: create VENC error! ret=%#x\n", ret);
 		return -1;
 	}
+
+	if (!strcmp(tmp_smart, "open"))
+		RK_MPI_VENC_EnableSvc(VIDEO_PIPE_0, 1);
 
 	if (rk_param_get_int("video.0:enable_motion_deblur", 0)) {
 		ret = RK_MPI_VENC_EnableMotionDeblur(VIDEO_PIPE_0, true);
@@ -966,7 +968,6 @@ int rkipc_pipe_1_init() {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC4;
 	} else if (!strcmp(tmp_smart, "open")) { // SVC current only support VENC_GOPMODE_NORMALP
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP; // VENC_GOPMODE_SMARTP
-		RK_MPI_VENC_EnableSvc(VIDEO_PIPE_1, 1);
 	} else {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
 	}
@@ -989,6 +990,9 @@ int rkipc_pipe_1_init() {
 		LOG_ERROR("ERROR: create VENC error! ret=%#x\n", ret);
 		return -1;
 	}
+
+	if (!strcmp(tmp_smart, "open"))
+		RK_MPI_VENC_EnableSvc(VIDEO_PIPE_1, 1);
 
 	if (rk_param_get_int("video.1:enable_motion_deblur", 0)) {
 		ret = RK_MPI_VENC_EnableMotionDeblur(VIDEO_PIPE_1, true);
