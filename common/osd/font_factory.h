@@ -5,7 +5,7 @@
 #ifndef _RK_FONT_FACTORY_H_
 #define _RK_FONT_FACTORY_H_
 
-#include "ft2build.h"
+#include "freetype2/ft2build.h"
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 #include FT_STROKER_H
