@@ -496,6 +496,40 @@ int ser_rk_isp_set_exposure_gain(int fd) {
 	return 0;
 }
 
+int ser_rk_isp_get_frame_rate(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_isp_get_frame_rate(id, &value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_isp_set_frame_rate(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_isp_set_frame_rate(id, value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
 // night to day
 int ser_rk_isp_get_night_to_day(int fd) {
 	int err = 0;
@@ -5242,6 +5276,8 @@ static const struct FunMap map[] = {
     {(char *)"rk_isp_set_exposure_time", &ser_rk_isp_set_exposure_time},
     {(char *)"rk_isp_get_exposure_gain", &ser_rk_isp_get_exposure_gain},
     {(char *)"rk_isp_set_exposure_gain", &ser_rk_isp_set_exposure_gain},
+    {(char *)"rk_isp_get_frame_rate", &ser_rk_isp_get_frame_rate},
+    {(char *)"rk_isp_set_frame_rate", &ser_rk_isp_set_frame_rate},
     // isp night_to_day
     {(char *)"rk_isp_get_night_to_day", &ser_rk_isp_get_night_to_day},
     {(char *)"rk_isp_set_night_to_day", &ser_rk_isp_set_night_to_day},

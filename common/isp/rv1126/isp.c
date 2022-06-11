@@ -91,6 +91,15 @@ int sample_common_isp_stop(int cam_id) {
 	return 0;
 }
 
+int rk_isp_get_frame_rate(int cam_id, int *value) {
+	RK_ISP_CHECK_CAMERA_ID(cam_id);
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "isp.%d.adjustment:fps", cam_id);
+	*value = rk_param_get_int(entry, -1);
+
+	return 0;
+}
+
 int rk_isp_set_frame_rate(int cam_id, int uFps) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret = 0;
