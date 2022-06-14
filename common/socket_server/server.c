@@ -5285,9 +5285,9 @@ static const struct FunMap map[] = {
     {(char *)"rk_isp_set_fill_light_mode", &ser_rk_isp_set_fill_light_mode},
     {(char *)"rk_isp_get_light_brightness", &ser_rk_isp_get_light_brightness},
     {(char *)"rk_isp_set_light_brightness", &ser_rk_isp_set_light_brightness},
-	{(char *)"rk_isp_get_night_to_day_filter_level", &ser_rk_isp_get_night_to_day_filter_level},
+    {(char *)"rk_isp_get_night_to_day_filter_level", &ser_rk_isp_get_night_to_day_filter_level},
     {(char *)"rk_isp_set_night_to_day_filter_level", &ser_rk_isp_set_night_to_day_filter_level},
-	{(char *)"rk_isp_get_night_to_day_filter_time", &ser_rk_isp_get_night_to_day_filter_time},
+    {(char *)"rk_isp_get_night_to_day_filter_time", &ser_rk_isp_get_night_to_day_filter_time},
     {(char *)"rk_isp_set_night_to_day_filter_time", &ser_rk_isp_set_night_to_day_filter_time},
     // isp blc
     {(char *)"rk_isp_get_hdr", &ser_rk_isp_get_hdr},
