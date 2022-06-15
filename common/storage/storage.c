@@ -78,17 +78,17 @@ int rkipc_storage_set_dev_attr(rkipc_str_dev_attr *pstDevAttr) {
 	sprintf(pstDevAttr->mount_path, mount_path);
 	rkipc_storage_get_mount_dev(mount_path, dev_path, type, attributes);
 	if (strlen(dev_path) == 0) {
-		for (int i = 0; i < STORAGE_NUM-1; i++) {
+		for (int i = 0; i < STORAGE_NUM - 1; i++) {
 			record_flag[i] = 0;
 		}
 		LOG_ERROR("unrecognized dev_path,stop record!\n");
 	} else {
 		sprintf(pstDevAttr->dev_path, dev_path);
-		for (int i = 0; i < STORAGE_NUM-1; i++) {
+		for (int i = 0; i < STORAGE_NUM - 1; i++) {
 			snprintf(entry, 127, "storage.%d:enable", i);
-			if(rk_param_get_int(entry, 0) == 0)
+			if (rk_param_get_int(entry, 0) == 0)
 				record_flag[i] = 0;
-			else 
+			else
 				record_flag[i] = 1;
 		}
 	}
@@ -1164,18 +1164,17 @@ static int rkipc_storage_msg_rec_cb(void *hd, int msg, void *data, int data_len,
 			LOG_ERROR("DevAdd failed\n");
 			return -1;
 		}
-		if(ppHandle->dev_sta.dev_path != NULL){
+		if (ppHandle->dev_sta.dev_path != NULL) {
 			char entry[128] = {'\0'};
 			LOG_INFO("recognized dev_path\n");
-			for (int i = 0; i < STORAGE_NUM-1; i++) {
+			for (int i = 0; i < STORAGE_NUM - 1; i++) {
 				snprintf(entry, 127, "storage.%d:enable", i);
-				if (rk_param_get_int(entry, 0) == 1){
+				if (rk_param_get_int(entry, 0) == 1) {
 					LOG_INFO("start record!\n");
 					record_flag[i] = 1;
 					rk_storage_muxer_deinit_by_id(i);
 					rk_storage_muxer_init_by_id(i);
-				}
-				else if (rk_param_get_int(entry, 0) == 0){
+				} else if (rk_param_get_int(entry, 0) == 0) {
 					record_flag[i] = 0;
 					rk_storage_muxer_deinit_by_id(i);
 				}
@@ -1188,7 +1187,7 @@ static int rkipc_storage_msg_rec_cb(void *hd, int msg, void *data, int data_len,
 			return -1;
 		}
 		LOG_ERROR("unrecognized dev_path,stop record!\n");
-		for (int i = 0; i < STORAGE_NUM-1; i++) {
+		for (int i = 0; i < STORAGE_NUM - 1; i++) {
 			record_flag[i] = 0;
 			rk_storage_muxer_deinit_by_id(i);
 		}

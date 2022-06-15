@@ -23,8 +23,8 @@
 #define RTSP_URL_1 "/live/1"
 
 pthread_mutex_t g_rtsp_mutex = PTHREAD_MUTEX_INITIALIZER;
-static int capture_one = 0;
-static int retry_time = 0;
+int rkbar_capture_one = 0;
+int rkbar_retry_time = 0;
 static int g_video_run_ = 1;
 static int pipe_id_ = 0;
 static int dev_id_ = 0;
@@ -197,13 +197,17 @@ static void *rkipc_get_venc_0(void *arg) {
 	int loopCount = 0;
 	int ret = 0;
 	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
+	FILE *fp = fopen("/tmp/test.h265", "wb");
 
 	while (g_video_run_) {
 		// 5.get the frame
 		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_0, &stFrame, 1000);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
-
+			if (loopCount < 50) {
+				fwrite(data, 1, stFrame.pstPack->u32Len, fp);
+				fflush(fp);
+			}
 			if (g_rtsplive && g_rtsp_session_0) {
 				pthread_mutex_lock(&g_rtsp_mutex);
 				rtsp_tx_video(g_rtsp_session_0, data, stFrame.pstPack->u32Len,
@@ -235,6 +239,8 @@ static void *rkipc_get_venc_0(void *arg) {
 	}
 	if (stFrame.pstPack)
 		free(stFrame.pstPack);
+	if (fp)
+		fclose(fp);
 
 	return 0;
 }
@@ -362,11 +368,11 @@ int rkipc_vi_dev_deinit() {
 	return 0;
 }
 
-int rkipc_pipe_0_init() {
+int rkipc_pipe_0_vi_init() {
 	int video_width = rk_param_get_int("video.0:width", 1920);
 	int video_height = rk_param_get_int("video.0:height", 1080);
 	const char *video_device_name = rk_param_get_string("video.0:src_node", "rkisp_mainpath");
-	int buf_cnt = 2;
+	int buf_cnt = 1;
 	int ret = 0;
 
 	// VI init
@@ -405,6 +411,14 @@ int rkipc_pipe_0_init() {
 	}
 	// pthread_t thread_id;
 	// pthread_create(&thread_id, NULL, rkipc_get_vi_0, NULL);
+
+	return 0;
+}
+
+int rkipc_pipe_0_venc_init() {
+	int ret;
+	int video_width = rk_param_get_int("video.0:width", 1920);
+	int video_height = rk_param_get_int("video.0:height", 1080);
 	// VENC init
 	VENC_CHN_ATTR_S venc_chn_attr;
 	memset(&venc_chn_attr, 0, sizeof(venc_chn_attr));
@@ -527,9 +541,11 @@ int rkipc_pipe_0_init() {
 	stRecvParam.s32RecvPicNum = -1;
 	RK_MPI_VENC_StartRecvFrame(VIDEO_PIPE_0, &stRecvParam);
 
-	pthread_create(&venc_thread_id, NULL, rkipc_get_venc_0, NULL);
+	return 0;
+}
 
-	// rockit可以绑定后get
+int rkipc_pipe_0_bind() {
+	int ret;
 	pipe_0_venc_chn.enModId = RK_ID_VENC;
 	pipe_0_venc_chn.s32DevId = pipe_id_;
 	pipe_0_venc_chn.s32ChnId = VIDEO_PIPE_0;
@@ -542,6 +558,15 @@ int rkipc_pipe_0_init() {
 		LOG_ERROR("ERROR: Bind VI and VENC error! ret=%d\n", ret);
 		return -1;
 	}
+	pthread_create(&venc_thread_id, NULL, rkipc_get_venc_0, NULL);
+
+	return 0;
+}
+
+int rkipc_pipe_0_init() {
+	rkipc_pipe_0_vi_init();
+	rkipc_pipe_0_venc_init();
+	rkipc_pipe_0_bind();
 
 	return 0;
 }
@@ -591,7 +616,7 @@ int rkipc_pipe_1_init() {
 	vi_chn_attr.stSize.u32Width = video_width;
 	vi_chn_attr.stSize.u32Height = video_height;
 	vi_chn_attr.enPixelFormat = RK_FMT_YUV420SP;
-	vi_chn_attr.u32Depth = 0;
+	vi_chn_attr.u32Depth = 1;
 	if (enable_npu)
 		vi_chn_attr.u32Depth += 1;
 	ret = RK_MPI_VI_SetChnAttr(pipe_id_, VIDEO_PIPE_1, &vi_chn_attr);
@@ -859,8 +884,8 @@ static void *wait_key_event(void *arg) {
 		int val = rk_adc_get_value(0, 0);
 		if (val < 100) {
 			LOG_INFO("start capture\n");
-			capture_one = 1;
-			retry_time = 30;
+			rkbar_capture_one = 1;
+			rkbar_retry_time = 30;
 		}
 		usleep(100 * 1000);
 	}
@@ -877,11 +902,11 @@ static void *get_vi_send_rkbar(void *arg) {
 	char file_name[256];
 
 	while (g_video_run_) {
-		if (capture_one == 0) {
+		if (rkbar_capture_one == 0) {
 			usleep(300 * 1000);
 			continue;
 		}
-		capture_one = 0;
+		rkbar_capture_one = 0;
 		// rkbar
 		image_t *img = NULL;
 		img = (image_t *)malloc(sizeof(image_t));
@@ -906,9 +931,9 @@ static void *get_vi_send_rkbar(void *arg) {
 			continue;
 		}
 		LOG_INFO("rkbar init is success");
-		while (retry_time) {
-			LOG_DEBUG("333 retry_time is %d\n", retry_time);
-			retry_time--;
+		while (rkbar_retry_time) {
+			LOG_DEBUG("rkbar_retry_time is %d\n", rkbar_retry_time);
+			rkbar_retry_time--;
 			ret = RK_MPI_VI_GetChnFrame(pipe_id_, VIDEO_PIPE_1, &vi_frame, 1000);
 			if (ret != RK_SUCCESS) {
 				LOG_ERROR("RK_MPI_VI_GetChnFrame timeout %#x\n", ret);
@@ -932,7 +957,7 @@ static void *get_vi_send_rkbar(void *arg) {
 				LOG_ERROR("RK_MPI_VI_ReleaseChnFrame fail %x\n", ret);
 			}
 			LOG_INFO("scan success\n");
-			retry_time = 0;
+			rkbar_retry_time = 0;
 			const char *test = rkbar_getresult(rkbar_hand);
 			char *data = (char *)malloc(strlen(test));
 			memcpy(data, test, strlen(test));
@@ -941,39 +966,19 @@ static void *get_vi_send_rkbar(void *arg) {
 
 			tuya_ipc_direct_connect(data, 0);
 			// connect wifi
-			char ssid[20], psk[20], cmd[100], wifi_ssid[20], wifi_psk[20];
+			char ssid[64], psk[64], cmd[128], wifi_ssid[64], wifi_psk[64];
 			sscanf(data, "%*[^:]:%[^,],%*[^:]:%[^,]", psk, ssid);
-			memset(wifi_ssid, 0, 20);
-			memset(wifi_psk, 0, 20);
+			memset(wifi_ssid, 0, 64);
+			memset(wifi_psk, 0, 64);
 			memcpy(wifi_ssid, &ssid[1], strlen(ssid) - 2);
 			memcpy(wifi_psk, &psk[1], strlen(psk) - 2);
+			LOG_INFO("wifi_ssid is %s, wifi_psk is %s\n", wifi_ssid, wifi_psk);
+			enable_network(wifi_ssid, wifi_psk);
 
-#if 0
-			sprintf(cmd, "/oem/usr/ko/atbm_iot_cli set_network ssid %s", ssid);
-			LOG_INFO("cmd is %s\n", cmd);
-			system(cmd);
-			sprintf(cmd, "/oem/usr/ko/atbm_iot_cli set_network key %s", psk);
-			LOG_INFO("cmd is %s\n", cmd);
-			system(cmd);
-			system("/oem/usr/ko/atbm_iot_cli set_network key_mgmt WPA2");
-			system("/oem/usr/ko/atbm_iot_cli enable_network");
-			usleep(1000 * 1000);
-
-			system("ifconfig wlan0 192.168.1.101");
-			system("echo \"nameserver 192.168.1.1\" > /etc/resolv.conf");
-			system("route add default gw 192.168.1.1");
-#else
-			// tmp do nothing, wait wifi bug fixup
-			// enable_network(ssid, psk);
-			// usleep(1000 * 1000);
-			// system("ifconfig wlan0 192.168.1.101");
-			// system("echo \"nameserver 192.168.1.1\" > /etc/resolv.conf");
-			// system("route add default gw 192.168.1.1");
-#endif
 			if (data)
 				free(data);
 		}
-		// retry_time = 0, or connect success
+		// rkbar_retry_time = 0, or connect success
 		rkbar_deinit(rkbar_hand);
 		if (img->bin)
 			free(img->bin);
@@ -989,18 +994,16 @@ int rk_video_init() {
 	int ret = 0;
 	g_video_run_ = 1;
 	enable_npu = rk_param_get_int("video.1:enable_npu", 0);
-	ret |= rkipc_vi_dev_init();
-	ret |= rkipc_pipe_0_init();
+	// ret |= rkipc_vi_dev_init();
+	// ret |= rkipc_pipe_0_init();
 	ret |= rkipc_pipe_1_init();
 	ret |= rkipc_rtsp_init();
-	if (enable_npu)
-		ret |= rkipc_vpss_bgr_init();
+// 	if (enable_npu)
+// 		ret |= rkipc_vpss_bgr_init();
 #if 1
-	pthread_t key_id;
+	// pthread_t key_id;
 	pthread_t get_vi_id;
 	// pthread_create(&key_id, NULL, wait_key_event, NULL);
-	capture_one = 1;
-	retry_time = 3000;
 	pthread_create(&get_vi_id, NULL, get_vi_send_rkbar, NULL);
 #endif
 

@@ -47,7 +47,7 @@ OPERATE_RET tuya_adapter_wired_get_ip(OUT NW_IP_S *ip) {
 	strncpy(ifr.ifr_name, NET_DEV, sizeof(ifr.ifr_name) - 1);
 
 	if (ioctl(sock, SIOCGIFADDR, &ifr) < 0) {
-		printf("ioctl error\n");
+		// printf("ioctl error\n");
 		close(sock);
 		return OPRT_COM_ERROR;
 	}
@@ -74,7 +74,7 @@ BOOL_T tuya_adapter_wired_station_conn(VOID) {
 	strncpy(ifr.ifr_name, NET_DEV, sizeof(ifr.ifr_name) - 1);
 
 	if (ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
-		printf("ioctl error\n");
+		// printf("ioctl error\n");
 		close(sock);
 		return FALSE;
 	}

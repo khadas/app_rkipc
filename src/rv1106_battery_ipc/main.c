@@ -155,7 +155,7 @@ void rkipc_get_opt(int argc, char *argv[]) {
 extern void ioctl_msg_func(int sig_num);
 
 int main(int argc, char **argv) {
-	LOG_INFO("main begin\n");
+	LOG_INFO("%s: main begin\n", get_time_string());
 	signal(SIGINT, sigterm_handler);
 	signal(SIGQUIT, sigterm_handler);
 	signal(SIGINT, sigterm_handler);
@@ -169,25 +169,62 @@ int main(int argc, char **argv) {
 	if (rkipc_ini_path_ == NULL)
 		rkipc_ini_path_ = "/usr/share/rkipc.ini";
 
+	int ssFd = -1, viDev = -1;
+	const char *ssName = "/dev/video8";
+	ssFd = open(ssName, O_RDWR | O_CLOEXEC);
+	if (ssFd < 0) {
+		printf("failed to open camera:%s\n", ssName);
+		return -1;
+	}
+	viDev = open("/dev/mpi/vvi", O_RDONLY);
+	if (viDev < 0) {
+		printf("failed to open /dev/mpi/vvi\n");
+		return -1;
+	}
+
 	// init
 	rk_param_init(rkipc_ini_path_);
+	LOG_INFO("%s: rk_param_init over\n", get_time_string());
+	RK_MPI_SYS_Init();
+	LOG_INFO("%s: RK_MPI_SYS_Init over\n", get_time_string());
+	// venc
+	rkipc_pipe_0_venc_init();
+	LOG_INFO("%s: rkipc_pipe_0_venc_init over\n", get_time_string());
+	// aiq
 	rk_isp_init(0, rkipc_iq_file_path_);
+	LOG_INFO("%s: rk_isp_init over\n", get_time_string());
 	rk_isp_set_frame_rate_without_ini(0, rk_param_get_int("isp.0.adjustment:fps", 15));
+	LOG_INFO("%s: rk_isp_set_frame_rate_without_ini over\n", get_time_string());
+	// vi
+	rkipc_vi_dev_init();
+	LOG_INFO("%s: rkipc_vi_dev_init over\n", get_time_string());
+	rkipc_pipe_0_vi_init();
+	LOG_INFO("%s: rkipc_pipe_0_vi_init over\n", get_time_string());
+	// bind
+	rkipc_pipe_0_bind();
+	LOG_INFO("%s: rkipc_pipe_0_bind over\n", get_time_string());
+
+	// second stream and rtsp
+	rk_video_init();
+	LOG_INFO("%s: rk_video_init over\n", get_time_string());
+	// if (rk_param_get_int("audio.0:enable", 0))
+	// 	rkipc_audio_init();
+	// LOG_INFO("%s: rkipc_audio_init over\n", get_time_string());
+
 	if (rk_param_get_int("video.1:enable_npu", 0))
 		rkipc_rockiva_init();
-	RK_MPI_SYS_Init();
-	rk_video_init();
-	if (rk_param_get_int("audio.0:enable", 0))
-		rkipc_audio_init();
+	LOG_INFO("%s: rkipc_rockiva_init over\n", get_time_string());
 
 	atbm_init();
+	LOG_INFO("%s: atbm_init over\n", get_time_string());
+	get_status();
 
-	// enable_network("TP-LINK_YYLX", "12345678");
-	// enable_network("Rktest", "12345678");
-	// sleep(3);
-	system("ifconfig wlan0 192.168.1.101");
-	system("echo \"nameserver 192.168.1.1\" > /etc/resolv.conf");
-	system("route add default gw 192.168.1.1");
+	// // enable_network("TP-LINK_YYLX", "12345678");
+	// // enable_network("Rktest", "12345678");
+	// // sleep(3);
+	// system("ifconfig wlan0 192.168.1.101");
+	// system("echo \"nameserver 192.168.1.1\" > /etc/resolv.conf");
+	// system("route add default gw 192.168.1.1");
 
 	if (rk_param_get_int("tuya:enable", 0))
 		rk_tuya_init();

@@ -572,8 +572,7 @@ int rk_isp_set_night_to_day_filter_level(int cam_id, int value) {
 int rk_isp_get_night_to_day_filter_time(int cam_id, int *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "isp.%d.night_to_day:night_to_day_filter_time",
-	         rkipc_aiq_get_ctx(cam_id));
+	snprintf(entry, 127, "isp.%d.night_to_day:night_to_day_filter_time", rkipc_aiq_get_ctx(cam_id));
 	*value = rk_param_get_int(entry, -1);
 
 	return 0;
@@ -584,8 +583,7 @@ int rk_isp_set_night_to_day_filter_time(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	// TODO
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "isp.%d.night_to_day:night_to_day_filter_time",
-	         rkipc_aiq_get_ctx(cam_id));
+	snprintf(entry, 127, "isp.%d.night_to_day:night_to_day_filter_time", rkipc_aiq_get_ctx(cam_id));
 	rk_param_set_int(entry, value);
 
 	return ret;

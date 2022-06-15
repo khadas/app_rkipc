@@ -14,8 +14,8 @@
 #include <sys/un.h>
 #include <unistd.h>
 
-#include "atbm_tool.h"
 #include "atbm_ioctl_ext.h"
+#include "atbm_tool.h"
 
 #define ATBM_POWER 122
 #define ATBM_POWER_SET _IOW(ATBM_POWER, 0, char)
@@ -454,6 +454,61 @@ int clear_network_cmd(int fp, int argc, char *argv[]) {
 	key_id_set = 0;
 	key_mgmt_set = 0;
 	return 0;
+}
+
+int get_status() {
+	int ret = 0;
+	struct status_info status_info;
+	struct in_addr addr;
+
+	memset(&status_info, 0, sizeof(struct status_info));
+	ret = ioctl(g_fp, ATBM_STATUS, (unsigned int)(&status_info));
+	if (ret) {
+		goto err;
+	}
+
+	printf("wifi_mode=%s\n", status_info.wifimode ? "AP" : "STA");
+	if (status_info.wifimode || status_info.bconnect) {
+		printf("wpa_state=ACTIVE\n");
+		printf("ssid=%s\n", status_info.con_event.ssid);
+		addr.s_addr = status_info.con_event.ipaddr;
+		printf("ip_address=%s\n", inet_ntoa(addr));
+		printf("mac_address=");
+		if (status_info.wifimode) {
+			MAC_printf(status_info.macaddr);
+		} else {
+			MAC_printf(status_info.con_event.bssid);
+		}
+		addr.s_addr = status_info.con_event.ipmask;
+		printf("\nip_mask=%s\n", inet_ntoa(addr));
+		addr.s_addr = status_info.con_event.gwaddr;
+		printf("gate_way=%s\n", inet_ntoa(addr));
+
+		char cmd[30];
+		struct in_addr ip_addr;
+		ip_addr.s_addr = status_info.con_event.ipaddr;
+		sprintf(cmd, "ifconfig wlan0 %s", inet_ntoa(ip_addr));
+		printf("cmd:%s\n", cmd);
+		system(cmd);
+
+		ip_addr.s_addr = status_info.con_event.gwaddr;
+		sprintf(cmd, "echo \"nameserver %s\" > /etc/resolv.conf", inet_ntoa(ip_addr));
+		printf("cmd:%s\n", cmd);
+		system(cmd);
+
+		system("ifconfig wlan0 up");
+
+		ip_addr.s_addr = status_info.con_event.gwaddr;
+		sprintf(cmd, "route add default gw %s", inet_ntoa(ip_addr));
+		printf("cmd:%s\n", cmd);
+		system(cmd);
+	} else {
+		printf("wpa_state=INACTIVE\n");
+	}
+
+	return 0;
+err:
+	return -1;
 }
 
 int get_status_send(int fp, int argc, char *argv[]) {
@@ -2335,6 +2390,10 @@ int insmod_driver(int test_insmod) {
 	is_insmod_driver = 1;
 	driver_can_rmmod = 0;
 
+	fcntl(g_fp, F_SETOWN, getpid());
+	flags = fcntl(g_fp, F_GETFL);
+	fcntl(g_fp, F_SETFL, flags | FASYNC);
+
 	memset(&status_info, 0, sizeof(struct status_info));
 	ret = ioctl(g_fp, ATBM_STATUS, (unsigned int)(&status_info));
 	if (ret) {
@@ -2573,9 +2632,11 @@ void *tcp_detect_func(void *arg) {
 }
 #endif
 
+extern int rkbar_capture_one;
+extern int rkbar_retry_time;
 void ioctl_msg_func(int sig_num) {
 	int len = 0;
-	printf("ioctl_msg_func ... ...\n");
+	printf("----msg enter-------\n");
 	sem_wait(&sem_status);
 	while (1) {
 		printf("read ... ...\n");
@@ -2584,7 +2645,7 @@ void ioctl_msg_func(int sig_num) {
 			printf("Line:%d read connect stat error.\n", __LINE__);
 			break;
 		} else {
-			printf("YYZ type: %d, %d, %d\n", len, sizeof(status), status.type);
+			printf("type: %d, %d, %d\n", len, sizeof(status), status.type);
 			if (status.type == 0) {
 				if (status.is_connected) {
 					struct in_addr ip_addr;
@@ -2596,7 +2657,7 @@ void ioctl_msg_func(int sig_num) {
 						MAC_printf(status.event.bssid);
 						printf(" completed done\n");
 					}
-					printf("YYZ ip addr:%s\n", inet_ntoa(ip_addr));
+					printf("ip addr:%s\n", inet_ntoa(ip_addr));
 #ifndef CONFIG_ATBM_SDIO_ATCMD
 					if (ip_set_auto) {
 						char cmd[30];
@@ -2604,20 +2665,20 @@ void ioctl_msg_func(int sig_num) {
 
 						ip_addr.s_addr = status.event.ipaddr;
 						sprintf(cmd, "ifconfig wlan0 %s", inet_ntoa(ip_addr));
-						printf("YYZ cmd:%s\n", cmd);
+						printf("cmd:%s\n", cmd);
 						system(cmd);
 
 						ip_addr.s_addr = status.event.gwaddr;
 						sprintf(cmd, "echo \"nameserver %s\" > /etc/resolv.conf",
 						        inet_ntoa(ip_addr));
-						printf("YYZ cmd:%s\n", cmd);
+						printf("cmd:%s\n", cmd);
 						system(cmd);
 
 						system("ifconfig wlan0 up");
 
 						ip_addr.s_addr = status.event.gwaddr;
 						sprintf(cmd, "route add default gw %s", inet_ntoa(ip_addr));
-						printf("YYZ cmd:%s\n", cmd);
+						printf("cmd:%s\n", cmd);
 						system(cmd);
 
 #ifdef DEMO_TCP_SEND
@@ -2702,6 +2763,8 @@ void ioctl_msg_func(int sig_num) {
 				}
 			} else if (status.type == 6) {
 				printf("Received customer private event (%s)...\n", status.event_buffer);
+				rkbar_capture_one = 1;
+				rkbar_retry_time = 150;
 			}
 #ifdef CONFIG_ATBM_SDIO_ATCMD
 			else if (status.type == 7) {
@@ -2716,6 +2779,7 @@ void ioctl_msg_func(int sig_num) {
 		}
 	}
 	sem_post(&sem_status);
+	printf("----msg exit-------\n");
 }
 
 #ifdef CONFIG_ATBM_SDIO_ATCMD
@@ -2780,10 +2844,9 @@ int atbm_init() {
 	sem_init(&sem_status, 0, 1);
 	sem_init(&sem_sock_sync, 0, 0);
 
+	signal(SIGIO, ioctl_msg_func);
 	/* test if driver has insmod */
 	insmod_driver(1);
-
-	signal(SIGIO, ioctl_msg_func);
 
 	thread_run = 1;
 

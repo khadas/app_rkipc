@@ -604,34 +604,34 @@ wlp3s0    IEEE 802.11  ESSID:"H"
 。。。。。。
 */
 OPERATE_RET tuya_adapter_wifi_get_work_mode(OUT WF_WK_MD_E *mode) {
-	if (NULL == mode) {
-		return OPRT_INVALID_PARM;
-	}
+	// 	if (NULL == mode) {
+	// 		return OPRT_INVALID_PARM;
+	// 	}
 
-#ifdef __HuaweiLite__
-	// todo liteos system
-	// Implementation of mode acquisition
-	char scan_mode[10] = {0};
-#else
-	FILE *pp = popen("iwconfig " WLAN_DEV, "r");
-	if (pp == NULL) {
-		printf("WIFI Get Mode Fail. Force Set Station \r\n");
-		*mode = WWM_STATION;
-		return OPRT_OK;
-	}
+	// #ifdef __HuaweiLite__
+	// 	// todo liteos system
+	// 	// Implementation of mode acquisition
+	// 	char scan_mode[10] = {0};
+	// #else
+	// 	FILE *pp = popen("iwconfig " WLAN_DEV, "r");
+	// 	if (pp == NULL) {
+	// 		printf("WIFI Get Mode Fail. Force Set Station \r\n");
+	// 		*mode = WWM_STATION;
+	// 		return OPRT_OK;
+	// 	}
 
 	char scan_mode[10] = {0};
-	char tmp[256] = {0};
-	while (fgets(tmp, sizeof(tmp), pp) != NULL) {
-		char *pModeStart = strstr(tmp, "Mode:");
-		if (pModeStart != NULL) {
-			int x1, x2, x3, x4, x5, x6;
-			sscanf(pModeStart + strlen("Mode:"), "%s ", scan_mode);
-			break;
-		}
-	}
-	pclose(pp);
-#endif
+	// 	char tmp[256] = {0};
+	// 	while (fgets(tmp, sizeof(tmp), pp) != NULL) {
+	// 		char *pModeStart = strstr(tmp, "Mode:");
+	// 		if (pModeStart != NULL) {
+	// 			int x1, x2, x3, x4, x5, x6;
+	// 			sscanf(pModeStart + strlen("Mode:"), "%s ", scan_mode);
+	// 			break;
+	// 		}
+	// 	}
+	// 	pclose(pp);
+	// #endif
 
 	*mode = WWM_STATION;
 	if (strncasecmp(scan_mode, "Managed", strlen("Managed")) == 0) {
@@ -670,35 +670,35 @@ wlp3s0    IEEE 802.11  ESSID:"HUAWEI-1234"
 。。。。。。
 */
 OPERATE_RET tuya_adapter_wifi_station_get_conn_ap_rssi(OUT SCHAR_T *rssi) {
-	if (NULL == rssi) {
-		return OPRT_INVALID_PARM;
-	}
-	*rssi = 0;
+	// 	if (NULL == rssi) {
+	// 		return OPRT_INVALID_PARM;
+	// 	}
+	// 	*rssi = 0;
 
-#ifdef __HuaweiLite__
-	// todo
-	// liteos system
-	// Implementation of RSSI acquisition
-#else
-	FILE *pp = popen("iwconfig " WLAN_DEV, "r");
-	if (pp == NULL) {
-		return OPRT_COM_ERROR;
-	}
+	// #ifdef __HuaweiLite__
+	// 	// todo
+	// 	// liteos system
+	// 	// Implementation of RSSI acquisition
+	// #else
+	// 	FILE *pp = popen("iwconfig " WLAN_DEV, "r");
+	// 	if (pp == NULL) {
+	// 		return OPRT_COM_ERROR;
+	// 	}
 
-	char tmp[128] = {0};
-	while (fgets(tmp, sizeof(tmp), pp) != NULL) {
-		/* find signal  */
-		char *pSIGNALStart = strstr(tmp, "Quality=");
-		if (pSIGNALStart != NULL) {
-			int x = 0;
-			int y = 0;
-			sscanf(pSIGNALStart + strlen("Quality="), "%d/%d", &x, &y);
-			*rssi = x * 100 / (y + 1);
-			break;
-		}
-	}
-	pclose(pp);
-#endif
+	// 	char tmp[128] = {0};
+	// 	while (fgets(tmp, sizeof(tmp), pp) != NULL) {
+	// 		/* find signal  */
+	// 		char *pSIGNALStart = strstr(tmp, "Quality=");
+	// 		if (pSIGNALStart != NULL) {
+	// 			int x = 0;
+	// 			int y = 0;
+	// 			sscanf(pSIGNALStart + strlen("Quality="), "%d/%d", &x, &y);
+	// 			*rssi = x * 100 / (y + 1);
+	// 			break;
+	// 		}
+	// 	}
+	// 	pclose(pp);
+	// #endif
 	printf("Get Conn AP RSSI:%d\r\n", *rssi);
 
 	return OPRT_OK;

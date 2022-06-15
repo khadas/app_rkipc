@@ -83,29 +83,16 @@ int sample_common_isp_init(int cam_id, rk_aiq_working_mode_t WDRMode, bool Multi
 		strcpy(main_scene, "hdr");
 
 	LOG_INFO("main_scene is %s, sub_scene is %s\n", main_scene, sub_scene);
+	LOG_INFO("%s: rk_aiq_uapi2_sysctl_preInit_scene begin\n", get_time_string());
 	ret = rk_aiq_uapi2_sysctl_preInit_scene(aiq_static_info.sensor_info.sensor_name, main_scene,
 	                                        sub_scene);
 	if (ret < 0)
 		LOG_ERROR("%s: failed to set scene\n", aiq_static_info.sensor_info.sensor_name);
+	LOG_INFO("%s: rk_aiq_uapi2_sysctl_preInit_scene over\n", get_time_string());
 
-#if 1
 	aiq_ctx =
 	    rk_aiq_uapi2_sysctl_init(aiq_static_info.sensor_info.sensor_name, iq_file_dir, NULL, NULL);
-// LOG_ERROR("tmp force use m00_b_imx464 3-001a\n");
-#else
-	if (cam_id == 0)
-		aiq_ctx = rk_aiq_uapi2_sysctl_init("m02_b_imx464 3-001a", iq_file_dir, NULL, NULL);
-	else if (cam_id == 1)
-		aiq_ctx = rk_aiq_uapi2_sysctl_init("m03_b_imx464 3-0036", iq_file_dir, NULL, NULL);
-	else if (cam_id == 2)
-		aiq_ctx = rk_aiq_uapi2_sysctl_init("m00_b_imx464 4-001a", iq_file_dir, NULL, NULL);
-	else if (cam_id == 3)
-		aiq_ctx = rk_aiq_uapi2_sysctl_init("m01_b_imx464 4-0036", iq_file_dir, NULL, NULL);
-	else if (cam_id == 4)
-		aiq_ctx = rk_aiq_uapi2_sysctl_init("m04_b_imx464 5-001a", iq_file_dir, NULL, NULL);
-	else if (cam_id == 5)
-		aiq_ctx = rk_aiq_uapi2_sysctl_init("m05_b_imx464 5-0036", iq_file_dir, NULL, NULL);
-#endif
+	LOG_INFO("%s: rk_aiq_uapi2_sysctl_init over\n", get_time_string());
 	// if (MultiCam)
 	// 	rk_aiq_uapi2_sysctl_setMulCamConc(aiq_ctx, true);
 
@@ -117,16 +104,16 @@ int sample_common_isp_init(int cam_id, rk_aiq_working_mode_t WDRMode, bool Multi
 int sample_common_isp_run(int cam_id) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	if (rk_aiq_uapi2_sysctl_prepare(g_aiq_ctx[cam_id], 0, 0, g_WDRMode[cam_id])) {
-		LOG_ERROR("rkaiq engine prepare failed !\n");
+		LOG_ERROR("rk_aiq_uapi2_sysctl_prepare failed !\n");
 		g_aiq_ctx[cam_id] = NULL;
 		return -1;
 	}
-	LOG_INFO("rk_aiq_uapi2_sysctl_init/prepare succeed\n");
+	LOG_INFO("%s: rk_aiq_uapi2_sysctl_prepare succeed\n", get_time_string());
 	if (rk_aiq_uapi2_sysctl_start(g_aiq_ctx[cam_id])) {
 		LOG_ERROR("rk_aiq_uapi2_sysctl_start  failed\n");
 		return -1;
 	}
-	LOG_INFO("rk_aiq_uapi2_sysctl_start succeed\n");
+	LOG_INFO("%s: rk_aiq_uapi2_sysctl_start succeed\n", get_time_string());
 	return 0;
 }
 

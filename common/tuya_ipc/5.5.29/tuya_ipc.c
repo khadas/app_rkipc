@@ -32,8 +32,7 @@ static Ring_Buffer_User_Handle_S audio_handle;
 static Ring_Buffer_User_Handle_S video_handle;
 static TUYA_APP_P2P_MGR s_p2p_mgr = {0};
 static IPC_MEDIA_INFO_S s_media_info = {0};
-static int g_init = 0;
-static bool cloud_connected_ = 0;
+static INT_T s_mqtt_status = 0;
 static MEDIA_FRAME_S video_frame, audio_frame;
 
 rk_tuya_ao_create rk_tuya_ao_create_ = NULL;
@@ -298,7 +297,6 @@ int rk_tuya_low_power_disable() {
 	return ret;
 }
 
-STATIC INT_T s_mqtt_status = 0;
 VOID IPC_APP_Net_Status_cb(IN CONST BYTE_T stat) {
 	LOG_DEBUG("Net status change to:%d", stat);
 	switch (stat) {
@@ -822,7 +820,7 @@ OPERATE_RET TUYA_IPC_SDK_START(WIFI_INIT_MODE_E connect_mode, CHAR_T *p_token) {
 		strcpy(ipc_sdk_run_var.debug_info.qrcode_token, p_token);
 	}
 	/* 0-5, the bigger, the more log */
-	ipc_sdk_run_var.debug_info.log_level = 4;
+	ipc_sdk_run_var.debug_info.log_level = 1;
 	/*media info (essential)*/
 	/* main stream(HD), video configuration*/
 	/* NOTE
@@ -1005,8 +1003,10 @@ int rk_tuya_deinit() {
 int rk_tuya_put_frame(IN CONST IPC_STREAM_E channel, IN CONST MEDIA_FRAME_S *p_frame) {
 	// LOG_DEBUG("Put Frame. Channel:%d type:%d size:%u pts:%llu ts:%llu\n", channel,
 	//           p_frame->type, p_frame->size, p_frame->pts, p_frame->timestamp);
-
 	int ret;
+	if (!s_mqtt_status)
+		return 0;
+
 	if (channel == E_IPC_STREAM_VIDEO_MAIN) {
 		ret = tuya_ipc_ring_buffer_append_data(video_handle, p_frame->p_buf, p_frame->size,
 		                                       p_frame->type, p_frame->pts);
@@ -1019,6 +1019,7 @@ int rk_tuya_put_frame(IN CONST IPC_STREAM_E channel, IN CONST MEDIA_FRAME_S *p_f
 		LOG_INFO("Put Frame Fail.%d Channel:%d type:%d size:%u pts:%llu ts:%llu\n", ret, channel,
 		         p_frame->type, p_frame->size, p_frame->pts, p_frame->timestamp);
 	}
+
 	return ret;
 }
 

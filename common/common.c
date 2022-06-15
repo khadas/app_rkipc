@@ -117,3 +117,13 @@ long long rkipc_get_curren_time_ms() {
 
 	return msec;
 }
+
+char *get_time_string() {
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	struct tm *timeinfo = localtime(&tv.tv_sec);
+	static char time_string[64];
+	sprintf(time_string, "%.2d:%.2d:%.2d.%.6ld", timeinfo->tm_hour, timeinfo->tm_min,
+	        timeinfo->tm_sec, tv.tv_usec);
+	return time_string;
+}

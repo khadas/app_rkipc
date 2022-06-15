@@ -48,4 +48,4 @@ target_link_libraries(${PROJECT_NAME} libpthread.a librockit.a librockchip_mpp.a
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION root/usr/bin)
 install(FILES rkipc.ini DESTINATION root/usr/share)
-install(PROGRAMS vendor_storage DESTINATION bin)
+install(PROGRAMS vendor_storage DESTINATION root/usr/bin)

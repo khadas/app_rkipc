@@ -3770,7 +3770,7 @@ int ser_rk_network_ipv4_get(int fd) {
 	// get
 	ret = rk_network_ipv4_get(interface, method, address, netmask, gateway);
 	LOG_DEBUG("method is %s, address is %s, netmask is %s, gateway is %s\n", method, address,
-	         netmask, gateway);
+	          netmask, gateway);
 	free(interface);
 	// write
 	len = strlen(method);
@@ -3986,7 +3986,7 @@ int ser_rk_network_nicspeed_get(int fd) {
 	// get
 	ret = rk_network_nicspeed_get(interface, &speed, &duplex, &autoneg);
 	LOG_DEBUG("interface is %s, speed is %d, duplex is %d, autoneg is %d\n", interface, speed,
-	         duplex, autoneg);
+	          duplex, autoneg);
 	free(interface);
 	// write
 	if (sock_write(fd, &speed, sizeof(speed)) == SOCKERR_CLOSED)
@@ -4023,7 +4023,7 @@ int ser_rk_network_nicspeed_set(int fd) {
 
 	// get
 	LOG_DEBUG("len is %d, interface is %s, speed is %d, duplex is %d, autoneg is %d\n", len,
-	         interface, speed, duplex, autoneg);
+	          interface, speed, duplex, autoneg);
 	ret = rk_network_nicspeed_set(interface, speed, duplex, autoneg);
 	free(interface);
 	// write
@@ -5225,7 +5225,7 @@ int ser_rk_system_add_user(int fd) {
 		return -1;
 	}
 	LOG_DEBUG("user_level is %d, user_name is %s, password is %s\n", user_level, user_name,
-	         password);
+	          password);
 	ret = rk_system_add_user(id, user_level, user_name, password);
 	free(user_name);
 	free(password);
