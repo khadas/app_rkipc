@@ -59,7 +59,7 @@ int ser_rk_isp_set(int fd) {
 			return -1;
 		}
 
-		LOG_INFO("isp json is %s\n", json);
+		LOG_DEBUG("isp json is %s\n", json);
 		free(json);
 	}
 
@@ -80,7 +80,7 @@ int ser_rk_video_set(int fd) {
 			return -1;
 		}
 
-		LOG_INFO("video json is %s\n", json);
+		LOG_DEBUG("video json is %s\n", json);
 		free(json);
 	}
 
@@ -101,7 +101,7 @@ int ser_rk_audio_set(int fd) {
 			return -1;
 		}
 
-		LOG_INFO("audio json is %s\n", json);
+		LOG_DEBUG("audio json is %s\n", json);
 		free(json);
 	}
 
@@ -144,7 +144,7 @@ int ser_rk_isp_set_scenario(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_isp_set_scenario(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -362,7 +362,7 @@ int ser_rk_isp_set_exposure_mode(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_isp_set_exposure_mode(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -407,7 +407,7 @@ int ser_rk_isp_set_gain_mode(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_isp_set_gain_mode(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -452,7 +452,7 @@ int ser_rk_isp_set_exposure_time(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_isp_set_exposure_time(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -803,7 +803,7 @@ int ser_rk_isp_set_blc_region(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_isp_set_blc_region(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -848,7 +848,7 @@ int ser_rk_isp_set_hlc(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_isp_set_hlc(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -1030,7 +1030,7 @@ int ser_rk_isp_set_white_blance_style(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_isp_set_white_blance_style(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -1178,7 +1178,7 @@ int ser_rk_isp_set_noise_reduce_mode(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_isp_set_noise_reduce_mode(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -1223,7 +1223,7 @@ int ser_rk_isp_set_dehaze(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_isp_set_dehaze(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -1268,7 +1268,7 @@ int ser_rk_isp_set_gray_scale_mode(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_isp_set_gray_scale_mode(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -1313,7 +1313,7 @@ int ser_rk_isp_set_distortion_correction(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_isp_set_distortion_correction(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -1530,7 +1530,7 @@ int ser_rk_isp_set_power_line_frequency_mode(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_isp_set_power_line_frequency_mode(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -1575,7 +1575,7 @@ int ser_rk_isp_set_image_flip(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_isp_set_image_flip(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -1621,7 +1621,7 @@ int ser_rk_isp_set_af_mode(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_isp_set_af_mode(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -1671,7 +1671,7 @@ int ser_rk_isp_af_zoom_in(int fd) {
 
 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
 		return -1;
-	LOG_INFO("id is %d\n", id);
+	LOG_DEBUG("id is %d\n", id);
 	ret = rk_isp_af_zoom_in(id);
 	if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
@@ -1685,7 +1685,7 @@ int ser_rk_isp_af_zoom_out(int fd) {
 
 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
 		return -1;
-	LOG_INFO("id is %d\n", id);
+	LOG_DEBUG("id is %d\n", id);
 	ret = rk_isp_af_zoom_out(id);
 	if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
@@ -1699,7 +1699,7 @@ int ser_rk_isp_af_focus_in(int fd) {
 
 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
 		return -1;
-	LOG_INFO("id is %d\n", id);
+	LOG_DEBUG("id is %d\n", id);
 	ret = rk_isp_af_focus_in(id);
 	if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
@@ -1713,7 +1713,7 @@ int ser_rk_isp_af_focus_out(int fd) {
 
 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
 		return -1;
-	LOG_INFO("id is %d\n", id);
+	LOG_DEBUG("id is %d\n", id);
 	ret = rk_isp_af_focus_out(id);
 	if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
@@ -1727,7 +1727,7 @@ int ser_rk_isp_af_focus_once(int fd) {
 
 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
 		return -1;
-	LOG_INFO("id is %d\n", id);
+	LOG_DEBUG("id is %d\n", id);
 	ret = rk_isp_af_focus_once(id);
 	if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
@@ -1919,7 +1919,7 @@ int ser_rk_audio_set_encode_type(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_audio_set_encode_type(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -2045,7 +2045,7 @@ int ser_rk_video_set_RC_mode(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_video_set_RC_mode(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -2090,7 +2090,7 @@ int ser_rk_video_set_output_data_type(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_video_set_output_data_type(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -2135,7 +2135,7 @@ int ser_rk_video_set_rc_quality(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_video_set_rc_quality(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -2180,7 +2180,7 @@ int ser_rk_video_set_smart(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_video_set_smart(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -2225,7 +2225,7 @@ int ser_rk_video_set_tsvc(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_video_set_tsvc(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -2270,7 +2270,7 @@ int ser_rk_video_set_stream_type(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_video_set_stream_type(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -2315,7 +2315,7 @@ int ser_rk_video_set_h264_profile(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_video_set_h264_profile(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -2361,7 +2361,7 @@ int ser_rk_video_set_resolution(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_video_set_resolution(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -2407,7 +2407,7 @@ int ser_rk_video_set_frame_rate(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_video_set_frame_rate(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -2453,7 +2453,7 @@ int ser_rk_video_set_frame_rate_in(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_video_set_frame_rate_in(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -2606,7 +2606,7 @@ int ser_rk_osd_set_attribute(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("value is %s\n", value);
+		LOG_DEBUG("value is %s\n", value);
 		ret = rk_osd_set_attribute(value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -2647,7 +2647,7 @@ int ser_rk_osd_set_font_color_mode(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("value is %s\n", value);
+		LOG_DEBUG("value is %s\n", value);
 		ret = rk_osd_set_font_color_mode(value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -2688,7 +2688,7 @@ int ser_rk_osd_set_font_color(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("value is %s\n", value);
+		LOG_DEBUG("value is %s\n", value);
 		ret = rk_osd_set_font_color(value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -2729,7 +2729,7 @@ int ser_rk_osd_set_alignment(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("value is %s\n", value);
+		LOG_DEBUG("value is %s\n", value);
 		ret = rk_osd_set_alignment(value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -2770,7 +2770,7 @@ int ser_rk_osd_set_font_path(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("value is %s\n", value);
+		LOG_DEBUG("value is %s\n", value);
 		ret = rk_osd_set_font_path(value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -3019,7 +3019,7 @@ int ser_rk_osd_set_date_style(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_osd_set_date_style(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -3064,7 +3064,7 @@ int ser_rk_osd_set_time_style(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_osd_set_time_style(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -3109,7 +3109,7 @@ int ser_rk_osd_set_type(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_osd_set_type(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -3154,7 +3154,7 @@ int ser_rk_osd_set_display_text(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_osd_set_display_text(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -3199,7 +3199,7 @@ int ser_rk_osd_set_image_path(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_osd_set_image_path(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -3257,7 +3257,7 @@ int ser_rk_roi_set_stream_type(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_roi_set_stream_type(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -3302,7 +3302,7 @@ int ser_rk_roi_set_name(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("id is %d, value is %s\n", id, value);
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
 		ret = rk_roi_set_name(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -3766,10 +3766,10 @@ int ser_rk_network_ipv4_get(int fd) {
 		free(interface);
 		return -1;
 	}
-	LOG_INFO("len is %d, interface is %s\n", len, interface);
+	LOG_DEBUG("len is %d, interface is %s\n", len, interface);
 	// get
 	ret = rk_network_ipv4_get(interface, method, address, netmask, gateway);
-	LOG_INFO("method is %s, address is %s, netmask is %s, gateway is %s\n", method, address,
+	LOG_DEBUG("method is %s, address is %s, netmask is %s, gateway is %s\n", method, address,
 	         netmask, gateway);
 	free(interface);
 	// write
@@ -3857,7 +3857,7 @@ int ser_rk_network_ipv4_set(int fd) {
 		}
 	}
 	// set
-	// LOG_INFO("interface is %s, method is %s, address is %s, netmask is %s,
+	// LOG_DEBUG("interface is %s, method is %s, address is %s, netmask is %s,
 	// gateway is %s\n",
 	// 			interface, method, address, netmask, gateway);
 	ret = rk_network_ipv4_set(interface, method, address, netmask, gateway);
@@ -3885,7 +3885,7 @@ int ser_rk_network_dns_get(int fd) {
 
 	// get
 	ret = rk_network_dns_get(dns1, dns2);
-	LOG_INFO("dns1 is %s, dns2 is %s\n", dns1, dns2);
+	LOG_DEBUG("dns1 is %s, dns2 is %s\n", dns1, dns2);
 	// write
 	len = strlen(dns1);
 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
@@ -3925,7 +3925,7 @@ int ser_rk_network_dns_set(int fd) {
 		return -1;
 	}
 	// set
-	LOG_INFO("dns1 is %s, dns2 is %s\n", dns1, dns2);
+	LOG_DEBUG("dns1 is %s, dns2 is %s\n", dns1, dns2);
 	ret = rk_network_dns_set(dns1, dns2);
 	// write
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
@@ -3953,7 +3953,7 @@ int ser_rk_network_get_mac(int fd) {
 	}
 	// get
 	ret = rk_network_get_mac(interface, mac);
-	LOG_INFO("interface is %s, mac is %s\n", interface, mac);
+	LOG_DEBUG("interface is %s, mac is %s\n", interface, mac);
 	free(interface);
 	// write
 	len = strlen(mac);
@@ -3985,7 +3985,7 @@ int ser_rk_network_nicspeed_get(int fd) {
 	}
 	// get
 	ret = rk_network_nicspeed_get(interface, &speed, &duplex, &autoneg);
-	LOG_INFO("interface is %s, speed is %d, duplex is %d, autoneg is %d\n", interface, speed,
+	LOG_DEBUG("interface is %s, speed is %d, duplex is %d, autoneg is %d\n", interface, speed,
 	         duplex, autoneg);
 	free(interface);
 	// write
@@ -4022,7 +4022,7 @@ int ser_rk_network_nicspeed_set(int fd) {
 		return -1;
 
 	// get
-	LOG_INFO("len is %d, interface is %s, speed is %d, duplex is %d, autoneg is %d\n", len,
+	LOG_DEBUG("len is %d, interface is %s, speed is %d, duplex is %d, autoneg is %d\n", len,
 	         interface, speed, duplex, autoneg);
 	ret = rk_network_nicspeed_set(interface, speed, duplex, autoneg);
 	free(interface);
@@ -4052,7 +4052,7 @@ int ser_rk_network_nicspeed_support_get(int fd) {
 	}
 	// get
 	ret = rk_network_nicspeed_support_get(interface, nic_supported);
-	LOG_INFO("interface is %s, nic_supported is %s\n", interface, nic_supported);
+	LOG_DEBUG("interface is %s, nic_supported is %s\n", interface, nic_supported);
 	free(interface);
 	// write
 	len = strlen(nic_supported);
@@ -4072,7 +4072,7 @@ int ser_rk_wifi_power_get(int fd) {
 
 	// get
 	err = rk_wifi_power_get(&on);
-	LOG_INFO("on is %d\n", on);
+	LOG_DEBUG("on is %d\n", on);
 	// write
 	if (sock_write(fd, &on, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
@@ -4090,7 +4090,7 @@ int ser_rk_wifi_power_set(int fd) {
 	if (sock_read(fd, &on, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
 	// get
-	LOG_INFO("on is %d\n", on);
+	LOG_DEBUG("on is %d\n", on);
 	on = rk_wifi_power_set(on);
 	// write
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
@@ -4117,7 +4117,7 @@ int ser_rk_wifi_get_list(int fd) {
 
 	// get
 	err = rk_wifi_get_list(&wifi_list);
-	LOG_INFO("strlen(wifi_list) is %ld\n", strlen(wifi_list));
+	LOG_DEBUG("strlen(wifi_list) is %ld\n", strlen(wifi_list));
 	// write
 	len = strlen(wifi_list);
 	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
@@ -4154,7 +4154,7 @@ int ser_rk_wifi_connect_with_ssid(int fd) {
 	}
 
 	// get
-	LOG_INFO("ssid is %s, psk is %s\n", ssid, psk);
+	LOG_DEBUG("ssid is %s, psk is %s\n", ssid, psk);
 	ret = rk_wifi_connect_with_ssid(ssid, psk);
 	free(ssid);
 	free(psk);
@@ -4179,7 +4179,7 @@ int ser_rk_wifi_forget_with_ssid(int fd) {
 	}
 
 	// get
-	LOG_INFO("ssid is %s\n", ssid);
+	LOG_DEBUG("ssid is %s\n", ssid);
 	ret = rk_wifi_forget_with_ssid(ssid);
 	free(ssid);
 	// write
@@ -4193,11 +4193,11 @@ int ser_rk_wifi_forget_with_ssid(int fd) {
 int ser_rk_storage_record_start(int fd) {
 	int err = 0;
 
-	LOG_INFO("begin\n");
+	LOG_DEBUG("begin\n");
 	err = rk_storage_record_start();
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
-	LOG_INFO("end\n");
+	LOG_DEBUG("end\n");
 
 	return 0;
 }
@@ -4205,11 +4205,11 @@ int ser_rk_storage_record_start(int fd) {
 int ser_rk_storage_record_stop(int fd) {
 	int err = 0;
 
-	LOG_INFO("begin\n");
+	LOG_DEBUG("begin\n");
 	err = rk_storage_record_stop();
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
-	LOG_INFO("end\n");
+	LOG_DEBUG("end\n");
 
 	return 0;
 }
@@ -4231,11 +4231,11 @@ int ser_rk_storage_record_statue_get(int fd) {
 int ser_rk_take_photo(int fd) {
 	int err = 0;
 
-	LOG_INFO("begin\n");
+	LOG_DEBUG("begin\n");
 	err = rk_take_photo();
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
-	LOG_INFO("end\n");
+	LOG_DEBUG("end\n");
 
 	return 0;
 }
@@ -4895,14 +4895,14 @@ int ser_rk_system_set_deivce_name(int fd) {
 
 	if (sock_read(fd, &len, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
-	LOG_INFO("len is %d\n", len);
+	LOG_DEBUG("len is %d\n", len);
 	if (len) {
 		value = (char *)malloc(len);
 		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("value is %s\n", value);
+		LOG_DEBUG("value is %s\n", value);
 		ret = rk_system_set_deivce_name(value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -4925,7 +4925,7 @@ int ser_rk_system_set_telecontrol_id(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("value is %s\n", value);
+		LOG_DEBUG("value is %s\n", value);
 		ret = rk_system_set_telecontrol_id(value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -4938,7 +4938,7 @@ int ser_rk_system_set_telecontrol_id(int fd) {
 int ser_rk_system_reboot(int fd) {
 	int err = 0;
 
-	LOG_INFO("begin\n");
+	LOG_DEBUG("begin\n");
 	err = rk_system_reboot();
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
@@ -4949,7 +4949,7 @@ int ser_rk_system_reboot(int fd) {
 int ser_rk_system_factory_reset(int fd) {
 	int err = 0;
 
-	LOG_INFO("begin\n");
+	LOG_DEBUG("begin\n");
 	err = rk_system_factory_reset();
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
@@ -4970,7 +4970,7 @@ int ser_rk_system_export_log(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("value is %s\n", value);
+		LOG_DEBUG("value is %s\n", value);
 		ret = rk_system_export_log(value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -4993,7 +4993,7 @@ int ser_rk_system_export_db(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("value is %s\n", value);
+		LOG_DEBUG("value is %s\n", value);
 		ret = rk_system_export_db(value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -5016,7 +5016,7 @@ int ser_rk_system_import_db(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("value is %s\n", value);
+		LOG_DEBUG("value is %s\n", value);
 		ret = rk_system_import_db(value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -5039,7 +5039,7 @@ int ser_rk_system_upgrade(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("value is %s\n", value);
+		LOG_DEBUG("value is %s\n", value);
 		ret = rk_system_upgrade(value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -5144,7 +5144,7 @@ int ser_rk_system_set_user_name(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("value is %s\n", value);
+		LOG_DEBUG("value is %s\n", value);
 		ret = rk_system_set_user_name(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -5189,7 +5189,7 @@ int ser_rk_system_set_password(int fd) {
 			free(value);
 			return -1;
 		}
-		LOG_INFO("value is %s\n", value);
+		LOG_DEBUG("value is %s\n", value);
 		ret = rk_system_set_password(id, value);
 		free(value);
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
@@ -5224,7 +5224,7 @@ int ser_rk_system_add_user(int fd) {
 		free(password);
 		return -1;
 	}
-	LOG_INFO("user_level is %d, user_name is %s, password is %s\n", user_level, user_name,
+	LOG_DEBUG("user_level is %d, user_name is %s, password is %s\n", user_level, user_name,
 	         password);
 	ret = rk_system_add_user(id, user_level, user_name, password);
 	free(user_name);
@@ -5241,7 +5241,7 @@ int ser_rk_system_del_user(int fd) {
 
 	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
 		return -1;
-	LOG_INFO("id is %d\n", id);
+	LOG_DEBUG("id is %d\n", id);
 	ret = rk_system_del_user(id);
 	if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
@@ -5597,18 +5597,18 @@ out:
 
 static void *rkipc_server_thread(void *arg) {
 	int clifd;
-	printf("#Start %s thread, arg:%p\n", __func__, arg);
+	LOG_INFO("#Start %s thread, arg:%p\n", __func__, arg);
 	prctl(PR_SET_NAME, "rkipc_server_thread", 0, 0, 0);
 	pthread_detach(pthread_self());
 
 	if ((listen_fd = serv_listen(CS_PATH)) < 0)
-		printf("listen fail\n");
+		LOG_ERROR("listen fail\n");
 
 	while (RkIpcServerRun) {
 		pthread_t thread_id;
 
 		if ((clifd = serv_accept(listen_fd)) < 0) {
-			printf("accept fail\n");
+			LOG_ERROR("accept fail\n");
 		}
 
 		if (clifd >= 0)
@@ -5619,7 +5619,7 @@ static void *rkipc_server_thread(void *arg) {
 	return 0;
 }
 
-void handle_pipe(int sig) { printf("%s sig = %d\n", __func__, sig); }
+void handle_pipe(int sig) { LOG_INFO("%s sig = %d\n", __func__, sig); }
 
 int rkipc_server_init(void) {
 	struct sigaction action;
@@ -5640,7 +5640,7 @@ int rkipc_server_deinit(void) {
 	if (RkIpcServerTid == 0)
 		LOG_INFO("rkipc_server_deinit success\n");
 	else
-		LOG_INFO("rkipc_server_deinit failed\n");
+		LOG_ERROR("rkipc_server_deinit failed\n");
 
 	return 0;
 }
