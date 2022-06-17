@@ -1925,7 +1925,7 @@ int rk_video_set_RC_mode(int stream_id, const char *value) {
 	char entry_rc_mode[128] = {'\0'};
 	snprintf(entry_output_data_type, 127, "video.%d:output_data_type", stream_id);
 	snprintf(entry_gop, 127, "video.%d:gop", stream_id);
-	snprintf(entry_max_rate, 127, "video.%d:output_data_type", stream_id);
+	snprintf(entry_max_rate, 127, "video.%d:max_rate", stream_id);
 	snprintf(entry_dst_frame_rate_den, 127, "video.%d:dst_frame_rate_den", stream_id);
 	snprintf(entry_dst_frame_rate_num, 127, "video.%d:dst_frame_rate_num", stream_id);
 	snprintf(entry_src_frame_rate_den, 127, "video.%d:src_frame_rate_den", stream_id);
