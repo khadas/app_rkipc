@@ -9,6 +9,7 @@
 #endif
 #define LOG_TAG "rockiva.c"
 
+pthread_mutex_t g_rknn_list_mutex = PTHREAD_MUTEX_INITIALIZER;
 RockIvaHandle rkba_handle;
 RockIvaBaTaskParams initParams;
 RockIvaInitParam globalParams;
@@ -16,15 +17,18 @@ int rockit_run_flag = 0;
 rknn_list *rknn_list_;
 
 void create_rknn_list(rknn_list **s) {
+	pthread_mutex_lock(&g_rknn_list_mutex);
 	if (*s != NULL)
 		return;
 	*s = (rknn_list *)malloc(sizeof(rknn_list));
 	(*s)->top = NULL;
 	(*s)->size = 0;
+	pthread_mutex_unlock(&g_rknn_list_mutex);
 	printf("create rknn_list success\n");
 }
 
 void destory_rknn_list(rknn_list **s) {
+	pthread_mutex_lock(&g_rknn_list_mutex);
 	Node *t = NULL;
 	if (*s == NULL)
 		return;
@@ -35,9 +39,11 @@ void destory_rknn_list(rknn_list **s) {
 	}
 	free(*s);
 	*s = NULL;
+	pthread_mutex_unlock(&g_rknn_list_mutex);
 }
 
 void rknn_list_push(rknn_list *s, long long timeval, RockIvaBaResult ba_result) {
+	pthread_mutex_lock(&g_rknn_list_mutex);
 	Node *t = NULL;
 	t = (Node *)malloc(sizeof(Node));
 	t->timeval = timeval;
@@ -50,9 +56,11 @@ void rknn_list_push(rknn_list *s, long long timeval, RockIvaBaResult ba_result) 
 		s->top = t;
 	}
 	s->size++;
+	pthread_mutex_unlock(&g_rknn_list_mutex);
 }
 
 void rknn_list_pop(rknn_list *s, long long *timeval, RockIvaBaResult *ba_result) {
+	pthread_mutex_lock(&g_rknn_list_mutex);
 	Node *t = NULL;
 	if (s == NULL || s->top == NULL)
 		return;
@@ -62,9 +70,11 @@ void rknn_list_pop(rknn_list *s, long long *timeval, RockIvaBaResult *ba_result)
 	s->top = t->next;
 	free(t);
 	s->size--;
+	pthread_mutex_unlock(&g_rknn_list_mutex);
 }
 
 void rknn_list_drop(rknn_list *s) {
+	pthread_mutex_lock(&g_rknn_list_mutex);
 	Node *t = NULL;
 	if (s == NULL || s->top == NULL)
 		return;
@@ -72,6 +82,7 @@ void rknn_list_drop(rknn_list *s) {
 	s->top = t->next;
 	free(t);
 	s->size--;
+	pthread_mutex_unlock(&g_rknn_list_mutex);
 }
 
 int rknn_list_size(rknn_list *s) {
