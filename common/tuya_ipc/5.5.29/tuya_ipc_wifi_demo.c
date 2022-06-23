@@ -463,8 +463,8 @@ OPERATE_RET tuya_adapter_wifi_get_ip(IN CONST WF_IF_E wf, OUT NW_IP_S *ip) {
 	}
 
 	if (wf == WF_STATION) {
-		// get the ip of ethernet
-		hwl_get_local_ip_info(NET_DEV, ip);
+		// // get the ip of ethernet
+		// hwl_get_local_ip_info(NET_DEV, ip);
 
 		NW_IP_S tmp;
 		memset(&tmp, 0, sizeof(NW_IP_S));
@@ -476,7 +476,7 @@ OPERATE_RET tuya_adapter_wifi_get_ip(IN CONST WF_IF_E wf, OUT NW_IP_S *ip) {
 		}
 	}
 
-	printf("WIFI[%d] Get IP:%s\r\n", wf, ip->ip);
+	// printf("WIFI[%d] Get IP:%s\r\n", wf, ip->ip);
 	return OPRT_OK;
 }
 

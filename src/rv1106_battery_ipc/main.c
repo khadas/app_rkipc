@@ -204,6 +204,16 @@ int main(int argc, char **argv) {
 	rkipc_pipe_0_bind();
 	LOG_INFO("%s: rkipc_pipe_0_bind over\n", get_time_string());
 
+	atbm_init();
+	LOG_INFO("%s: atbm_init over\n", get_time_string());
+	get_status();
+	LOG_INFO("%s: get_status over\n", get_time_string());
+
+	if (rk_param_get_int("tuya:enable", 0))
+		rk_tuya_init();
+	LOG_INFO("%s: rk_tuya_init over\n", get_time_string());
+
+	sleep(2); // wait 2s , avoid preempting CPU to affect outgoing speed
 	// second stream and rtsp
 	rk_video_init();
 	LOG_INFO("%s: rk_video_init over\n", get_time_string());
@@ -214,20 +224,6 @@ int main(int argc, char **argv) {
 	if (rk_param_get_int("video.1:enable_npu", 0))
 		rkipc_rockiva_init();
 	LOG_INFO("%s: rkipc_rockiva_init over\n", get_time_string());
-
-	atbm_init();
-	LOG_INFO("%s: atbm_init over\n", get_time_string());
-	get_status();
-
-	// // enable_network("TP-LINK_YYLX", "12345678");
-	// // enable_network("Rktest", "12345678");
-	// // sleep(3);
-	// system("ifconfig wlan0 192.168.1.101");
-	// system("echo \"nameserver 192.168.1.1\" > /etc/resolv.conf");
-	// system("route add default gw 192.168.1.1");
-
-	if (rk_param_get_int("tuya:enable", 0))
-		rk_tuya_init();
 
 	while (g_main_run_) {
 		usleep(1000 * 1000);

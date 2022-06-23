@@ -47,9 +47,10 @@ OPERATE_RET tuya_adapter_wired_get_ip(OUT NW_IP_S *ip) {
 	strncpy(ifr.ifr_name, NET_DEV, sizeof(ifr.ifr_name) - 1);
 
 	if (ioctl(sock, SIOCGIFADDR, &ifr) < 0) {
-		// printf("ioctl error\n");
+		printf("tuya_adapter_wired_get_ip ioctl error\n");
 		close(sock);
-		return OPRT_COM_ERROR;
+		// return OPRT_COM_ERROR;
+		return OPRT_OK;
 	}
 
 	sin = (struct sockaddr_in *)&ifr.ifr_addr;
@@ -61,28 +62,29 @@ OPERATE_RET tuya_adapter_wired_get_ip(OUT NW_IP_S *ip) {
 
 // Get the connection status of the port
 BOOL_T tuya_adapter_wired_station_conn(VOID) {
-	int sock;
-	struct sockaddr_in *sin;
-	struct ifreq ifr;
+	// int sock;
+	// struct sockaddr_in *sin;
+	// struct ifreq ifr;
 
-	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-		printf("socket create failse...GetLocalIp!\n");
-		return OPRT_COM_ERROR;
-	}
+	// if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+	// 	printf("socket create failse...GetLocalIp!\n");
+	// 	return OPRT_COM_ERROR;
+	// }
 
-	memset(&ifr, 0, sizeof(ifr));
-	strncpy(ifr.ifr_name, NET_DEV, sizeof(ifr.ifr_name) - 1);
+	// memset(&ifr, 0, sizeof(ifr));
+	// strncpy(ifr.ifr_name, NET_DEV, sizeof(ifr.ifr_name) - 1);
 
-	if (ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
-		// printf("ioctl error\n");
-		close(sock);
-		return FALSE;
-	}
-	close(sock);
+	// if (ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
+	// 	// printf("tuya_adapter_wired_station_conn ioctl error\n");
+	// 	close(sock);
+	// 	// return FALSE;
+	// 	return TRUE;
+	// }
+	// close(sock);
 
-	if (0 == (ifr.ifr_flags & IFF_UP)) {
-		return FALSE;
-	}
+	// if (0 == (ifr.ifr_flags & IFF_UP)) {
+	// 	return FALSE;
+	// }
 
 	return TRUE;
 }

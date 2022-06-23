@@ -90,7 +90,7 @@ INT_T __TUYA_APP_p2p_event_cb(IN CONST TRANSFER_EVENT_E event, IN CONST PVOID_T 
 	switch (event) {
 	case TRANS_LIVE_VIDEO_START: {
 		C2C_TRANS_CTRL_VIDEO_START *parm = (C2C_TRANS_CTRL_VIDEO_START *)args;
-		LOG_INFO("chn[%u] video start\n", parm->channel);
+		LOG_INFO("%s: chn[%u] video start\n", get_time_string(), parm->channel);
 		FILE *fp;
 		fp = fopen("/tmp/rtmp_live", "a");
 		if (fp)
@@ -309,7 +309,7 @@ VOID IPC_APP_Net_Status_cb(IN CONST BYTE_T stat) {
 #endif
 	{
 		// IPC_APP_Notify_LED_Sound_Status_CB(IPC_MQTT_ONLINE);
-		LOG_DEBUG("mqtt is online\r\n");
+		LOG_INFO("---------------%s: mqtt is online---------------\r\n", get_time_string());
 		s_mqtt_status = 1;
 		break;
 	}
@@ -463,18 +463,12 @@ OPERATE_RET TUYA_APP_Enable_P2PTransfer(IN TUYA_IPC_SDK_P2P_S *p2p_infos) {
 	p2p_var.lowpower = p2p_infos->is_lowpower;
 	memcpy(&p2p_var.AVInfo, p_media_info, sizeof(IPC_MEDIA_INFO_S));
 	tuya_ipc_tranfser_init(&p2p_var);
+	LOG_INFO("%s: tuya_ipc_tranfser_init over\n", get_time_string());
 
 	return OPRT_OK;
 }
 
 STATIC TUYA_IPC_SDK_RUN_VAR_S g_sdk_run_info = {0};
-
-STATIC VOID *tuya_ipc_sdk_low_power_p2p_init_proc(VOID *args) {
-	LOG_DEBUG("start low power p2p\n");
-	// todo process fail
-	TUYA_APP_Enable_P2PTransfer(&(g_sdk_run_info.p2p_info));
-	return NULL;
-}
 
 STATIC VOID respone_dp_value(BYTE_T dp_id, INT_T val);
 STATIC VOID respone_dp_bool(BYTE_T dp_id, BOOL_T true_false);
@@ -558,7 +552,7 @@ VOID IPC_APP_upload_all_status(VOID) {
 STATIC VOID *tuya_ipc_sdk_mqtt_online_proc(PVOID_T arg) {
 	LOG_DEBUG("tuya_ipc_sdk_mqtt_online_proc thread start success\n");
 	while (IPC_APP_Get_MqttStatus() == FALSE) {
-		sleep(1);
+		usleep(10 * 1000);
 	}
 	LOG_DEBUG("tuya_ipc_sdk_mqtt_online_proc is start run\n");
 	int ret;
@@ -570,9 +564,11 @@ STATIC VOID *tuya_ipc_sdk_mqtt_online_proc(PVOID_T arg) {
 		ret = tuya_ipc_get_service_time_force(&time_utc, &time_zone);
 
 	} while (ret != OPRT_OK);
+	LOG_INFO("%s: tuya_ipc_get_service_time_force over\n", get_time_string());
 
 	if (FALSE == g_sdk_run_info.quick_start_info.enable) {
 		TUYA_APP_Enable_P2PTransfer(&(g_sdk_run_info.p2p_info));
+		LOG_INFO("%s: TUYA_APP_Enable_P2PTransfer over\n", get_time_string());
 	}
 
 	// if (g_sdk_run_info.local_storage_info.enable) {
@@ -599,7 +595,7 @@ STATIC VOID *tuya_ipc_sdk_mqtt_online_proc(PVOID_T arg) {
 
 	tuya_ipc_upload_skills();
 	rk_tuya_low_power_disable();
-	LOG_DEBUG("tuya_ipc_sdk_mqtt_online_proc is end run\n");
+	LOG_INFO("%s, tuya_ipc_sdk_mqtt_online_proc is end run\n", get_time_string());
 
 	return NULL;
 }
@@ -694,16 +690,16 @@ OPERATE_RET tuya_ipc_app_start(IN CONST TUYA_IPC_SDK_RUN_VAR_S *pRunInfo) {
 	/* 将码流信息保存到s_media_info，用于P2P的一些回调中匹配。客户可以根据自己的逻辑来实现。此处仅作参考
 	 */
 	IPC_APP_Set_Media_Info(&(g_sdk_run_info.media_info.media_info));
+	LOG_INFO("%s: IPC_APP_Set_Media_Info over\n", get_time_string());
 
 	//低功耗 优先开启P2P
 	if (g_sdk_run_info.quick_start_info.enable) {
-		pthread_t low_power_p2p_thread_handler;
-		int op_ret = pthread_create(&low_power_p2p_thread_handler, NULL,
-		                            tuya_ipc_sdk_low_power_p2p_init_proc, NULL);
+		int op_ret = TUYA_APP_Enable_P2PTransfer(&(g_sdk_run_info.p2p_info));
 		if (op_ret < 0) {
 			LOG_ERROR("create p2p start thread is error\n");
 			return -1;
 		}
+		LOG_INFO("%s: TUYA_APP_Enable_P2PTransfer over\n", get_time_string());
 	}
 
 	// setup1:创建等待mqtt上线进程，mqtt上线后，再开启与网络相关的业务
@@ -741,6 +737,8 @@ OPERATE_RET tuya_ipc_app_start(IN CONST TUYA_IPC_SDK_RUN_VAR_S *pRunInfo) {
 		LOG_ERROR("init sdk is error\n");
 		return ret;
 	}
+	LOG_INFO("%s: tuya_ipc_init_sdk over\n", get_time_string());
+
 
 	//设置日志等级
 	tuya_ipc_set_log_attr(pRunInfo->debug_info.log_level, NULL);
@@ -751,12 +749,14 @@ OPERATE_RET tuya_ipc_app_start(IN CONST TUYA_IPC_SDK_RUN_VAR_S *pRunInfo) {
 		LOG_ERROR("create ring buffer is error\n");
 		return ret;
 	}
+	LOG_INFO("%s: TUYA_APP_Init_Ring_Buffer over\n", get_time_string());
 
 	ret = tuya_ipc_start_sdk(pRunInfo->net_info.connect_mode, pRunInfo->debug_info.qrcode_token);
 	if (OPRT_OK != ret) {
 		LOG_ERROR("start sdk is error\n");
 		return ret;
 	}
+	LOG_INFO("%s: tuya_ipc_start_sdk over\n", get_time_string());
 
 	s_ipc_sdk_started = true;
 	LOG_DEBUG("tuya ipc sdk start is complete\n");
@@ -802,7 +802,7 @@ OPERATE_RET TUYA_IPC_SDK_START(WIFI_INIT_MODE_E connect_mode, CHAR_T *p_token) {
 			index++;
 		}
 	}
-	LOG_INFO("product_key is %s, uuid is %s, auth_key is %s\n",
+	LOG_INFO("%s: product_key is %s, uuid is %s, auth_key is %s\n", get_time_string(),
 	         ipc_sdk_run_var.iot_info.product_key, ipc_sdk_run_var.iot_info.uuid,
 	         ipc_sdk_run_var.iot_info.auth_key);
 	strcpy(ipc_sdk_run_var.iot_info.dev_sw_version, IPC_APP_VERSION);
@@ -820,7 +820,7 @@ OPERATE_RET TUYA_IPC_SDK_START(WIFI_INIT_MODE_E connect_mode, CHAR_T *p_token) {
 		strcpy(ipc_sdk_run_var.debug_info.qrcode_token, p_token);
 	}
 	/* 0-5, the bigger, the more log */
-	ipc_sdk_run_var.debug_info.log_level = 1;
+	ipc_sdk_run_var.debug_info.log_level = 0;
 	/*media info (essential)*/
 	/* main stream(HD), video configuration*/
 	/* NOTE
@@ -952,6 +952,8 @@ OPERATE_RET TUYA_IPC_SDK_START(WIFI_INIT_MODE_E connect_mode, CHAR_T *p_token) {
 	ipc_sdk_run_var.iot_info.gw_reset_cb = IPC_APP_Reset_System_CB;
 	ipc_sdk_run_var.iot_info.gw_restart_cb = IPC_APP_Restart_Process_CB;
 
+	ipc_sdk_run_var.quick_start_info.enable = false;
+
 	// 	/*QR-active function(essential)*/
 	// #if defined(QRCODE_ACTIVE_MODE) && (QRCODE_ACTIVE_MODE == 1)
 	// 	ipc_sdk_run_var.qrcode_active_cb = IPC_APP_qrcode_shorturl_cb;
@@ -962,15 +964,18 @@ OPERATE_RET TUYA_IPC_SDK_START(WIFI_INIT_MODE_E connect_mode, CHAR_T *p_token) {
 	if (ret != 0) {
 		LOG_DEBUG("ipc sdk start fail,please check run parameter, ret=%d\n", ret);
 	}
+	LOG_INFO("%s: tuya_ipc_app_start over\n", get_time_string());
+
 	return ret;
 }
 
 int rk_tuya_init() {
 	fw_at("AT+DEL_KEEPALIVE");
 	set_filter("ICMP", "1");
-	set_filter("DES", "0");
-	set_filter("SRC", "0");
+	set_filter("DES", "999");
+	set_filter("SRC", "999");
 	enable_filter();
+	LOG_INFO("%s: DEL_KEEPALIVE over\n", get_time_string());
 
 	WIFI_INIT_MODE_E mode = WIFI_INIT_AUTO;
 	OPERATE_RET ret = OPRT_OK;
@@ -979,16 +984,12 @@ int rk_tuya_init() {
 		LOG_ERROR("TUYA_IPC_SDK_START fail\n");
 		return ret;
 	}
+	LOG_INFO("%s: TUYA_IPC_SDK_START over\n", get_time_string());
 
 	// IPC_APP_Init_Media_Task();
 	audio_handle = tuya_ipc_ring_buffer_open(0, 0, E_IPC_STREAM_AUDIO_MAIN, E_RBUF_WRITE);
 	video_handle = tuya_ipc_ring_buffer_open(0, 0, E_IPC_STREAM_VIDEO_MAIN, E_RBUF_WRITE);
-
-	/* whether SDK is connected to MQTT */
-	while (IPC_APP_Get_MqttStatus() != 1) {
-		usleep(100000);
-	}
-	LOG_INFO("---------------SDK is connected to MQTT---------------\n");
+	LOG_INFO("%s: tuya_ipc_ring_buffer_open over\n", get_time_string());
 
 	return 0;
 }
