@@ -173,12 +173,12 @@ int main(int argc, char **argv) {
 	const char *ssName = "/dev/video8";
 	ssFd = open(ssName, O_RDWR | O_CLOEXEC);
 	if (ssFd < 0) {
-		printf("failed to open camera:%s\n", ssName);
+		LOG_ERROR("failed to open camera:%s\n", ssName);
 		return -1;
 	}
 	viDev = open("/dev/mpi/vvi", O_RDONLY);
 	if (viDev < 0) {
-		printf("failed to open /dev/mpi/vvi\n");
+		LOG_ERROR("failed to open /dev/mpi/vvi\n");
 		return -1;
 	}
 

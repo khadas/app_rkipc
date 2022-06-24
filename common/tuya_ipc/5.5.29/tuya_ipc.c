@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 #include "tuya_ipc.h"
+#include "tools.h"
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -282,8 +283,8 @@ int rk_tuya_low_power_enable() {
 	LOG_INFO("fw_at AT+WIFI_LISTEN_ITVL ret is %d\n", ret);
 	ret = fw_at("AT+LIGHT_SLEEP 1");
 	LOG_INFO("fw_at AT+LIGHT_SLEEP ret is %d\n", ret);
-	ret = driver_go_sleep();
-	LOG_INFO("driver_go_sleep ret is %d\n", ret);
+	driver_go_sleep();
+	LOG_INFO("driver_go_sleep\n");
 
 	return ret;
 }
@@ -738,7 +739,6 @@ OPERATE_RET tuya_ipc_app_start(IN CONST TUYA_IPC_SDK_RUN_VAR_S *pRunInfo) {
 		return ret;
 	}
 	LOG_INFO("%s: tuya_ipc_init_sdk over\n", get_time_string());
-
 
 	//设置日志等级
 	tuya_ipc_set_log_attr(pRunInfo->debug_info.log_level, NULL);

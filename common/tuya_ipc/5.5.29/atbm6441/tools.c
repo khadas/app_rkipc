@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
@@ -16,6 +17,7 @@
 
 #include "atbm_ioctl_ext.h"
 #include "atbm_tool.h"
+#include "tools.h"
 
 #define ATBM_POWER 122
 #define ATBM_POWER_SET _IOW(ATBM_POWER, 0, char)
@@ -2501,7 +2503,7 @@ void *get_command_func(void *arg) {
 	socket_fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (socket_fd <= 0) {
 		printf("open socket err\n");
-		return;
+		return NULL;
 	}
 
 	unlink(SER_SOCKET_PATH);
@@ -2512,13 +2514,13 @@ void *get_command_func(void *arg) {
 	ret = bind(socket_fd, (struct sockaddr *)&ser_un, sizeof(struct sockaddr_un));
 	if (ret < 0) {
 		printf("bind err %s %s\n", SER_SOCKET_PATH, strerror(errno));
-		return;
+		return NULL;
 	}
 
 	ret = listen(socket_fd, 5);
 	if (ret < 0) {
 		printf("listen err\n");
-		return;
+		return NULL;
 	}
 
 	while (1) {

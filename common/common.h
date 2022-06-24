@@ -41,3 +41,4 @@ void rk_signal_give(void *sem);
 void rk_signal_reset(void *sem);
 
 long long rkipc_get_curren_time_ms();
+char *get_time_string();

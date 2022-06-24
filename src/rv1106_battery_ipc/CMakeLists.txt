@@ -35,6 +35,7 @@ include_directories(audio
 					${PROJECT_SOURCE_DIR}/common/sysutil
 					${PROJECT_SOURCE_DIR}/common/tuya_ipc/5.5.29/include
 					${PROJECT_SOURCE_DIR}/common/tuya_ipc/5.5.29
+					${PROJECT_SOURCE_DIR}/common/tuya_ipc/5.5.29/atbm6441
 					${PROJECT_SOURCE_DIR}/common/vendor_storage)
 
 link_directories(${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-uclibcgnueabihf/)

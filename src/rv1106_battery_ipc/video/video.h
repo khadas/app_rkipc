@@ -8,6 +8,8 @@
 //#include "tuya_ipc.h"
 #include "rk_adc.h"
 #include "rockiva.h"
+#include "tools.h"
+#include "tuya_ipc.h"
 
 #include <fcntl.h>
 #include <inttypes.h> // PRId64
@@ -31,3 +33,8 @@
 
 int rk_video_init();
 int rk_video_deinit();
+
+int rkipc_vi_dev_init();
+int rkipc_pipe_0_vi_init();
+int rkipc_pipe_0_venc_init();
+int rkipc_pipe_0_bind();
