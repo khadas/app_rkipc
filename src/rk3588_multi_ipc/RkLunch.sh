@@ -45,6 +45,7 @@ network_init()
 		echo $ethaddr1 > /data/ethaddr.txt
 	fi
 	ifconfig eth0 up && udhcpc -i eth0
+	ifconfig enP2p33s0 up && udhcpc -i  enP2p33s0 #evb7 enable eth
 }
 
 post_chk()
@@ -68,13 +69,24 @@ post_chk()
 	# if /data/rkipc not exist, cp /usr/share
 	rkipc_ini=/userdata/rkipc.ini
 	default_rkipc_ini=usr/share/rkipc.ini
+
+	result=`ls -l /proc/rkisp* | wc -l`
+	if [ "$result"x == "8"x ] ;then
+		cp /oem/usr/share/rkipc-8x.ini /oem/usr/share/rkipc.ini
+	fi
+	if [ "$result"x == "6"x ] ;then
+		cp /oem/usr/share/rkipc-6x.ini /oem/usr/share/rkipc.ini
+	fi
+
 	if [ ! -f "$default_rkipc_ini" ];then
 		default_rkipc_ini=/oem/usr/share/rkipc.ini
 	fi
+
 	if [ ! -f "$default_rkipc_ini" ];then
 		echo "Error: not found rkipc.ini !!!"
 		exit -1
 	fi
+
 	if [ ! -f "$rkipc_ini" ]; then
 		cp $default_rkipc_ini $rkipc_ini -f
 	fi
@@ -106,4 +118,7 @@ echo 1000000000 > /sys/class/devfreq/fb000000.gpu/max_freq
 echo 1000000000 > /sys/class/devfreq/fb000000.gpu/min_freq
 cat /sys/class/devfreq/fb000000.gpu/cur_freq
 
+# isp
+echo 702000000  > /sys/kernel/debug/clk/clk_isp0_core/clk_rate
+echo 702000000  > /sys/kernel/debug/clk/clk_isp1_core/clk_rate
 post_chk &
