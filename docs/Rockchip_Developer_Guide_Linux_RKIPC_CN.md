@@ -1,10 +1,10 @@
 # Rockchip rkipc应用开发说明
 
-文件标识：TODO
+文件标识：RK-KF-YF-937
 
-发布版本：V1.0.0
+发布版本：V1.1.0
 
-日期：2022-05-19
+日期：2022-07-15
 
 文件密级：□绝密   □秘密   □内部资料   ■公开
 
@@ -20,7 +20,7 @@
 
 本文档可能提及的其他所有注册商标或商标，由其各自拥有者所有。
 
-**版权所有 © 2021瑞芯微电子股份有限公司**
+**版权所有 © 2022瑞芯微电子股份有限公司**
 
 超越合理使用范畴，非经本公司书面许可，任何单位和个人不得擅自摘抄、复制本文档内容的部分或全部，并不得以任何形式传播。
 
@@ -48,9 +48,11 @@ Rockchip Electronics Co., Ltd.
 
 **产品版本**
 
-| **芯片名称**         | **内核版本**    |
-| -------------------- | --------------- |
-| RV1126/RV1109/RK3588 | Linux 4.19/5.10 |
+| **芯片名称**                       | **内核版本**    |
+| ---------------------------------- | --------------- |
+| RV1126/RV1109                      | Linux 4.19      |
+| RK3588                             | Linux 5.10      |
+| RV1103/RV1106                      | Linux 5.10      |
 
 **读者对象**
 
@@ -74,6 +76,8 @@ Rockchip Electronics Co., Ltd.
 | V0.8.0     | 林刘迪铭 | 2022-05-11   | 添加ini参数说明         |
 | V0.9.0     | 林刘迪铭 | 2022-05-16   | 修改RV1106 IPC框图      |
 | V1.0.0     | 林刘迪铭 | 2022-05-19   | 调试ini中的isp相关参数  |
+| V1.0.1     | 陈委问   | 2022-05-20   | 更新产品版本信息        |
+| V1.1.0     | 林刘迪铭 | 2022-07-15   | 新增ini中的avs相关参数  |
 
 ---
 
@@ -85,13 +89,14 @@ Rockchip Electronics Co., Ltd.
 
 ## 整体框架
 
-![image-20220307174016727](./rkipc-framework.png)
+![image-20220307174016727](./resources/rkipc-framework.png)
 
 ## 产品类型
 
 | 源码目录           | 依赖外部库       | 功能                                                         |
 | ------------------ | ---------------- | ------------------------------------------------------------ |
-| rv1106_ipc         | rockit、rkaiq    | 针对rv1106平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rv1106_ipc         | rockit、rkaiq    | 针对rv1103/rv1106平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rv1106_battery_ipc | rockit、rkaiq    | 针对rv1103/rv1106平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能(TODO)。 |
 | rk3588_ipc         | rockit、rkaiq    | 针对rk3588平台的单目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
 | rk3588_muliti_ipc  | rockit、rkaiq    | 针对rk3588平台的多目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
 | rv1126_ipc_rkmedia | rockit、rkaiq    | 针对rv1126/rv1109平台的IPC产品，使用rkmedia，支持网页和rtsp/rtmp预览，参数动态修改。 |
@@ -124,8 +129,6 @@ graph LR
 	VI_1-->VPSS-->NN_detect
 	VI_1-->draw-->VENC_1-->RTSP_1
 ```
-
-
 
 ### RK3588 IPC
 
@@ -207,6 +210,7 @@ graph LR
 ```
 
 ### RV1126 Snapshot
+
 ```mermaid
 graph LR
 	real[real-time stream]-->VI_0(VI_0)-->RGA_0(RGA_0)-->VO_0(VO_0)-->display[display]
@@ -215,7 +219,6 @@ graph LR
 	VI_1(VI_1)-->RGA_1(RGA_1)-->VO_1(VO_1)-->display[display]
 	VI_1(VI_1)-->VENC_2(VENC_2 JPEG)-->Interpolation_magnification(Interpolation magnification)-->jpeg[jpeg picture]
 ```
-
 
 ## 代码结构
 
@@ -266,9 +269,9 @@ graph LR
 
 ## 开发原则
 
-0、**纯C实现**，之前用C++的都要改写为C。
+0、**纯C代码实现**。
 
-1、**模块化**，main函数越简单越好，只调用各个模块的init和deinit函数。各个模块功能自己管理，差异化部分由注册回调函数实现。
+1、**模块化**，main函数尽量简洁，只调用各个模块的init和deinit函数。各个模块功能自己管理，差异化部分由注册回调函数实现。
 
 2、**参数管理使用iniparser**，不做复杂封装，各个模块自行决定哪些参数在何时读写ini。
 
@@ -277,7 +280,6 @@ graph LR
 4、能通用的尽量放到common中，如果由于平台差异和业务逻辑无法通用，则每个src目录都放一份，避免加平台宏判断。
 
 5、优先使用源码编译，其次使用静态库，最后才是选择用动态库。
-
 
 ## 新增参数开发流程
 
@@ -304,7 +306,7 @@ hue = 50
 
 ### isp模块新增set/get函数
 
-```c
+```diff
 diff --git a/src/isp/isp.c b/src/isp/isp.c
 index e59fdd3..7877ae9 100644
 --- a/src/isp/isp.c
@@ -312,7 +314,7 @@ index e59fdd3..7877ae9 100644
 @@ -165,6 +165,22 @@ int rk_isp_set_sharpness(int cam_id, int value) {
    return ret;
  }
- 
+
 +int rk_isp_get_hue(int cam_id, int *value) {
 +  RK_ISP_CHECK_CAMERA_ID(cam_id);
 +  int ret = rk_aiq_uapi_getHue(g_aiq_ctx[cam_id], value);
@@ -338,7 +340,7 @@ index e59fdd3..7877ae9 100644
    rk_isp_set_sharpness(cam_id, iniparser_getint(g_ini_d_, "isp.0.adjustment:sharpness", 50));
 +  rk_isp_set_hue(cam_id, iniparser_getint(g_ini_d_, "isp.0.adjustment:hue", 50));
    LOG_INFO("end\n");
- 
+
    return ret;
 diff --git a/src/isp/isp.h b/src/isp/isp.h
 index e77c9fc..0d3835a 100644
@@ -355,7 +357,7 @@ index e77c9fc..0d3835a 100644
 
 ### server模块封装socket函数
 
-```c
+```diff
 diff --git a/src/server/server.c b/src/server/server.c
 index 6613b90..52692c9 100644
 --- a/src/server/server.c
@@ -363,7 +365,7 @@ index 6613b90..52692c9 100644
 @@ -236,6 +236,40 @@ int ser_rk_isp_set_sharpness(int fd) {
    return 0;
  }
- 
+
 +int ser_rk_isp_get_hue(int fd) {
 +  int err = 0;
 +  int cam_id;
@@ -410,7 +412,7 @@ index 6613b90..52692c9 100644
 +    {(char *)"rk_isp_get_hue", &ser_rk_isp_get_hue},
 +    {(char *)"rk_isp_set_hue", &ser_rk_isp_set_hue}
  };
- 
+
  static void *rec_thread(void *arg) {
 ```
 
@@ -418,7 +420,7 @@ index 6613b90..52692c9 100644
 
 ipcweb-backend主要判断web前端传入的数据，进而Get/Set数据，修改如下
 
-```c++
+```diff
 diff --git a/src/image_api.cpp b/src/image_api.cpp
 index 475e17d..edac2de 100644
 --- a/src/image_api.cpp
@@ -817,8 +819,6 @@ TODO
 | rk_isp_af_focus_in                   | 聚焦             |
 | rk_isp_af_focus_out                  | 失焦             |
 
-
-
 ### 参数管理模块
 
 | 函数名称            | 功能                        |
@@ -904,7 +904,7 @@ tsvc = close ; 是否开启分层编码
 stream_smooth = 50 ; 码流平滑度，目前未使用
 
 [video.1]
-input_buffer_count = 1 ; 输入buffer个数，1106比较特殊，子码流支持单个buffer
+input_buffer_count = 1 ; 输入buffer个数，RV1106比较特殊，子码流支持单个buffer
 ```
 
 ### ISP模块
@@ -912,8 +912,6 @@ input_buffer_count = 1 ; 输入buffer个数，1106比较特殊，子码流支持
 isp.0中的0代表场景编号，场景编号scenario_id = cam_id * MAX_SCENARIO_NUM + current_scenario_id。例如：当MAX_SCENARIO_NUM为2时，摄像头0的场景2，编号为`0*2+2=2`，摄像头2的场景1，编号为`2*2+1=5`
 
 init_form_ini主要用于IQ调试，值为0时，不会读取ini的参数进行初始化，实际生效的是IQ文件的参数。
-
-
 
 ```ini
 [isp]
@@ -1195,14 +1193,23 @@ source_height = 1520 ; 每个摄像头高度
 ; avs 2:5088*1520 4:5440*2700 6:8192*2700
 avs_width = 8192 ; 拼接后宽度
 avs_height = 2700 ; 拼接后高度
-avs_mode = 0 ; avs拼接模式，0为非融合拼接, 1为融合拼接
+avs_mode = 0 ; avs拼接模式，0为融合拼接, 1为垂直非融合拼接, 2为水平非融合拼接, 3为田字形非融合拼接
 sync = 1 ; avs同步模式，要求所有帧序列号同步
+param_source = 0 ; 参数来源, 0 is LUT, 1 is CALIB
 calib_file_path = /oem/usr/share/avs_calib/calib_file.pto ; pto文件路径
 mesh_alpha_path = /oem/usr/share/avs_calib/ ; 生成的mesh表存放路径
-center_x = 4196
-center_y = 2080
-fov_x = 28000
-fov_y = 9500
+middle_lut_path = /oem/usr/share/middle_lut/ ; middle_lut文件路径
+projection_mode = 0 ; 0为等距柱面投影, 1为直线投影, 2为柱面投影, 3为立方体投影
+center_x = 4096 ; 投影中心在输出图中的位置。一般设置为输出图像的中心点，表示投影中心和输出图像中心点重合。
+center_y = 1800
+fov_x = 36000 ; 拼接输出区域的视场角
+fov_y = 8500
+ori_rotation_roll = 0 ; 拼接输出起始旋转角度属性
+ori_rotation_pitch = 0
+ori_rotation_yaw = 0
+rotation_roll = 0 ; 拼接输出旋转属性
+rotation_pitch = 0
+rotation_yaw = 0
 enable_jpeg = 0
 enable_venc_0 = 1
 enable_venc_1 = 1

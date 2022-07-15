@@ -53,6 +53,7 @@ static pthread_t venc_thread_0, venc_thread_1, venc_thread_2, jpeg_venc_thread_i
 static int take_photo_one = 0;
 static int enable_jpeg, enable_venc_0, enable_venc_1, enable_venc_2, enable_npu;
 
+MB_BLK g_lut_blk[MAX_RKIPC_SENSOR_NUM];
 MPP_CHN_S vo_chn, avs_out_chn, vpss_to_npu_chn;
 MPP_CHN_S vi_chn[MAX_RKIPC_SENSOR_NUM], avs_in_chn[MAX_RKIPC_SENSOR_NUM],
     venc_chn[MAX_RKIPC_VENC_NUM], vpss_chn[MAX_RKIPC_VENC_NUM];
@@ -773,35 +774,68 @@ int rkipc_avs_init() {
 	stAvsModParam.u32WorkingSetSize = 67 * 1024;
 	stAvsModParam.enMBSource = MB_SOURCE_PRIVATE;
 	stAvsGrpAttr.enMode = rk_param_get_int("avs:avs_mode", 0);
-#if 0
-	const char *lut_file_path = "/usr/share/avs_mesh/";
-	LOG_INFO("lut_file_path = %s\n", lut_file_path);
-	memcpy(stAvsGrpAttr.stLUT.aFilePath, lut_file_path, strlen(lut_file_path) + 1);
-	memset(stAvsGrpAttr.stLUT.aFilePath + strlen(lut_file_path) + 1, '\0', sizeof(char));
-	LOG_INFO("stAvsGrpAttr.stLUT.aFilePath = %s\n", stAvsGrpAttr.stLUT.aFilePath);
-#else
-	const char *calib_file_path =
-	    rk_param_get_string("avs:calib_file_path", "/usr/share/avs_calib/calib_file_pos.pto");
-	const char *mesh_alpha_path =
-	    rk_param_get_string("avs:mesh_alpha_path", "/usr/share/avs_calib/");
-	LOG_INFO("calib_file_path = %s, mesh_alpha_path = %s\n", calib_file_path, mesh_alpha_path);
-	stAvsGrpAttr.stInAttr.enParamSource = AVS_PARAM_SOURCE_CALIB;
-	stAvsGrpAttr.stInAttr.stCalib.pCalibFilePath = calib_file_path;
-	stAvsGrpAttr.stInAttr.stCalib.pMeshAlphaPath = mesh_alpha_path;
-#endif
+
+	if (rk_param_get_int("avs:param_source", 0)) {
+		stAvsGrpAttr.stInAttr.enParamSource = AVS_PARAM_SOURCE_CALIB;
+		const char *calib_file_path =
+		    rk_param_get_string("avs:calib_file_path", "/usr/share/avs_calib/calib_file_pos.pto");
+		const char *mesh_alpha_path =
+		    rk_param_get_string("avs:mesh_alpha_path", "/usr/share/avs_calib/");
+		LOG_INFO("calib_file_path = %s, mesh_alpha_path = %s\n", calib_file_path, mesh_alpha_path);
+		stAvsGrpAttr.stInAttr.stCalib.pCalibFilePath = calib_file_path;
+		stAvsGrpAttr.stInAttr.stCalib.pMeshAlphaPath = mesh_alpha_path;
+	} else {
+		stAvsGrpAttr.stInAttr.enParamSource = AVS_PARAM_SOURCE_LUT;
+		stAvsGrpAttr.stInAttr.stLUT.enAccuracy = AVS_LUT_ACCURACY_HIGH;
+		stAvsGrpAttr.stInAttr.stLUT.enFuseWidth = AVS_FUSE_WIDTH_LOW;
+		stAvsGrpAttr.stInAttr.stLUT.stLutStep.enStepX = AVS_LUT_STEP_LOW;
+		stAvsGrpAttr.stInAttr.stLUT.stLutStep.enStepY = AVS_LUT_STEP_LOW;
+		char lut_file_name[256];
+		void *lut_vir_addr[MAX_RKIPC_SENSOR_NUM] = {0};
+		FILE *file_p;
+		struct stat statbuf;
+		size_t file_size;
+		for (int i = 0; i < g_sensor_num; i++) {
+			snprintf(lut_file_name, sizeof(lut_file_name), "%s/%s%d%s",
+			         rk_param_get_string("avs:middle_lut_path", "/usr/share/middle_lut/"),
+			         "rk_ps_lut_", i, ".bin");
+			stat(lut_file_name, &statbuf);
+			file_size = statbuf.st_size;
+			file_size = UPALIGNTO(file_size, 256);
+			LOG_DEBUG("lut_file_name is %s, file_size is %d\n", lut_file_name, file_size);
+
+			ret = RK_MPI_SYS_MmzAllocEx(&g_lut_blk[i], NULL, NULL, file_size, MB_REMAP_MODE_CACHED);
+			if (RK_SUCCESS != ret) {
+				LOG_ERROR("alloc LUT buf failed with %#x!", ret);
+				return ret;
+			}
+			lut_vir_addr[i] = RK_MPI_MMZ_Handle2VirAddr(g_lut_blk[i]);
+
+			file_p = fopen(lut_file_name, "rb");
+			if (file_p != NULL) {
+				fread(lut_vir_addr[i], file_size, 1, file_p);
+				fclose(file_p);
+			} else {
+				LOG_ERROR("open file failed\n");
+				return -1;
+			}
+			stAvsGrpAttr.stInAttr.stLUT.pVirAddr[i] = lut_vir_addr[i];
+		}
+	}
+
 	stAvsGrpAttr.u32PipeNum = g_sensor_num;
 	stAvsGrpAttr.stGainAttr.enMode = AVS_GAIN_MODE_AUTO;
-	stAvsGrpAttr.stOutAttr.enPrjMode = AVS_PROJECTION_EQUIRECTANGULAR;
+	stAvsGrpAttr.stOutAttr.enPrjMode = rk_param_get_int("avs:projection_mode", 0);
 	stAvsGrpAttr.stOutAttr.stCenter.s32X = rk_param_get_int("avs:center_x", 4196);
 	stAvsGrpAttr.stOutAttr.stCenter.s32Y = rk_param_get_int("avs:center_y", 2080);
 	stAvsGrpAttr.stOutAttr.stFOV.u32FOVX = rk_param_get_int("avs:fov_x", 28000);
 	stAvsGrpAttr.stOutAttr.stFOV.u32FOVY = rk_param_get_int("avs:fov_y", 9500);
-	stAvsGrpAttr.stOutAttr.stORIRotation.s32Roll = 0;
-	stAvsGrpAttr.stOutAttr.stORIRotation.s32Pitch = 0;
-	stAvsGrpAttr.stOutAttr.stORIRotation.s32Yaw = 0;
-	stAvsGrpAttr.stOutAttr.stRotation.s32Roll = 0;
-	stAvsGrpAttr.stOutAttr.stRotation.s32Pitch = 0;
-	stAvsGrpAttr.stOutAttr.stRotation.s32Yaw = 0;
+	stAvsGrpAttr.stOutAttr.stORIRotation.s32Roll = rk_param_get_int("avs:ori_rotation_roll", 0);
+	stAvsGrpAttr.stOutAttr.stORIRotation.s32Pitch = rk_param_get_int("avs:ori_rotation_pitch", 0);
+	stAvsGrpAttr.stOutAttr.stORIRotation.s32Yaw = rk_param_get_int("avs:ori_rotation_yaw", 0);
+	stAvsGrpAttr.stOutAttr.stRotation.s32Roll = rk_param_get_int("avs:rotation_roll", 0);
+	stAvsGrpAttr.stOutAttr.stRotation.s32Pitch = rk_param_get_int("avs:rotation_pitch", 0);
+	stAvsGrpAttr.stOutAttr.stRotation.s32Yaw = rk_param_get_int("avs:rotation_yaw", 0);
 	stAvsGrpAttr.bSyncPipe = rk_param_get_int("avs:sync", 1);
 	stAvsGrpAttr.stFrameRate.s32SrcFrameRate = -1;
 	stAvsGrpAttr.stFrameRate.s32DstFrameRate = -1;
@@ -880,6 +914,9 @@ int rkipc_avs_deinit() {
 		return ret;
 	}
 	LOG_INFO("RK_MPI_AVS_DestroyGrp success\n");
+	for (int i = 0; i < g_sensor_num; i++) {
+		RK_MPI_SYS_MmzFree(&g_lut_blk[i]);
+	}
 	LOG_INFO("end\n");
 
 	return ret;
