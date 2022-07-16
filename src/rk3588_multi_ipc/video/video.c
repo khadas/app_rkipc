@@ -1537,13 +1537,8 @@ int rkipc_vo_init() {
 	}
 	LOG_INFO("RK_MPI_VO_GetPubAttr success\n");
 	if ((VoPubAttr.stSyncInfo.u16Hact == 0) || (VoPubAttr.stSyncInfo.u16Vact == 0)) {
-		if (g_vo_dev_id == RK3588_VO_DEV_HDMI) {
-			VoPubAttr.stSyncInfo.u16Hact = 1920;
-			VoPubAttr.stSyncInfo.u16Vact = 1080;
-		} else {
-			VoPubAttr.stSyncInfo.u16Hact = 1080;
-			VoPubAttr.stSyncInfo.u16Vact = 1920;
-		}
+		VoPubAttr.stSyncInfo.u16Hact = rk_param_get_int("avs:vo_width", 1920);
+		VoPubAttr.stSyncInfo.u16Vact = rk_param_get_int("avs:vo_height", 1080);
 	}
 
 	stLayerAttr.stDispRect.s32X = 0;
