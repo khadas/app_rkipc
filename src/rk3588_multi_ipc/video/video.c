@@ -1497,7 +1497,7 @@ int rkipc_vo_init() {
 	memset(&VoChnAttr, 0, sizeof(VoChnAttr));
 	if (g_vo_dev_id == RK3588_VO_DEV_HDMI) {
 		VoPubAttr.enIntfType = VO_INTF_HDMI;
-		VoPubAttr.enIntfSync = VO_OUTPUT_1080P60;
+		VoPubAttr.enIntfSync = VO_OUTPUT_DEFAULT;
 	} else {
 		VoPubAttr.enIntfType = VO_INTF_MIPI;
 		VoPubAttr.enIntfSync = VO_OUTPUT_DEFAULT;
