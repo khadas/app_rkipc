@@ -914,9 +914,9 @@ int rkipc_avs_deinit() {
 		return ret;
 	}
 	LOG_INFO("RK_MPI_AVS_DestroyGrp success\n");
-	for (int i = 0; i < g_sensor_num; i++) {
-		RK_MPI_SYS_MmzFree(&g_lut_blk[i]);
-	}
+	// for (int i = 0; i < g_sensor_num; i++) {
+	// 	RK_MPI_SYS_MmzFree(&g_lut_blk[i]);
+	// }
 	LOG_INFO("end\n");
 
 	return ret;
