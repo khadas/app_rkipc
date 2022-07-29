@@ -1125,7 +1125,7 @@ int rkipc_venc_3_init() {
 	// VENC[3] init
 	VENC_CHN_ATTR_S jpeg_chn_attr;
 	memset(&jpeg_chn_attr, 0, sizeof(jpeg_chn_attr));
-	jpeg_chn_attr.stVencAttr.enType = RK_VIDEO_ID_MJPEG;
+	jpeg_chn_attr.stVencAttr.enType = RK_VIDEO_ID_JPEG;
 	jpeg_chn_attr.stVencAttr.enPixelFormat = RK_FMT_YUV420SP;
 	jpeg_chn_attr.stVencAttr.u32PicWidth = video_width;
 	jpeg_chn_attr.stVencAttr.u32PicHeight = video_height;
