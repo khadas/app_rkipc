@@ -1335,7 +1335,7 @@ int rkipc_pipe_3_init() {
 	jpeg_chn_attr.stVencAttr.u32PicHeight = video_height;
 	jpeg_chn_attr.stVencAttr.u32VirWidth = video_width;
 	jpeg_chn_attr.stVencAttr.u32VirHeight = video_height;
-	jpeg_chn_attr.stVencAttr.u32StreamBufCnt = 1;
+	jpeg_chn_attr.stVencAttr.u32StreamBufCnt = 2;
 	jpeg_chn_attr.stVencAttr.u32BufSize = rk_param_get_int("video.source:jpeg_buffer_size", 204800);
 	// jpeg_chn_attr.stVencAttr.u32Depth = 1;
 	ret = RK_MPI_VENC_CreateChn(JPEG_VENC_CHN, &jpeg_chn_attr);
@@ -2368,6 +2368,10 @@ int rkipc_osd_deinit() {
 
 int rk_take_photo() {
 	LOG_DEBUG("start\n");
+	if (take_photo_one) {
+		LOG_WARN("the last photo was not completed\n");
+		return -1;
+	}
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
 	stRecvParam.s32RecvPicNum = 1;
