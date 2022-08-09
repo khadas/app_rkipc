@@ -59,8 +59,8 @@ static const char *tmp_smart;
 static const char *tmp_gop_mode;
 static const char *tmp_rc_quality;
 static pthread_t vi_thread_1, venc_thread_0, venc_thread_1, venc_thread_2, jpeg_venc_thread_id,
-    vpss_thread_rgb, cycle_snapshot_thread_id, get_nn_update_osd_thread_id, get_vi_0_thread,
-    get_vi_2_thread, get_ivs_result_thread;
+    vpss_thread_rgb, cycle_snapshot_thread_id, get_nn_update_osd_thread_id,
+    get_vi_send_jpeg_thread_id, get_vi_2_thread, get_ivs_result_thread;
 
 static MPP_CHN_S vi_chn, vpss_bgr_chn, vpss_rotate_chn, vo_chn, vpss_out_chn[4], venc_chn, ivs_chn;
 static VO_DEV VoLayer = RK3588_VOP_LAYER_CLUSTER0;
@@ -177,7 +177,7 @@ static void *rkipc_get_venc_0(void *arg) {
 	return 0;
 }
 
-static void *rkipc_get_vi_0(void *arg) {
+static void *rkipc_get_vi_send_jpeg(void *arg) {
 	LOG_DEBUG("#Start %s thread, arg:%p\n", __func__, arg);
 	int jpeg_width, jpeg_height, ret;
 
@@ -465,7 +465,6 @@ static void *rkipc_get_jpeg(void *arg) {
 	LOG_DEBUG("#Start %s thread, arg:%p\n", __func__, arg);
 	prctl(PR_SET_NAME, "RkipcGetJpeg", 0, 0, 0);
 	VENC_STREAM_S stFrame;
-	VI_CHN_STATUS_S stChnStatus;
 	int loopCount = 0;
 	int ret = 0;
 	char file_name[128] = {0};
@@ -488,7 +487,7 @@ static void *rkipc_get_jpeg(void *arg) {
 			usleep(300 * 1000);
 			continue;
 		}
-		// 5.get the frame
+		// get the frame
 		ret = RK_MPI_VENC_GetStream(JPEG_VENC_CHN, &stFrame, 1000);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
@@ -508,7 +507,7 @@ static void *rkipc_get_jpeg(void *arg) {
 			} else {
 				fwrite(data, 1, stFrame.pstPack->u32Len, fp);
 			}
-			// 7.release the frame
+			// release the frame
 			ret = RK_MPI_VENC_ReleaseStream(JPEG_VENC_CHN, &stFrame);
 			if (ret != RK_SUCCESS) {
 				LOG_ERROR("RK_MPI_VENC_ReleaseStream fail %x\n", ret);
@@ -523,7 +522,6 @@ static void *rkipc_get_jpeg(void *arg) {
 		}
 		get_jpeg_cnt--;
 		RK_MPI_VENC_StopRecvFrame(JPEG_VENC_CHN);
-		// usleep(33 * 1000);
 	}
 	if (stFrame.pstPack)
 		free(stFrame.pstPack);
@@ -826,7 +824,6 @@ int rkipc_pipe_0_init() {
 		LOG_ERROR("ERROR: create VI error! ret=%d\n", ret);
 		return ret;
 	}
-	pthread_create(&get_vi_0_thread, NULL, rkipc_get_vi_0, NULL);
 
 	// VENC
 	VENC_CHN_ATTR_S venc_chn_attr;
@@ -1681,6 +1678,7 @@ int rkipc_pipe_jpeg_init() {
 	                           &stRecvParam); // must, for no streams callback running failed
 
 	pthread_create(&jpeg_venc_thread_id, NULL, rkipc_get_jpeg, NULL);
+	pthread_create(&get_vi_send_jpeg_thread_id, NULL, rkipc_get_vi_send_jpeg, NULL);
 	if (rk_param_get_int("video.jpeg:enable_cycle_snapshot", 0)) {
 		cycle_snapshot_flag = 1;
 		pthread_create(&cycle_snapshot_thread_id, NULL, rkipc_cycle_snapshot, NULL);
@@ -1691,6 +1689,12 @@ int rkipc_pipe_jpeg_init() {
 
 int rkipc_pipe_jpeg_deinit() {
 	int ret = 0;
+	if (rk_param_get_int("video.jpeg:enable_cycle_snapshot", 0)) {
+		cycle_snapshot_flag = 0;
+		pthread_join(cycle_snapshot_thread_id, NULL);
+	}
+	pthread_join(get_vi_send_jpeg_thread_id, NULL);
+	pthread_join(jpeg_venc_thread_id, NULL);
 	ret = RK_MPI_VENC_StopRecvFrame(JPEG_VENC_CHN);
 	ret |= RK_MPI_VENC_DestroyChn(JPEG_VENC_CHN);
 	if (ret)
@@ -1920,7 +1924,7 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 			while (y + h + line_pixel >= video_height) {
 				h -= 8;
 			}
-			if ( x < 0 || y < 0 || w < 0 || h < 0){
+			if (x < 0 || y < 0 || w < 0 || h < 0) {
 				continue;
 			}
 			// LOG_DEBUG("i is %d, x,y,w,h is %d,%d,%d,%d\n", i, x, y, w, h);
@@ -3213,12 +3217,6 @@ int rk_video_deinit() {
 		ret |= rkipc_pipe_1_deinit();
 	}
 	if (enable_jpeg) {
-		if (rk_param_get_int("video.jpeg:enable_cycle_snapshot", 0)) {
-			cycle_snapshot_flag = 0;
-			pthread_join(cycle_snapshot_thread_id, NULL);
-		}
-		pthread_join(jpeg_venc_thread_id, NULL);
-		pthread_join(get_vi_0_thread, NULL);
 		ret |= rkipc_pipe_jpeg_deinit();
 	}
 	if (enable_pp) {
