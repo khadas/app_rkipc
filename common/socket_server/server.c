@@ -2510,7 +2510,6 @@ int ser_rk_video_set_frame_rate_in(int fd) {
 
 int ser_rk_video_get_rotation(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	err = rk_video_get_rotation(&value);
@@ -2525,7 +2524,6 @@ int ser_rk_video_get_rotation(int fd) {
 
 int ser_rk_video_set_rotation(int fd) {
 	int err = 0;
-	int id;
 	int value;
 
 	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)

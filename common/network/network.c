@@ -670,7 +670,7 @@ int rk_network_get_cable_state() {
 	struct sockaddr_nl addr;
 	struct nlmsghdr *nh;
 	struct ifinfomsg *ifinfo;
-	char name[IFNAMSIZ], cmd1[32], cmd2[32];
+	char name[IFNAMSIZ], cmd1[64], cmd2[64];
 	// struct rtattr *attr;
 
 	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
@@ -792,11 +792,10 @@ int rk_nic_state_get(const char *ifname) {
 
 static void *rk_net_proc() {
 	prctl(PR_SET_NAME, "rk_net_proc", 0, 0, 0);
-	int status = 0;
 
 	LOG_INFO("Creat rk_net_proc thread!\n");
 
-	status = rk_network_get_cable_state();
+	rk_network_get_cable_state();
 
 	LOG_INFO("exit rk_net_proc thread!\n");
 

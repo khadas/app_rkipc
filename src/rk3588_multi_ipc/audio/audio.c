@@ -263,7 +263,7 @@ int rkipc_audio_deinit() {
 // export api
 
 int rk_audio_restart() {
-	int ret;
+	int ret = 0;
 	ret |= rkipc_audio_deinit();
 	ret |= rkipc_audio_init();
 

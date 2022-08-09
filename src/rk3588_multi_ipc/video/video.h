@@ -17,6 +17,7 @@
 #include <linux/input.h>
 #include <rk_debug.h>
 #include <rk_mpi_avs.h>
+#include <rk_mpi_cal.h>
 #include <rk_mpi_mb.h>
 #include <rk_mpi_rgn.h>
 #include <rk_mpi_sys.h>
@@ -68,8 +69,8 @@ int rk_video_get_enable_cycle_snapshot(int *value);
 int rk_video_set_enable_cycle_snapshot(int value);
 int rk_video_get_image_quality(int *value);
 int rk_video_set_image_quality(int value);
-int rk_video_get_snapshot_interval_s(int *value);
-int rk_video_set_snapshot_interval_s(int value);
+int rk_video_get_snapshot_interval_ms(int *value);
+int rk_video_set_snapshot_interval_ms(int value);
 int rk_video_get_jpeg_resolution(char **value);
 int rk_video_set_jpeg_resolution(const char *value);
 int rk_take_photo();

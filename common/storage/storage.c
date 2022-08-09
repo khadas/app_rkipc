@@ -26,7 +26,7 @@ RKIPC_MAYBE_UNUSED static rkipc_str_dev_attr rkipc_storage_get_dev_attr(void *pH
 	return rkipc_storage_get_param((rkipc_storage_handle *)pHandle);
 }
 
-static int rkipc_storage_get_mount_dev(char *path, char *dev, char *type, char *attributes) {
+static int rkipc_storage_get_mount_dev(const char *path, char *dev, char *type, char *attributes) {
 	FILE *fp;
 	char strLine[MAX_STRLINE_LEN];
 	char *tmp;
@@ -60,7 +60,6 @@ static int rkipc_storage_get_mount_dev(char *path, char *dev, char *type, char *
 
 int rkipc_storage_set_dev_attr(rkipc_str_dev_attr *pstDevAttr) {
 	int quota;
-	char cmd[64];
 	const char *folder_name = NULL;
 	const char *mount_path = NULL;
 	char dev_path[64];

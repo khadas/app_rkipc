@@ -193,8 +193,8 @@ int rkipc_rockiva_init() {
 #else
 	globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_VEHICLE;
 #endif
-	globalParams.imageInfo.width = ("video.2:width", 960);
-	globalParams.imageInfo.height = ("video.2:height", 540);
+	globalParams.imageInfo.width = rk_param_get_int("video.2:width", 960);
+	globalParams.imageInfo.height = rk_param_get_int("video.2:height", 540);
 	globalParams.imageInfo.format = ROCKIVA_IMAGE_FORMAT_YUV420SP_NV12;
 	// temporary solution
 	// which will be changed to reinitialize when the resolution is dynamically switched
