@@ -400,12 +400,15 @@ static void *rkipc_get_jpeg(void *arg) {
 	strcat(record_path, rk_param_get_string("storage.0:folder_name", "video0"));
 
 	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
+
+#if 0
 	// drop first frame
 	ret = RK_MPI_VENC_GetStream(JPEG_VENC_CHN, &stFrame, 1000);
 	if (ret == RK_SUCCESS)
 		RK_MPI_VENC_ReleaseStream(JPEG_VENC_CHN, &stFrame);
 	else
 		LOG_ERROR("RK_MPI_VENC_GetStream timeout %x\n", ret);
+#endif
 
 	while (g_video_run_) {
 		if (!get_jpeg_cnt) {
@@ -416,9 +419,9 @@ static void *rkipc_get_jpeg(void *arg) {
 		ret = RK_MPI_VENC_GetStream(JPEG_VENC_CHN, &stFrame, 1000);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
-			LOG_INFO("Count:%d, Len:%d, PTS is %" PRId64 ", enH264EType is %d\n", loopCount,
-			         stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
-			         stFrame.pstPack->DataType.enH264EType);
+			// LOG_INFO("Count:%d, Len:%d, PTS is %" PRId64 ", enH264EType is %d\n", loopCount,
+			//          stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
+			//          stFrame.pstPack->DataType.enH264EType);
 			// save jpeg file
 			time_t t = time(NULL);
 			struct tm tm = *localtime(&t);
@@ -2513,8 +2516,9 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 	LOG_INFO("The handle: %d, create success\n", coverHandle);
 
 	// display cover regions to venc groups
-	stCoverChn.enModId = RK_ID_VENC;
+	stCoverChn.enModId = RK_ID_VPSS;
 	stCoverChn.s32DevId = 0;
+	stCoverChn.s32ChnId = 0;
 	memset(&stCoverChnAttr, 0, sizeof(stCoverChnAttr));
 	stCoverChnAttr.bShow = osd_data->enable;
 	stCoverChnAttr.enType = COVER_RGN;
@@ -2525,57 +2529,12 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 	stCoverChnAttr.unChnAttr.stCoverChn.u32Color = 0xffffff;
 	stCoverChnAttr.unChnAttr.stCoverChn.u32Layer = coverHandle;
 	LOG_INFO("cover region to chn success\n");
-	if (enable_venc_0) {
-		stCoverChn.s32ChnId = 0;
-		ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
-		if (RK_SUCCESS != ret) {
-			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) failed with %#x\n", coverHandle, ret);
-			return RK_FAILURE;
-		}
-		LOG_INFO("RK_MPI_RGN_AttachToChn to venc0 success\n");
+	ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) failed with %#x\n", coverHandle, ret);
+		return RK_FAILURE;
 	}
-	if (enable_venc_1) {
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X =
-		    UPALIGNTO16(osd_data->origin_x * rk_param_get_int("video.1:width", 1) /
-		                rk_param_get_int("video.0:width", 1));
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y =
-		    UPALIGNTO16(osd_data->origin_y * rk_param_get_int("video.1:height", 1) /
-		                rk_param_get_int("video.0:height", 1));
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width =
-		    UPALIGNTO16(osd_data->width * rk_param_get_int("video.1:width", 1) /
-		                rk_param_get_int("video.0:width", 1));
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height =
-		    UPALIGNTO16(osd_data->height * rk_param_get_int("video.1:height", 1) /
-		                rk_param_get_int("video.0:height", 1));
-		stCoverChn.s32ChnId = 1;
-		ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
-		if (RK_SUCCESS != ret) {
-			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) failed with %#x\n", coverHandle, ret);
-			return RK_FAILURE;
-		}
-		LOG_INFO("RK_MPI_RGN_AttachToChn to venc0 success\n");
-	}
-	if (enable_venc_2) {
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X =
-		    UPALIGNTO16(osd_data->origin_x * rk_param_get_int("video.2:width", 1) /
-		                rk_param_get_int("video.0:width", 1));
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y =
-		    UPALIGNTO16(osd_data->origin_y * rk_param_get_int("video.2:height", 1) /
-		                rk_param_get_int("video.0:height", 1));
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width =
-		    UPALIGNTO16(osd_data->width * rk_param_get_int("video.2:width", 1) /
-		                rk_param_get_int("video.0:width", 1));
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height =
-		    UPALIGNTO16(osd_data->height * rk_param_get_int("video.2:height", 1) /
-		                rk_param_get_int("video.0:height", 1));
-		stCoverChn.s32ChnId = 2;
-		ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
-		if (RK_SUCCESS != ret) {
-			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) failed with %#x\n", coverHandle, ret);
-			return RK_FAILURE;
-		}
-		LOG_INFO("RK_MPI_RGN_AttachToChn to venc0 success\n");
-	}
+	LOG_INFO("RK_MPI_RGN_AttachToChn to vpss 0 success\n");
 
 	return ret;
 }
@@ -2586,35 +2545,15 @@ int rkipc_osd_cover_destroy(int id) {
 	// Detach osd from chn
 	MPP_CHN_S stMppChn;
 	RGN_HANDLE RgnHandle = id;
-	stMppChn.enModId = RK_ID_VENC;
+	stMppChn.enModId = RK_ID_VPSS;
 	stMppChn.s32DevId = 0;
-	if (enable_venc_0) {
-		stMppChn.s32ChnId = 0;
-		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
-		if (RK_SUCCESS != ret) {
-			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc0 failed with %#x\n", RgnHandle, ret);
-			return RK_FAILURE;
-		}
-		LOG_INFO("RK_MPI_RGN_DetachFromChn to venc0 success\n");
+	stMppChn.s32ChnId = 0;
+	ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to vpss 0 failed with %#x\n", RgnHandle, ret);
+		return RK_FAILURE;
 	}
-	if (enable_venc_1) {
-		stMppChn.s32ChnId = 1;
-		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
-		if (RK_SUCCESS != ret) {
-			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc1 failed with %#x\n", RgnHandle, ret);
-			return RK_FAILURE;
-		}
-		LOG_INFO("RK_MPI_RGN_DetachFromChn to venc1 success\n");
-	}
-	if (enable_venc_2) {
-		stMppChn.s32ChnId = 2;
-		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
-		if (RK_SUCCESS != ret) {
-			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc2 failed with %#x\n", RgnHandle, ret);
-			return RK_FAILURE;
-		}
-		LOG_INFO("RK_MPI_RGN_DetachFromChn to venc2 success\n");
-	}
+	LOG_INFO("RK_MPI_RGN_DetachFromChn to vpss 0 success\n");
 
 	// destory region
 	ret = RK_MPI_RGN_Destroy(RgnHandle);
