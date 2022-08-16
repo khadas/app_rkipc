@@ -185,6 +185,9 @@ int rkipc_rockiva_init() {
 	snprintf(globalParams.modelPath, ROCKIVA_PATH_LENGTH, "/usr/lib/");
 	globalParams.coreMask = 0x04;
 	globalParams.logLevel = ROCKIVA_LOG_ERROR;
+	globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_FACE;
+	globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_PERSON;
+	globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_PET;
 
 	ROCKIVA_Init(&rkba_handle, ROCKIVA_MODE_VIDEO, &globalParams, NULL);
 	LOG_INFO("ROCKIVA_Init over\n");
