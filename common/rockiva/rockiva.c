@@ -187,7 +187,11 @@ int rkipc_rockiva_init() {
 	globalParams.logLevel = ROCKIVA_LOG_ERROR;
 	globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_FACE;
 	globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_PERSON;
+#if 0
 	globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_PET;
+#else
+	globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_VEHICLE;
+#endif
 
 	ROCKIVA_Init(&rkba_handle, ROCKIVA_MODE_VIDEO, &globalParams, NULL);
 	LOG_INFO("ROCKIVA_Init over\n");
@@ -399,6 +403,26 @@ int rkipc_rockiva_write_rgb888_frame_by_fd(uint16_t width, uint16_t height, uint
 	image->info.width = width;
 	image->info.height = height;
 	image->info.format = ROCKIVA_IMAGE_FORMAT_BGR888;
+	image->frameId = frame_id;
+	image->dataAddr = NULL;
+	image->dataPhyAddr = NULL;
+	image->dataFd = fd;
+	ret = ROCKIVA_PushFrame(rkba_handle, image);
+	free(image);
+
+	return ret;
+}
+
+int rkipc_rockiva_write_nv12_frame_by_fd(uint16_t width, uint16_t height, uint32_t frame_id,
+                                         int32_t fd) {
+	int ret;
+	RockIvaImage *image = (RockIvaImage *)malloc(sizeof(RockIvaImage));
+	if (!rockit_run_flag)
+		return 0;
+	memset(image, 0, sizeof(RockIvaImage));
+	image->info.width = width;
+	image->info.height = height;
+	image->info.format = ROCKIVA_IMAGE_FORMAT_YUV420SP_NV12;
 	image->frameId = frame_id;
 	image->dataAddr = NULL;
 	image->dataPhyAddr = NULL;

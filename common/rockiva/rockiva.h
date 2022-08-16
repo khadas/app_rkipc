@@ -30,6 +30,8 @@ int rkipc_rockiva_write_rgb888_frame(uint16_t width, uint16_t height, uint32_t f
                                      unsigned char *buffer);
 int rkipc_rockiva_write_rgb888_frame_by_fd(uint16_t width, uint16_t height, uint32_t frame_id,
                                            int32_t fd);
+int rkipc_rockiva_write_nv12_frame_by_fd(uint16_t width, uint16_t height, uint32_t frame_id,
+                                         int32_t fd);
 int rkipc_rknn_object_get(RockIvaBaResult *ba_result);
 #ifdef __cplusplus
 }
