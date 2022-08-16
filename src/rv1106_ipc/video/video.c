@@ -22,7 +22,8 @@
 #define VIDEO_PIPE_0 0
 #define VIDEO_PIPE_1 1
 #define VIDEO_PIPE_2 2
-#define JPEG_VENC_CHN 3
+#define VIDEO_PIPE_3 3
+#define JPEG_VENC_CHN 4
 #define VPSS_ROTATE 6
 #define VPSS_BGR 0
 #define DRAW_NN_OSD_ID 7
@@ -42,7 +43,7 @@ pthread_mutex_t g_rtsp_mutex = PTHREAD_MUTEX_INITIALIZER;
 rtsp_demo_handle g_rtsplive = NULL;
 rtsp_session_handle g_rtsp_session_0, g_rtsp_session_1, g_rtsp_session_2;
 static int take_photo_one = 0;
-static int enable_jpeg, enable_venc_0, enable_venc_1, enable_rtsp, enable_rtmp;
+static int enable_pp, enable_jpeg, enable_venc_0, enable_venc_1, enable_rtsp, enable_rtmp;
 static int g_enable_vo, g_vo_dev_id, g_vi_chn_id, enable_npu, enable_wrap, enable_osd;
 static int g_video_run_ = 1;
 static int pipe_id_ = 0;
@@ -56,7 +57,7 @@ static const char *tmp_rc_quality;
 static pthread_t vi_thread_1, venc_thread_0, venc_thread_1, venc_thread_2, jpeg_venc_thread_id,
     vpss_thread_rgb, cycle_snapshot_thread_id, get_nn_update_osd_thread_id;
 
-static MPP_CHN_S vi_chn, vpss_bgr_chn, vpss_rotate_chn, vo_chn, vpss_out_chn[4], venc_chn;
+static MPP_CHN_S vi_chn, vpss_bgr_chn, vpss_rotate_chn, vo_chn, vpss_out_chn[4], venc_chn, ivs_chn;
 static VO_DEV VoLayer = RK3588_VOP_LAYER_CLUSTER0;
 
 #if HAS_VO
@@ -1388,6 +1389,98 @@ int rkipc_pipe_3_deinit() {
 	return ret;
 }
 
+int rkipc_pipe_4_init() {
+	int ret;
+	int video_width = rk_param_get_int("video.3:width", -1);
+	int video_height = rk_param_get_int("video.3:height", -1);
+	int buf_cnt = 2;
+
+	// VI
+	VI_CHN_ATTR_S vi_chn_attr;
+	memset(&vi_chn_attr, 0, sizeof(vi_chn_attr));
+	vi_chn_attr.stIspOpt.u32BufCount = buf_cnt;
+	vi_chn_attr.stIspOpt.enMemoryType = VI_V4L2_MEMORY_TYPE_DMABUF;
+	vi_chn_attr.stIspOpt.stMaxSize.u32Width = video_width;
+	vi_chn_attr.stIspOpt.stMaxSize.u32Height = video_height;
+	vi_chn_attr.stSize.u32Width = video_width;
+	vi_chn_attr.stSize.u32Height = video_height;
+	vi_chn_attr.enPixelFormat = RK_FMT_YUV420SP;
+	vi_chn_attr.u32Depth = 0;
+	ret = RK_MPI_VI_SetChnAttr(pipe_id_, VIDEO_PIPE_3, &vi_chn_attr);
+	if (ret) {
+		LOG_ERROR("ERROR: create VI error! ret=%d\n", ret);
+		return ret;
+	}
+
+	ret = RK_MPI_VI_EnableChn(pipe_id_, VIDEO_PIPE_3);
+	if (ret) {
+		LOG_ERROR("ERROR: create VI error! ret=%d\n", ret);
+		return ret;
+	}
+
+	// IVS
+	IVS_CHN_ATTR_S attr;
+	memset(&attr, 0, sizeof(attr));
+	attr.enMode = IVS_MODE_MD_OD;
+	attr.u32PicWidth = video_width;
+	attr.u32PicHeight = video_height;
+	attr.enPixelFormat = RK_FMT_YUV420SP;
+	attr.s32Gop = 30;
+	attr.bSmearEnable = RK_TRUE;
+	attr.bWeightpEnable = RK_TRUE;
+	attr.bMDEnable = RK_FALSE;
+	attr.s32MDInterval = 1;
+	attr.bMDNightMode = RK_FALSE;
+	attr.u32MDSensibility = 2;
+	attr.bODEnable = RK_FALSE;
+	attr.s32ODInterval = 1;
+	attr.s32ODPercent = 7;
+	RK_MPI_IVS_CreateChn(0, &attr);
+
+	// bind
+	vi_chn.enModId = RK_ID_VI;
+	vi_chn.s32DevId = 0;
+	vi_chn.s32ChnId = VIDEO_PIPE_3;
+	ivs_chn.enModId = RK_ID_IVS;
+	ivs_chn.s32DevId = 0;
+	ivs_chn.s32ChnId = 0;
+	ret = RK_MPI_SYS_Bind(&vi_chn, &ivs_chn);
+	if (ret)
+		LOG_ERROR("Bind VI and IVS error! ret=%#x\n", ret);
+	else
+		LOG_DEBUG("Bind VI and IVS success\n");
+
+	return 0;
+}
+
+int rkipc_pipe_4_deinit() {
+	int ret;
+	// unbind
+	vi_chn.enModId = RK_ID_VI;
+	vi_chn.s32DevId = 0;
+	vi_chn.s32ChnId = VIDEO_PIPE_3;
+	ivs_chn.enModId = RK_ID_IVS;
+	ivs_chn.s32DevId = 0;
+	ivs_chn.s32ChnId = 0;
+	ret = RK_MPI_SYS_UnBind(&vi_chn, &ivs_chn);
+	if (ret)
+		LOG_ERROR("Unbind VI and IVS error! ret=%#x\n", ret);
+	else
+		LOG_DEBUG("Unbind VI and IVS success\n");
+	// IVS
+	ret = RK_MPI_IVS_DestroyChn(0);
+	if (ret)
+		LOG_ERROR("ERROR: Destroy IVS error! ret=%#x\n", ret);
+	else
+		LOG_DEBUG("RK_MPI_IVS_DestroyChn success\n");
+	// VI
+	ret = RK_MPI_VI_DisableChn(pipe_id_, VIDEO_PIPE_3);
+	if (ret)
+		LOG_ERROR("ERROR: Destroy VI error! ret=%#x\n", ret);
+
+	return 0;
+}
+
 static RK_U8 left_value[4] = {0xc0, 0xf, 0x3f, 0xff};
 static RK_U8 right_value[4] = {0xc0, 0xf0, 0xfc, 0xff};
 RK_S32 draw_rect_2bpp(RK_U8 *buffer, RK_U32 width, RK_U32 height, int rgn_x, int rgn_y, int rgn_w,
@@ -2467,6 +2560,7 @@ int rk_roi_set(roi_data_s *roi_data) {
 int rk_video_init() {
 	LOG_DEBUG("begin\n");
 	int ret = 0;
+	enable_pp = rk_param_get_int("video.source:enable_pp", 1);
 	enable_jpeg = rk_param_get_int("video.source:enable_jpeg", 1);
 	enable_venc_0 = rk_param_get_int("video.source:enable_venc_0", 1);
 	enable_venc_1 = rk_param_get_int("video.source:enable_venc_1", 1);
@@ -2501,6 +2595,8 @@ int rk_video_init() {
 	// 	ret |= rkipc_pipe_vpss_vo_init();
 	if (enable_osd)
 		ret |= rkipc_osd_init();
+	if (enable_pp)
+		ret |= rkipc_pipe_4_init();
 	rk_roi_set_callback_register(rk_roi_set);
 	ret |= rk_roi_set_all();
 	// rk_region_clip_set_callback_register(rk_region_clip_set);
@@ -2541,6 +2637,9 @@ int rk_video_deinit() {
 			pthread_join(cycle_snapshot_thread_id, NULL);
 		pthread_join(jpeg_venc_thread_id, NULL);
 		ret |= rkipc_pipe_3_deinit();
+	}
+	if (enable_pp) {
+		ret |= rkipc_pipe_4_deinit();
 	}
 	ret |= rkipc_vi_dev_deinit();
 	if (enable_rtmp)

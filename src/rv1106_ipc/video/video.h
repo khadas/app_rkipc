@@ -19,6 +19,7 @@
 #include <rk_mpi_venc.h>
 #include <rk_mpi_vi.h>
 #include <rk_mpi_vpss.h>
+#include <rk_mpi_ivs.h>
 
 #include <inttypes.h> // PRId64
 
