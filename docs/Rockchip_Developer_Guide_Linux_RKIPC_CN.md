@@ -2,9 +2,9 @@
 
 文件标识：RK-KF-YF-937
 
-发布版本：V1.1.0
+发布版本：V1.2.0
 
-日期：2022-07-15
+日期：2022-08-18
 
 文件密级：□绝密   □秘密   □内部资料   ■公开
 
@@ -78,6 +78,7 @@ Rockchip Electronics Co., Ltd.
 | V1.0.0     | 林刘迪铭 | 2022-05-19   | 调试ini中的isp相关参数  |
 | V1.0.1     | 陈委问   | 2022-05-20   | 更新产品版本信息        |
 | V1.1.0     | 林刘迪铭 | 2022-07-15   | 新增ini中的avs相关参数  |
+| V1.2.0     | 林刘迪铭 | 2022-08-18   | 修改RV1106 IPC框图      |
 
 ---
 
@@ -109,10 +110,12 @@ Rockchip Electronics Co., Ltd.
 ```mermaid
 graph LR
 	AI-->AENC-->MUXER-->MP4
-	VI_0-->VENC_0-->MUXER
-	VENC_0-->RTSP_RTMP_0
-	VI_1-->VENC_1_and_OSD_draw-->RTSP_RTMP_1
-	VI_1-->VPSS-->NPU
+	VI_0-->VENC_0_and_OSD_draw-->MUXER
+	VI_0-->TDE-->VENC_JPEG
+	VENC_0_and_OSD_draw-->RTSP_RTMP_0
+	VI_1-->VENC_1-->RTSP_RTMP_1
+	VI_2-->NPU
+	VI_3-->IVS
 ```
 
 ### RV1106 Battery IPC
