@@ -54,7 +54,7 @@ static const char *tmp_output_data_type = "H.264";
 static const char *tmp_rc_mode;
 static const char *tmp_h264_profile;
 static const char *tmp_smart;
-static const char *tmp_tsvc;
+static const char *tmp_gop_mode;
 static const char *tmp_rc_quality;
 static pthread_t vi_thread_1, venc_thread_0, venc_thread_1, venc_thread_2, jpeg_venc_thread_id,
     vpss_thread_rgb, cycle_snapshot_thread_id, get_nn_update_osd_thread_id, get_vi_0_thread,
@@ -851,13 +851,15 @@ int rkipc_pipe_0_init() {
 		return -1;
 	}
 	tmp_smart = rk_param_get_string("video.0:smart", NULL);
-	tmp_tsvc = rk_param_get_string("video.0:tsvc", NULL);
-	if (!strcmp(tmp_tsvc, "open")) {
+	tmp_gop_mode = rk_param_get_string("video.0:gop_mode", NULL);
+	if (!strcmp(tmp_gop_mode, "normalp")) {
+		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
+	} else if (!strcmp(tmp_gop_mode, "smartp")) {
+		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
+		venc_chn_attr.stGopAttr.s32VirIdrLen = rk_param_get_int("video.0:smartp_viridrlen", 25);
+		venc_chn_attr.stGopAttr.u32MaxLtrCount = 1; // smartp 长期参考帧ltr固定配置为一个
+	} else if (!strcmp(tmp_gop_mode, "tsvc4")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC4;
-	} else if (!strcmp(tmp_smart, "open")) { // SVC current only support VENC_GOPMODE_NORMALP
-		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
-	} else {
-		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
 	}
 	// venc_chn_attr.stGopAttr.u32GopSize = rk_param_get_int("video.0:gop", -1);
 	venc_chn_attr.stVencAttr.enPixelFormat = RK_FMT_YUV420SP;
@@ -952,17 +954,14 @@ int rkipc_pipe_0_init() {
 	memset(&stVencChnRefBufShare, 0, sizeof(VENC_CHN_REF_BUF_SHARE_S));
 	stVencChnRefBufShare.bEnable = rk_param_get_int("video.0:enable_refer_buffer_share", 0);
 	RK_MPI_VENC_SetChnRefBufShareAttr(VIDEO_PIPE_0, &stVencChnRefBufShare);
-	if (rotation == 0){
-		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0,ROTATION_0);
-	}
-	else if (rotation == 90){
-		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0,ROTATION_90);
-	}
-	else if (rotation == 180){
-		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0,ROTATION_180);
-	}
-	else if (rotation == 270){
-		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0,ROTATION_270);
+	if (rotation == 0) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0, ROTATION_0);
+	} else if (rotation == 90) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0, ROTATION_90);
+	} else if (rotation == 180) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0, ROTATION_180);
+	} else if (rotation == 270) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0, ROTATION_270);
 	}
 
 	VENC_RECV_PIC_PARAM_S stRecvParam;
@@ -1131,13 +1130,15 @@ int rkipc_pipe_1_init() {
 		return -1;
 	}
 	tmp_smart = rk_param_get_string("video.1:smart", NULL);
-	tmp_tsvc = rk_param_get_string("video.1:tsvc", NULL);
-	if (!strcmp(tmp_tsvc, "open")) {
-		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC4;
-	} else if (!strcmp(tmp_smart, "open")) { // SVC current only support VENC_GOPMODE_NORMALP
-		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP; // VENC_GOPMODE_SMARTP
-	} else {
+	tmp_gop_mode = rk_param_get_string("video.1:gop_mode", NULL);
+	if (!strcmp(tmp_gop_mode, "normalp")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
+	} else if (!strcmp(tmp_gop_mode, "smartp")) {
+		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
+		venc_chn_attr.stGopAttr.s32VirIdrLen = rk_param_get_int("video.1:smartp_viridrlen", 25);
+		venc_chn_attr.stGopAttr.u32MaxLtrCount = 1; // smartp 长期参考帧ltr固定配置为一个
+	} else if (!strcmp(tmp_gop_mode, "tsvc4")) {
+		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC4;
 	}
 	// venc_chn_attr.stGopAttr.u32GopSize = rk_param_get_int("video.1:gop", -1);
 
@@ -1213,17 +1214,14 @@ int rkipc_pipe_1_init() {
 	memset(&stVencChnRefBufShare, 0, sizeof(VENC_CHN_REF_BUF_SHARE_S));
 	stVencChnRefBufShare.bEnable = rk_param_get_int("video.1:enable_refer_buffer_share", 0);
 	RK_MPI_VENC_SetChnRefBufShareAttr(VIDEO_PIPE_1, &stVencChnRefBufShare);
-	if (rotation == 0){
-		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1,ROTATION_0);
-	}
-	else if (rotation == 90){
-		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1,ROTATION_90);
-	}
-	else if (rotation == 180){
-		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1,ROTATION_180);
-	}
-	else if (rotation == 270){
-		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1,ROTATION_270);
+	if (rotation == 0) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1, ROTATION_0);
+	} else if (rotation == 90) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1, ROTATION_90);
+	} else if (rotation == 180) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1, ROTATION_180);
+	} else if (rotation == 270) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1, ROTATION_270);
 	}
 
 	VENC_RECV_PIC_PARAM_S stRecvParam;
@@ -1576,17 +1574,14 @@ int rkipc_pipe_3_init() {
 	memset(&stJpegParam, 0, sizeof(stJpegParam));
 	stJpegParam.u32Qfactor = rk_param_get_int("video.source:jpeg_qfactor", 70);
 	RK_MPI_VENC_SetJpegParam(JPEG_VENC_CHN, &stJpegParam);
-	if (rotation == 0){
-		RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN,ROTATION_0);
-	}
-	else if (rotation == 90){
-		RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN,ROTATION_90);
-	}
-	else if (rotation == 180){
-		RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN,ROTATION_180);
-	}
-	else if (rotation == 270){
-		RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN,ROTATION_270);
+	if (rotation == 0) {
+		RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN, ROTATION_0);
+	} else if (rotation == 90) {
+		RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN, ROTATION_90);
+	} else if (rotation == 180) {
+		RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN, ROTATION_180);
+	} else if (rotation == 270) {
+		RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN, ROTATION_270);
 	}
 
 	// VENC_CHN_BUF_WRAP_S stVencChnBufWrap;
@@ -1775,17 +1770,10 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 	int change_to_nothing_flag = 0;
 	int video_width = 0;
 	int video_height = 0;
+	int rotation = 0;
 	long long last_ba_result_time;
 	RockIvaBaResult ba_result;
 	RockIvaBaObjectInfo *object;
-	int rotation = rk_param_get_int("video.source:rotation", 0);
-	if (rotation == 90 || rotation == 270){
-		video_width = rk_param_get_int("video.0:height", -1);
-		video_height = rk_param_get_int("video.0:width", -1);
-	}else{
-		video_width = rk_param_get_int("video.0:width", -1);
-		video_height = rk_param_get_int("video.0:height", -1);
-	}
 	RGN_HANDLE RgnHandle = DRAW_NN_OSD_ID;
 	RGN_CANVAS_INFO_S stCanvasInfo;
 
@@ -1793,6 +1781,14 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 	memset(&ba_result, 0, sizeof(ba_result));
 	while (g_video_run_) {
 		usleep(40 * 1000);
+		rotation = rk_param_get_int("video.source:rotation", 0);
+		if (rotation == 90 || rotation == 270) {
+			video_width = rk_param_get_int("video.0:height", -1);
+			video_height = rk_param_get_int("video.0:width", -1);
+		} else {
+			video_width = rk_param_get_int("video.0:width", -1);
+			video_height = rk_param_get_int("video.0:height", -1);
+		}
 		ret = rkipc_rknn_object_get(&ba_result);
 		// LOG_DEBUG("ret is %d, ba_result.objNum is %d\n", ret, ba_result.objNum);
 
@@ -1876,10 +1872,10 @@ int rkipc_osd_draw_nn_init() {
 	memset(&stRgnAttr, 0, sizeof(stRgnAttr));
 	stRgnAttr.enType = OVERLAY_RGN;
 	stRgnAttr.unAttr.stOverlay.enPixelFmt = RK_FMT_2BPP;
-	if (rotation == 90 || rotation == 270){
+	if (rotation == 90 || rotation == 270) {
 		stRgnAttr.unAttr.stOverlay.stSize.u32Width = rk_param_get_int("video.0:height", -1);
 		stRgnAttr.unAttr.stOverlay.stSize.u32Height = rk_param_get_int("video.0:width", -1);
-	}else{
+	} else {
 		stRgnAttr.unAttr.stOverlay.stSize.u32Width = rk_param_get_int("video.0:width", -1);
 		stRgnAttr.unAttr.stOverlay.stSize.u32Height = rk_param_get_int("video.0:height", -1);
 	}
@@ -2235,6 +2231,23 @@ int rk_video_set_tsvc(int stream_id, const char *value) {
 	return 0;
 }
 
+int rk_video_get_gop_mode(int stream_id, const char **value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.%d:gop_mode", stream_id);
+	*value = rk_param_get_string(entry, "normalp");
+
+	return 0;
+}
+
+int rk_video_set_gop_mode(int stream_id, const char *value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.%d:gop_mode", stream_id);
+	rk_param_set_string(entry, value);
+	rk_video_restart();
+
+	return 0;
+}
+
 int rk_video_get_stream_type(int stream_id, const char **value) {
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "video.%d:stream_type", stream_id);
@@ -2448,7 +2461,7 @@ int rk_video_get_jpeg_resolution(char **value) {
 }
 
 int rk_video_set_jpeg_resolution(char **value) {
-	int width, height;
+	int width, height, ret;
 	char entry[128] = {'\0'};
 	sscanf(value, "%d*%d", &width, &height);
 	snprintf(entry, 127, "video.jpeg:width");
@@ -2456,10 +2469,36 @@ int rk_video_set_jpeg_resolution(char **value) {
 	snprintf(entry, 127, "video.jpeg:height");
 	rk_param_set_int(entry, height);
 
+	vi_chn.enModId = RK_ID_VI;
+	vi_chn.s32DevId = 0;
+	vi_chn.s32ChnId = VIDEO_PIPE_0;
+	venc_chn.enModId = RK_ID_VENC;
+	venc_chn.s32DevId = 0;
+	venc_chn.s32ChnId = JPEG_VENC_CHN;
+	ret = RK_MPI_SYS_UnBind(&vi_chn, &venc_chn);
+	if (ret)
+		LOG_ERROR("Unbind VI and VENC error! ret=%#x\n", ret);
+	else
+		LOG_DEBUG("Unbind VI and VENC success\n");
+
+	VENC_CHN_ATTR_S venc_chn_attr;
+	RK_MPI_VENC_GetChnAttr(JPEG_VENC_CHN, &venc_chn_attr);
+	venc_chn_attr.stVencAttr.u32PicWidth = width;
+	venc_chn_attr.stVencAttr.u32PicHeight = height;
+	venc_chn_attr.stVencAttr.u32VirWidth = width;
+	venc_chn_attr.stVencAttr.u32VirHeight = height;
+	ret = RK_MPI_VENC_SetChnAttr(JPEG_VENC_CHN, &venc_chn_attr);
+	if (ret)
+		LOG_ERROR("JPEG RK_MPI_VENC_SetChnAttr error! ret=%#x\n", ret);
+
+	ret = RK_MPI_SYS_Bind(&vi_chn, &venc_chn);
+	if (ret)
+		LOG_ERROR("Unbind VI and VENC error! ret=%#x\n", ret);
+
 	return 0;
 }
 
-int rk_video_get_rotaiton(int *value){
+int rk_video_get_rotaiton(int *value) {
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "video.source:rotaion");
 	*value = rk_param_get_int(entry, 0);
@@ -2467,9 +2506,44 @@ int rk_video_get_rotaiton(int *value){
 	return 0;
 }
 
-int rk_video_set_rotation(int value){
+int rk_video_set_rotation(int value) {
+	int rotation = 0;
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "video.source:rotaion");
+	rk_param_set_int(entry, value);
+	if (value == 0) {
+		rotation = ROTATION_0;
+	} else if (value == 90) {
+		rotation = ROTATION_90;
+	} else if (value == 180) {
+		rotation = ROTATION_180;
+	} else if (value == 270) {
+		rotation = ROTATION_270;
+	}
+	RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0, rotation);
+	RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1, rotation);
+	RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN, rotation);
+	return 0;
+}
+
+int rk_video_get_smartp_viridrlen(int stream_id, int *value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.%d:smartp_viridrlen", stream_id);
+	*value = rk_param_get_int(entry, 25);
+
+	return 0;
+}
+
+int rk_video_set_smartp_viridrlen(int stream_id, int value) {
+	char entry[128] = {'\0'};
+
+	VENC_CHN_ATTR_S venc_chn_attr;
+	memset(&venc_chn_attr, 0, sizeof(venc_chn_attr));
+	RK_MPI_VENC_GetChnAttr(stream_id, &venc_chn_attr);
+	venc_chn_attr.stGopAttr.s32VirIdrLen = value;
+	RK_MPI_VENC_SetChnAttr(stream_id, &venc_chn_attr);
+
+	snprintf(entry, 127, "video.%d:smartp_viridrlen", stream_id);
 	rk_param_set_int(entry, value);
 
 	return 0;
