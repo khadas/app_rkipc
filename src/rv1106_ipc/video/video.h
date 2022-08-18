@@ -55,4 +55,8 @@ int rk_video_get_frame_rate(int stream_id, char **value);
 int rk_video_set_frame_rate(int stream_id, const char *value);
 int rk_video_get_frame_rate_in(int stream_id, char **value);
 int rk_video_set_frame_rate_in(int stream_id, const char *value);
+int rk_video_get_jpeg_resolution(char **value);
+int rk_video_set_jpeg_resolution(char **value);
+int rk_video_get_rotaiton(int *value);
+int rk_video_set_rotaiton(int value);
 int rk_take_photo();

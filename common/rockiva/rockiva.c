@@ -167,6 +167,7 @@ void rkba_callback(const RockIvaBaResult *result, const RockIvaExecuteStatus sta
 int rkipc_rockiva_init() {
 	LOG_INFO("begin\n");
 	RockIvaRetCode ret;
+	int rotation = rk_param_get_int("video.source:rotation", 0);
 	// char *license_path = NULL;
 	// char *license_key;
 	// int license_size;
@@ -192,6 +193,21 @@ int rkipc_rockiva_init() {
 #else
 	globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_VEHICLE;
 #endif
+	globalParams.imageInfo.width = ("video.2:width", 960);
+	globalParams.imageInfo.height = ("video.2:height", 540);
+	globalParams.imageInfo.format = ROCKIVA_IMAGE_FORMAT_YUV420SP_NV12;
+	if (rotation == 0){
+		globalParams.imageInfo.transformMode = ROCKIVA_IMAGE_TRANSFORM_NONE;
+	}
+	else if (rotation == 90){
+		globalParams.imageInfo.transformMode = ROCKIVA_IMAGE_TRANSFORM_ROTATE_90;
+	}
+	else if (rotation == 180){
+		globalParams.imageInfo.transformMode = ROCKIVA_IMAGE_TRANSFORM_ROTATE_180;
+	}
+	else if (rotation == 270){
+		globalParams.imageInfo.transformMode = ROCKIVA_IMAGE_TRANSFORM_ROTATE_270;
+	}
 
 	ROCKIVA_Init(&rkba_handle, ROCKIVA_MODE_VIDEO, &globalParams, NULL);
 	LOG_INFO("ROCKIVA_Init over\n");
@@ -419,7 +435,20 @@ int rkipc_rockiva_write_nv12_frame_by_fd(uint16_t width, uint16_t height, uint32
 	RockIvaImage *image = (RockIvaImage *)malloc(sizeof(RockIvaImage));
 	if (!rockit_run_flag)
 		return 0;
+	int rotation = rk_param_get_int("video.source:rotation", 0);
 	memset(image, 0, sizeof(RockIvaImage));
+	if (rotation == 0){
+		image->info.transformMode = ROCKIVA_IMAGE_TRANSFORM_NONE;
+	}
+	else if (rotation == 90){
+		image->info.transformMode = ROCKIVA_IMAGE_TRANSFORM_ROTATE_90;
+	}
+	else if (rotation == 180){
+		image->info.transformMode = ROCKIVA_IMAGE_TRANSFORM_ROTATE_180;
+	}
+	else if (rotation == 270){
+		image->info.transformMode = ROCKIVA_IMAGE_TRANSFORM_ROTATE_270;
+	}
 	image->info.width = width;
 	image->info.height = height;
 	image->info.format = ROCKIVA_IMAGE_FORMAT_YUV420SP_NV12;

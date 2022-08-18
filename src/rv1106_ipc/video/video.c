@@ -719,6 +719,7 @@ int rkipc_pipe_0_init() {
 	int video_width = rk_param_get_int("video.0:width", -1);
 	int video_height = rk_param_get_int("video.0:height", -1);
 	int buffer_line = rk_param_get_int("video.source:buffer_line", video_height / 4);
+	int rotation = rk_param_get_int("video.source:rotation", 0);
 	int buf_cnt = 2;
 
 	// VI
@@ -951,6 +952,18 @@ int rkipc_pipe_0_init() {
 	memset(&stVencChnRefBufShare, 0, sizeof(VENC_CHN_REF_BUF_SHARE_S));
 	stVencChnRefBufShare.bEnable = rk_param_get_int("video.0:enable_refer_buffer_share", 0);
 	RK_MPI_VENC_SetChnRefBufShareAttr(VIDEO_PIPE_0, &stVencChnRefBufShare);
+	if (rotation == 0){
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0,ROTATION_0);
+	}
+	else if (rotation == 90){
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0,ROTATION_90);
+	}
+	else if (rotation == 180){
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0,ROTATION_180);
+	}
+	else if (rotation == 270){
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0,ROTATION_270);
+	}
 
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
@@ -1007,6 +1020,7 @@ int rkipc_pipe_1_init() {
 	int video_width = rk_param_get_int("video.1:width", 1920);
 	int video_height = rk_param_get_int("video.1:height", 1080);
 	int buf_cnt = rk_param_get_int("video.1:input_buffer_count", 2);
+	int rotation = rk_param_get_int("video.source:rotation", 0);
 
 	// VI
 	VI_CHN_ATTR_S vi_chn_attr;
@@ -1199,6 +1213,18 @@ int rkipc_pipe_1_init() {
 	memset(&stVencChnRefBufShare, 0, sizeof(VENC_CHN_REF_BUF_SHARE_S));
 	stVencChnRefBufShare.bEnable = rk_param_get_int("video.1:enable_refer_buffer_share", 0);
 	RK_MPI_VENC_SetChnRefBufShareAttr(VIDEO_PIPE_1, &stVencChnRefBufShare);
+	if (rotation == 0){
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1,ROTATION_0);
+	}
+	else if (rotation == 90){
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1,ROTATION_90);
+	}
+	else if (rotation == 180){
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1,ROTATION_180);
+	}
+	else if (rotation == 270){
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1,ROTATION_270);
+	}
 
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
@@ -1522,8 +1548,9 @@ int rkipc_vpss_bgr_deinit() {
 int rkipc_pipe_3_init() {
 	// jpeg resolution same to video.0
 	int ret;
-	int video_width = rk_param_get_int("video.source:jpeg_width", 1920);
-	int video_height = rk_param_get_int("video.source:jpeg_height", 1080);
+	int video_width = rk_param_get_int("video.jpeg:width", 1920);
+	int video_height = rk_param_get_int("video.jpeg:height", 1080);
+	int rotation = rk_param_get_int("video.source:rotation", 0);
 	// VENC[3] init
 	VENC_CHN_ATTR_S jpeg_chn_attr;
 	memset(&jpeg_chn_attr, 0, sizeof(jpeg_chn_attr));
@@ -1549,6 +1576,18 @@ int rkipc_pipe_3_init() {
 	memset(&stJpegParam, 0, sizeof(stJpegParam));
 	stJpegParam.u32Qfactor = rk_param_get_int("video.source:jpeg_qfactor", 70);
 	RK_MPI_VENC_SetJpegParam(JPEG_VENC_CHN, &stJpegParam);
+	if (rotation == 0){
+		RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN,ROTATION_0);
+	}
+	else if (rotation == 90){
+		RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN,ROTATION_90);
+	}
+	else if (rotation == 180){
+		RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN,ROTATION_180);
+	}
+	else if (rotation == 270){
+		RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN,ROTATION_270);
+	}
 
 	// VENC_CHN_BUF_WRAP_S stVencChnBufWrap;
 	// memset(&stVencChnBufWrap, 0, sizeof(stVencChnBufWrap));
@@ -1734,11 +1773,19 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 	int ret = 0;
 	int line_pixel = 2;
 	int change_to_nothing_flag = 0;
+	int video_width = 0;
+	int video_height = 0;
 	long long last_ba_result_time;
 	RockIvaBaResult ba_result;
 	RockIvaBaObjectInfo *object;
-	int video_width = rk_param_get_int("video.0:width", -1);
-	int video_height = rk_param_get_int("video.0:height", -1);
+	int rotation = rk_param_get_int("video.source:rotation", 0);
+	if (rotation == 90 || rotation == 270){
+		video_width = rk_param_get_int("video.0:height", -1);
+		video_height = rk_param_get_int("video.0:width", -1);
+	}else{
+		video_width = rk_param_get_int("video.0:width", -1);
+		video_height = rk_param_get_int("video.0:height", -1);
+	}
 	RGN_HANDLE RgnHandle = DRAW_NN_OSD_ID;
 	RGN_CANVAS_INFO_S stCanvasInfo;
 
@@ -1823,13 +1870,19 @@ int rkipc_osd_draw_nn_init() {
 	MPP_CHN_S stMppChn;
 	RGN_CHN_ATTR_S stRgnChnAttr;
 	BITMAP_S stBitmap;
+	int rotation = rk_param_get_int("video.source:rotation", 0);
 
 	// create overlay regions
 	memset(&stRgnAttr, 0, sizeof(stRgnAttr));
 	stRgnAttr.enType = OVERLAY_RGN;
 	stRgnAttr.unAttr.stOverlay.enPixelFmt = RK_FMT_2BPP;
-	stRgnAttr.unAttr.stOverlay.stSize.u32Width = rk_param_get_int("video.0:width", -1);
-	stRgnAttr.unAttr.stOverlay.stSize.u32Height = rk_param_get_int("video.0:height", -1);
+	if (rotation == 90 || rotation == 270){
+		stRgnAttr.unAttr.stOverlay.stSize.u32Width = rk_param_get_int("video.0:height", -1);
+		stRgnAttr.unAttr.stOverlay.stSize.u32Height = rk_param_get_int("video.0:width", -1);
+	}else{
+		stRgnAttr.unAttr.stOverlay.stSize.u32Width = rk_param_get_int("video.0:width", -1);
+		stRgnAttr.unAttr.stOverlay.stSize.u32Height = rk_param_get_int("video.0:height", -1);
+	}
 	ret = RK_MPI_RGN_Create(RgnHandle, &stRgnAttr);
 	if (RK_SUCCESS != ret) {
 		LOG_ERROR("RK_MPI_RGN_Create (%d) failed with %#x\n", RgnHandle, ret);
@@ -2383,25 +2436,41 @@ int rk_video_set_frame_rate_in(int stream_id, const char *value) {
 	return 0;
 }
 
-int rk_video_get_jpeg_resolution(int *value) {
+int rk_video_get_jpeg_resolution(char **value) {
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "video.source:jpeg_width");
+	snprintf(entry, 127, "video.jpeg:width");
 	int width = rk_param_get_int(entry, 0);
-	snprintf(entry, 127, "video.source:jpeg_height");
+	snprintf(entry, 127, "video.jpeg:height");
 	int height = rk_param_get_int(entry, 0);
 	sprintf(*value, "%d*%d", width, height);
 
 	return 0;
 }
 
-int rk_video_set_jpeg_resolution(int *value) {
+int rk_video_set_jpeg_resolution(char **value) {
 	int width, height;
 	char entry[128] = {'\0'};
 	sscanf(value, "%d*%d", &width, &height);
-	snprintf(entry, 127, "video.source:jpeg_width");
+	snprintf(entry, 127, "video.jpeg:width");
 	rk_param_set_int(entry, width);
-	snprintf(entry, 127, "video.source:jpeg_height");
+	snprintf(entry, 127, "video.jpeg:height");
 	rk_param_set_int(entry, height);
+
+	return 0;
+}
+
+int rk_video_get_rotaiton(int *value){
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.source:rotaion");
+	*value = rk_param_get_int(entry, 0);
+
+	return 0;
+}
+
+int rk_video_set_rotation(int value){
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.source:rotaion");
+	rk_param_set_int(entry, value);
 
 	return 0;
 }
