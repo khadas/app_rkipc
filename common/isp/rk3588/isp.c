@@ -990,13 +990,36 @@ int rk_isp_set_dehaze(int cam_id, const char *value) {
 	char entry[128] = {'\0'};
 	adehaze_sw_V2_t attr;
 	memset(&attr, 0, sizeof(attr));
+	ret = rk_aiq_user_api2_adehaze_getSwAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	attr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
 	if (!strcmp(value, "close")) {
-		attr.mode = DEHAZE_API_BYPASS;
+		if (attr.mode == DEHAZE_API_AUTO) {
+			attr.stAuto.DehazeTuningPara.dehaze_setting.en = false;
+		} else if (attr.mode == DEHAZE_API_MANUAL) {
+			attr.stManual.dehaze_setting.en = false;
+		}
 	} else if (!strcmp(value, "open")) {
-		attr.mode = DEHAZE_API_MANUAL;
+		if (attr.mode == DEHAZE_API_AUTO) {
+			attr.stAuto.DehazeTuningPara.Enable = true;
+			attr.stAuto.DehazeTuningPara.dehaze_setting.en = true;
+			attr.stAuto.DehazeTuningPara.enhance_setting.en = false;
+		} else if (attr.mode == DEHAZE_API_MANUAL) {
+			attr.stManual.Enable = true;
+			attr.stManual.dehaze_setting.en = true;
+			attr.stManual.enhance_setting.en = false;
+		}
 	} else if (!strcmp(value, "auto")) {
-		attr.mode = DEHAZE_API_DEHAZE_AUTO;
+		if (attr.mode == DEHAZE_API_AUTO) {
+			attr.stAuto.DehazeTuningPara.Enable = true;
+			attr.stAuto.DehazeTuningPara.dehaze_setting.en = true;
+			attr.stAuto.DehazeTuningPara.enhance_setting.en = false;
+		} else if (attr.mode == DEHAZE_API_MANUAL) {
+			attr.stManual.Enable = true;
+			attr.stManual.dehaze_setting.en = true;
+			attr.stManual.enhance_setting.en = false;
+		}
+		attr.stDehazeManu.update = true;
+		attr.stDehazeManu.level = 50;
 	}
 	ret = rk_aiq_user_api2_adehaze_setSwAttrib(rkipc_aiq_get_ctx(cam_id), attr);
 	snprintf(entry, 127, "isp.%d.enhancement:dehaze", cam_id);
@@ -1140,11 +1163,20 @@ int rk_isp_get_dehaze_level(int cam_id, int *value) {
 
 int rk_isp_set_dehaze_level(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	adehaze_sw_V2_t attr;
 
+	const char *dehaze_mode;
+	rk_isp_get_dehaze(cam_id, &dehaze_mode);
+	LOG_DEBUG("dehaze_mode is %s, value is %d\n", dehaze_mode, value);
+	if ((!strcmp(dehaze_mode, "close")) || (!strcmp(dehaze_mode, "auto"))) {
+		LOG_DEBUG("dehaze_mode is %s, value is %d\n", dehaze_mode, value);
+		return 0;
+	}
+
+	adehaze_sw_V2_t attr;
+	rk_aiq_user_api2_adehaze_getSwAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	attr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
 	attr.sync.done = false;
-	attr.mode = DEHAZE_API_DEHAZE_MANUAL;
+	attr.stDehazeManu.update = true;
 	attr.stDehazeManu.level = value;
 	int ret = rk_aiq_user_api2_adehaze_setSwAttrib(rkipc_aiq_get_ctx(cam_id), attr);
 	char entry[128] = {'\0'};
