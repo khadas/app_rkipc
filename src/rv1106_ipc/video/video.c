@@ -2548,7 +2548,7 @@ int rk_video_set_jpeg_resolution(char **value) {
 	return 0;
 }
 
-int rk_video_get_rotaiton(int *value) {
+int rk_video_get_rotation(int *value) {
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "video.source:rotaion");
 	*value = rk_param_get_int(entry, 0);
@@ -2557,6 +2557,7 @@ int rk_video_get_rotaiton(int *value) {
 }
 
 int rk_video_set_rotation(int value) {
+	int ret = 0;
 	int rotation = 0;
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "video.source:rotaion");
@@ -2570,9 +2571,16 @@ int rk_video_set_rotation(int value) {
 	} else if (value == 270) {
 		rotation = ROTATION_270;
 	}
-	RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0, rotation);
-	RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1, rotation);
-	RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN, rotation);
+	ret = RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0, rotation);
+	if (ret)
+		LOG_ERROR("RK_MPI_VENC_SetChnRotation VIDEO_PIPE_0 error! ret=%#x\n", ret);
+	ret = RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1, rotation);
+	if (ret)
+		LOG_ERROR("RK_MPI_VENC_SetChnRotation VIDEO_PIPE_1 error! ret=%#x\n", ret);
+	ret = RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN, rotation);
+	if (ret)
+		LOG_ERROR("RK_MPI_VENC_SetChnRotation JPEG_VENC_CHN error! ret=%#x\n", ret);
+
 	return 0;
 }
 

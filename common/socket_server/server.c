@@ -2234,7 +2234,7 @@ int ser_rk_video_set_tsvc(int fd) {
 
 	return 0;
 }
-
+/*
 int ser_rk_video_get_gop_mode(int fd) {
 	int err = 0;
 	int id, len;
@@ -2279,7 +2279,7 @@ int ser_rk_video_set_gop_mode(int fd) {
 
 	return 0;
 }
-
+*/
 int ser_rk_video_get_stream_type(int fd) {
 	int err = 0;
 	int id, len;
@@ -2504,6 +2504,36 @@ int ser_rk_video_set_frame_rate_in(int fd) {
 		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
 			return -1;
 	}
+
+	return 0;
+}
+
+int ser_rk_video_get_rotation(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	err = rk_video_get_rotation(&value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_video_set_rotation(int fd) {
+	int err = 0;
+	int id;
+	int value;
+
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_video_set_rotation(value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
 
 	return 0;
 }
@@ -5420,8 +5450,8 @@ static const struct FunMap map[] = {
     {(char *)"rk_video_set_smart", &ser_rk_video_set_smart},
     {(char *)"rk_video_get_svc", &ser_rk_video_get_tsvc},
     {(char *)"rk_video_set_svc", &ser_rk_video_set_tsvc},
-    {(char *)"rk_video_get_gop_mode", &ser_rk_video_get_gop_mode},
-    {(char *)"rk_video_set_gop_mode", &ser_rk_video_set_gop_mode},
+    // {(char *)"rk_video_get_gop_mode", &ser_rk_video_get_gop_mode},
+    // {(char *)"rk_video_set_gop_mode", &ser_rk_video_set_gop_mode},
     {(char *)"rk_video_get_stream_type", &ser_rk_video_get_stream_type},
     {(char *)"rk_video_set_stream_type", &ser_rk_video_set_stream_type},
     {(char *)"rk_video_get_h264_profile", &ser_rk_video_get_h264_profile},
@@ -5432,6 +5462,8 @@ static const struct FunMap map[] = {
     {(char *)"rk_video_set_frame_rate", &ser_rk_video_set_frame_rate},
     {(char *)"rk_video_get_frame_rate_in", &ser_rk_video_get_frame_rate_in},
     {(char *)"rk_video_set_frame_rate_in", &ser_rk_video_set_frame_rate_in},
+    {(char *)"rk_video_get_rotation", &ser_rk_video_get_rotation},
+    {(char *)"rk_video_set_rotation", &ser_rk_video_set_rotation},
     // osd.common
     {(char *)"rk_osd_get_is_presistent_text", &ser_rk_osd_get_is_presistent_text},
     {(char *)"rk_osd_set_is_presistent_text", &ser_rk_osd_set_is_presistent_text},

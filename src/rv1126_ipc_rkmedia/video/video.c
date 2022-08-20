@@ -1549,6 +1549,24 @@ int rk_video_set_frame_rate_in(int stream_id, const char *value) {
 	return 0;
 }
 
+int rk_video_get_rotation(int *value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.source:rotaion");
+	*value = rk_param_get_int(entry, 0);
+
+	return 0;
+}
+
+int rk_video_set_rotation(int value) {
+	LOG_INFO("value is %d\n", value);
+	int rotation = 0;
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.source:rotaion");
+	rk_param_set_int(entry, value);
+
+	return 0;
+}
+
 int rkipc_osd_cover_create(int id, VENC_CHN VeChn, osd_data_s *osd_data) {
 	LOG_INFO("id is %d\n", id);
 	int ret = 0;
