@@ -2229,6 +2229,78 @@ int rkipc_osd_deinit() {
 	return 0;
 }
 
+// jpeg
+int rk_video_get_enable_cycle_snapshot(int *value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.jpeg:enable_cycle_snapshot");
+	*value = rk_param_get_int(entry, -1);
+
+	return 0;
+}
+
+int rk_video_set_enable_cycle_snapshot(int value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.jpeg:enable_cycle_snapshot");
+	rk_param_set_int(entry, value);
+
+	return 0;
+}
+
+int rk_video_get_image_quality(int *value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.jpeg:jpeg_qfactor");
+	*value = rk_param_get_int(entry, -1);
+
+	return 0;
+}
+
+int rk_video_set_image_quality(int value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.jpeg:jpeg_qfactor");
+	rk_param_set_int(entry, value);
+
+	return 0;
+}
+
+int rk_video_get_snapshot_interval_ms(int *value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.jpeg:snapshot_interval_ms");
+	*value = rk_param_get_int(entry, 0);
+
+	return 0;
+}
+
+int rk_video_set_snapshot_interval_ms(int value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.jpeg:snapshot_interval_ms");
+	rk_param_set_int(entry, value);
+
+	return 0;
+}
+
+int rk_video_get_jpeg_resolution(char **value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.jpeg:width");
+	int width = rk_param_get_int(entry, 0);
+	snprintf(entry, 127, "video.jpeg:height");
+	int height = rk_param_get_int(entry, 0);
+	sprintf(*value, "%d*%d", width, height);
+
+	return 0;
+}
+
+int rk_video_set_jpeg_resolution(const char *value) {
+	int width, height, ret;
+	char entry[128] = {'\0'};
+	sscanf(value, "%d*%d", &width, &height);
+	snprintf(entry, 127, "video.jpeg:width");
+	rk_param_set_int(entry, width);
+	snprintf(entry, 127, "video.jpeg:height");
+	rk_param_set_int(entry, height);
+
+	return 0;
+}
+
 int rk_take_photo() {
 	LOG_INFO("start\n");
 	VENC_RECV_PIC_PARAM_S stRecvParam;

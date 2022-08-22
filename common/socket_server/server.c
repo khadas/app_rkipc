@@ -2236,48 +2236,48 @@ int ser_rk_video_set_tsvc(int fd) {
 }
 /*
 int ser_rk_video_get_gop_mode(int fd) {
-	int err = 0;
-	int id, len;
-	const char *value;
+    int err = 0;
+    int id, len;
+    const char *value;
 
-	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-		return -1;
-	err = rk_video_get_gop_mode(id, &value);
-	len = strlen(value);
-	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
-	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
-		return -1;
-	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
-		return -1;
-	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
-		return -1;
+    if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+        return -1;
+    err = rk_video_get_gop_mode(id, &value);
+    len = strlen(value);
+    LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+    if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+        return -1;
+    if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+        return -1;
+    if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+        return -1;
 
-	return 0;
+    return 0;
 }
 
 int ser_rk_video_set_gop_mode(int fd) {
-	int ret = 0;
-	int id, len;
-	char *value = NULL;
+    int ret = 0;
+    int id, len;
+    char *value = NULL;
 
-	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
-		return -1;
-	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
-		return -1;
-	if (len) {
-		value = (char *)malloc(len);
-		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
-			free(value);
-			return -1;
-		}
-		LOG_DEBUG("id is %d, value is %s\n", id, value);
-		ret = rk_video_set_gop_mode(id, value);
-		free(value);
-		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
-			return -1;
-	}
+    if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+        return -1;
+    if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+        return -1;
+    if (len) {
+        value = (char *)malloc(len);
+        if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+            free(value);
+            return -1;
+        }
+        LOG_DEBUG("id is %d, value is %s\n", id, value);
+        ret = rk_video_set_gop_mode(id, value);
+        free(value);
+        if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+            return -1;
+    }
 
-	return 0;
+    return 0;
 }
 */
 int ser_rk_video_get_stream_type(int fd) {
@@ -2534,6 +2534,134 @@ int ser_rk_video_set_rotation(int fd) {
 	err = rk_video_set_rotation(value);
 	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
 		return -1;
+
+	return 0;
+}
+
+// jpeg
+
+int ser_rk_video_get_enable_cycle_snapshot(int fd) {
+	int err = 0;
+	int value;
+
+	err = rk_video_get_enable_cycle_snapshot(&value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_video_set_enable_cycle_snapshot(int fd) {
+	int err = 0;
+	int value;
+
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_video_set_enable_cycle_snapshot(value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_video_get_image_quality(int fd) {
+	int err = 0;
+	int value;
+
+	err = rk_video_get_image_quality(&value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_video_set_image_quality(int fd) {
+	int err = 0;
+	int value;
+
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_video_set_image_quality(value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_video_get_snapshot_interval_ms(int fd) {
+	int err = 0;
+	int value;
+
+	err = rk_video_get_snapshot_interval_ms(&value);
+	LOG_DEBUG("value is %d\n", value);
+	if (sock_write(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_video_set_snapshot_interval_ms(int fd) {
+	int err = 0;
+	int value;
+
+	if (sock_read(fd, &value, sizeof(value)) == SOCKERR_CLOSED)
+		return -1;
+	LOG_DEBUG("value is %d\n", value);
+	err = rk_video_set_snapshot_interval_ms(value);
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_video_get_jpeg_resolution(int fd) {
+	int err = 0;
+	int len;
+	char *value = malloc(20);
+
+	err = rk_video_get_jpeg_resolution(&value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+	free(value);
+
+	return 0;
+}
+
+int ser_rk_video_set_jpeg_resolution(int fd) {
+	int ret = 0;
+	int len;
+	char *value = NULL;
+
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_DEBUG("value is %s\n", value);
+		ret = rk_video_set_jpeg_resolution(value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
 
 	return 0;
 }
@@ -5464,6 +5592,15 @@ static const struct FunMap map[] = {
     {(char *)"rk_video_set_frame_rate_in", &ser_rk_video_set_frame_rate_in},
     {(char *)"rk_video_get_rotation", &ser_rk_video_get_rotation},
     {(char *)"rk_video_set_rotation", &ser_rk_video_set_rotation},
+    // jpeg
+    {(char *)"rk_video_get_enable_cycle_snapshot", &ser_rk_video_get_enable_cycle_snapshot},
+    {(char *)"rk_video_set_enable_cycle_snapshot", &ser_rk_video_set_enable_cycle_snapshot},
+    {(char *)"rk_video_get_image_quality", &ser_rk_video_get_image_quality},
+    {(char *)"rk_video_set_image_quality", &ser_rk_video_set_image_quality},
+    {(char *)"rk_video_get_snapshot_interval_ms", &ser_rk_video_get_snapshot_interval_ms},
+    {(char *)"rk_video_set_snapshot_interval_ms", &ser_rk_video_set_snapshot_interval_ms},
+    {(char *)"rk_video_get_jpeg_resolution", &ser_rk_video_get_jpeg_resolution},
+    {(char *)"rk_video_set_jpeg_resolution", &ser_rk_video_set_jpeg_resolution},
     // osd.common
     {(char *)"rk_osd_get_is_presistent_text", &ser_rk_osd_get_is_presistent_text},
     {(char *)"rk_osd_set_is_presistent_text", &ser_rk_osd_set_is_presistent_text},

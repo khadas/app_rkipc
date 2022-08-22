@@ -290,7 +290,7 @@ int rk_system_del_user(int id) {
 int rk_system_capability_get_video(char *value) {
 	char entry[128] = {'\0'};
 	int section_keys = iniparser_getsecnkeys(g_ini_d_, "capability.video");
-	LOG_INFO("section_keys is %d\n", section_keys);
+	LOG_DEBUG("section_keys is %d\n", section_keys);
 	if (!section_keys)
 		return 0;
 
@@ -309,7 +309,7 @@ int rk_system_capability_get_video(char *value) {
 int rk_system_capability_get_image_adjustment(char *value) {
 	char entry[128] = {'\0'};
 	int section_keys = iniparser_getsecnkeys(g_ini_d_, "capability.image_adjustment");
-	LOG_INFO("section_keys is %d\n", section_keys);
+	LOG_DEBUG("section_keys is %d\n", section_keys);
 	if (!section_keys)
 		return 0;
 
@@ -328,7 +328,7 @@ int rk_system_capability_get_image_adjustment(char *value) {
 int rk_system_capability_get_image_blc(char *value) {
 	char entry[128] = {'\0'};
 	int section_keys = iniparser_getsecnkeys(g_ini_d_, "capability.image_blc");
-	LOG_INFO("section_keys is %d\n", section_keys);
+	LOG_DEBUG("section_keys is %d\n", section_keys);
 	if (!section_keys)
 		return 0;
 
@@ -347,7 +347,7 @@ int rk_system_capability_get_image_blc(char *value) {
 int rk_system_capability_get_image_enhancement(char *value) {
 	char entry[128] = {'\0'};
 	int section_keys = iniparser_getsecnkeys(g_ini_d_, "capability.image_enhancement");
-	LOG_INFO("section_keys is %d\n", section_keys);
+	LOG_DEBUG("section_keys is %d\n", section_keys);
 	if (!section_keys)
 		return 0;
 
@@ -366,7 +366,7 @@ int rk_system_capability_get_image_enhancement(char *value) {
 int rk_system_capability_get_image_exposure(char *value) {
 	char entry[128] = {'\0'};
 	int section_keys = iniparser_getsecnkeys(g_ini_d_, "capability.image_exposure");
-	LOG_INFO("section_keys is %d\n", section_keys);
+	LOG_DEBUG("section_keys is %d\n", section_keys);
 	if (!section_keys)
 		return 0;
 
@@ -385,7 +385,7 @@ int rk_system_capability_get_image_exposure(char *value) {
 int rk_system_capability_get_image_night_to_day(char *value) {
 	char entry[128] = {'\0'};
 	int section_keys = iniparser_getsecnkeys(g_ini_d_, "capability.image_night_to_day");
-	LOG_INFO("section_keys is %d\n", section_keys);
+	LOG_DEBUG("section_keys is %d\n", section_keys);
 	if (!section_keys)
 		return 0;
 
@@ -404,7 +404,7 @@ int rk_system_capability_get_image_night_to_day(char *value) {
 int rk_system_capability_get_image_video_adjustment(char *value) {
 	char entry[128] = {'\0'};
 	int section_keys = iniparser_getsecnkeys(g_ini_d_, "capability.image_video_adjustment");
-	LOG_INFO("section_keys is %d\n", section_keys);
+	LOG_DEBUG("section_keys is %d\n", section_keys);
 	if (!section_keys)
 		return 0;
 
@@ -423,7 +423,7 @@ int rk_system_capability_get_image_video_adjustment(char *value) {
 int rk_system_capability_get_image_white_blance(char *value) {
 	char entry[128] = {'\0'};
 	int section_keys = iniparser_getsecnkeys(g_ini_d_, "capability.image_white_blance");
-	LOG_INFO("section_keys is %d\n", section_keys);
+	LOG_DEBUG("section_keys is %d\n", section_keys);
 	if (!section_keys)
 		return 0;
 
