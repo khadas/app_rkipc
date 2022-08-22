@@ -584,17 +584,33 @@ int rk_isp_set_hdr(int cam_id, const char *value) {
 	rk_isp_get_hdr(cam_id, &old_value);
 	LOG_INFO("cam_id is %d, value is %s, old_value is %s\n", cam_id, value, old_value);
 	snprintf(entry, 127, "isp.%d.blc:hdr", rkipc_get_scenario_id(cam_id));
+	int enable_npu = rk_param_get_int("video.source:enable_npu", 0);
+	int enable_venc_0 = rk_param_get_int("video.source:enable_venc_0", 1);
+	int enable_venc_1 = rk_param_get_int("video.source:enable_venc_1", 1);
+	int enable_pp = rk_param_get_int("video.source:enable_pp", 1);
 	if (strcmp(value, old_value)) {
-		RK_MPI_VI_PauseChn(0, 0);
-		RK_MPI_VI_PauseChn(0, 1);
+		if (enable_venc_0)
+			RK_MPI_VI_PauseChn(0, 0);
+		if (enable_venc_1)
+			RK_MPI_VI_PauseChn(0, 1);
+		if (enable_npu)
+			RK_MPI_VI_PauseChn(0, 2);
+		if (enable_pp)
+			RK_MPI_VI_PauseChn(0, 3);
 		rk_isp_deinit(0);
 		rk_param_set_string(entry, value);
 		// usleep(100 * 1000);
 		rk_isp_init(0, g_iq_file_dir_);
 		if (rk_param_get_int("isp:init_form_ini", 1))
 			ret |= rk_isp_set_from_ini(0);
-		RK_MPI_VI_ResumeChn(0, 0);
-		RK_MPI_VI_ResumeChn(0, 1);
+		if (enable_venc_0)
+			RK_MPI_VI_ResumeChn(0, 0);
+		if (enable_venc_1)
+			RK_MPI_VI_ResumeChn(0, 1);
+		if (enable_npu)
+			RK_MPI_VI_ResumeChn(0, 2);
+		if (enable_pp)
+			RK_MPI_VI_ResumeChn(0, 3);
 	}
 
 	return ret;

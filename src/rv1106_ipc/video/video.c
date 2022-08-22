@@ -631,28 +631,29 @@ static void *rkipc_ivs_get_results(void *arg) {
 					int y = stResults.pstResults->stMdInfo.u32Size / 64;
 					if (stResults.pstResults->stMdInfo.pData) {
 						for (int n = 0; n < x * 8; n++)
-							LOG_DEBUG("-");
-						LOG_DEBUG("\n");
+							printf("-");
+						printf("\n");
 						for (int j = 0; j < y; j++) {
 							for (int i = 0; i < x; i++) {
 								for (int k = 0; k < 8; k++) {
 									if (stResults.pstResults->stMdInfo.pData[j * 64 + i] & (1 << k))
-										LOG_DEBUG("1");
+										printf("1");
 									else
-										LOG_DEBUG("0");
+										printf("0");
 								}
 							}
-							LOG_DEBUG("\n");
+							printf("\n");
 						}
 						for (int n = 0; n < x * 8; n++)
-							LOG_DEBUG("-");
-						LOG_DEBUG("\n");
+							printf("-");
+						printf("\n");
 					}
 				}
 			}
 			if (od == 1) {
 				if (stResults.s32ResultNum > 0) {
-					LOG_INFO("OD flag:%d\n", stResults.pstResults->stOdInfo.u32Flag);
+					if (stResults.pstResults->stOdInfo.u32Flag)
+						LOG_INFO("OD flag:%d\n", stResults.pstResults->stOdInfo.u32Flag);
 				}
 			}
 			RK_MPI_IVS_ReleaseResults(0, &stResults);
@@ -1918,6 +1919,9 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 			}
 			while (y + h + line_pixel >= video_height) {
 				h -= 8;
+			}
+			if ( x < 0 || y < 0 || w < 0 || h < 0){
+				continue;
 			}
 			// LOG_DEBUG("i is %d, x,y,w,h is %d,%d,%d,%d\n", i, x, y, w, h);
 			if (object->objInfo.type == ROCKIVA_OBJECT_TYPE_PERSON) {

@@ -196,12 +196,12 @@ int rkipc_rockiva_init() {
 	globalParams.imageInfo.width = ("video.2:width", 960);
 	globalParams.imageInfo.height = ("video.2:height", 540);
 	globalParams.imageInfo.format = ROCKIVA_IMAGE_FORMAT_YUV420SP_NV12;
-	if (rotation == 0) {
-		globalParams.imageInfo.transformMode = ROCKIVA_IMAGE_TRANSFORM_NONE;
+	// temporary solution
+	// which will be changed to reinitialize when the resolution is dynamically switched
+	if (rotation == 0 || rotation == 180) {
+		globalParams.imageInfo.transformMode = ROCKIVA_IMAGE_TRANSFORM_ROTATE_180;
 	} else if (rotation == 90) {
 		globalParams.imageInfo.transformMode = ROCKIVA_IMAGE_TRANSFORM_ROTATE_90;
-	} else if (rotation == 180) {
-		globalParams.imageInfo.transformMode = ROCKIVA_IMAGE_TRANSFORM_ROTATE_180;
 	} else if (rotation == 270) {
 		globalParams.imageInfo.transformMode = ROCKIVA_IMAGE_TRANSFORM_ROTATE_270;
 	}
