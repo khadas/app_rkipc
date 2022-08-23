@@ -782,6 +782,8 @@ int rkipc_pipe_0_init() {
 	int buffer_line = rk_param_get_int("video.source:buffer_line", video_height / 4);
 	int rotation = rk_param_get_int("video.source:rotation", 0);
 	int buf_cnt = 2;
+	int frame_min_i_qp = rk_param_get_int("video.0:frame_min_i_qp", 26);
+	int frame_min_qp = rk_param_get_int("video.0:frame_min_qp", 28);
 
 	// VI
 	VI_CHN_ATTR_S vi_chn_attr;
@@ -980,6 +982,8 @@ int rkipc_pipe_0_init() {
 		} else {
 			venc_rc_param.stParamH264.u32MinQp = 40;
 		}
+		venc_rc_param.stParamH264.u32FrmMinIQp = frame_min_i_qp;
+		venc_rc_param.stParamH264.u32FrmMinQp = frame_min_qp;
 	} else if (!strcmp(tmp_output_data_type, "H.265")) {
 		if (!strcmp(tmp_rc_quality, "highest")) {
 			venc_rc_param.stParamH265.u32MinQp = 10;
@@ -996,6 +1000,8 @@ int rkipc_pipe_0_init() {
 		} else {
 			venc_rc_param.stParamH265.u32MinQp = 40;
 		}
+		venc_rc_param.stParamH265.u32FrmMinIQp = frame_min_i_qp;
+		venc_rc_param.stParamH265.u32FrmMinQp = frame_min_qp;
 	} else {
 		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
 		return -1;
@@ -1081,6 +1087,8 @@ int rkipc_pipe_1_init() {
 	int video_height = rk_param_get_int("video.1:height", 1080);
 	int buf_cnt = rk_param_get_int("video.1:input_buffer_count", 2);
 	int rotation = rk_param_get_int("video.source:rotation", 0);
+	int frame_min_i_qp = rk_param_get_int("video.1:frame_min_i_qp", 26);
+	int frame_min_qp = rk_param_get_int("video.1:frame_min_qp", 28);
 
 	// VI
 	VI_CHN_ATTR_S vi_chn_attr;
@@ -1249,6 +1257,8 @@ int rkipc_pipe_1_init() {
 		} else {
 			venc_rc_param.stParamH264.u32MinQp = 40;
 		}
+		venc_rc_param.stParamH264.u32FrmMinIQp = frame_min_i_qp;
+		venc_rc_param.stParamH264.u32FrmMinQp = frame_min_qp;
 	} else if (!strcmp(tmp_output_data_type, "H.265")) {
 		if (!strcmp(tmp_rc_quality, "highest")) {
 			venc_rc_param.stParamH265.u32MinQp = 10;
@@ -1265,6 +1275,8 @@ int rkipc_pipe_1_init() {
 		} else {
 			venc_rc_param.stParamH265.u32MinQp = 40;
 		}
+		venc_rc_param.stParamH265.u32FrmMinIQp = frame_min_i_qp;
+		venc_rc_param.stParamH265.u32FrmMinQp = frame_min_qp;
 	} else {
 		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
 		return -1;
