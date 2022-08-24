@@ -47,7 +47,7 @@ static const char *tmp_rc_mode;
 static const char *tmp_h264_profile;
 static const char *tmp_smart;
 static const char *tmp_rc_quality;
-static const char *tmp_svc;
+static const char *tmp_gop_mode;
 static pthread_t venc_thread_0, venc_thread_1, venc_thread_2, get_jpeg_thread_id, vpss_thread_rgb,
     get_vi_send_jpeg_thread_id, cycle_snapshot_thread_id;
 static int send_jpeg_cnt = 0;
@@ -1197,14 +1197,15 @@ int rkipc_venc_0_init() {
 		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
 		return -1;
 	}
-	tmp_smart = rk_param_get_string("video.0:smart", NULL);
-	tmp_svc = rk_param_get_string("video.0:svc", NULL);
-	if (!strcmp(tmp_svc, "open")) {
-		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC4;
-	} else if (!strcmp(tmp_smart, "open")) {
-		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
-	} else {
+	tmp_smart = rk_param_get_string("video.0:smart", "close");
+	tmp_gop_mode = rk_param_get_string("video.0:gop_mode", NULL);
+	if (!strcmp(tmp_gop_mode, "normalP")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
+	} else if (!strcmp(tmp_gop_mode, "smartP")) {
+		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
+		venc_chn_attr.stGopAttr.s32VirIdrLen = rk_param_get_int("video.0:smartp_viridrlen", 25);
+	} else if (!strcmp(tmp_gop_mode, "TSVC4")) {
+		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC4;
 	}
 	// venc_chn_attr.stGopAttr.u32GopSize = rk_param_get_int("video.0:gop", -1);
 
@@ -1376,14 +1377,15 @@ int rkipc_venc_1_init() {
 		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
 		return -1;
 	}
-	tmp_smart = rk_param_get_string("video.1:smart", NULL);
-	tmp_svc = rk_param_get_string("video.1:svc", NULL);
-	if (!strcmp(tmp_svc, "open")) {
-		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC4;
-	} else if (!strcmp(tmp_smart, "open")) {
-		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
-	} else {
+	tmp_smart = rk_param_get_string("video.1:smart", "close");
+	tmp_gop_mode = rk_param_get_string("video.1:gop_mode", NULL);
+	if (!strcmp(tmp_gop_mode, "normalP")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
+	} else if (!strcmp(tmp_gop_mode, "smartP")) {
+		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
+		venc_chn_attr.stGopAttr.s32VirIdrLen = rk_param_get_int("video.1:smartp_viridrlen", 25);
+	} else if (!strcmp(tmp_gop_mode, "TSVC4")) {
+		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC4;
 	}
 	// venc_chn_attr.stGopAttr.u32GopSize = rk_param_get_int("video.1:gop", -1);
 
@@ -1547,14 +1549,15 @@ int rkipc_venc_2_init() {
 		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
 		return -1;
 	}
-	tmp_smart = rk_param_get_string("video.2:smart", NULL);
-	tmp_svc = rk_param_get_string("video.2:svc", NULL);
-	if (!strcmp(tmp_svc, "open")) {
-		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC4;
-	} else if (!strcmp(tmp_smart, "open")) {
-		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
-	} else {
+	tmp_smart = rk_param_get_string("video.2:smart", "close");
+	tmp_gop_mode = rk_param_get_string("video.2:gop_mode", NULL);
+	if (!strcmp(tmp_gop_mode, "normalP")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
+	} else if (!strcmp(tmp_gop_mode, "smartP")) {
+		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
+		venc_chn_attr.stGopAttr.s32VirIdrLen = rk_param_get_int("video.2:smartp_viridrlen", 25);
+	} else if (!strcmp(tmp_gop_mode, "TSVC4")) {
+		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC4;
 	}
 	// venc_chn_attr.stGopAttr.u32GopSize = rk_param_get_int("video.2:gop", -1);
 
@@ -2328,17 +2331,17 @@ int rk_video_set_smart(int stream_id, const char *value) {
 	return 0;
 }
 
-int rk_video_get_tsvc(int stream_id, const char **value) {
+int rk_video_get_gop_mode(int stream_id, const char **value) {
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "video.%d:svc", stream_id);
+	snprintf(entry, 127, "video.%d:gop_mode", stream_id);
 	*value = rk_param_get_string(entry, "close");
 
 	return 0;
 }
 
-int rk_video_set_tsvc(int stream_id, const char *value) {
+int rk_video_set_gop_mode(int stream_id, const char *value) {
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "video.%d:svc", stream_id);
+	snprintf(entry, 127, "video.%d:gop_mode", stream_id);
 	rk_param_set_string(entry, value);
 	rk_video_restart();
 

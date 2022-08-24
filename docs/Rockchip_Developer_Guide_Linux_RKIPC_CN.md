@@ -915,10 +915,11 @@ mid_rate = 2048 ; 中间码率，详细请参考rockit文档说明
 max_rate = 3072 ; 最大码率，详细请参考rockit文档说明
 min_rate = 0 ; 最小码率，详细请参考rockit文档说明
 output_data_type = H.265 ; 视频编码类型
-smart = close ; 是否开启智能编码，注意不是smartp
+smart = close ; 是否开启智能编码，注意不是smartp，目前只支持RV1103、RV1106
 h264_profile = high ; h264的profile
 gop = 50 ; I帧间隔
-tsvc = close ; 是否开启分层编码
+smartp_viridrlen = 25 ; smartP的虚拟I帧长度
+gop_mode = normalP ; gop模式
 stream_smooth = 50 ; 码流平滑度，目前未使用
 
 [video.1]

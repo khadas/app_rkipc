@@ -43,8 +43,6 @@ int rk_video_get_rc_quality(int stream_id, const char **value);
 int rk_video_set_rc_quality(int stream_id, const char *value);
 int rk_video_get_smart(int stream_id, const char **value);
 int rk_video_set_smart(int stream_id, const char *value);
-int rk_video_get_tsvc(int stream_id, const char **value);
-int rk_video_set_tsvc(int stream_id, const char *value);
 int rk_video_get_gop_mode(int stream_id, const char **value);
 int rk_video_set_gop_mode(int stream_id, const char *value);
 int rk_video_get_stream_type(int stream_id, const char **value);

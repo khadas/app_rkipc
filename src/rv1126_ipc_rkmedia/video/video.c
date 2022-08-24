@@ -56,7 +56,7 @@ static const char *g_output_data_type;
 static const char *g_rc_mode;
 static const char *g_h264_profile;
 static const char *g_smart;
-static const char *g_svc;
+static const char *g_gop_mode;
 static pthread_t venc_thread_id_0;
 static pthread_t venc_thread_id_1;
 static pthread_t venc_thread_id_2;
@@ -644,13 +644,14 @@ int rkipc_pipe_0_to_RTSP_init() { // VI 0 2688*1520 -> VENC 0 H264 ->RTSP 0 &
 		return -1;
 	}
 	g_smart = rk_param_get_string("video.0:smart", NULL);
-	g_svc = rk_param_get_string("video.0:svc", NULL);
-	if (!strcmp(g_svc, "open")) {
-		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC;
-	} else if (!strcmp(g_smart, "open")) {
-		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
-	} else {
+	g_gop_mode = rk_param_get_string("video.0:gop_mode", NULL);
+	if (!strcmp(g_gop_mode, "normalP")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
+	} else if (!strcmp(g_gop_mode, "smartP")) {
+		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
+		venc_chn_attr.stGopAttr.s32VirIdrLen = rk_param_get_int("video.0:smartp_viridrlen", 25);
+	} else if (!strcmp(g_gop_mode, "TSVC4")) {
+		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC4;
 	}
 	venc_chn_attr.stVencAttr.imageType = IMAGE_TYPE_NV12;
 	venc_chn_attr.stVencAttr.u32PicWidth = video_width;
@@ -816,13 +817,14 @@ int rkipc_pipe_1_init() { // VI 1 640*480 -> VENC 1 H264 ->RTSP 1 & RTMP
 		return -1;
 	}
 	g_smart = rk_param_get_string("video.1:smart", NULL);
-	g_svc = rk_param_get_string("video.1:svc", NULL);
-	if (!strcmp(g_svc, "open")) {
-		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC;
-	} else if (!strcmp(g_smart, "open")) {
-		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
-	} else {
+	g_gop_mode = rk_param_get_string("video.1:gop_mode", NULL);
+	if (!strcmp(g_gop_mode, "normalP")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
+	} else if (!strcmp(g_gop_mode, "smartP")) {
+		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
+		venc_chn_attr.stGopAttr.s32VirIdrLen = rk_param_get_int("video.1:smartp_viridrlen", 25);
+	} else if (!strcmp(g_gop_mode, "TSVC4")) {
+		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC4;
 	}
 	venc_chn_attr.stVencAttr.imageType = IMAGE_TYPE_NV12;
 	venc_chn_attr.stVencAttr.u32PicWidth = video_width;
@@ -995,13 +997,14 @@ int rkipc_pipe_2_init() { // VI 2 1920*1080 -> VENC 2 H264 ->RTSP 2  & RTMP
 		return -1;
 	}
 	g_smart = rk_param_get_string("video.2:smart", NULL);
-	g_svc = rk_param_get_string("video.2:svc", NULL);
-	if (!strcmp(g_svc, "open")) {
-		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC;
-	} else if (!strcmp(g_smart, "open")) {
-		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
-	} else {
+	g_gop_mode = rk_param_get_string("video.2:gop_mode", NULL);
+	if (!strcmp(g_gop_mode, "normalP")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
+	} else if (!strcmp(g_gop_mode, "smartP")) {
+		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
+		venc_chn_attr.stGopAttr.s32VirIdrLen = rk_param_get_int("video.2:smartp_viridrlen", 25);
+	} else if (!strcmp(g_gop_mode, "TSVC4")) {
+		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC4;
 	}
 	venc_chn_attr.stVencAttr.imageType = IMAGE_TYPE_NV12;
 	venc_chn_attr.stVencAttr.u32PicWidth = video_width;
@@ -1391,17 +1394,17 @@ int rk_video_set_smart(int stream_id, const char *value) {
 	return 0;
 }
 
-int rk_video_get_tsvc(int stream_id, const char **value) {
+int rk_video_get_gop_mode(int stream_id, const char **value) {
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "video.%d:svc", stream_id);
+	snprintf(entry, 127, "video.%d:gop_mode", stream_id);
 	*value = rk_param_get_string(entry, "close");
 
 	return 0;
 }
 
-int rk_video_set_tsvc(int stream_id, const char *value) {
+int rk_video_set_gop_mode(int stream_id, const char *value) {
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "video.%d:svc", stream_id);
+	snprintf(entry, 127, "video.%d:gop_mode", stream_id);
 	rk_param_set_string(entry, value);
 	rk_video_restart();
 
