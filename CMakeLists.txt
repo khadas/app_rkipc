@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 
 project(rkipc)
 
+option(COMPILE_FOR_RV1103_IPC "compile for rv1103 ipc" OFF)
 option(COMPILE_FOR_RV1106_IPC "compile for rv1106 ipc" OFF)
 option(COMPILE_FOR_RV1106_BATTERY_IPC "compile for rv1106 battery ipc" OFF)
 option(COMPILE_FOR_RV1126_RKMEDIA "compile for rv1126 ipc rkmedia" OFF)
@@ -17,6 +18,10 @@ message(STATUS "CROSS COMPILE TOOL: ${RKIPC_CROSS_COMPILE}")
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fdata-sections -ffunction-sections -Wl,-rpath-link,${PROJECT_SOURCE_DIR}/lib/${RKIPC_CROSS_COMPILE}")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdata-sections -ffunction-sections -Wl,-rpath-link,${PROJECT_SOURCE_DIR}/lib/${RKIPC_CROSS_COMPILE}")
 set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--gc-sections -Wl,--as-needed")
+endif()
+
+if(COMPILE_FOR_RV1103_IPC)
+  add_subdirectory(src/rv1103_ipc)
 endif()
 
 if(COMPILE_FOR_RV1106_IPC)

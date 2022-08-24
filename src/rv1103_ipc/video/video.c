@@ -44,7 +44,6 @@
 pthread_mutex_t g_rtsp_mutex = PTHREAD_MUTEX_INITIALIZER;
 rtsp_demo_handle g_rtsplive = NULL;
 rtsp_session_handle g_rtsp_session_0, g_rtsp_session_1, g_rtsp_session_2;
-static int send_jpeg_cnt = 0;
 static int get_jpeg_cnt = 0;
 static int enable_pp, enable_jpeg, enable_venc_0, enable_venc_1, enable_rtsp, enable_rtmp;
 static int g_enable_vo, g_vo_dev_id, g_vi_chn_id, enable_npu, enable_wrap, enable_osd;
@@ -59,12 +58,11 @@ static const char *tmp_smart;
 static const char *tmp_gop_mode;
 static const char *tmp_rc_quality;
 static pthread_t vi_thread_1, venc_thread_0, venc_thread_1, venc_thread_2, jpeg_venc_thread_id,
-    vpss_thread_rgb, cycle_snapshot_thread_id, get_nn_update_osd_thread_id, get_vi_0_thread,
-    get_vi_2_thread, get_ivs_result_thread;
+    vpss_thread_rgb, cycle_snapshot_thread_id, get_nn_update_osd_thread_id, get_vi_2_thread,
+    get_ivs_result_thread;
 
 static MPP_CHN_S vi_chn, vpss_bgr_chn, vpss_rotate_chn, vo_chn, vpss_out_chn[4], venc_chn, ivs_chn;
 static VO_DEV VoLayer = RK3588_VOP_LAYER_CLUSTER0;
-
 typedef enum rkCOLOR_INDEX_E {
 	RGN_COLOR_LUT_INDEX_0 = 0,
 	RGN_COLOR_LUT_INDEX_1 = 1,
@@ -175,129 +173,6 @@ static void *rkipc_get_venc_0(void *arg) {
 	// fclose(fp);
 
 	return 0;
-}
-
-static void *rkipc_get_vi_0(void *arg) {
-	LOG_DEBUG("#Start %s thread, arg:%p\n", __func__, arg);
-	int jpeg_width, jpeg_height, ret;
-
-	TDE_HANDLE hHandle;
-	TDE_SURFACE_S pstSrc, pstDst;
-	TDE_RECT_S pstSrcRect, pstDstRect;
-
-	VIDEO_FRAME_INFO_S stViFrame, DstFrame;
-	PIC_BUF_ATTR_S Dst_stPicBufAttr;
-	MB_PIC_CAL_S Dst_stMbPicCalResult;
-	VENC_CHN_ATTR_S pstChnAttr;
-	MB_BLK dstBlk = RK_NULL;
-
-	Dst_stPicBufAttr.u32Width = rk_param_get_int("video.source:video_0_max_width", 2304);
-	Dst_stPicBufAttr.u32Height = rk_param_get_int("video.source:video_0_max_height", 1296);
-	Dst_stPicBufAttr.enPixelFormat = RK_FMT_YUV420SP;
-	Dst_stPicBufAttr.enCompMode = COMPRESS_MODE_NONE;
-
-	ret = RK_MPI_CAL_TDE_GetPicBufferSize(&Dst_stPicBufAttr, &Dst_stMbPicCalResult);
-	if (ret != RK_SUCCESS) {
-		LOG_ERROR("get picture buffer size failed. err 0x%x\n", ret);
-	}
-	ret = RK_MPI_SYS_MmzAlloc(&dstBlk, RK_NULL, RK_NULL, Dst_stMbPicCalResult.u32MBSize);
-	if (ret != RK_SUCCESS) {
-		LOG_ERROR("RK_MPI_SYS_MmzAlloc err 0x%x\n", ret);
-	}
-
-	pstSrc.u32Width = rk_param_get_int("video.0:width", -1);
-	pstSrc.u32Height = rk_param_get_int("video.0:height", -1);
-	pstSrc.enColorFmt = RK_FMT_YUV420SP;
-	pstSrc.enComprocessMode = COMPRESS_MODE_NONE;
-	pstSrcRect.u32Width = rk_param_get_int("video.0:width", -1);
-	pstSrcRect.u32Height = rk_param_get_int("video.0:height", -1);
-	pstSrcRect.s32Xpos = 0;
-	pstSrcRect.s32Ypos = 0;
-
-	pstDst.enColorFmt = RK_FMT_YUV420SP;
-	pstDst.enComprocessMode = COMPRESS_MODE_NONE;
-	pstDstRect.s32Xpos = 0;
-	pstDstRect.s32Ypos = 0;
-
-	memset(&DstFrame, 0, sizeof(VIDEO_FRAME_INFO_S));
-	DstFrame.stVFrame.enPixelFormat = RK_FMT_YUV420SP;
-	DstFrame.stVFrame.enCompressMode = COMPRESS_MODE_NONE;
-
-	ret = RK_TDE_Open();
-	if (ret != RK_SUCCESS)
-		LOG_ERROR("RK_TDE_Open fail %x\n", ret);
-	while (g_video_run_) {
-		if (!send_jpeg_cnt) {
-			usleep(300 * 1000);
-			continue;
-		}
-		jpeg_width = rk_param_get_int("video.jpeg:width", 1920);
-		jpeg_height = rk_param_get_int("video.jpeg:height", 1080);
-		ret = RK_MPI_VI_GetChnFrame(pipe_id_, VIDEO_PIPE_0, &stViFrame, 1000);
-		if (ret == RK_SUCCESS) {
-			// tde begin job
-			hHandle = RK_TDE_BeginJob();
-			if (RK_ERR_TDE_INVALID_HANDLE == hHandle) {
-				LOG_ERROR("start job fail\n");
-				RK_MPI_VI_ReleaseChnFrame(pipe_id_, VIDEO_PIPE_0, &stViFrame);
-				continue;
-			}
-			// tde quick resize
-			pstSrc.pMbBlk = stViFrame.stVFrame.pMbBlk;
-			pstDst.pMbBlk = dstBlk;
-			pstDst.u32Width = jpeg_width;
-			pstDst.u32Height = jpeg_height;
-			pstDstRect.u32Width = jpeg_width;
-			pstDstRect.u32Height = jpeg_height;
-			ret = RK_TDE_QuickResize(hHandle, &pstSrc, &pstSrcRect, &pstDst, &pstDstRect);
-			if (ret != RK_SUCCESS) {
-				LOG_ERROR("RK_TDE_QuickResize failed. err 0x%x\n", ret);
-				RK_TDE_CancelJob(hHandle);
-				RK_MPI_VI_ReleaseChnFrame(pipe_id_, VIDEO_PIPE_0, &stViFrame);
-				continue;
-			}
-			// tde end job
-			ret = RK_TDE_EndJob(hHandle, RK_FALSE, RK_TRUE, 10);
-			if (ret != RK_SUCCESS) {
-				LOG_ERROR("RK_TDE_EndJob failed. err 0x%x\n", ret);
-				RK_TDE_CancelJob(hHandle);
-				RK_MPI_VI_ReleaseChnFrame(pipe_id_, VIDEO_PIPE_0, &stViFrame);
-				continue;
-			}
-			ret = RK_TDE_WaitForDone(hHandle);
-			if (ret != RK_SUCCESS)
-				LOG_ERROR("RK_TDE_WaitForDone fail %x\n", ret);
-			// set jpeg venc w,h
-			ret = RK_MPI_VENC_GetChnAttr(JPEG_VENC_CHN, &pstChnAttr);
-			if (ret != RK_SUCCESS)
-				LOG_ERROR("RK_MPI_VENC_GetChnAttr fail %x\n", ret);
-			pstChnAttr.stVencAttr.u32PicWidth = pstDst.u32Width;
-			pstChnAttr.stVencAttr.u32PicHeight = pstDst.u32Height;
-			ret = RK_MPI_VENC_SetChnAttr(JPEG_VENC_CHN, &pstChnAttr);
-			if (ret != RK_SUCCESS)
-				LOG_ERROR("RK_MPI_VENC_SetChnAttr fail %x\n", ret);
-			// send frame to jpeg venc
-			DstFrame.stVFrame.pMbBlk = dstBlk;
-			DstFrame.stVFrame.u32Width = pstDst.u32Width;
-			DstFrame.stVFrame.u32Height = pstDst.u32Height;
-			DstFrame.stVFrame.u32VirWidth = pstDst.u32Width;
-			DstFrame.stVFrame.u32VirHeight = pstDst.u32Height;
-			ret = RK_MPI_VENC_SendFrame(JPEG_VENC_CHN, &DstFrame, 1000);
-			if (ret != RK_SUCCESS)
-				LOG_ERROR("RK_MPI_VENC_SendFrame fail %x\n", ret);
-			// release the frame
-			ret = RK_MPI_VI_ReleaseChnFrame(pipe_id_, VIDEO_PIPE_0, &stViFrame);
-			if (ret != RK_SUCCESS)
-				LOG_ERROR("RK_MPI_VI_ReleaseChnFrame fail %x\n", ret);
-		} else {
-			LOG_ERROR("RK_MPI_VI_GetChnFrame timeout %x\n", ret);
-		}
-		send_jpeg_cnt--;
-	}
-	RK_TDE_Close();
-	RK_MPI_SYS_Free(dstBlk);
-
-	return NULL;
 }
 
 static int rga_nv12_border(rga_buffer_t buf, int x, int y, int width, int height, int line_pixel,
@@ -478,6 +353,7 @@ static void *rkipc_get_jpeg(void *arg) {
 
 	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
 	// drop first frame
+
 	ret = RK_MPI_VENC_GetStream(JPEG_VENC_CHN, &stFrame, 1000);
 	if (ret == RK_SUCCESS)
 		RK_MPI_VENC_ReleaseStream(JPEG_VENC_CHN, &stFrame);
@@ -543,7 +419,6 @@ static void *rkipc_cycle_snapshot(void *arg) {
 
 	return 0;
 }
-
 static void *rkipc_get_vi_2(void *arg) {
 	LOG_DEBUG("#Start %s thread, arg:%p\n", __func__, arg);
 	int s32Ret;
@@ -825,7 +700,6 @@ int rkipc_pipe_0_init() {
 		LOG_ERROR("ERROR: create VI error! ret=%d\n", ret);
 		return ret;
 	}
-	pthread_create(&get_vi_0_thread, NULL, rkipc_get_vi_0, NULL);
 
 	// VENC
 	VENC_CHN_ATTR_S venc_chn_attr;
@@ -920,7 +794,7 @@ int rkipc_pipe_0_init() {
 	} else if (!strcmp(tmp_gop_mode, "smartp")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
 		venc_chn_attr.stGopAttr.s32VirIdrLen = rk_param_get_int("video.0:smartp_viridrlen", 25);
-		venc_chn_attr.stGopAttr.u32MaxLtrCount = 1; // smartp 长期参考帧ltr固定配置为一个
+		venc_chn_attr.stGopAttr.u32MaxLtrCount = 1; // smartp ���ڲο�֡ltr�̶�����Ϊһ��
 	} else if (!strcmp(tmp_gop_mode, "tsvc4")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC4;
 	}
@@ -1205,7 +1079,7 @@ int rkipc_pipe_1_init() {
 	} else if (!strcmp(tmp_gop_mode, "smartp")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
 		venc_chn_attr.stGopAttr.s32VirIdrLen = rk_param_get_int("video.1:smartp_viridrlen", 25);
-		venc_chn_attr.stGopAttr.u32MaxLtrCount = 1; // smartp 长期参考帧ltr固定配置为一个
+		venc_chn_attr.stGopAttr.u32MaxLtrCount = 1; // smartp ���ڲο�֡ltr�̶�����Ϊһ��
 	} else if (!strcmp(tmp_gop_mode, "tsvc4")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC4;
 	}
@@ -1656,7 +1530,7 @@ int rkipc_pipe_jpeg_init() {
 	} else if (rotation == 270) {
 		RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN, ROTATION_270);
 	}
-#if 0
+
 	VENC_CHN_BUF_WRAP_S stVencChnBufWrap;
 	memset(&stVencChnBufWrap, 0, sizeof(stVencChnBufWrap));
 	if (enable_wrap) {
@@ -1672,7 +1546,6 @@ int rkipc_pipe_jpeg_init() {
 	stComboAttr.s32ChnId = VIDEO_PIPE_0;
 	RK_MPI_VENC_SetComboAttr(JPEG_VENC_CHN, &stComboAttr);
 
-#endif
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
 	stRecvParam.s32RecvPicNum = 1;
@@ -1988,13 +1861,13 @@ int rkipc_osd_draw_nn_init() {
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32ColorLUT[RGN_COLOR_LUT_INDEX_1] = RED_COLOR;
 	stMppChn.enModId = RK_ID_VENC;
 	stMppChn.s32DevId = 0;
-	stMppChn.s32ChnId = 0;
+	stMppChn.s32ChnId = 1;
 	ret = RK_MPI_RGN_AttachToChn(RgnHandle, &stMppChn, &stRgnChnAttr);
 	if (RK_SUCCESS != ret) {
-		LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc0 failed with %#x\n", RgnHandle, ret);
+		LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc1 failed with %#x\n", RgnHandle, ret);
 		return RK_FAILURE;
 	}
-	LOG_DEBUG("RK_MPI_RGN_AttachToChn to venc0 success\n");
+	LOG_DEBUG("RK_MPI_RGN_AttachToChn to venc1 success\n");
 
 	pthread_create(&get_nn_update_osd_thread_id, NULL, rkipc_get_nn_update_osd, NULL);
 	LOG_DEBUG("end\n");
@@ -2011,13 +1884,13 @@ int rkipc_osd_draw_nn_deinit() {
 	RGN_HANDLE RgnHandle = DRAW_NN_OSD_ID;
 	stMppChn.enModId = RK_ID_VENC;
 	stMppChn.s32DevId = 0;
-	stMppChn.s32ChnId = 0;
+	stMppChn.s32ChnId = 1;
 	ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 	if (RK_SUCCESS != ret) {
-		LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc0 failed with %#x\n", RgnHandle, ret);
+		LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc1 failed with %#x\n", RgnHandle, ret);
 		return RK_FAILURE;
 	}
-	LOG_DEBUG("RK_MPI_RGN_DetachFromChn to venc0 success\n");
+	LOG_DEBUG("RK_MPI_RGN_DetachFromChn to venc1 success\n");
 
 	// destory region
 	ret = RK_MPI_RGN_Destroy(RgnHandle);
@@ -2335,7 +2208,6 @@ int rk_video_set_gop_mode(int stream_id, const char *value) {
 
 	return 0;
 }
-
 int rk_video_get_stream_type(int stream_id, const char **value) {
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "video.%d:stream_type", stream_id);
@@ -2953,7 +2825,6 @@ int rk_video_set_enable_cycle_snapshot(int value) {
 		cycle_snapshot_flag = 1;
 		pthread_create(&cycle_snapshot_thread_id, NULL, rkipc_cycle_snapshot, NULL);
 	} else if (!value && cycle_snapshot_flag) {
-		send_jpeg_cnt = 0;
 		get_jpeg_cnt = 0;
 		cycle_snapshot_flag = 0;
 		pthread_join(cycle_snapshot_thread_id, NULL);
@@ -3034,7 +2905,7 @@ int rk_video_set_jpeg_resolution(const char *value) {
 
 int rk_take_photo() {
 	LOG_DEBUG("start\n");
-	if (send_jpeg_cnt || get_jpeg_cnt) {
+	if (get_jpeg_cnt) {
 		LOG_WARN("the last photo was not completed\n");
 		return -1;
 	}
@@ -3042,7 +2913,6 @@ int rk_take_photo() {
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
 	stRecvParam.s32RecvPicNum = 1;
 	RK_MPI_VENC_StartRecvFrame(JPEG_VENC_CHN, &stRecvParam);
-	send_jpeg_cnt++;
 	get_jpeg_cnt++;
 
 	return 0;
@@ -3214,7 +3084,6 @@ int rk_video_deinit() {
 			pthread_join(cycle_snapshot_thread_id, NULL);
 		}
 		pthread_join(jpeg_venc_thread_id, NULL);
-		pthread_join(get_vi_0_thread, NULL);
 		ret |= rkipc_pipe_jpeg_deinit();
 	}
 	if (enable_pp) {

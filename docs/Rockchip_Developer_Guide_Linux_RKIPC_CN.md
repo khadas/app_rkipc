@@ -96,7 +96,8 @@ Rockchip Electronics Co., Ltd.
 
 | 源码目录           | 依赖外部库       | 功能                                                         |
 | ------------------ | ---------------- | ------------------------------------------------------------ |
-| rv1106_ipc         | rockit、rkaiq    | 针对rv1103/rv1106平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rv1103_ipc         | rockit、rkaiq    | 针对rv1103平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改，默认开启卷绕。 |
+| rv1106_ipc         | rockit、rkaiq    | 针对rv1106平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改，关闭卷绕。 |
 | rv1106_battery_ipc | rockit、rkaiq    | 针对rv1103/rv1106平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能(TODO)。 |
 | rk3588_ipc         | rockit、rkaiq    | 针对rk3588平台的单目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
 | rk3588_muliti_ipc  | rockit、rkaiq    | 针对rk3588平台的多目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
@@ -105,17 +106,30 @@ Rockchip Electronics Co., Ltd.
 | rv1126_battery_ipc | rockit、rkaiq    | 针对rv1126/rv1109平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能。 |
 | rv1126_snapshot    | easymedia、rkaiq | 针对rv1126/rv1109平台的抓拍类型产品，支持离线帧，本地拍照/录像，屏幕显示，插值放大(TODO)。 |
 
+### RV1103 IPC
+
+```mermaid
+graph LR
+	AI-->AENC-->MUXER-->MP4
+	VI_0-->VENC_0-->MUXER
+	VENC_0-->RTSP_RTMP_0
+	VENC_0-->VENC_JPEG
+	VI_1-->VENC_1_and_OSD_draw_NN_result-->RTSP_RTMP_1
+	VI_2-->NPU
+	VI_3-->IVS_for_OD_MD
+```
+
 ### RV1106 IPC
 
 ```mermaid
 graph LR
 	AI-->AENC-->MUXER-->MP4
-	VI_0-->VENC_0_and_OSD_draw-->MUXER
+	VI_0-->VENC_0_and_OSD_draw_NN_result-->MUXER
 	VI_0-->TDE-->VENC_JPEG
-	VENC_0_and_OSD_draw-->RTSP_RTMP_0
+	VENC_0_and_OSD_draw_NN_result-->RTSP_RTMP_0
 	VI_1-->VENC_1-->RTSP_RTMP_1
 	VI_2-->NPU
-	VI_3-->IVS
+	VI_3-->IVS_for_OD_MD
 ```
 
 ### RV1106 Battery IPC
