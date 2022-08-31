@@ -1264,6 +1264,13 @@ int rkipc_venc_0_init() {
 	}
 	RK_MPI_VENC_SetRcParam(VIDEO_PIPE_0, &venc_rc_param);
 
+	VENC_SLICE_SPLIT_S stSliceSplit;
+	RK_MPI_VENC_GetSliceSplit(VIDEO_PIPE_0, &stSliceSplit);
+	stSliceSplit.bSplitEnable = rk_param_get_int("video.0:split_enable", 1);
+	stSliceSplit.u32SplitMode = rk_param_get_int("video.0:split_mode", 2);
+	stSliceSplit.u32SplitSize = rk_param_get_int("video.0:split_size", 1);
+	RK_MPI_VENC_SetSliceSplit(VIDEO_PIPE_0, &stSliceSplit);
+
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
 	RK_MPI_VENC_StartRecvFrame(VIDEO_PIPE_0, &stRecvParam);
