@@ -783,6 +783,7 @@ int rkipc_pipe_0_init() {
 	int buf_cnt = 2;
 	int frame_min_i_qp = rk_param_get_int("video.0:frame_min_i_qp", 26);
 	int frame_min_qp = rk_param_get_int("video.0:frame_min_qp", 28);
+	int scalinglist = rk_param_get_int("video.0:scalinglist", 0);
 
 	// VI
 	VI_CHN_ATTR_S vi_chn_attr;
@@ -1015,6 +1016,18 @@ int rkipc_pipe_0_init() {
 		RK_MPI_VENC_SetChnBufWrapAttr(VIDEO_PIPE_0, &stVencChnBufWrap);
 	}
 
+	if (!strcmp(tmp_output_data_type, "H.264")) {
+		VENC_H264_TRANS_S pstH264Trans;
+		RK_MPI_VENC_GetH264Trans(VIDEO_PIPE_0, &pstH264Trans);
+		pstH264Trans.bScalingListValid = scalinglist;
+		RK_MPI_VENC_SetH264Trans(VIDEO_PIPE_0, &pstH264Trans);
+	} else if (!strcmp(tmp_output_data_type, "H.265")) {
+		VENC_H265_TRANS_S pstH265Trans;
+		RK_MPI_VENC_GetH265Trans(VIDEO_PIPE_0, &pstH265Trans);
+		pstH265Trans.bScalingListEnabled = scalinglist;
+		RK_MPI_VENC_SetH265Trans(VIDEO_PIPE_0, &pstH265Trans);
+	}
+
 	VENC_CHN_REF_BUF_SHARE_S stVencChnRefBufShare;
 	memset(&stVencChnRefBufShare, 0, sizeof(VENC_CHN_REF_BUF_SHARE_S));
 	stVencChnRefBufShare.bEnable = rk_param_get_int("video.0:enable_refer_buffer_share", 0);
@@ -1087,6 +1100,7 @@ int rkipc_pipe_1_init() {
 	int rotation = rk_param_get_int("video.source:rotation", 0);
 	int frame_min_i_qp = rk_param_get_int("video.1:frame_min_i_qp", 26);
 	int frame_min_qp = rk_param_get_int("video.1:frame_min_qp", 28);
+	int scalinglist = rk_param_get_int("video.1:scalinglist", 0);
 
 	// VI
 	VI_CHN_ATTR_S vi_chn_attr;
@@ -1281,6 +1295,17 @@ int rkipc_pipe_1_init() {
 	}
 	RK_MPI_VENC_SetRcParam(VIDEO_PIPE_1, &venc_rc_param);
 
+	if (!strcmp(tmp_output_data_type, "H.264")) {
+		VENC_H264_TRANS_S pstH264Trans;
+		RK_MPI_VENC_GetH264Trans(VIDEO_PIPE_1, &pstH264Trans);
+		pstH264Trans.bScalingListValid = scalinglist;
+		RK_MPI_VENC_SetH264Trans(VIDEO_PIPE_1, &pstH264Trans);
+	} else if (!strcmp(tmp_output_data_type, "H.265")) {
+		VENC_H265_TRANS_S pstH265Trans;
+		RK_MPI_VENC_GetH265Trans(VIDEO_PIPE_1, &pstH265Trans);
+		pstH265Trans.bScalingListEnabled = scalinglist;
+		RK_MPI_VENC_SetH265Trans(VIDEO_PIPE_1, &pstH265Trans);
+	}
 	VENC_CHN_REF_BUF_SHARE_S stVencChnRefBufShare;
 	memset(&stVencChnRefBufShare, 0, sizeof(VENC_CHN_REF_BUF_SHARE_S));
 	stVencChnRefBufShare.bEnable = rk_param_get_int("video.1:enable_refer_buffer_share", 0);
