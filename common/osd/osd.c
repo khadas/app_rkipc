@@ -31,6 +31,8 @@ static void *g_osd_signal;
 
 rk_osd_cover_create_callback rk_osd_cover_create_ = NULL;
 rk_osd_cover_destroy_callback rk_osd_cover_destroy_ = NULL;
+rk_osd_mosaic_create_callback rk_osd_mosaic_create_ = NULL;
+rk_osd_mosaic_destroy_callback rk_osd_mosaic_destroy_ = NULL;
 rk_osd_bmp_create_callback rk_osd_bmp_create_ = NULL;
 rk_osd_bmp_destroy_callback rk_osd_bmp_destroy_ = NULL;
 rk_osd_bmp_change_callback rk_osd_bmp_change_ = NULL;
@@ -41,6 +43,14 @@ void rk_osd_cover_create_callback_register(rk_osd_cover_create_callback callback
 
 void rk_osd_cover_destroy_callback_register(rk_osd_cover_destroy_callback callback_ptr) {
 	rk_osd_cover_destroy_ = callback_ptr;
+}
+
+void rk_osd_mosaic_create_callback_register(rk_osd_mosaic_create_callback callback_ptr) {
+	rk_osd_mosaic_create_ = callback_ptr;
+}
+
+void rk_osd_mosaic_destroy_callback_register(rk_osd_mosaic_destroy_callback callback_ptr) {
+	rk_osd_mosaic_destroy_ = callback_ptr;
 }
 
 void rk_osd_bmp_create_callback_register(rk_osd_bmp_create_callback callback_ptr) {
@@ -310,7 +320,12 @@ int rk_osd_init() {
 			osd_data.width = UPALIGNTO16((int)(rk_param_get_int(entry, -1) * g_x_rate));
 			snprintf(entry, 127, "osd.%d:height", i);
 			osd_data.height = UPALIGNTO16((int)(rk_param_get_int(entry, -1) * g_y_rate));
-			rk_osd_cover_create_(i, &osd_data);
+			snprintf(entry, 127, "osd.%d:style", i);
+			const char *style = rk_param_get_string(entry, NULL);
+			if (!strcmp(style, "cover") && rk_osd_cover_create_)
+				rk_osd_cover_create_(i, &osd_data);
+			else if (!strcmp(style, "mosaic") && rk_osd_mosaic_create_)
+				rk_osd_mosaic_create_(i, &osd_data);
 		} else {
 			osd_data.text.font_size = rk_param_get_int("osd.common:font_size", -1);
 			// osd_data.text.font_color = 0xfff799;
@@ -414,7 +429,12 @@ int rk_osd_deinit() {
 		} else if (!strcmp(osd_type, "character")) {
 			rk_osd_bmp_destroy_(i);
 		} else if (!strcmp(osd_type, "privacyMask")) {
-			rk_osd_cover_destroy_(i);
+			snprintf(entry, 127, "osd.%d:style", i);
+			const char *style = rk_param_get_string(entry, NULL);
+			if (!strcmp(style, "cover") && rk_osd_cover_destroy_)
+				rk_osd_cover_destroy_(i);
+			else if (!strcmp(style, "mosaic") && rk_osd_mosaic_destroy_)
+				rk_osd_mosaic_destroy_(i);
 		} else if (!strcmp(osd_type, "image")) {
 			rk_osd_bmp_destroy_(i);
 		}
@@ -718,6 +738,22 @@ int rk_osd_get_image_path(int id, const char **value) {
 int rk_osd_set_image_path(int id, const char *value) {
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "osd.%d:image_path", id);
+	rk_param_set_string(entry, value);
+
+	return 0;
+}
+
+int rk_osd_get_style(int id, const char **value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "osd.%d:style", id);
+	*value = rk_param_get_string(entry, NULL);
+
+	return 0;
+}
+
+int rk_osd_set_style(int id, const char *value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "osd.%d:style", id);
 	rk_param_set_string(entry, value);
 
 	return 0;

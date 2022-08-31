@@ -2597,6 +2597,77 @@ int rkipc_osd_cover_destroy(int id) {
 	return ret;
 }
 
+int rkipc_osd_mosaic_create(int id, osd_data_s *osd_data) {
+	LOG_INFO("id is %d\n", id);
+	int ret = 0;
+	RGN_HANDLE mosaic_handle = id;
+	RGN_ATTR_S mosaic_attr;
+	MPP_CHN_S mosaic_chn;
+	RGN_CHN_ATTR_S mosaic_chn_attr;
+
+	memset(&mosaic_attr, 0, sizeof(mosaic_attr));
+	memset(&mosaic_chn_attr, 0, sizeof(mosaic_chn_attr));
+	// create mosaic regions
+	mosaic_attr.enType = MOSAIC_RGN;
+	ret = RK_MPI_RGN_Create(mosaic_handle, &mosaic_attr);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("RK_MPI_RGN_Create (%d) failed with %#x\n", mosaic_handle, ret);
+		RK_MPI_RGN_Destroy(mosaic_handle);
+		return RK_FAILURE;
+	}
+	LOG_INFO("The handle: %d, create success\n", mosaic_handle);
+
+	// display mosaic regions to venc groups
+	mosaic_chn.enModId = RK_ID_VPSS;
+	mosaic_chn.s32DevId = 0;
+	mosaic_chn.s32ChnId = 0;
+	memset(&mosaic_chn_attr, 0, sizeof(mosaic_chn_attr));
+	mosaic_chn_attr.bShow = osd_data->enable;
+	mosaic_chn_attr.enType = MOSAIC_RGN;
+	mosaic_chn_attr.unChnAttr.stMosaicChn.enMosaicType = AREA_RECT;
+	mosaic_chn_attr.unChnAttr.stMosaicChn.enBlkSize = MOSAIC_BLK_SIZE_64;
+	mosaic_chn_attr.unChnAttr.stMosaicChn.u32Layer = mosaic_handle;
+	mosaic_chn_attr.unChnAttr.stMosaicChn.stRect.s32X = osd_data->origin_x;
+	mosaic_chn_attr.unChnAttr.stMosaicChn.stRect.s32Y = osd_data->origin_y;
+	mosaic_chn_attr.unChnAttr.stMosaicChn.stRect.u32Width = osd_data->width;
+	mosaic_chn_attr.unChnAttr.stMosaicChn.stRect.u32Height = osd_data->height;
+	LOG_INFO("mosaic region to chn success\n");
+	ret = RK_MPI_RGN_AttachToChn(mosaic_handle, &mosaic_chn, &mosaic_chn_attr);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) failed with %#x\n", mosaic_handle, ret);
+		return RK_FAILURE;
+	}
+	LOG_INFO("RK_MPI_RGN_AttachToChn to vpss 0 success\n");
+
+	return ret;
+}
+
+int rkipc_osd_mosaic_destroy(int id) {
+	LOG_INFO("%s\n", __func__);
+	int ret = 0;
+	// Detach osd from chn
+	MPP_CHN_S stMppChn;
+	RGN_HANDLE RgnHandle = id;
+	stMppChn.enModId = RK_ID_VPSS;
+	stMppChn.s32DevId = 0;
+	stMppChn.s32ChnId = 0;
+	ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to vpss 0 failed with %#x\n", RgnHandle, ret);
+		return RK_FAILURE;
+	}
+	LOG_INFO("RK_MPI_RGN_DetachFromChn to vpss 0 success\n");
+
+	// destory region
+	ret = RK_MPI_RGN_Destroy(RgnHandle);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("RK_MPI_RGN_Destroy [%d] failed with %#x\n", RgnHandle, ret);
+	}
+	LOG_INFO("Destory handle:%d success\n", RgnHandle);
+
+	return ret;
+}
+
 int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 	LOG_INFO("id is %d\n", id);
 	int ret = 0;
@@ -2819,6 +2890,8 @@ int rkipc_osd_bmp_change(int id, osd_data_s *osd_data) {
 int rkipc_osd_init() {
 	rk_osd_cover_create_callback_register(rkipc_osd_cover_create);
 	rk_osd_cover_destroy_callback_register(rkipc_osd_cover_destroy);
+	rk_osd_mosaic_create_callback_register(rkipc_osd_mosaic_create);
+	rk_osd_mosaic_destroy_callback_register(rkipc_osd_mosaic_destroy);
 	rk_osd_bmp_create_callback_register(rkipc_osd_bmp_create);
 	rk_osd_bmp_destroy_callback_register(rkipc_osd_bmp_destroy);
 	rk_osd_bmp_change_callback_register(rkipc_osd_bmp_change);
@@ -2831,6 +2904,8 @@ int rkipc_osd_deinit() {
 	rk_osd_deinit();
 	rk_osd_cover_create_callback_register(NULL);
 	rk_osd_cover_destroy_callback_register(NULL);
+	rk_osd_mosaic_create_callback_register(NULL);
+	rk_osd_mosaic_destroy_callback_register(NULL);
 	rk_osd_bmp_create_callback_register(NULL);
 	rk_osd_bmp_destroy_callback_register(NULL);
 	rk_osd_bmp_change_callback_register(NULL);

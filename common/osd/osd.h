@@ -6,12 +6,16 @@
 
 typedef int (*rk_osd_cover_create_callback)(int, osd_data_s *);
 typedef int (*rk_osd_cover_destroy_callback)(int);
+typedef int (*rk_osd_mosaic_create_callback)(int, osd_data_s *);
+typedef int (*rk_osd_mosaic_destroy_callback)(int);
 typedef int (*rk_osd_bmp_create_callback)(int, osd_data_s *);
 typedef int (*rk_osd_bmp_destroy_callback)(int);
 typedef int (*rk_osd_bmp_change_callback)(int, osd_data_s *);
 
 void rk_osd_cover_create_callback_register(rk_osd_cover_create_callback callback_ptr);
 void rk_osd_cover_destroy_callback_register(rk_osd_cover_destroy_callback callback_ptr);
+void rk_osd_mosaic_create_callback_register(rk_osd_mosaic_create_callback callback_ptr);
+void rk_osd_mosaic_destroy_callback_register(rk_osd_mosaic_destroy_callback callback_ptr);
 void rk_osd_bmp_create_callback_register(rk_osd_bmp_create_callback callback_ptr);
 void rk_osd_bmp_destroy_callback_register(rk_osd_bmp_destroy_callback callback_ptr);
 void rk_osd_bmp_change_callback_register(rk_osd_bmp_change_callback callback_ptr);
@@ -65,3 +69,5 @@ int rk_osd_get_display_text(int id, const char **value);
 int rk_osd_set_display_text(int id, const char *value);
 int rk_osd_get_image_path(int id, const char **value);
 int rk_osd_set_image_path(int id, const char *value);
+int rk_osd_get_style(int id, const char **value);
+int rk_osd_set_style(int id, const char *value);

@@ -3365,6 +3365,51 @@ int ser_rk_osd_set_image_path(int fd) {
 	return 0;
 }
 
+int ser_rk_osd_get_style(int fd) {
+	int err = 0;
+	int id, len;
+	const char *value;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	err = rk_osd_get_style(id, &value);
+	len = strlen(value);
+	LOG_DEBUG("len is %d, value is %s, addr is %p\n", len, value, value);
+	if (sock_write(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, value, len) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_write(fd, &err, sizeof(int)) == SOCKERR_CLOSED)
+		return -1;
+
+	return 0;
+}
+
+int ser_rk_osd_set_style(int fd) {
+	int ret = 0;
+	int id, len;
+	char *value = NULL;
+
+	if (sock_read(fd, &id, sizeof(id)) == SOCKERR_CLOSED)
+		return -1;
+	if (sock_read(fd, &len, sizeof(len)) == SOCKERR_CLOSED)
+		return -1;
+	if (len) {
+		value = (char *)malloc(len);
+		if (sock_read(fd, value, len) == SOCKERR_CLOSED) {
+			free(value);
+			return -1;
+		}
+		LOG_DEBUG("id is %d, value is %s\n", id, value);
+		ret = rk_osd_set_style(id, value);
+		free(value);
+		if (sock_write(fd, &ret, sizeof(int)) == SOCKERR_CLOSED)
+			return -1;
+	}
+
+	return 0;
+}
+
 int ser_rk_osd_restart(int fd) {
 	int err = 0;
 
@@ -5594,6 +5639,8 @@ static const struct FunMap map[] = {
     {(char *)"rk_osd_set_display_text", &ser_rk_osd_set_display_text},
     {(char *)"rk_osd_get_image_path", &ser_rk_osd_get_image_path},
     {(char *)"rk_osd_set_image_path", &ser_rk_osd_set_image_path},
+    {(char *)"rk_osd_get_style", &ser_rk_osd_get_style},
+    {(char *)"rk_osd_set_style", &ser_rk_osd_set_style},
     {(char *)"rk_osd_restart", &ser_rk_osd_restart},
     // roi.x
     {(char *)"rk_roi_get_stream_type", &ser_rk_roi_get_stream_type},
