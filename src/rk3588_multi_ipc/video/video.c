@@ -98,61 +98,76 @@ static VO_DEV VoLayer = RK3588_VOP_LAYER_CLUSTER0;
 // 	return 0;
 // }
 
+#define MAX_PACKET_NUM 16
 static void *rkipc_get_venc_0(void *arg) {
 	printf("#Start %s thread, arg:%p\n", __func__, arg);
 	VENC_STREAM_S stFrame;
-	int loopCount = 0;
 	int ret = 0;
-	// FILE *fp = fopen("/data/venc.h265", "wb");
-	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
+
+	if (rk_param_get_int("video.0:one_stream_buffer", 0)) {
+		stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
+	} else {
+		stFrame.pstPack = malloc(MAX_PACKET_NUM * sizeof(VENC_PACK_S));
+		stFrame.u32PackCount = MAX_PACKET_NUM;
+	}
 
 	while (g_video_run_) {
-		// 5.get the frame
+		if (!rk_param_get_int("video.0:one_stream_buffer", 0))
+			stFrame.u32PackCount = MAX_PACKET_NUM;
+		// get the frame
 		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_0, &stFrame, 1000);
-		if (ret == RK_SUCCESS) {
-			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
-			// fwrite(data, 1, stFrame.pstPack->u32Len, fp);
-			// fflush(fp);
-			// LOG_INFO("Count:%d, Len:%d, PTS is %" PRId64 ", enH264EType is %d\n", loopCount,
-			//          stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
-			//          stFrame.pstPack->DataType.enH264EType);
-
+		if (ret != RK_SUCCESS) {
+			LOG_ERROR("RK_MPI_VENC_GetStream timeout %#x\n", ret);
+			continue;
+		}
+		void *data = (char *)RK_MPI_MB_Handle2VirAddr(stFrame.pstPack[0].pMbBlk);
+		for (RK_U32 i = 0; i < stFrame.u32PackCount; i++) {
+			// LOG_DEBUG("packet(%d) eoi(%d) type(%d) offset(%d) lenth(%d) pts is %lld\n",
+			// 	i, stFrame.pstPack[i].bFrameEnd, stFrame.pstPack[i].DataType,
+			// 	stFrame.pstPack[i].u32Offset, stFrame.pstPack[i].u32Len, stFrame.pstPack[i].u64PTS);
 			if (g_rtsplive && g_rtsp_session_0) {
 				pthread_mutex_lock(&g_rtsp_mutex);
-				rtsp_tx_video(g_rtsp_session_0, data, stFrame.pstPack->u32Len,
-				              stFrame.pstPack->u64PTS);
+				rtsp_tx_video(g_rtsp_session_0, data + stFrame.pstPack[i].u32Offset,
+				              stFrame.pstPack[i].u32Len, stFrame.pstPack[i].u64PTS);
 				rtsp_do_event(g_rtsplive);
 				pthread_mutex_unlock(&g_rtsp_mutex);
 			}
-			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_IDRSLICE) ||
-			    (stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
-			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_IDRSLICE) ||
-			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
-				rk_storage_write_video_frame(0, data, stFrame.pstPack->u32Len,
-				                             stFrame.pstPack->u64PTS, 1);
-				rk_rtmp_write_video_frame(0, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
-				                          1);
-			} else {
-				rk_storage_write_video_frame(0, data, stFrame.pstPack->u32Len,
-				                             stFrame.pstPack->u64PTS, 0);
-				rk_rtmp_write_video_frame(0, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
-				                          0);
-			}
 
-			// 7.release the frame
-			ret = RK_MPI_VENC_ReleaseStream(VIDEO_PIPE_0, &stFrame);
-			if (ret != RK_SUCCESS) {
-				LOG_ERROR("RK_MPI_VENC_ReleaseStream fail %#x\n", ret);
+			// rkmuxer currently requires full I and P frame to parse
+			if (!stFrame.pstPack[i].bFrameEnd)
+				continue;
+			FILE *fp = fopen("/data/test.h264", "ab+");
+			fwrite(data, 1, stFrame.pstPack[i].u32Offset + stFrame.pstPack[i].u32Len, fp);
+			fflush(fp);
+			fclose(fp);
+
+			if ((stFrame.pstPack[i].DataType.enH264EType == H264E_NALU_IDRSLICE) ||
+			    (stFrame.pstPack[i].DataType.enH264EType == H264E_NALU_ISLICE) ||
+			    (stFrame.pstPack[i].DataType.enH265EType == H265E_NALU_IDRSLICE) ||
+			    (stFrame.pstPack[i].DataType.enH265EType == H265E_NALU_ISLICE)) {
+				rk_storage_write_video_frame(
+				    0, data, stFrame.pstPack[i].u32Offset + stFrame.pstPack[i].u32Len,
+				    stFrame.pstPack[i].u64PTS, 1);
+				rk_rtmp_write_video_frame(0, data,
+				                          stFrame.pstPack[i].u32Offset + stFrame.pstPack[i].u32Len,
+				                          stFrame.pstPack[i].u64PTS, 1);
+			} else {
+				rk_storage_write_video_frame(
+				    0, data, stFrame.pstPack[i].u32Offset + stFrame.pstPack[i].u32Len,
+				    stFrame.pstPack[i].u64PTS, 0);
+				rk_rtmp_write_video_frame(0, data,
+				                          stFrame.pstPack[i].u32Offset + stFrame.pstPack[i].u32Len,
+				                          stFrame.pstPack[i].u64PTS, 0);
 			}
-			loopCount++;
-		} else {
-			LOG_ERROR("RK_MPI_VENC_GetStream timeout %#x\n", ret);
+		}
+		// release the frame
+		ret = RK_MPI_VENC_ReleaseStream(VIDEO_PIPE_0, &stFrame);
+		if (ret != RK_SUCCESS) {
+			LOG_ERROR("RK_MPI_VENC_ReleaseStream fail %#x\n", ret);
 		}
 	}
 	if (stFrame.pstPack)
 		free(stFrame.pstPack);
-	// if (fp)
-	// 	fclose(fp);
 
 	return 0;
 }
@@ -1271,6 +1286,18 @@ int rkipc_venc_0_init() {
 	stSliceSplit.u32SplitMode = rk_param_get_int("video.0:split_mode", 2);
 	stSliceSplit.u32SplitSize = rk_param_get_int("video.0:split_size", 1);
 	RK_MPI_VENC_SetSliceSplit(VIDEO_PIPE_0, &stSliceSplit);
+
+	VENC_PARAM_MOD_S stModParam;
+	if (!strcmp(tmp_output_data_type, "H.264")) {
+		stModParam.enVencModType = MODTYPE_H264E;
+		stModParam.stH264eModParam.u32OneStreamBuffer =
+		    rk_param_get_int("video.0:one_stream_buffer", 0);
+	} else if (!strcmp(tmp_output_data_type, "H.265")) {
+		stModParam.enVencModType = MODTYPE_H265E;
+		stModParam.stH265eModParam.u32OneStreamBuffer =
+		    rk_param_get_int("video.0:one_stream_buffer", 0);
+	}
+	RK_MPI_VENC_SetModParam(VIDEO_PIPE_0, &stModParam);
 
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
