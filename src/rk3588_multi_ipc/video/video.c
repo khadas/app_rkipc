@@ -136,11 +136,6 @@ static void *rkipc_get_venc_0(void *arg) {
 			// rkmuxer currently requires full I and P frame to parse
 			if (!stFrame.pstPack[i].bFrameEnd)
 				continue;
-			FILE *fp = fopen("/data/test.h264", "ab+");
-			fwrite(data, 1, stFrame.pstPack[i].u32Offset + stFrame.pstPack[i].u32Len, fp);
-			fflush(fp);
-			fclose(fp);
-
 			if ((stFrame.pstPack[i].DataType.enH264EType == H264E_NALU_IDRSLICE) ||
 			    (stFrame.pstPack[i].DataType.enH264EType == H264E_NALU_ISLICE) ||
 			    (stFrame.pstPack[i].DataType.enH265EType == H265E_NALU_IDRSLICE) ||
