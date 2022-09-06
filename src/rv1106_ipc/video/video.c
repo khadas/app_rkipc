@@ -1959,7 +1959,15 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 				draw_rect_2bpp((RK_U8 *)stCanvasInfo.u64VirAddr, stCanvasInfo.u32VirWidth,
 				               stCanvasInfo.u32VirHeight, x, y, w, h, line_pixel,
 				               RGN_COLOR_LUT_INDEX_0);
+			} else if (object->objInfo.type == ROCKIVA_OBJECT_TYPE_FACE) {
+				draw_rect_2bpp((RK_U8 *)stCanvasInfo.u64VirAddr, stCanvasInfo.u32VirWidth,
+				               stCanvasInfo.u32VirHeight, x, y, w, h, line_pixel,
+				               RGN_COLOR_LUT_INDEX_0);
 			} else if (object->objInfo.type == ROCKIVA_OBJECT_TYPE_VEHICLE) {
+				draw_rect_2bpp((RK_U8 *)stCanvasInfo.u64VirAddr, stCanvasInfo.u32VirWidth,
+				               stCanvasInfo.u32VirHeight, x, y, w, h, line_pixel,
+				               RGN_COLOR_LUT_INDEX_1);
+			} else if (object->objInfo.type == ROCKIVA_OBJECT_TYPE_NON_VEHICLE) {
 				draw_rect_2bpp((RK_U8 *)stCanvasInfo.u64VirAddr, stCanvasInfo.u32VirWidth,
 				               stCanvasInfo.u32VirHeight, x, y, w, h, line_pixel,
 				               RGN_COLOR_LUT_INDEX_1);

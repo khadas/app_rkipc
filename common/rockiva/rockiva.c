@@ -188,6 +188,7 @@ int rkipc_rockiva_init() {
 	globalParams.logLevel = ROCKIVA_LOG_ERROR;
 	globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_FACE;
 	globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_PERSON;
+	globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_NON_VEHICLE;
 #if 0
 	globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_PET;
 #else
