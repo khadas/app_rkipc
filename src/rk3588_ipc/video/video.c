@@ -2023,7 +2023,6 @@ int rkipc_osd_cover_destroy(int id) {
 		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 		if (RK_SUCCESS != ret) {
 			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc0 failed with %#x\n", RgnHandle, ret);
-			return RK_FAILURE;
 		}
 		LOG_INFO("RK_MPI_RGN_DetachFromChn to venc0 success\n");
 	}
@@ -2032,7 +2031,6 @@ int rkipc_osd_cover_destroy(int id) {
 		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 		if (RK_SUCCESS != ret) {
 			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc1 failed with %#x\n", RgnHandle, ret);
-			return RK_FAILURE;
 		}
 		LOG_INFO("RK_MPI_RGN_DetachFromChn to venc1 success\n");
 	}
@@ -2041,7 +2039,6 @@ int rkipc_osd_cover_destroy(int id) {
 		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 		if (RK_SUCCESS != ret) {
 			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc2 failed with %#x\n", RgnHandle, ret);
-			return RK_FAILURE;
 		}
 		LOG_INFO("RK_MPI_RGN_DetachFromChn to venc2 success\n");
 	}
@@ -2157,7 +2154,6 @@ int rkipc_osd_bmp_destroy(int id) {
 		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 		if (RK_SUCCESS != ret) {
 			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc0 failed with %#x\n", RgnHandle, ret);
-			return RK_FAILURE;
 		}
 		LOG_INFO("RK_MPI_RGN_DetachFromChn to venc0 success\n");
 	}
@@ -2166,7 +2162,6 @@ int rkipc_osd_bmp_destroy(int id) {
 		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 		if (RK_SUCCESS != ret) {
 			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc1 failed with %#x\n", RgnHandle, ret);
-			return RK_FAILURE;
 		}
 		LOG_INFO("RK_MPI_RGN_DetachFromChn to venc1 success\n");
 	}
@@ -2175,7 +2170,6 @@ int rkipc_osd_bmp_destroy(int id) {
 		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 		if (RK_SUCCESS != ret) {
 			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc2 failed with %#x\n", RgnHandle, ret);
-			return RK_FAILURE;
 		}
 		LOG_INFO("RK_MPI_RGN_DetachFromChn to venc2 success\n");
 	}

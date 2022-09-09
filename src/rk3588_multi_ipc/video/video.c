@@ -2581,11 +2581,8 @@ int rkipc_osd_cover_destroy(int id) {
 	stMppChn.s32DevId = 0;
 	stMppChn.s32ChnId = 0;
 	ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
-	if (RK_SUCCESS != ret) {
+	if (!ret)
 		LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to vpss 0 failed with %#x\n", RgnHandle, ret);
-		return RK_FAILURE;
-	}
-	LOG_INFO("RK_MPI_RGN_DetachFromChn to vpss 0 success\n");
 
 	// destory region
 	ret = RK_MPI_RGN_Destroy(RgnHandle);
@@ -2652,11 +2649,8 @@ int rkipc_osd_mosaic_destroy(int id) {
 	stMppChn.s32DevId = 0;
 	stMppChn.s32ChnId = 0;
 	ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
-	if (RK_SUCCESS != ret) {
+	if (!ret)
 		LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to vpss 0 failed with %#x\n", RgnHandle, ret);
-		return RK_FAILURE;
-	}
-	LOG_INFO("RK_MPI_RGN_DetachFromChn to vpss 0 success\n");
 
 	// destory region
 	ret = RK_MPI_RGN_Destroy(RgnHandle);
@@ -2804,29 +2798,20 @@ int rkipc_osd_bmp_destroy(int id) {
 	if (enable_venc_0) {
 		stMppChn.s32ChnId = 0;
 		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
-		if (RK_SUCCESS != ret) {
+		if (RK_SUCCESS != ret)
 			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc0 failed with %#x\n", RgnHandle, ret);
-			return RK_FAILURE;
-		}
-		LOG_INFO("RK_MPI_RGN_DetachFromChn to venc0 success\n");
 	}
 	if (enable_venc_1) {
 		stMppChn.s32ChnId = 1;
 		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
-		if (RK_SUCCESS != ret) {
+		if (RK_SUCCESS != ret)
 			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc1 failed with %#x\n", RgnHandle, ret);
-			return RK_FAILURE;
-		}
-		LOG_INFO("RK_MPI_RGN_DetachFromChn to venc1 success\n");
 	}
 	if (enable_venc_2) {
 		stMppChn.s32ChnId = 2;
 		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
-		if (RK_SUCCESS != ret) {
+		if (RK_SUCCESS != ret)
 			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc2 failed with %#x\n", RgnHandle, ret);
-			return RK_FAILURE;
-		}
-		LOG_INFO("RK_MPI_RGN_DetachFromChn to venc2 success\n");
 	}
 
 	// destory region
@@ -2840,12 +2825,9 @@ int rkipc_osd_bmp_destroy(int id) {
 		RgnHandle += 8;
 		stMppChn.s32ChnId = JPEG_VENC_CHN;
 		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
-		if (RK_SUCCESS != ret) {
+		if (RK_SUCCESS != ret)
 			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc jpeg failed with %#x\n", RgnHandle,
 			          ret);
-			return RK_FAILURE;
-		}
-		LOG_INFO("RK_MPI_RGN_DetachFromChn to venc jpeg success\n");
 
 		// destory region
 		ret = RK_MPI_RGN_Destroy(RgnHandle);
