@@ -430,7 +430,7 @@ int rk_osd_deinit() {
 			rk_osd_bmp_destroy_(i);
 		} else if (!strcmp(osd_type, "privacyMask")) {
 			snprintf(entry, 127, "osd.%d:style", i);
-			const char *style = rk_param_get_string(entry, NULL);
+			const char *style = rk_param_get_string(entry, "cover");
 			if (!strcmp(style, "cover") && rk_osd_cover_destroy_)
 				rk_osd_cover_destroy_(i);
 			else if (!strcmp(style, "mosaic") && rk_osd_mosaic_destroy_)
