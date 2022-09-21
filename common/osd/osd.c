@@ -321,7 +321,7 @@ int rk_osd_init() {
 			snprintf(entry, 127, "osd.%d:height", i);
 			osd_data.height = UPALIGNTO16((int)(rk_param_get_int(entry, -1) * g_y_rate));
 			snprintf(entry, 127, "osd.%d:style", i);
-			const char *style = rk_param_get_string(entry, NULL);
+			const char *style = rk_param_get_string(entry, "cover");
 			if (!strcmp(style, "cover") && rk_osd_cover_create_)
 				rk_osd_cover_create_(i, &osd_data);
 			else if (!strcmp(style, "mosaic") && rk_osd_mosaic_create_)
