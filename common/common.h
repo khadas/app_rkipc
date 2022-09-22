@@ -42,3 +42,4 @@ void rk_signal_reset(void *sem);
 
 long long rkipc_get_curren_time_ms();
 char *get_time_string();
+long get_cmd_val(const char *string, int len);

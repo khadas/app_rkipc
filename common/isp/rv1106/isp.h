@@ -6,6 +6,7 @@ int rk_isp_get_frame_rate(int cam_id, int *value);
 int rk_isp_set_frame_rate(int cam_id, int value);
 int rk_isp_set_frame_rate_without_ini(int cam_id, int value);
 int rk_isp_set_from_ini(int cam_id);
+int rk_isp_fastboot_init();
 // isp scenario
 int rk_isp_get_scenario(int cam_id, const char **value);
 int rk_isp_set_scenario(int cam_id, const char *value);

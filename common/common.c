@@ -127,3 +127,13 @@ char *get_time_string() {
 	        timeinfo->tm_sec, tv.tv_usec);
 	return time_string;
 }
+
+long get_cmd_val(const char *string, int len) {
+	char *addr;
+	long value;
+
+	addr = getenv(string);
+	value = strtol(addr, NULL, len);
+	LOG_INFO("get %s value: 0x%0x\n", string, value);
+	return value;
+}

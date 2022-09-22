@@ -14,6 +14,12 @@
 
 #define MAX_SCENARIO_NUM 2
 #define MAX_AIQ_CTX 8
+
+#define MAP_SIZE (4096UL * 50)              // MAP_SIZE = 4 * 50 K
+#define MAP_MASK (MAP_SIZE - 1)             // MAP_MASK = 0XFFF
+#define MAP_SIZE_NIGHT (4096UL)             // MAP_SIZE = 4K
+#define MAP_MASK_NIGHT (MAP_SIZE_NIGHT - 1) // MAP_MASK = 0XFFF
+
 char g_iq_file_dir_[256];
 char main_scene[32];
 char sub_scene[32];
@@ -1376,6 +1382,76 @@ int rk_isp_af_focus_out(int cam_id) { return rk_isp_af_focus_change(cam_id, -1);
 int rk_isp_af_focus_once(int cam_id) {
 	LOG_INFO("af_focus_once\n");
 	return rk_aiq_uapi2_endOpZoomChange(rkipc_aiq_get_ctx(cam_id));
+}
+
+int rk_isp_fastboot_init(int cam_id) {
+	RK_S32 s32chnlId = 0;
+	int is_bw_night, file_size, fd, ret = 0;
+	void *mem, *vir_addr, *iq_mem, *vir_iqaddr;
+	off_t bw_night_addr, addr_iq;
+
+	RK_S64 s64AiqInitStart = rkipc_get_curren_time_ms();
+	rk_aiq_working_mode_t hdr_mode = RK_AIQ_WORKING_MODE_NORMAL;
+
+	bw_night_addr = (off_t)get_cmd_val("bw_night_addr", 16);
+	if ((fd = open("/dev/mem", O_RDWR | O_SYNC)) < 0) {
+		perror("open error");
+		return -1;
+	}
+
+	mem = mmap(0, MAP_SIZE_NIGHT, PROT_READ | PROT_WRITE, MAP_SHARED, fd,
+	           bw_night_addr & ~MAP_MASK_NIGHT);
+	vir_addr = mem + (bw_night_addr & MAP_MASK_NIGHT);
+	is_bw_night = *((unsigned long *)vir_addr);
+
+	addr_iq = (off_t)get_cmd_val("rk_iqbin_addr", 16);
+	file_size = (int)get_cmd_val("rk_iqbin_size", 16);
+	iq_mem = mmap(0, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, addr_iq & ~MAP_MASK);
+	vir_iqaddr = iq_mem + (addr_iq & MAP_MASK);
+
+	rk_aiq_static_info_t aiq_static_info;
+	rk_aiq_uapi2_sysctl_enumStaticMetas(s32chnlId, &aiq_static_info);
+
+	if (is_bw_night) {
+		LOG_INFO("=====night mode=====\n");
+		ret = rk_aiq_uapi2_sysctl_preInit_scene(aiq_static_info.sensor_info.sensor_name, "normal",
+		                                        "night");
+		if (ret < 0) {
+			LOG_ERROR("%s: failed to set night scene\n", aiq_static_info.sensor_info.sensor_name);
+			return -1;
+		}
+	} else {
+		LOG_INFO("=====day mode=======\n");
+		ret = rk_aiq_uapi2_sysctl_preInit_scene(aiq_static_info.sensor_info.sensor_name, "normal",
+		                                        "day");
+		if (ret < 0) {
+			LOG_ERROR("%s: failed to set day scene\n", aiq_static_info.sensor_info.sensor_name);
+			return -1;
+		}
+	}
+
+	ret = rk_aiq_uapi2_sysctl_preInit_iq_addr(aiq_static_info.sensor_info.sensor_name, vir_iqaddr,
+	                                          (size_t *)file_size);
+	if (ret < 0) {
+		LOG_ERROR("%s: failed to load binary iqfiles\n", aiq_static_info.sensor_info.sensor_name);
+	}
+
+	g_aiq_ctx[cam_id] = rk_aiq_uapi2_sysctl_init(aiq_static_info.sensor_info.sensor_name,
+	                                             "/etc/iqfiles/", NULL, NULL);
+
+	if (rk_aiq_uapi2_sysctl_prepare(g_aiq_ctx[cam_id], 0, 0, hdr_mode)) {
+		LOG_ERROR("rkaiq engine prepare failed !\n");
+		return -1;
+	}
+	if (rk_aiq_uapi2_sysctl_start(g_aiq_ctx[cam_id])) {
+		LOG_ERROR("rk_aiq_uapi2_sysctl_start  failed\n");
+		return -1;
+	}
+	LOG_INFO("aiq start\n");
+	RK_S64 s64AiqInitEnd = rkipc_get_curren_time_ms();
+	LOG_INFO("Aiq:%lld us\n", s64AiqInitEnd - s64AiqInitStart);
+
+	return 0;
 }
 
 int rk_isp_set_from_ini(int cam_id) {

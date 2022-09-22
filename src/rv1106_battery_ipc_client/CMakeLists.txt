@@ -55,7 +55,7 @@ link_directories(${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-uclibcgnueabihf
 
 add_definitions(-DISP_HW_V32)
 #add_definitions(-g -ggdb)
-# add_definitions(-Os)
+#add_definitions(-Os)
 
 # add_definitions(-fsanitize=address -g -ggdb -gdwarf -funwind-tables -rdynamic -O0)
 # add_definitions(-fno-stack-protector -fno-omit-frame-pointer -fsanitize-recover=address)
