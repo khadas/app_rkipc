@@ -18,8 +18,10 @@ rknn_list *rknn_list_;
 
 void create_rknn_list(rknn_list **s) {
 	pthread_mutex_lock(&g_rknn_list_mutex);
-	if (*s != NULL)
+	if (*s != NULL) {
+		pthread_mutex_unlock(&g_rknn_list_mutex);
 		return;
+	}
 	*s = (rknn_list *)malloc(sizeof(rknn_list));
 	(*s)->top = NULL;
 	(*s)->size = 0;
@@ -30,8 +32,10 @@ void create_rknn_list(rknn_list **s) {
 void destory_rknn_list(rknn_list **s) {
 	pthread_mutex_lock(&g_rknn_list_mutex);
 	Node *t = NULL;
-	if (*s == NULL)
+	if (*s == NULL) {
+		pthread_mutex_unlock(&g_rknn_list_mutex);
 		return;
+	}
 	while ((*s)->top) {
 		t = (*s)->top;
 		(*s)->top = t->next;
@@ -62,8 +66,10 @@ void rknn_list_push(rknn_list *s, long long timeval, RockIvaBaResult ba_result) 
 void rknn_list_pop(rknn_list *s, long long *timeval, RockIvaBaResult *ba_result) {
 	pthread_mutex_lock(&g_rknn_list_mutex);
 	Node *t = NULL;
-	if (s == NULL || s->top == NULL)
+	if (s == NULL || s->top == NULL) {
+		pthread_mutex_unlock(&g_rknn_list_mutex);
 		return;
+	}
 	t = s->top;
 	*timeval = t->timeval;
 	*ba_result = t->ba_result;
@@ -76,8 +82,10 @@ void rknn_list_pop(rknn_list *s, long long *timeval, RockIvaBaResult *ba_result)
 void rknn_list_drop(rknn_list *s) {
 	pthread_mutex_lock(&g_rknn_list_mutex);
 	Node *t = NULL;
-	if (s == NULL || s->top == NULL)
+	if (s == NULL || s->top == NULL) {
+		pthread_mutex_unlock(&g_rknn_list_mutex);
 		return;
+	}
 	t = s->top;
 	s->top = t->next;
 	free(t);
