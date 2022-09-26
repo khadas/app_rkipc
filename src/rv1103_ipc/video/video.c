@@ -840,6 +840,11 @@ int rkipc_pipe_0_init() {
 		if (ret)
 			LOG_ERROR("RK_MPI_VENC_EnableMotionDeblur error! ret=%#x\n", ret);
 	}
+	if (rk_param_get_int("video.0:enable_motion_static_switch", 0)) {
+		ret = RK_MPI_VENC_EnableMotionStaticSwitch(VIDEO_PIPE_0, true);
+		if (ret)
+			LOG_ERROR("RK_MPI_VENC_EnableMotionStaticSwitch error! ret=%#x\n", ret);
+	}
 
 	// VENC_RC_PARAM_S h265_RcParam;
 	// RK_MPI_VENC_GetRcParam(VIDEO_PIPE_0, &h265_RcParam);
@@ -1137,6 +1142,11 @@ int rkipc_pipe_1_init() {
 		ret = RK_MPI_VENC_EnableMotionDeblur(VIDEO_PIPE_1, true);
 		if (ret)
 			LOG_ERROR("RK_MPI_VENC_EnableMotionDeblur error! ret=%#x\n", ret);
+	}
+	if (rk_param_get_int("video.1:enable_motion_static_switch", 0)) {
+		ret = RK_MPI_VENC_EnableMotionStaticSwitch(VIDEO_PIPE_1, true);
+		if (ret)
+			LOG_ERROR("RK_MPI_VENC_EnableMotionStaticSwitch error! ret=%#x\n", ret);
 	}
 
 	tmp_rc_quality = rk_param_get_string("video.1:rc_quality", NULL);
