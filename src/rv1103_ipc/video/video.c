@@ -527,7 +527,8 @@ static void *rkipc_ivs_get_results(void *arg) {
 			}
 			if (od == 1) {
 				if (stResults.s32ResultNum > 0) {
-					LOG_INFO("OD flag:%d\n", stResults.pstResults->stOdInfo.u32Flag);
+					if (stResults.pstResults->stOdInfo.u32Flag)
+						LOG_INFO("OD flag:%d\n", stResults.pstResults->stOdInfo.u32Flag);
 				}
 			}
 			RK_MPI_IVS_ReleaseResults(0, &stResults);
