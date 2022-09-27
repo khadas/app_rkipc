@@ -167,6 +167,7 @@ void rkba_callback(const RockIvaBaResult *result, const RockIvaExecuteStatus sta
 int rkipc_rockiva_init() {
 	LOG_INFO("begin\n");
 	RockIvaRetCode ret;
+	const char *model_type;
 	int rotation = rk_param_get_int("video.source:rotation", 0);
 	// char *license_path = NULL;
 	// char *license_key;
@@ -188,12 +189,13 @@ int rkipc_rockiva_init() {
 	globalParams.logLevel = ROCKIVA_LOG_ERROR;
 	globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_FACE;
 	globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_PERSON;
-	globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_NON_VEHICLE;
-#if 0
-	globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_PET;
-#else
-	globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_VEHICLE;
-#endif
+	model_type = rk_param_get_string("event.regional_invasion:rockiva_model_type", "small");
+	if (!strcmp(model_type, "small") || !strcmp(model_type, "medium")) {
+		globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_PET;
+	} else if (!strcmp(model_type, "big")) {
+		globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_NON_VEHICLE;
+		globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_VEHICLE;
+	}
 	globalParams.imageInfo.width = rk_param_get_int("video.2:width", 960);
 	globalParams.imageInfo.height = rk_param_get_int("video.2:height", 540);
 	globalParams.imageInfo.format = ROCKIVA_IMAGE_FORMAT_YUV420SP_NV12;
