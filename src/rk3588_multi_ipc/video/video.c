@@ -20,6 +20,8 @@
 // venc 3 8192*2700
 #define JPEG_VENC_CHN 3
 #define VPSS_AVS_TO_VENC_ID 0
+#define VPSS_GRP_ID 32
+
 #define RKISP_MAINPATH 0
 #define RKISP_SELFPATH 1
 #define RKISP_FBCPATH 2
@@ -2550,7 +2552,7 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 	// display cover regions to venc groups
 	stCoverChn.enModId = RK_ID_VPSS;
 	stCoverChn.s32DevId = 0;
-	stCoverChn.s32ChnId = 0;
+	stCoverChn.s32ChnId = VPSS_GRP_ID;
 	memset(&stCoverChnAttr, 0, sizeof(stCoverChnAttr));
 	stCoverChnAttr.bShow = osd_data->enable;
 	stCoverChnAttr.enType = COVER_RGN;
@@ -2579,7 +2581,7 @@ int rkipc_osd_cover_destroy(int id) {
 	RGN_HANDLE RgnHandle = id;
 	stMppChn.enModId = RK_ID_VPSS;
 	stMppChn.s32DevId = 0;
-	stMppChn.s32ChnId = 0;
+	stMppChn.s32ChnId = VPSS_GRP_ID;
 	ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 	if (!ret)
 		LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to vpss 0 failed with %#x\n", RgnHandle, ret);
@@ -2617,7 +2619,7 @@ int rkipc_osd_mosaic_create(int id, osd_data_s *osd_data) {
 	// display mosaic regions to venc groups
 	mosaic_chn.enModId = RK_ID_VPSS;
 	mosaic_chn.s32DevId = 0;
-	mosaic_chn.s32ChnId = 0;
+	mosaic_chn.s32ChnId = VPSS_GRP_ID;
 	memset(&mosaic_chn_attr, 0, sizeof(mosaic_chn_attr));
 	mosaic_chn_attr.bShow = osd_data->enable;
 	mosaic_chn_attr.enType = MOSAIC_RGN;
@@ -2647,7 +2649,7 @@ int rkipc_osd_mosaic_destroy(int id) {
 	RGN_HANDLE RgnHandle = id;
 	stMppChn.enModId = RK_ID_VPSS;
 	stMppChn.s32DevId = 0;
-	stMppChn.s32ChnId = 0;
+	stMppChn.s32ChnId = VPSS_GRP_ID;
 	ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 	if (!ret)
 		LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to vpss 0 failed with %#x\n", RgnHandle, ret);
