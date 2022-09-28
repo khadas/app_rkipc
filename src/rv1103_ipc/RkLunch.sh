@@ -113,6 +113,10 @@ post_chk()
 		cp $default_rkipc_ini $rkipc_ini -f
 	fi
 
+	if [ ! -f "/userdata/image.bmp" ]; then
+		cp -fa /oem/usr/share/image.bmp /userdata/
+	fi
+
 	if [ -d "/oem/usr/share/iqfiles" ];then
 		rkipc -a /oem/usr/share/iqfiles &
 	else
