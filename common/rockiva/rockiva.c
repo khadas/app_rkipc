@@ -403,7 +403,7 @@ int rkipc_rockiva_write_rgb888_frame(uint16_t width, uint16_t height, uint32_t f
 	image->info.format = ROCKIVA_IMAGE_FORMAT_BGR888;
 	image->dataAddr = buffer;
 	image->frameId = frame_id;
-	ret = ROCKIVA_PushFrame(rkba_handle, image);
+	ret = ROCKIVA_PushFrame(rkba_handle, image, NULL);
 	free(image);
 
 	return ret;
@@ -423,7 +423,7 @@ int rkipc_rockiva_write_rgb888_frame_by_fd(uint16_t width, uint16_t height, uint
 	image->dataAddr = NULL;
 	image->dataPhyAddr = NULL;
 	image->dataFd = fd;
-	ret = ROCKIVA_PushFrame(rkba_handle, image);
+	ret = ROCKIVA_PushFrame(rkba_handle, image, NULL);
 	free(image);
 
 	return ret;
@@ -453,7 +453,7 @@ int rkipc_rockiva_write_nv12_frame_by_fd(uint16_t width, uint16_t height, uint32
 	image->dataAddr = NULL;
 	image->dataPhyAddr = NULL;
 	image->dataFd = fd;
-	ret = ROCKIVA_PushFrame(rkba_handle, image);
+	ret = ROCKIVA_PushFrame(rkba_handle, image, NULL);
 	free(image);
 
 	return ret;
