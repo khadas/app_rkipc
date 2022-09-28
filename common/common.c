@@ -128,12 +128,42 @@ char *get_time_string() {
 	return time_string;
 }
 
+int read_cmdline_to_buf(void *buf, int len) {
+	int fd;
+	int ret;
+	if (buf == NULL || len < 0) {
+		printf("%s: illegal para\n", __func__);
+		return -1;
+	}
+	memset(buf, 0, len);
+	fd = open("/proc/cmdline", O_RDONLY);
+	if (fd < 0) {
+		perror("open:");
+		return -1;
+	}
+	ret = read(fd, buf, len);
+	close(fd);
+	return ret;
+}
+
 long get_cmd_val(const char *string, int len) {
 	char *addr;
-	long value;
+	long value = 0;
+	char key_equal[16];
+	static char cmdline[1024];
+	static char cmd_init = 0;
 
-	addr = getenv(string);
-	value = strtol(addr, NULL, len);
-	LOG_INFO("get %s value: 0x%0x\n", string, value);
+	if (cmd_init == 0) {
+		cmd_init = 1;
+		memset(cmdline, 0, sizeof(cmdline));
+		read_cmdline_to_buf(cmdline, sizeof(cmdline));
+	}
+
+	snprintf(key_equal, sizeof(key_equal), "%s=", string);
+	addr = strstr(cmdline, string);
+	if (addr) {
+		value = strtol(addr + strlen(string) + 1, NULL, len);
+		printf("get %s value: 0x%0lx\n", string, value);
+	}
 	return value;
 }

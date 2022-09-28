@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 #include <errno.h>
+#include <fcntl.h>
 #include <getopt.h>
 #include <pthread.h>
 #include <semaphore.h>
@@ -42,4 +43,5 @@ void rk_signal_reset(void *sem);
 
 long long rkipc_get_curren_time_ms();
 char *get_time_string();
+int read_cmdline_to_buf(void *buf, int len);
 long get_cmd_val(const char *string, int len);
