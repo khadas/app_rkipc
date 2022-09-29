@@ -613,6 +613,7 @@ static void *rkipc_ivs_get_results(void *arg) {
 	int ret, i;
 	IVS_RESULT_INFO_S stResults;
 	int resultscount = 0;
+	int count = 0;
 	int md = rk_param_get_int("video.3:md", 0);
 	int od = rk_param_get_int("video.3:od", 0);
 	int width = rk_param_get_int("video.3:width", 640);
@@ -628,23 +629,27 @@ static void *rkipc_ivs_get_results(void *arg) {
 					int x = width / 8 / 8;
 					int y = stResults.pstResults->stMdInfo.u32Size / 64;
 					if (stResults.pstResults->stMdInfo.pData) {
-						for (int n = 0; n < x * 8; n++)
-							printf("-");
-						printf("\n");
+						// for (int n = 0; n < x * 8; n++)
+						// 	printf("-");
+						// printf("\n");
 						for (int j = 0; j < y; j++) {
 							for (int i = 0; i < x; i++) {
 								for (int k = 0; k < 8; k++) {
 									if (stResults.pstResults->stMdInfo.pData[j * 64 + i] & (1 << k))
-										printf("1");
-									else
-										printf("0");
+										count++;
+									// 	printf("1");
+									// else
+									// 	printf("0");
 								}
 							}
-							printf("\n");
+							// printf("\n");
 						}
-						for (int n = 0; n < x * 8; n++)
-							printf("-");
-						printf("\n");
+						// for (int n = 0; n < x * 8; n++)
+						// 	printf("-");
+						// printf("\n");
+					}
+					if (count > (x * y * 8 / 5)) {
+						LOG_INFO("Detect movement\n");
 					}
 				}
 			}
