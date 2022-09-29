@@ -25,6 +25,7 @@
 #include <inttypes.h> // PRId64
 
 #include "rk_comm_tde.h"
+#include "rk_meta_app_param.h"
 #include "rk_mpi_tde.h"
 #include <rga/im2d.h>
 #include <rga/rga.h>

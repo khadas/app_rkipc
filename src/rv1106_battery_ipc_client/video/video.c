@@ -436,10 +436,10 @@ static void *rkipc_get_vi_2(void *arg) {
 			                                     stViFrame.stVFrame.u32Height, loopCount, fd);
 			s32Ret = RK_MPI_VI_ReleaseChnFrame(pipe_id_, VIDEO_PIPE_2, &stViFrame);
 			if (s32Ret != RK_SUCCESS)
-				LOG_ERROR("RK_MPI_VI_ReleaseChnFrame fail %x", s32Ret);
+				LOG_ERROR("RK_MPI_VI_ReleaseChnFrame fail %x\n", s32Ret);
 			loopCount++;
 		} else {
-			LOG_ERROR("RK_MPI_VI_GetChnFrame timeout %x", s32Ret);
+			LOG_ERROR("RK_MPI_VI_GetChnFrame timeout %x\n", s32Ret);
 		}
 	}
 	return NULL;
@@ -665,14 +665,8 @@ int rkipc_pipe_0_init() {
 }
 
 int rkipc_pipe_0_deinit() {
-	int ret;
-	ret = RK_MPI_VENC_StopRecvFrame(VIDEO_PIPE_0);
-	ret |= RK_MPI_VENC_DestroyChn(VIDEO_PIPE_0);
-	if (ret)
-		LOG_ERROR("ERROR: Destroy VENC error! ret=%#x\n", ret);
-	else
-		LOG_DEBUG("RK_MPI_VENC_DestroyChn success\n");
 
+	pthread_join(venc_thread_0, NULL);
 	return 0;
 }
 
@@ -1383,7 +1377,11 @@ int rkipc_pipe_3_init() {
 
 int rkipc_pipe_3_deinit() {
 	int ret;
-	pthread_join(get_ivs_result_thread, NULL);
+	int md = rk_param_get_int("video.3:md", 0);
+	int od = rk_param_get_int("video.3:od", 0);
+	if (md == 1 || od == 1)
+		pthread_join(get_ivs_result_thread, NULL);
+
 	// unbind
 	vi_chn.enModId = RK_ID_VI;
 	vi_chn.s32DevId = 0;
@@ -1822,11 +1820,39 @@ int rk_video_get_output_data_type(int stream_id, const char **value) {
 }
 
 int rk_video_set_output_data_type(int stream_id, const char *value) {
+	VENC_CHN_ATTR_S venc_chn_attr;
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "video.%d:output_data_type", stream_id);
-	rk_param_set_string(entry, value);
-
-	rk_video_restart();
+	const char *rc_mode;
+	rc_mode = rk_param_get_string("video.0:rc_mode", NULL);
+	if (stream_id == 0) {
+		RK_MPI_VENC_GetChnAttr(stream_id, &venc_chn_attr);
+		if (!strcmp(value, "H.264")) {
+			venc_chn_attr.stVencAttr.enType = RK_VIDEO_ID_AVC;
+			if (!strcmp(rc_mode, "CBR")) {
+				venc_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_H264CBR;
+				venc_chn_attr.stRcAttr.stH264Cbr.u32Gop = rk_param_get_int("video.0:gop", -1);
+			} else {
+				venc_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_H264VBR;
+				venc_chn_attr.stRcAttr.stH264Vbr.u32Gop = rk_param_get_int("video.0:gop", -1);
+			}
+			system("make_meta --update --rk_venc_type 1 --meta_path /dev/block/by-name/meta");
+		} else if (!strcmp(value, "H.265")) {
+			venc_chn_attr.stVencAttr.enType = RK_VIDEO_ID_HEVC;
+			if (!strcmp(rc_mode, "CBR")) {
+				venc_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_H265CBR;
+				venc_chn_attr.stRcAttr.stH265Cbr.u32Gop = rk_param_get_int("video.0:gop", -1);
+			} else {
+				venc_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_H265VBR;
+				venc_chn_attr.stRcAttr.stH265Vbr.u32Gop = rk_param_get_int("video.0:gop", -1);
+			}
+			system("make_meta --update --rk_venc_type 2 --meta_path /dev/block/by-name/meta");
+		}
+		RK_MPI_VENC_SetChnAttr(stream_id, &venc_chn_attr);
+	} else {
+		snprintf(entry, 127, "video.%d:output_data_type", stream_id);
+		rk_param_set_string(entry, value);
+		rk_video_restart();
+	}
 
 	return 0;
 }
@@ -2264,20 +2290,20 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 	stCoverChnAttr.unChnAttr.stCoverChn.u32Color = 0xffffffff;
 	stCoverChnAttr.unChnAttr.stCoverChn.u32Layer = id;
 	LOG_DEBUG("cover region to chn success\n");
-	if (enable_venc_0) {
-		stCoverChn.s32ChnId = 0;
-		ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
-		if (RK_SUCCESS != ret) {
-			LOG_ERROR("0 RK_MPI_RGN_AttachToChn (%d) failed with %#x\n", coverHandle, ret);
-			return RK_FAILURE;
-		}
-		ret = RK_MPI_RGN_SetDisplayAttr(coverHandle, &stCoverChn, &stCoverChnAttr);
-		if (RK_SUCCESS != ret) {
-			LOG_ERROR("0 RK_MPI_RGN_SetDisplayAttr failed with %#x\n", ret);
-			return RK_FAILURE;
-		}
-		LOG_DEBUG("RK_MPI_RGN_AttachToChn to vi 0 success\n");
-	}
+	// if (enable_venc_0) {
+	// 	stCoverChn.s32ChnId = 0;
+	// 	ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
+	// 	if (RK_SUCCESS != ret) {
+	// 		LOG_ERROR("0 RK_MPI_RGN_AttachToChn (%d) failed with %#x\n", coverHandle, ret);
+	// 		return RK_FAILURE;
+	// 	}
+	// 	ret = RK_MPI_RGN_SetDisplayAttr(coverHandle, &stCoverChn, &stCoverChnAttr);
+	// 	if (RK_SUCCESS != ret) {
+	// 		LOG_ERROR("0 RK_MPI_RGN_SetDisplayAttr failed with %#x\n", ret);
+	// 		return RK_FAILURE;
+	// 	}
+	// 	LOG_DEBUG("RK_MPI_RGN_AttachToChn to vi 0 success\n");
+	// }
 	if (enable_venc_1) {
 		stCoverChn.s32ChnId = 1;
 		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X =
@@ -2708,6 +2734,40 @@ int rk_roi_set(roi_data_s *roi_data) {
 // 	return ret;
 // }
 
+int rkipc_read_venctype_from_meta() {
+	struct app_param_info *g_pAppParam = NULL;
+	off_t metaAddr = 0;
+	void *metaVirmem = NULL, *appVirAddr = NULL;
+	int mem_fd = -1;
+	int metaSize = get_cmd_val("meta_part_size", 16);
+	metaAddr = (off_t)get_cmd_val("meta_load_addr", 16);
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.0:output_data_type");
+	if ((mem_fd = open("/dev/mem", O_RDONLY)) < 0) {
+		LOG_ERROR("cannot open /dev/mem.\n");
+		return -1;
+	}
+
+	metaVirmem = mmap(NULL, metaSize, PROT_READ, MAP_SHARED, mem_fd, metaAddr);
+	if (metaVirmem != MAP_FAILED) {
+		RK_U32 app_param_offset = (RK_U32)get_cmd_val(RK_APP_PARAM_OFFSET, 16);
+		appVirAddr = metaVirmem + app_param_offset;
+		g_pAppParam = (struct app_param_info *)(appVirAddr);
+		switch (g_pAppParam->venc_type) {
+		case 1:
+			rk_param_set_string(entry, "H.264");
+			break;
+		case 2:
+		default:
+			rk_param_set_string(entry, "H.265");
+			break;
+		}
+	} else {
+		LOG_ERROR("mmap fail.\n");
+		return -1;
+	}
+}
+
 int rk_video_init() {
 	LOG_DEBUG("begin\n");
 	int ret = 0;
@@ -2731,6 +2791,7 @@ int rk_video_init() {
 	          "enable_wrap is %d, enable_osd is %d\n",
 	          g_vi_chn_id, g_enable_vo, g_vo_dev_id, enable_npu, enable_wrap, enable_osd);
 	g_video_run_ = 1;
+	ret |= rkipc_read_venctype_from_meta();
 	ret |= rkipc_vi_dev_init();
 	if (enable_rtsp)
 		ret |= rkipc_rtsp_init();
