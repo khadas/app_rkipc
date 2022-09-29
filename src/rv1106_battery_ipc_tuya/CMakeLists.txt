@@ -45,7 +45,7 @@ add_definitions(-g -ggdb)
 
 add_executable(${PROJECT_NAME} ${SRCS})
 target_link_libraries(${PROJECT_NAME} libpthread.a librockit.a librockchip_mpp.a librkaiq.a
-				librtsp.a librkaudio_detect.a libaec_bf_process.a libm.a librockiva.a librknnmrt.a librga.a tuya_iot rkbar libstdc++.a)
+				librtsp.a librkaudio_detect.a libaec_bf_process.a libm.a librockiva.a librknnmrt.a librga.a tuya_iot rkbar libstdc++.a librksysutils.a)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION root/usr/bin)
 install(FILES rkipc.ini DESTINATION root/usr/share)
