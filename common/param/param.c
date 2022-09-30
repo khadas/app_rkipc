@@ -90,6 +90,7 @@ int rk_param_set_string(const char *entry, const char *val) {
 
 int rk_param_init(char *ini_path) {
 	LOG_DEBUG("%s\n", __func__);
+	char cmd[256];
 	pthread_mutex_lock(&g_param_mutex);
 	g_ini_d_ = NULL;
 	if (ini_path)
@@ -100,8 +101,16 @@ int rk_param_init(char *ini_path) {
 
 	g_ini_d_ = iniparser_load(g_ini_path_);
 	if (g_ini_d_ == NULL) {
-		LOG_ERROR("iniparser_load error!\n");
-		return -1;
+		LOG_ERROR("iniparser_load %s error! use /oem/usr/share/rkipc.ini\n", g_ini_path_);
+		snprintf(cmd, 127, "cp /oem/usr/share/rkipc.ini %s", g_ini_path_);
+		LOG_INFO("cmd is %s\n", cmd);
+		system(cmd);
+		g_ini_d_ = iniparser_load(g_ini_path_);
+		if (g_ini_d_ == NULL) {
+			LOG_ERROR("iniparser_load error again!\n");
+			pthread_mutex_unlock(&g_param_mutex);
+			return -1;
+		}
 	}
 	rk_param_dump();
 	pthread_mutex_unlock(&g_param_mutex);
@@ -130,6 +139,7 @@ int rk_param_reload() {
 	g_ini_d_ = iniparser_load(g_ini_path_);
 	if (g_ini_d_ == NULL) {
 		LOG_ERROR("iniparser_load error!\n");
+		pthread_mutex_unlock(&g_param_mutex);
 		return -1;
 	}
 	rk_param_dump();

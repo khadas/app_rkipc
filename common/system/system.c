@@ -122,7 +122,7 @@ int rk_system_reboot() {
 }
 
 int rk_system_factory_reset() {
-	system("cp /usr/share/rkipc_factory.ini /usr/share/rkipc.ini");
+	system("cp /oem/usr/share/rkipc.ini /userdata/rkipc.ini");
 	system("reboot");
 	// system("update factory");
 	return 0;
