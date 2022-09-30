@@ -796,6 +796,8 @@ int rkipc_pipe_0_init() {
 	int buf_cnt = 2;
 	int frame_min_i_qp = rk_param_get_int("video.0:frame_min_i_qp", 26);
 	int frame_min_qp = rk_param_get_int("video.0:frame_min_qp", 28);
+	int frame_max_i_qp = rk_param_get_int("video.0:frame_max_i_qp", 51);
+	int frame_max_qp = rk_param_get_int("video.0:frame_max_qp", 51);
 	int scalinglist = rk_param_get_int("video.0:scalinglist", 0);
 
 	// VI
@@ -1002,6 +1004,8 @@ int rkipc_pipe_0_init() {
 		}
 		venc_rc_param.stParamH264.u32FrmMinIQp = frame_min_i_qp;
 		venc_rc_param.stParamH264.u32FrmMinQp = frame_min_qp;
+		venc_rc_param.stParamH264.u32FrmMaxIQp = frame_max_i_qp;
+		venc_rc_param.stParamH264.u32FrmMaxQp = frame_max_qp;
 	} else if (!strcmp(tmp_output_data_type, "H.265")) {
 		if (!strcmp(tmp_rc_quality, "highest")) {
 			venc_rc_param.stParamH265.u32MinQp = 10;
@@ -1020,6 +1024,8 @@ int rkipc_pipe_0_init() {
 		}
 		venc_rc_param.stParamH265.u32FrmMinIQp = frame_min_i_qp;
 		venc_rc_param.stParamH265.u32FrmMinQp = frame_min_qp;
+		venc_rc_param.stParamH265.u32FrmMaxIQp = frame_max_i_qp;
+		venc_rc_param.stParamH265.u32FrmMaxQp = frame_max_qp;
 	} else {
 		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
 		return -1;
@@ -1119,6 +1125,8 @@ int rkipc_pipe_1_init() {
 	int rotation = rk_param_get_int("video.source:rotation", 0);
 	int frame_min_i_qp = rk_param_get_int("video.1:frame_min_i_qp", 26);
 	int frame_min_qp = rk_param_get_int("video.1:frame_min_qp", 28);
+	int frame_max_i_qp = rk_param_get_int("video.1:frame_max_i_qp", 51);
+	int frame_max_qp = rk_param_get_int("video.1:frame_max_qp", 51);
 	int scalinglist = rk_param_get_int("video.1:scalinglist", 0);
 
 	// VI
@@ -1296,6 +1304,8 @@ int rkipc_pipe_1_init() {
 		}
 		venc_rc_param.stParamH264.u32FrmMinIQp = frame_min_i_qp;
 		venc_rc_param.stParamH264.u32FrmMinQp = frame_min_qp;
+		venc_rc_param.stParamH264.u32FrmMaxIQp = frame_max_i_qp;
+		venc_rc_param.stParamH264.u32FrmMaxQp = frame_max_qp;
 	} else if (!strcmp(tmp_output_data_type, "H.265")) {
 		if (!strcmp(tmp_rc_quality, "highest")) {
 			venc_rc_param.stParamH265.u32MinQp = 10;
@@ -1314,6 +1324,8 @@ int rkipc_pipe_1_init() {
 		}
 		venc_rc_param.stParamH265.u32FrmMinIQp = frame_min_i_qp;
 		venc_rc_param.stParamH265.u32FrmMinQp = frame_min_qp;
+		venc_rc_param.stParamH265.u32FrmMaxIQp = frame_max_i_qp;
+		venc_rc_param.stParamH265.u32FrmMaxQp = frame_max_qp;
 	} else {
 		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
 		return -1;
