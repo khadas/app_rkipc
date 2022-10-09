@@ -619,7 +619,7 @@ static void *rkipc_ivs_get_results(void *arg) {
 	int width = rk_param_get_int("video.3:width", 640);
 
 	while (g_video_run_) {
-		ret = RK_MPI_IVS_GetResults(0, &stResults, -1);
+		ret = RK_MPI_IVS_GetResults(0, &stResults, 1000);
 		if (ret >= 0) {
 			resultscount++;
 			LOG_DEBUG("get chn %d results %d\n", 0, resultscount);
