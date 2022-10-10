@@ -95,17 +95,18 @@ Rockchip Electronics Co., Ltd.
 
 ## 产品类型
 
-| 源码目录           | 依赖外部库       | 功能                                                         |
-| ------------------ | ---------------- | ------------------------------------------------------------ |
-| rv1103_ipc         | rockit、rkaiq    | 针对rv1103平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改，默认开启卷绕。 |
-| rv1106_ipc         | rockit、rkaiq    | 针对rv1106平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改，关闭卷绕。 |
-| rv1106_battery_ipc | rockit、rkaiq    | 针对rv1103/rv1106平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能(TODO)。 |
-| rk3588_ipc         | rockit、rkaiq    | 针对rk3588平台的单目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
-| rk3588_muliti_ipc  | rockit、rkaiq    | 针对rk3588平台的多目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
-| rv1126_ipc_rkmedia | rockit、rkaiq    | 针对rv1126/rv1109平台的IPC产品，使用rkmedia，支持网页和rtsp/rtmp预览，参数动态修改。 |
-| rv1126_ipc_rockit  | easymedia、rkaiq | 针对rv1126/rv1109平台的IPC产品，使用rockit，支持网页和rtsp/rtmp预览，参数动态修改。 |
-| rv1126_battery_ipc | rockit、rkaiq    | 针对rv1126/rv1109平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能。 |
-| rv1126_snapshot    | easymedia、rkaiq | 针对rv1126/rv1109平台的抓拍类型产品，支持离线帧，本地拍照/录像，屏幕显示，插值放大(TODO)。 |
+| 源码目录                  | 依赖外部库       | 功能                                                         |
+| ------------------------- | ---------------- | ------------------------------------------------------------ |
+| rv1103_ipc                | rockit、rkaiq    | 针对rv1103平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改，默认开启卷绕。 |
+| rv1106_ipc                | rockit、rkaiq    | 针对rv1106平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改，关闭卷绕。 |
+| rv1106_battery_ipc_client | rockit、rkaiq    | 针对rv1103/rv1106平台的电池类产品，支持网页和rtsp/rtmp预览，参数动态修改，做为快速启动双进程的client。 |
+| rv1106_battery_ipc_tuya   | rockit、rkaiq    | 针对rv1103/rv1106平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能(TODO)。 |
+| rk3588_ipc                | rockit、rkaiq    | 针对rk3588平台的单目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rk3588_muliti_ipc         | rockit、rkaiq    | 针对rk3588平台的多目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rv1126_ipc_rkmedia        | rockit、rkaiq    | 针对rv1126/rv1109平台的IPC产品，使用rkmedia，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rv1126_ipc_rockit         | easymedia、rkaiq | 针对rv1126/rv1109平台的IPC产品，使用rockit，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rv1126_battery_ipc        | rockit、rkaiq    | 针对rv1126/rv1109平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能。 |
+| rv1126_snapshot           | easymedia、rkaiq | 针对rv1126/rv1109平台的抓拍类型产品，支持离线帧，本地拍照/录像，屏幕显示，插值放大(TODO)。 |
 
 ### RV1103 IPC
 
@@ -117,7 +118,7 @@ graph LR
 	VENC_0-->VENC_JPEG
 	VI_1-->VENC_1_and_OSD_draw_NN_result-->RTSP_RTMP_1
 	VI_2-->NPU
-	VI_3-->IVS_for_OD_MD
+	VI_2-->IVS_for_OD_MD
 ```
 
 ### RV1106 IPC
@@ -130,10 +131,10 @@ graph LR
 	VENC_0_and_OSD_draw_NN_result-->RTSP_RTMP_0
 	VI_1-->VENC_1-->RTSP_RTMP_1
 	VI_2-->NPU
-	VI_3-->IVS_for_OD_MD
+	VI_2-->IVS_for_OD_MD
 ```
 
-### RV1106 Battery IPC
+### RV1106 Battery IPC Tuya
 
 ```mermaid
 graph LR
