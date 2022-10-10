@@ -509,6 +509,7 @@ static void *rkipc_ivs_get_results(void *arg) {
 						// for (int n = 0; n < x * 8; n++)
 						// 	printf("-");
 						// printf("\n");
+						count = 0;
 						for (int j = 0; j < y; j++) {
 							for (int i = 0; i < x; i++) {
 								for (int k = 0; k < 8; k++) {

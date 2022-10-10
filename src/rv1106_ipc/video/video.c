@@ -205,12 +205,8 @@ static void *rkipc_get_vi_send_jpeg(void *arg) {
 		LOG_ERROR("RK_MPI_SYS_MmzAlloc err 0x%x\n", ret);
 	}
 
-	pstSrc.u32Width = rk_param_get_int("video.0:width", -1);
-	pstSrc.u32Height = rk_param_get_int("video.0:height", -1);
 	pstSrc.enColorFmt = RK_FMT_YUV420SP;
 	pstSrc.enComprocessMode = COMPRESS_MODE_NONE;
-	pstSrcRect.u32Width = rk_param_get_int("video.0:width", -1);
-	pstSrcRect.u32Height = rk_param_get_int("video.0:height", -1);
 	pstSrcRect.s32Xpos = 0;
 	pstSrcRect.s32Ypos = 0;
 
@@ -231,6 +227,10 @@ static void *rkipc_get_vi_send_jpeg(void *arg) {
 			usleep(300 * 1000);
 			continue;
 		}
+		pstSrc.u32Width = rk_param_get_int("video.0:width", -1);
+		pstSrc.u32Height = rk_param_get_int("video.0:height", -1);
+		pstSrcRect.u32Width = rk_param_get_int("video.0:width", -1);
+		pstSrcRect.u32Height = rk_param_get_int("video.0:height", -1);
 		jpeg_width = rk_param_get_int("video.jpeg:width", 1920);
 		jpeg_height = rk_param_get_int("video.jpeg:height", 1080);
 		ret = RK_MPI_VI_GetChnFrame(pipe_id_, VIDEO_PIPE_0, &stViFrame, 1000);
@@ -632,6 +632,7 @@ static void *rkipc_ivs_get_results(void *arg) {
 						// for (int n = 0; n < x * 8; n++)
 						// 	printf("-");
 						// printf("\n");
+						count = 0;
 						for (int j = 0; j < y; j++) {
 							for (int i = 0; i < x; i++) {
 								for (int k = 0; k < 8; k++) {
@@ -2441,17 +2442,6 @@ int rk_video_set_resolution(int stream_id, const char *value) {
 	ret = RK_MPI_VENC_SetChnAttr(stream_id, &venc_chn_attr);
 	if (ret)
 		LOG_ERROR("RK_MPI_VENC_SetChnAttr error! ret=%#x\n", ret);
-
-	if (enable_jpeg && (stream_id == 0)) {
-		RK_MPI_VENC_GetChnAttr(JPEG_VENC_CHN, &venc_chn_attr);
-		venc_chn_attr.stVencAttr.u32PicWidth = width;
-		venc_chn_attr.stVencAttr.u32PicHeight = height;
-		venc_chn_attr.stVencAttr.u32VirWidth = width;
-		venc_chn_attr.stVencAttr.u32VirHeight = height;
-		ret = RK_MPI_VENC_SetChnAttr(JPEG_VENC_CHN, &venc_chn_attr);
-		if (ret)
-			LOG_ERROR("JPEG RK_MPI_VENC_SetChnAttr error! ret=%#x\n", ret);
-	}
 
 	VI_CHN_ATTR_S vi_chn_attr;
 	RK_MPI_VI_GetChnAttr(0, stream_id, &vi_chn_attr);
