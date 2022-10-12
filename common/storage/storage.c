@@ -638,6 +638,8 @@ static void *rkipc_storage_file_monitor_thread(void *arg) {
 	char buf[BUFSIZ];
 	struct inotify_event *event;
 	int j;
+	char d_name[RKIPC_MAX_FILE_PATH_LEN * 3];
+	struct stat statbuf;
 
 	if (!pHandle) {
 		LOG_ERROR("invalid pHandle");
@@ -674,8 +676,6 @@ static void *rkipc_storage_file_monitor_thread(void *arg) {
 				for (j = 0; j < pHandle->dev_sta.folder_num; j++) {
 					if (event->wd == pHandle->dev_sta.folder[j].wd) {
 						if (event->mask & IN_MOVED_TO) {
-							char d_name[RKIPC_MAX_FILE_PATH_LEN * 3];
-							struct stat statbuf;
 							sprintf(d_name, "%s/%s", pHandle->dev_sta.folder[j].cpath, event->name);
 							if (lstat(d_name, &statbuf)) {
 								LOG_ERROR("lstat[%s](IN_MOVED_TO) failed", d_name);
@@ -694,8 +694,6 @@ static void *rkipc_storage_file_monitor_thread(void *arg) {
 								LOG_ERROR("FileListDel failed");
 
 						if (event->mask & IN_CLOSE_WRITE) {
-							char d_name[RKIPC_MAX_FILE_PATH_LEN * 3];
-							struct stat statbuf;
 							sprintf(d_name, "%s/%s", pHandle->dev_sta.folder[j].cpath, event->name);
 							if (lstat(d_name, &statbuf)) {
 								LOG_ERROR("lstat[%s](IN_CLOSE_WRITE) failed", d_name);
@@ -737,11 +735,20 @@ int rkipc_storage_read_file_list(rkipc_str_folder *folder) {
 	DIR *dir;
 	struct dirent *ptr;
 	struct stat statbuf;
+	char filename[RKIPC_MAX_FILE_PATH_LEN];
 	char d_name[RKIPC_MAX_FILE_PATH_LEN * 3];
 
 	if ((dir = opendir(folder->cpath)) == NULL) {
 		LOG_ERROR("Open dir error\n");
 		return -1;
+	}
+
+	// use clear list instead of file_list_check every time before file_list_add,
+	// and the list is empty when first init, this method takes less time
+	while (folder->file_list_last) {
+		snprintf(filename, RKIPC_MAX_FILE_PATH_LEN, "%s",
+		         folder->file_list_last->filename);
+		rkipc_storage_file_list_del(folder, filename);
 	}
 
 	while ((ptr = readdir(dir)) != NULL) {
@@ -754,8 +761,7 @@ int rkipc_storage_read_file_list(rkipc_str_folder *folder) {
 			if (lstat(d_name, &statbuf)) {
 				LOG_ERROR("lstat[%s](IN_MOVED_TO) failed\n", d_name);
 			} else {
-				if ((rkipc_storage_file_list_check(folder, ptr->d_name, &statbuf) == 0) &&
-				    rkipc_storage_file_list_add(folder, ptr->d_name, &statbuf))
+				if (rkipc_storage_file_list_add(folder, ptr->d_name, &statbuf))
 					LOG_ERROR("FileListAdd failed\n");
 			}
 		}
@@ -800,10 +806,11 @@ RKIPC_MAYBE_UNUSED static int rkipc_storage_RKFSCK(rkipc_storage_handle *pHandle
 
 static void *rkipc_storage_file_scan_thread(void *arg) {
 	rkipc_storage_handle *pHandle = (rkipc_storage_handle *)arg;
-	int cnt = 0;
 	int i;
+	int limit;
 	pthread_t fileMonitorTid = 0;
 	rkipc_str_dev_attr devAttr;
+	char file[3 * RKIPC_MAX_FILE_PATH_LEN];
 
 	if (!pHandle) {
 		LOG_ERROR("invalid pHandle\n");
@@ -834,7 +841,9 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 				LOG_ERROR("CreateFolder failed\n");
 				goto file_scan_out;
 			}
+			LOG_INFO("[%s] i is %d, before rkipc_storage_read_file_list\n", get_time_string(), i);
 			rkipc_storage_read_file_list(&pHandle->dev_sta.folder[i]);
+			LOG_INFO("[%s] i is %d, after rkipc_storage_read_file_list\n", get_time_string(), i);
 		}
 	}
 
@@ -871,93 +880,89 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 	}
 
 	while (pHandle->dev_sta.mount_status == DISK_MOUNTED) {
-		if (cnt++ > 50) {
-			int limit;
-			off_t total_space = 0;
-			cnt = 0;
-			for (i = 0; i < devAttr.folder_num; i++) {
-				if (devAttr.folder_attr[i].num_limit == true) {
-					char file[3 * RKIPC_MAX_FILE_PATH_LEN];
+		usleep(1 * 1000 * 1000);
+		off_t total_space = 0;
 
-					pthread_mutex_lock(&pHandle->dev_sta.folder[i].mutex);
-					limit = pHandle->dev_sta.folder[i].file_num;
-					if (limit > devAttr.folder_attr[i].limit) {
-						if (pHandle->dev_sta.folder[i].file_list_last) {
-							sprintf(file, "%s/%s/%s", devAttr.mount_path,
-							        devAttr.folder_attr[i].folder_path,
-							        pHandle->dev_sta.folder[i].file_list_last->filename);
-							LOG_INFO("Delete file:%s\n", file);
-							pthread_mutex_unlock(&pHandle->dev_sta.folder[i].mutex);
+		// delete file by num limit
+		for (i = 0; i < devAttr.folder_num; i++) {
+			if (devAttr.folder_attr[i].num_limit == false)
+				continue;
 
-							if (remove(file)) {
-								char filename[RKIPC_MAX_FILE_PATH_LEN];
-								snprintf(filename, RKIPC_MAX_FILE_PATH_LEN, "%s",
-								         pHandle->dev_sta.folder[i].file_list_last->filename);
-								rkipc_storage_file_list_del(&pHandle->dev_sta.folder[i], filename);
-								LOG_ERROR("Delete %s file error.\n", file);
-							}
-							usleep(100);
-							cnt = 51;
-							continue;
-						}
+			pthread_mutex_lock(&pHandle->dev_sta.folder[i].mutex);
+			limit = pHandle->dev_sta.folder[i].file_num;
+			while (limit > devAttr.folder_attr[i].limit) {
+				limit = pHandle->dev_sta.folder[i].file_num;
+				if (pHandle->dev_sta.folder[i].file_list_last) {
+					sprintf(file, "%s/%s/%s", devAttr.mount_path,
+					        devAttr.folder_attr[i].folder_path,
+					        pHandle->dev_sta.folder[i].file_list_last->filename);
+					LOG_INFO("delete file by num limit: %s\n", file);
+					if (remove(file)) {
+						char filename[RKIPC_MAX_FILE_PATH_LEN];
+						snprintf(filename, RKIPC_MAX_FILE_PATH_LEN, "%s",
+						         pHandle->dev_sta.folder[i].file_list_last->filename);
+						rkipc_storage_file_list_del(&pHandle->dev_sta.folder[i], filename);
+						LOG_ERROR("Delete %s file error.\n", file);
 					}
 					pthread_mutex_unlock(&pHandle->dev_sta.folder[i].mutex);
+					usleep(100);
+					continue;
 				}
 			}
-
-			if (rkipc_storage_get_disk_size(devAttr.mount_path, &pHandle->dev_sta.total_size,
-			                                &pHandle->dev_sta.free_size)) {
-				LOG_ERROR("GetDiskSize failed\n");
-				goto file_scan_out;
-			}
-			if (pHandle->dev_sta.free_size <= (devAttr.free_size_del_min * 1024))
-				devAttr.auto_delete = 1;
-
-			if (pHandle->dev_sta.free_size >= (devAttr.free_size_del_max * 1024))
-				devAttr.auto_delete = 0;
-
-			if (devAttr.auto_delete) {
-				for (i = 0; i < devAttr.folder_num; i++) {
-					pthread_mutex_lock(&pHandle->dev_sta.folder[i].mutex);
-					if (devAttr.folder_attr[i].num_limit == false)
-						total_space += pHandle->dev_sta.folder[i].total_space;
-					pthread_mutex_unlock(&pHandle->dev_sta.folder[i].mutex);
-				}
-				if (total_space) {
-					for (i = 0; i < devAttr.folder_num; i++) {
-						if (devAttr.folder_attr[i].num_limit == false) {
-							char file[3 * RKIPC_MAX_FILE_PATH_LEN];
-							pthread_mutex_lock(&pHandle->dev_sta.folder[i].mutex);
-							limit = pHandle->dev_sta.folder[i].total_space * 100 / total_space;
-							if (limit > devAttr.folder_attr[i].limit) {
-								if (pHandle->dev_sta.folder[i].file_list_last) {
-									sprintf(file, "%s/%s/%s", devAttr.mount_path,
-									        devAttr.folder_attr[i].folder_path,
-									        pHandle->dev_sta.folder[i].file_list_last->filename);
-									LOG_INFO("Delete file:%s\n", file);
-									pthread_mutex_unlock(&pHandle->dev_sta.folder[i].mutex);
-
-									if (remove(file)) {
-										char filename[RKIPC_MAX_FILE_PATH_LEN];
-										snprintf(
-										    filename, RKIPC_MAX_FILE_PATH_LEN, "%s",
-										    pHandle->dev_sta.folder[i].file_list_last->filename);
-										rkipc_storage_file_list_del(&pHandle->dev_sta.folder[i],
-										                            filename);
-										LOG_ERROR("Delete %s file error.\n", file);
-									}
-									usleep(100);
-									cnt = 51;
-									continue;
-								}
-							}
-							pthread_mutex_unlock(&pHandle->dev_sta.folder[i].mutex);
-						}
-					}
-				}
-			}
+			pthread_mutex_unlock(&pHandle->dev_sta.folder[i].mutex);
 		}
-		usleep(1000 * 1000);
+
+		if (rkipc_storage_get_disk_size(devAttr.mount_path, &pHandle->dev_sta.total_size,
+		                                &pHandle->dev_sta.free_size)) {
+			LOG_ERROR("GetDiskSize failed\n");
+			goto file_scan_out;
+		}
+		if (pHandle->dev_sta.free_size > (devAttr.free_size_del_min * 1024))
+			continue;
+
+		// delete file by space limit
+		for (i = 0; i < devAttr.folder_num; i++) {
+			pthread_mutex_lock(&pHandle->dev_sta.folder[i].mutex);
+			if (devAttr.folder_attr[i].num_limit == false)
+				total_space += pHandle->dev_sta.folder[i].total_space;
+			pthread_mutex_unlock(&pHandle->dev_sta.folder[i].mutex);
+		}
+		if (!total_space) {
+			usleep(1 * 1000 * 1000);
+			continue;
+		}
+		LOG_INFO("pHandle->dev_sta.free_size is %d, min is %d, max is %d\n",
+		         pHandle->dev_sta.free_size, devAttr.free_size_del_min, devAttr.free_size_del_max);
+		LOG_INFO("total_space is %lld\n", total_space);
+		for (i = 0; i < devAttr.folder_num; i++) {
+			if (devAttr.folder_attr[i].num_limit == true)
+				continue;
+			pthread_mutex_lock(&pHandle->dev_sta.folder[i].mutex);
+			limit = pHandle->dev_sta.folder[i].total_space * 100 / total_space;
+			// LOG_INFO("pHandle->dev_sta.folder[i].total_space*100 is %lld, total_space is %lld\n",
+			// pHandle->dev_sta.folder[i].total_space*100, total_space); LOG_INFO("limit is %d,
+			// devAttr.folder_attr[i].limit is %d\n", limit, devAttr.folder_attr[i].limit);
+			while (limit > devAttr.folder_attr[i].limit) {
+				limit = pHandle->dev_sta.folder[i].total_space * 100 / total_space;
+				if (pHandle->dev_sta.folder[i].file_list_last) {
+					sprintf(file, "%s/%s/%s", devAttr.mount_path,
+					        devAttr.folder_attr[i].folder_path,
+					        pHandle->dev_sta.folder[i].file_list_last->filename);
+					LOG_INFO("delete file by space limit: %s\n", file);
+					if (remove(file)) {
+						char filename[RKIPC_MAX_FILE_PATH_LEN];
+						snprintf(filename, RKIPC_MAX_FILE_PATH_LEN, "%s",
+						         pHandle->dev_sta.folder[i].file_list_last->filename);
+						rkipc_storage_file_list_del(&pHandle->dev_sta.folder[i], filename);
+						LOG_ERROR("Delete %s file error.\n", file);
+					}
+					pthread_mutex_unlock(&pHandle->dev_sta.folder[i].mutex);
+					usleep(100);
+					continue;
+				}
+			}
+			pthread_mutex_unlock(&pHandle->dev_sta.folder[i].mutex);
+		}
 	}
 
 file_scan_out:
@@ -1429,12 +1434,12 @@ static int rkipc_storage_para_init(rkipc_storage_handle *pstHandle,
 			}
 
 			for (i = 0; i < pstDevAttr->folder_num; i++) {
-				LOG_DEBUG("DevAttr set:  AutoDel--%d, FreeSizeDel--%d~%d, Path--%s/%s, "
-				          "Limit--%d\n",
-				          pstHandle->dev_attr.auto_delete, pstHandle->dev_attr.free_size_del_min,
-				          pstHandle->dev_attr.free_size_del_max, pstHandle->dev_attr.mount_path,
-				          pstHandle->dev_attr.folder_attr[i].folder_path,
-				          pstHandle->dev_attr.folder_attr[i].limit);
+				LOG_INFO("DevAttr set:  AutoDel--%d, FreeSizeDel--%d~%d, Path--%s/%s, "
+				         "Limit--%d\n",
+				         pstHandle->dev_attr.auto_delete, pstHandle->dev_attr.free_size_del_min,
+				         pstHandle->dev_attr.free_size_del_max, pstHandle->dev_attr.mount_path,
+				         pstHandle->dev_attr.folder_attr[i].folder_path,
+				         pstHandle->dev_attr.folder_attr[i].limit);
 			}
 
 			LOG_DEBUG("Set user-defined device attributes done.\n");
