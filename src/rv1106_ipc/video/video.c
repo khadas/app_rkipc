@@ -49,6 +49,7 @@ static int get_jpeg_cnt = 0;
 static int enable_ivs, enable_jpeg, enable_venc_0, enable_venc_1, enable_rtsp, enable_rtmp;
 static int g_enable_vo, g_vo_dev_id, g_vi_chn_id, enable_npu, enable_wrap, enable_osd;
 static int g_video_run_ = 1;
+static int g_osd_run_ = 1;
 static int pipe_id_ = 0;
 static int dev_id_ = 0;
 static int cycle_snapshot_flag = 0;
@@ -1859,7 +1860,7 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 
 	memset(&stCanvasInfo, 0, sizeof(RGN_CANVAS_INFO_S));
 	memset(&ba_result, 0, sizeof(ba_result));
-	while (g_video_run_) {
+	while (g_osd_run_) {
 		usleep(40 * 1000);
 		rotation = rk_param_get_int("video.source:rotation", 0);
 		if (rotation == 90 || rotation == 270) {
@@ -2368,10 +2369,10 @@ int rk_video_set_resolution(int stream_id, const char *value) {
 
 	sscanf(value, "%d*%d", &width, &height);
 	LOG_INFO("value is %s, width is %d, height is %d\n", value, width, height);
-	snprintf(entry, 127, "video.%d:width", stream_id);
-	rk_param_set_int(entry, width);
-	snprintf(entry, 127, "video.%d:height", stream_id);
-	rk_param_set_int(entry, height);
+	if (stream_id == 0) {
+		g_osd_run_ = 0;
+		rkipc_osd_draw_nn_deinit();
+	}
 
 	// unbind
 	vi_chn.enModId = RK_ID_VI;
@@ -2386,6 +2387,11 @@ int rk_video_set_resolution(int stream_id, const char *value) {
 	else
 		LOG_DEBUG("Unbind VI and VENC success\n");
 
+	snprintf(entry, 127, "video.%d:width", stream_id);
+	rk_param_set_int(entry, width);
+	snprintf(entry, 127, "video.%d:height", stream_id);
+	rk_param_set_int(entry, height);
+
 	VENC_CHN_ATTR_S venc_chn_attr;
 	RK_MPI_VENC_GetChnAttr(stream_id, &venc_chn_attr);
 	venc_chn_attr.stVencAttr.u32PicWidth = width;
@@ -2396,6 +2402,10 @@ int rk_video_set_resolution(int stream_id, const char *value) {
 	if (ret)
 		LOG_ERROR("RK_MPI_VENC_SetChnAttr error! ret=%#x\n", ret);
 
+	if (stream_id == 0) {
+		g_osd_run_ = 1;
+		rkipc_osd_draw_nn_init();
+	}
 	VI_CHN_ATTR_S vi_chn_attr;
 	RK_MPI_VI_GetChnAttr(0, stream_id, &vi_chn_attr);
 	vi_chn_attr.stSize.u32Width = width;
@@ -3110,6 +3120,7 @@ int rk_video_init() {
 	          "enable_wrap is %d, enable_osd is %d\n",
 	          g_vi_chn_id, g_enable_vo, g_vo_dev_id, enable_npu, enable_wrap, enable_osd);
 	g_video_run_ = 1;
+	g_osd_run_ = 1;
 	ret |= rkipc_vi_dev_init();
 	if (enable_rtsp)
 		ret |= rkipc_rtsp_init();
@@ -3145,6 +3156,7 @@ int rk_video_init() {
 int rk_video_deinit() {
 	LOG_DEBUG("%s\n", __func__);
 	g_video_run_ = 0;
+	g_osd_run_ = 0;
 	int ret = 0;
 	if (enable_npu)
 		ret |= rkipc_osd_draw_nn_deinit();
