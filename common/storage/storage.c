@@ -59,7 +59,6 @@ static int rkipc_storage_get_mount_dev(const char *path, char *dev, char *type, 
 }
 
 int rkipc_storage_set_dev_attr(rkipc_str_dev_attr *pstDevAttr) {
-	int quota;
 	const char *folder_name = NULL;
 	const char *mount_path = NULL;
 	char dev_path[64];
@@ -106,26 +105,33 @@ int rkipc_storage_set_dev_attr(rkipc_str_dev_attr *pstDevAttr) {
 	}
 	memset(pstDevAttr->folder_attr, 0, sizeof(rkipc_str_folder_attr) * pstDevAttr->folder_num);
 
-	quota = rk_param_get_int("storage.0:video_quota", 30);
 	folder_name = rk_param_get_string("storage.0:folder_name", "video0");
 	pstDevAttr->folder_attr[0].sort_cond = SORT_FILE_NAME;
-	pstDevAttr->folder_attr[0].num_limit = false;
-	pstDevAttr->folder_attr[0].limit = quota;
 	sprintf(pstDevAttr->folder_attr[0].folder_path, folder_name);
 
-	quota = rk_param_get_int("storage.1:video_quota", 30);
 	folder_name = rk_param_get_string("storage.1:folder_name", "video1");
 	pstDevAttr->folder_attr[1].sort_cond = SORT_FILE_NAME;
-	pstDevAttr->folder_attr[1].num_limit = false;
-	pstDevAttr->folder_attr[1].limit = quota;
 	sprintf(pstDevAttr->folder_attr[1].folder_path, folder_name);
 
-	quota = rk_param_get_int("storage.2:video_quota", 30);
 	folder_name = rk_param_get_string("storage.2:folder_name", "video2");
 	pstDevAttr->folder_attr[2].sort_cond = SORT_FILE_NAME;
-	pstDevAttr->folder_attr[2].num_limit = false;
-	pstDevAttr->folder_attr[2].limit = quota;
 	sprintf(pstDevAttr->folder_attr[2].folder_path, folder_name);
+
+	if (rk_param_get_int("storage:num_limit_enable", 0)) {
+		pstDevAttr->folder_attr[0].num_limit = true;
+		pstDevAttr->folder_attr[1].num_limit = true;
+		pstDevAttr->folder_attr[2].num_limit = true;
+		pstDevAttr->folder_attr[0].limit = rk_param_get_int("storage.0:file_max_num", 300);
+		pstDevAttr->folder_attr[1].limit = rk_param_get_int("storage.1:file_max_num", 300);
+		pstDevAttr->folder_attr[2].limit = rk_param_get_int("storage.2:file_max_num", 300);
+	} else {
+		pstDevAttr->folder_attr[0].num_limit = false;
+		pstDevAttr->folder_attr[1].num_limit = false;
+		pstDevAttr->folder_attr[2].num_limit = false;
+		pstDevAttr->folder_attr[0].limit = rk_param_get_int("storage.0:video_quota", 30);
+		pstDevAttr->folder_attr[1].limit = rk_param_get_int("storage.1:video_quota", 30);
+		pstDevAttr->folder_attr[2].limit = rk_param_get_int("storage.2:video_quota", 30);
+	}
 
 	return 0;
 }
@@ -746,8 +752,7 @@ int rkipc_storage_read_file_list(rkipc_str_folder *folder) {
 	// use clear list instead of file_list_check every time before file_list_add,
 	// and the list is empty when first init, this method takes less time
 	while (folder->file_list_last) {
-		snprintf(filename, RKIPC_MAX_FILE_PATH_LEN, "%s",
-		         folder->file_list_last->filename);
+		snprintf(filename, RKIPC_MAX_FILE_PATH_LEN, "%s", folder->file_list_last->filename);
 		rkipc_storage_file_list_del(folder, filename);
 	}
 
@@ -880,14 +885,13 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 	}
 
 	while (pHandle->dev_sta.mount_status == DISK_MOUNTED) {
-		usleep(1 * 1000 * 1000);
+		usleep(60 * 1000 * 1000);
 		off_t total_space = 0;
 
 		// delete file by num limit
 		for (i = 0; i < devAttr.folder_num; i++) {
 			if (devAttr.folder_attr[i].num_limit == false)
 				continue;
-
 			pthread_mutex_lock(&pHandle->dev_sta.folder[i].mutex);
 			limit = pHandle->dev_sta.folder[i].file_num;
 			while (limit > devAttr.folder_attr[i].limit) {
