@@ -502,7 +502,7 @@ static void *rkipc_get_jpeg(void *arg) {
 			snprintf(file_name, 128, "%s/%d%02d%02d%02d%02d%02d.jpeg", record_path,
 			         tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min,
 			         tm.tm_sec);
-			LOG_INFO("file_name is %s, u32Len is %d\n", file_name, stFrame.pstPack->u32Len);
+			LOG_DEBUG("file_name is %s, u32Len is %d\n", file_name, stFrame.pstPack->u32Len);
 			FILE *fp = fopen(file_name, "wb");
 			if (fp == NULL) {
 				LOG_ERROR("fp is NULL\n");
