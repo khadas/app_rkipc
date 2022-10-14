@@ -180,6 +180,7 @@ static void *rkipc_get_venc_0(void *arg) {
 
 static void *rkipc_get_vi_send_jpeg(void *arg) {
 	LOG_DEBUG("#Start %s thread, arg:%p\n", __func__, arg);
+	prctl(PR_SET_NAME, "RkipcSendJPEG", 0, 0, 0);
 	int jpeg_width, jpeg_height, ret;
 
 	TDE_HANDLE hHandle;
@@ -545,6 +546,7 @@ static void *rkipc_cycle_snapshot(void *arg) {
 
 static void *rkipc_get_vi_2_send(void *arg) {
 	LOG_DEBUG("#Start %s thread, arg:%p\n", __func__, arg);
+	prctl(PR_SET_NAME, "RkipcGetVi2", 0, 0, 0);
 	int ret;
 	int32_t loopCount = 0;
 	VIDEO_FRAME_INFO_S stViFrame;
@@ -617,6 +619,7 @@ static void *rkipc_get_vpss_bgr(void *arg) {
 
 static void *rkipc_ivs_get_results(void *arg) {
 	LOG_DEBUG("#Start %s thread, arg:%p\n", __func__, arg);
+	prctl(PR_SET_NAME, "RkipcGetIVS", 0, 0, 0);
 	int ret, i;
 	IVS_RESULT_INFO_S stResults;
 	int resultscount = 0;
