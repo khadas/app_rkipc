@@ -4,6 +4,7 @@
 #include "network.h"
 #include "Rk_wifi.h"
 #include "common.h"
+#include "ntp.h"
 #include <linux/if.h> // must be included later than <net/if.h>
 
 #ifdef LOG_TAG
@@ -17,6 +18,8 @@
 static char netmode[32];
 static rk_network_cb rk_cb;
 static int netlink_fd = 0;
+static int g_network_run_ = 0;
+static pthread_t ntp_client_thread_id;
 
 static int readNlSock(int sockFd, char *bufPtr, int seqNum, int pId) {
 	struct nlmsghdr *nlHdr;
@@ -802,7 +805,22 @@ static void *rk_net_proc() {
 	return NULL;
 }
 
+static void *ntp_client_thread() {
+	prctl(PR_SET_NAME, "ntp_client_thread", 0, 0, 0);
+	int refresh_time_s = rk_param_get_int("network.ntp:refresh_time_s", 60);
+	const char *ntp_server = rk_param_get_string("network:ntp.ntp_server", "119.28.183.184");
+	LOG_INFO("refresh_time_s is %d, ntp_server is %s\n", refresh_time_s, ntp_server);
+
+	while (g_network_run_) {
+		sleep(refresh_time_s);
+		rkipc_ntp_update(ntp_server);
+	}
+
+	return NULL;
+}
+
 void rk_network_init(rk_network_cb func) { // func_cb func
+	g_network_run_ = 1;
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
@@ -813,9 +831,15 @@ void rk_network_init(rk_network_cb func) { // func_cb func
 	}
 	if (func)
 		rk_cb = func;
+
+	if (rk_param_get_int("network.ntp:enable", 0)) {
+		pthread_create(&ntp_client_thread_id, NULL, ntp_client_thread, NULL);
+	}
 }
 
 void rk_network_deinit() { // pthread_t pthid
+	g_network_run_ = 0;
+	pthread_join(ntp_client_thread_id, NULL);
 	close(netlink_fd);
 }
 
