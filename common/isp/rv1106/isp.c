@@ -1062,6 +1062,7 @@ int rk_isp_set_dehaze(int cam_id, const char *value) {
 			attr.stManual.enhance_setting.en = false;
 			attr.stManual.cfg_alpha = 1.0f;
 		}
+		attr.Info.updateMDehazeStrth = true;
 		attr.Info.MDehazeStrth = 50;
 	} else if (!strcmp(value, "auto")) {
 		if (attr.mode == DEHAZE_API_AUTO) {
@@ -1075,6 +1076,7 @@ int rk_isp_set_dehaze(int cam_id, const char *value) {
 			attr.stManual.enhance_setting.en = false;
 			attr.stManual.cfg_alpha = 1.0f;
 		}
+		attr.Info.updateMDehazeStrth = true;
 		attr.Info.MDehazeStrth = 50;
 	}
 	ret = rk_aiq_user_api2_adehaze_v12_setSwAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
@@ -1234,6 +1236,7 @@ int rk_isp_set_dehaze_level(int cam_id, int value) {
 	rk_aiq_user_api2_adehaze_v12_getSwAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	attr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
 	attr.sync.done = false;
+	attr.Info.updateMDehazeStrth = true;
 	attr.Info.MDehazeStrth = value * 10;
 	ret = rk_aiq_user_api2_adehaze_v12_setSwAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	snprintf(entry, 127, "isp.%d.enhancement:dehaze_level", rkipc_get_scenario_id(cam_id));
