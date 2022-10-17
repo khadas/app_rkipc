@@ -2899,7 +2899,7 @@ int rk_take_photo() {
 int rk_roi_set(roi_data_s *roi_data) {
 	// LOG_DEBUG("id is %d\n", id);
 	int ret = 0;
-	int venc_chn = 0;
+	int venc_chn = -1;
 	VENC_ROI_ATTR_S pstRoiAttr;
 	pstRoiAttr.u32Index = roi_data->id;
 	pstRoiAttr.bEnable = roi_data->enabled;
@@ -2930,20 +2930,26 @@ int rk_roi_set(roi_data_s *roi_data) {
 		pstRoiAttr.s32Qp = -6;
 	}
 
-	if (!strcmp(roi_data->stream_type, "mainStream")) {
+	if (!strcmp(roi_data->stream_type, "mainStream") &&
+	    rk_param_get_int("video.source:enable_venc_0", 0)) {
 		venc_chn = 0;
-	} else if (!strcmp(roi_data->stream_type, "subStream")) {
+	} else if (!strcmp(roi_data->stream_type, "subStream") &&
+	           rk_param_get_int("video.source:enable_venc_1", 0)) {
 		venc_chn = 1;
-	} else {
+	} else if (!strcmp(roi_data->stream_type, "thirdStream") &&
+	           rk_param_get_int("video.source:enable_venc_2", 0)) {
 		venc_chn = 2;
+	} else {
+		LOG_DEBUG("%s is not exit\n", roi_data->stream_type);
+		return -1;
 	}
 
 	ret = RK_MPI_VENC_SetRoiAttr(venc_chn, &pstRoiAttr);
 	if (RK_SUCCESS != ret) {
-		LOG_ERROR("RK_MPI_VENC_SetRoiAttr to venc0 failed with %#x\n", ret);
+		LOG_ERROR("RK_MPI_VENC_SetRoiAttr to venc %d failed with %#x\n", venc_chn, ret);
 		return RK_FAILURE;
 	}
-	LOG_DEBUG("RK_MPI_VENC_SetRoiAttr to venc0 success\n");
+	LOG_DEBUG("RK_MPI_VENC_SetRoiAttr to venc %d success\n", venc_chn);
 
 	return ret;
 }

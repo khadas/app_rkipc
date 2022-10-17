@@ -3117,20 +3117,25 @@ int rk_roi_set(roi_data_s *roi_data) {
 		pstRoiAttr.s32Qp = -6;
 	}
 
-	if (!strcmp(roi_data->stream_type, "mainStream")) {
+	if (!strcmp(roi_data->stream_type, "mainStream") && rk_param_get_int("avs:enable_venc_0", 0)) {
 		venc_chn = 0;
-	} else if (!strcmp(roi_data->stream_type, "subStream")) {
+	} else if (!strcmp(roi_data->stream_type, "subStream") &&
+	           rk_param_get_int("avs:enable_venc_1", 0)) {
 		venc_chn = 1;
-	} else {
+	} else if (!strcmp(roi_data->stream_type, "thirdStream") &&
+	           rk_param_get_int("avs:enable_venc_2", 0)) {
 		venc_chn = 2;
+	} else {
+		LOG_DEBUG("%s is not exit\n", roi_data->stream_type);
+		return -1;
 	}
 
 	ret = RK_MPI_VENC_SetRoiAttr(venc_chn, &pstRoiAttr);
 	if (RK_SUCCESS != ret) {
-		LOG_ERROR("RK_MPI_VENC_SetRoiAttr to venc failed with %#x\n", ret);
+		LOG_ERROR("RK_MPI_VENC_SetRoiAttr to venc %d failed with %#x\n", venc_chn, ret);
 		return RK_FAILURE;
 	}
-	LOG_INFO("RK_MPI_VENC_SetRoiAttr to venc success\n");
+	LOG_DEBUG("RK_MPI_VENC_SetRoiAttr to venc %d success\n", venc_chn);
 
 	return ret;
 }

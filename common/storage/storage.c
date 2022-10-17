@@ -890,7 +890,7 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 	g_file_scan_signal = rk_signal_create(0, 1);
 	if (!g_file_scan_signal) {
 		LOG_ERROR("create signal fail\n");
-		return -1;
+		return NULL;
 	}
 	while (pHandle->dev_sta.mount_status == DISK_MOUNTED) {
 		rk_signal_wait(g_file_scan_signal, 60 * 1000); // 60s
