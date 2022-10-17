@@ -2439,6 +2439,7 @@ int rk_video_set_resolution(int stream_id, const char *value) {
 	if (ret)
 		LOG_ERROR("RK_MPI_VI_SetChnAttr error! ret=%#x\n", ret);
 
+	rk_roi_set_all(); // update roi info
 	ret = RK_MPI_SYS_Bind(&vi_chn, &venc_chn);
 	if (ret)
 		LOG_ERROR("Unbind VI and VENC error! ret=%#x\n", ret);
