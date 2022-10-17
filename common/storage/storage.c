@@ -12,6 +12,7 @@
 
 static int record_flag[STORAGE_NUM] = {-1};
 static void *g_sd_phandle = NULL;
+static void *g_file_scan_signal = NULL;
 static rkipc_str_dev_attr g_sd_dev_attr;
 static int rk_storage_muxer_init_by_id(int id);
 static int rk_storage_muxer_deinit_by_id(int id);
@@ -811,8 +812,8 @@ RKIPC_MAYBE_UNUSED static int rkipc_storage_RKFSCK(rkipc_storage_handle *pHandle
 
 static void *rkipc_storage_file_scan_thread(void *arg) {
 	rkipc_storage_handle *pHandle = (rkipc_storage_handle *)arg;
-	int i;
-	int limit;
+	int i, limit;
+	off_t total_space = 0;
 	pthread_t fileMonitorTid = 0;
 	rkipc_str_dev_attr devAttr;
 	char file[3 * RKIPC_MAX_FILE_PATH_LEN];
@@ -884,10 +885,19 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 		goto file_scan_out;
 	}
 
+	if (g_file_scan_signal)
+		rk_signal_destroy(g_file_scan_signal);
+	g_file_scan_signal = rk_signal_create(0, 1);
+	if (!g_file_scan_signal) {
+		LOG_ERROR("create signal fail\n");
+		return -1;
+	}
 	while (pHandle->dev_sta.mount_status == DISK_MOUNTED) {
-		usleep(60 * 1000 * 1000);
-		off_t total_space = 0;
+		rk_signal_wait(g_file_scan_signal, 60 * 1000); // 60s
+		if (pHandle->dev_sta.mount_status != DISK_MOUNTED)
+			break;
 
+		total_space = 0;
 		// delete file by num limit
 		for (i = 0; i < devAttr.folder_num; i++) {
 			if (devAttr.folder_attr[i].num_limit == false)
@@ -901,14 +911,16 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 					        devAttr.folder_attr[i].folder_path,
 					        pHandle->dev_sta.folder[i].file_list_last->filename);
 					LOG_INFO("delete file by num limit: %s\n", file);
-					if (remove(file)) {
-						char filename[RKIPC_MAX_FILE_PATH_LEN];
-						snprintf(filename, RKIPC_MAX_FILE_PATH_LEN, "%s",
-						         pHandle->dev_sta.folder[i].file_list_last->filename);
-						rkipc_storage_file_list_del(&pHandle->dev_sta.folder[i], filename);
-						LOG_ERROR("Delete %s file error.\n", file);
-					}
 					pthread_mutex_unlock(&pHandle->dev_sta.folder[i].mutex);
+					// when the deletion is too fast,
+					// the other listener thread cannot respond in time,
+					// which will cause duplication twice, so delete it directly here first
+					char filename[RKIPC_MAX_FILE_PATH_LEN];
+					snprintf(filename, RKIPC_MAX_FILE_PATH_LEN, "%s",
+					         pHandle->dev_sta.folder[i].file_list_last->filename);
+					rkipc_storage_file_list_del(&pHandle->dev_sta.folder[i], filename);
+					if (remove(file))
+						LOG_ERROR("Delete %s file error.\n", file);
 					usleep(100);
 					continue;
 				}
@@ -953,14 +965,16 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 					        devAttr.folder_attr[i].folder_path,
 					        pHandle->dev_sta.folder[i].file_list_last->filename);
 					LOG_INFO("delete file by space limit: %s\n", file);
-					if (remove(file)) {
-						char filename[RKIPC_MAX_FILE_PATH_LEN];
-						snprintf(filename, RKIPC_MAX_FILE_PATH_LEN, "%s",
-						         pHandle->dev_sta.folder[i].file_list_last->filename);
-						rkipc_storage_file_list_del(&pHandle->dev_sta.folder[i], filename);
-						LOG_ERROR("Delete %s file error.\n", file);
-					}
 					pthread_mutex_unlock(&pHandle->dev_sta.folder[i].mutex);
+					// when the deletion is too fast,
+					// the other listener thread cannot respond in time,
+					// which will cause duplication twice, so delete it directly here first
+					char filename[RKIPC_MAX_FILE_PATH_LEN];
+					snprintf(filename, RKIPC_MAX_FILE_PATH_LEN, "%s",
+					         pHandle->dev_sta.folder[i].file_list_last->filename);
+					rkipc_storage_file_list_del(&pHandle->dev_sta.folder[i], filename);
+					if (remove(file))
+						LOG_ERROR("Delete %s file error.\n", file);
 					usleep(100);
 					continue;
 				}
@@ -1056,11 +1070,16 @@ static int rkipc_storage_dev_remove(char *dev, rkipc_storage_handle *pHandle) {
 		pHandle->dev_sta.total_size = 0;
 		pHandle->dev_sta.free_size = 0;
 		pHandle->dev_sta.fsck_quit = 1;
-
+		if (g_file_scan_signal)
+			rk_signal_give(g_file_scan_signal);
 		if (pHandle->dev_sta.file_scan_tid) {
 			if (pthread_join(pHandle->dev_sta.file_scan_tid, NULL))
 				LOG_ERROR("FileScanThread join failed.");
 			pHandle->dev_sta.file_scan_tid = 0;
+		}
+		if (g_file_scan_signal) {
+			rk_signal_destroy(g_file_scan_signal);
+			g_file_scan_signal = NULL;
 		}
 		umount2(pHandle->dev_attr.mount_path, MNT_DETACH);
 	}
@@ -1545,10 +1564,16 @@ static int rkipc_storage_auto_delete_deinit(rkipc_storage_handle *pHandle) {
 	RKIPC_CHECK_POINTER(pHandle, RKIPC_STORAGE_FAIL);
 
 	pHandle->dev_sta.mount_status = DISK_UNMOUNTED;
-
-	if (pHandle->dev_sta.file_scan_tid)
+	if (g_file_scan_signal)
+		rk_signal_give(g_file_scan_signal);
+	if (pHandle->dev_sta.file_scan_tid) {
 		if (pthread_join(pHandle->dev_sta.file_scan_tid, NULL))
 			LOG_ERROR("FileScanThread join failed.\n");
+	}
+	if (g_file_scan_signal) {
+		rk_signal_destroy(g_file_scan_signal);
+		g_file_scan_signal = NULL;
+	}
 
 	return 0;
 }
