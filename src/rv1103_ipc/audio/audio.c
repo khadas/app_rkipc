@@ -9,6 +9,7 @@
 #include <rk_debug.h>
 #include <rk_mpi_aenc.h>
 #include <rk_mpi_ai.h>
+#include <rk_mpi_ao.h>
 #include <rk_mpi_mb.h>
 #include <rk_mpi_sys.h>
 
@@ -396,6 +397,97 @@ int rkipc_audio_rtsp_init() {
 	rtsp_set_audio(g_rtsp_session_1, RTSP_CODEC_ID_AUDIO_G711A, NULL, 0);
 	rtsp_sync_audio_ts(g_rtsp_session_0, rtsp_get_reltime(), rtsp_get_ntptime());
 	rtsp_sync_audio_ts(g_rtsp_session_1, rtsp_get_reltime(), rtsp_get_ntptime());
+
+	return 0;
+}
+
+int rkipc_ao_init() {
+	int ret;
+	AIO_ATTR_S aoAttr;
+	memset(&aoAttr, 0, sizeof(AIO_ATTR_S));
+
+	const char *card_name = rk_param_get_string("audio.0:card_name", "default");
+	snprintf(aoAttr.u8CardName, sizeof(aoAttr.u8CardName), "%s", card_name);
+	LOG_INFO("aoAttr.u8CardName is %s\n", aoAttr.u8CardName);
+
+	aoAttr.soundCard.channels = 2;
+	aoAttr.soundCard.sampleRate = rk_param_get_int("audio.0:sample_rate", 8000);
+
+	const char *format = rk_param_get_string("audio.0:format", NULL);
+	if (!strcmp(format, "S16")) {
+		aoAttr.soundCard.bitWidth = AUDIO_BIT_WIDTH_16;
+		aoAttr.enBitwidth = AUDIO_BIT_WIDTH_16;
+	} else if (!strcmp(format, "U8")) {
+		aoAttr.soundCard.bitWidth = AUDIO_BIT_WIDTH_8;
+		aoAttr.enBitwidth = AUDIO_BIT_WIDTH_8;
+	} else {
+		LOG_ERROR("not support %s\n", format);
+	}
+
+	aoAttr.enSamplerate = rk_param_get_int("audio.0:sample_rate", 16000);
+	if (rk_param_get_int("audio.0:channels", 2) == 2)
+		aoAttr.enSoundmode = AUDIO_SOUND_MODE_STEREO;
+	else
+		aoAttr.enSoundmode = AUDIO_SOUND_MODE_MONO;
+	aoAttr.u32FrmNum = 4;
+	aoAttr.u32PtNumPerFrm = rk_param_get_int("audio.0:frame_size", 1024);
+	aoAttr.u32EXFlag = 0;
+	aoAttr.u32ChnCnt = 2;
+
+	ret = RK_MPI_AO_SetPubAttr(0, &aoAttr);
+	if (ret)
+		LOG_ERROR("RK_MPI_AO_SetPubAttr fail %#x\n", ret);
+	ret = RK_MPI_AO_Enable(0);
+	if (ret)
+		LOG_ERROR("RK_MPI_AO_Enable fail %#x\n", ret);
+	ret = RK_MPI_AO_EnableChn(0, 0);
+	if (ret)
+		LOG_ERROR("RK_MPI_AO_EnableChn fail %#x\n", ret);
+	ret = RK_MPI_AO_SetTrackMode(0, AUDIO_TRACK_OUT_STEREO);
+	if (ret)
+		LOG_ERROR("RK_MPI_AO_EnableChn fail %#x\n", ret);
+
+	return 0;
+}
+
+int rkipc_ao_deinit() {
+	int ret;
+	ret = RK_MPI_AO_DisableChn(0, 0);
+	if (ret)
+		LOG_ERROR("RK_MPI_AO_DisableChn fail %#x\n", ret);
+	ret = RK_MPI_AO_Disable(0);
+	if (ret)
+		LOG_ERROR("RK_MPI_AO_Disable fail %#x\n", ret);
+
+	return 0;
+}
+
+int rkipc_ao_write(unsigned char *data, int data_len) {
+	int ret;
+	AUDIO_FRAME_S frame;
+	MB_EXT_CONFIG_S extConfig;
+	memset(&frame, 0, sizeof(frame));
+	frame.u32Len = data_len;
+	frame.u64TimeStamp = 0;
+	frame.enBitWidth = AUDIO_BIT_WIDTH_16;
+	frame.enSoundMode = AUDIO_SOUND_MODE_STEREO;
+	frame.bBypassMbBlk = RK_FALSE;
+
+	memset(&extConfig, 0, sizeof(extConfig));
+	extConfig.pOpaque = data;
+	extConfig.pu8VirAddr = data;
+	extConfig.u64Size = data_len;
+	RK_MPI_SYS_CreateMB(&(frame.pMbBlk), &extConfig);
+
+	ret = RK_MPI_AO_SendFrame(0, 0, &frame, 1000);
+	if (ret)
+		LOG_ERROR("send frame fail, result = %#x\n", ret);
+	RK_MPI_MB_ReleaseMB(frame.pMbBlk);
+
+	if (data_len <= 0) {
+		LOG_INFO("eof\n");
+		RK_MPI_AO_WaitEos(0, 0, -1);
+	}
 
 	return 0;
 }

@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 int rkipc_audio_rtsp_init();
+int rkipc_ao_init();
+int rkipc_ao_deinit();
+int rkipc_ao_write(unsigned char *data, int data_len);
 int rkipc_audio_init();
 int rkipc_audio_deinit();
 // export api
