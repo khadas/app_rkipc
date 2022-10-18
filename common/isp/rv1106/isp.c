@@ -1235,7 +1235,7 @@ int rk_isp_set_dehaze_level(int cam_id, int value) {
 	attr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
 	attr.sync.done = false;
 	attr.Info.MDehazeStrth = value * 10;
-	int ret = rk_aiq_user_api2_adehaze_v12_setSwAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
+	ret = rk_aiq_user_api2_adehaze_v12_setSwAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	snprintf(entry, 127, "isp.%d.enhancement:dehaze_level", rkipc_get_scenario_id(cam_id));
 	rk_param_set_int(entry, value);
 
