@@ -2865,7 +2865,7 @@ int rk_video_get_jpeg_resolution(char **value) {
 }
 
 int rk_video_set_jpeg_resolution(const char *value) {
-#ifdef 0
+#if 0
 	int width, height, ret;
 	char entry[128] = {'\0'};
 	sscanf(value, "%d*%d", &width, &height);
