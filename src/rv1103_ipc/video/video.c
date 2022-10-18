@@ -2279,6 +2279,11 @@ int rk_video_set_resolution(int stream_id, const char *value) {
 		LOG_ERROR("RK_MPI_VENC_SetChnAttr error! ret=%#x\n", ret);
 
 	if (enable_jpeg && (stream_id == 0)) {
+		snprintf(entry, 127, "video.jpeg:width");
+		rk_param_set_int(entry, width);
+		snprintf(entry, 127, "video.jpeg:height");
+		rk_param_set_int(entry, height);
+
 		RK_MPI_VENC_GetChnAttr(JPEG_VENC_CHN, &venc_chn_attr);
 		venc_chn_attr.stVencAttr.u32PicWidth = width;
 		venc_chn_attr.stVencAttr.u32PicHeight = height;
@@ -2598,13 +2603,13 @@ int rkipc_osd_cover_destroy(int id) {
 		stMppChn.s32ChnId = 0;
 		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to vi 0 failed with %#x\n", RgnHandle, ret);
+			LOG_DEBUG("RK_MPI_RGN_DetachFrmChn (%d) to vi 0 failed with %#x\n", RgnHandle, ret);
 	}
 	if (enable_venc_1) {
 		stMppChn.s32ChnId = 1;
 		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to vi 1 failed with %#x\n", RgnHandle, ret);
+			LOG_DEBUG("RK_MPI_RGN_DetachFrmChn (%d) to vi 1 failed with %#x\n", RgnHandle, ret);
 	}
 
 	// destory region
@@ -2719,19 +2724,19 @@ int rkipc_osd_bmp_destroy(int id) {
 		stMppChn.s32ChnId = 0;
 		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc0 failed with %#x\n", RgnHandle, ret);
+			LOG_DEBUG("RK_MPI_RGN_DetachFrmChn (%d) to venc0 failed with %#x\n", RgnHandle, ret);
 	}
 	if (enable_venc_1) {
 		stMppChn.s32ChnId = 1;
 		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc1 failed with %#x\n", RgnHandle, ret);
+			LOG_DEBUG("RK_MPI_RGN_DetachFrmChn (%d) to venc1 failed with %#x\n", RgnHandle, ret);
 	}
 	if (enable_jpeg) {
 		stMppChn.s32ChnId = JPEG_VENC_CHN;
 		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to jpeg failed with %#x\n", RgnHandle, ret);
+			LOG_DEBUG("RK_MPI_RGN_DetachFrmChn (%d) to jpeg failed with %#x\n", RgnHandle, ret);
 	}
 
 	// destory region
@@ -2860,6 +2865,7 @@ int rk_video_get_jpeg_resolution(char **value) {
 }
 
 int rk_video_set_jpeg_resolution(const char *value) {
+#ifdef 0
 	int width, height, ret;
 	char entry[128] = {'\0'};
 	sscanf(value, "%d*%d", &width, &height);
@@ -2877,6 +2883,9 @@ int rk_video_set_jpeg_resolution(const char *value) {
 	ret = RK_MPI_VENC_SetChnAttr(JPEG_VENC_CHN, &venc_chn_attr);
 	if (ret)
 		LOG_ERROR("JPEG RK_MPI_VENC_SetChnAttr error! ret=%#x\n", ret);
+#else
+	LOG_INFO("1103 combo, jpeg resolution must be consistent with the main stream resolution\n");
+#endif
 
 	return 0;
 }
