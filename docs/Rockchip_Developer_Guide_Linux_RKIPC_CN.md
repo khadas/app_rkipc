@@ -113,12 +113,12 @@ Rockchip Electronics Co., Ltd.
 ```mermaid
 graph LR
 	AI-->AENC-->MUXER-->MP4
-	VI_0-->VENC_0-->MUXER
+	VI_0--bind-->VENC_0-->MUXER
 	VENC_0-->RTSP_RTMP_0
-	VENC_0-->VENC_JPEG
-	VI_1-->VENC_1_and_OSD_draw_NN_result-->RTSP_RTMP_1
-	VI_2-->NPU
-	VI_2-->IVS_for_OD_MD
+	VENC_0--combo-->VENC_JPEG
+	VI_1--bind-->VENC_1_and_OSD_draw_NN_result-->RTSP_RTMP_1
+	VI_2--get and sned-->NPU
+	VI_2--bind-->IVS_for_OD_MD
 ```
 
 ### RV1106 IPC
@@ -126,12 +126,12 @@ graph LR
 ```mermaid
 graph LR
 	AI-->AENC-->MUXER-->MP4
-	VI_0-->VENC_0_and_OSD_draw_NN_result-->MUXER
-	VI_0-->TDE-->VENC_JPEG
+	VI_0--bind-->VENC_0_and_OSD_draw_NN_result-->MUXER
+	VI_0--get-->TDE_process--send-->VENC_JPEG
 	VENC_0_and_OSD_draw_NN_result-->RTSP_RTMP_0
-	VI_1-->VENC_1-->RTSP_RTMP_1
-	VI_2-->NPU
-	VI_2-->IVS_for_OD_MD
+	VI_1--bind-->VENC_1-->RTSP_RTMP_1
+	VI_2--get and sned-->NPU
+	VI_2--bind-->IVS_for_OD_MD
 ```
 
 ### RV1106 Battery IPC Tuya
