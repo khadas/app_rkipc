@@ -20,6 +20,7 @@ static rk_network_cb rk_cb;
 static int netlink_fd = 0;
 static int g_network_run_ = 0;
 static pthread_t ntp_client_thread_id;
+static void *g_ntp_signal = NULL;
 
 static int readNlSock(int sockFd, char *bufPtr, int seqNum, int pId) {
 	struct nlmsghdr *nlHdr;
@@ -812,7 +813,7 @@ static void *ntp_client_thread() {
 	LOG_INFO("refresh_time_s is %d, ntp_server is %s\n", refresh_time_s, ntp_server);
 
 	while (g_network_run_) {
-		sleep(refresh_time_s);
+		rk_signal_wait(g_ntp_signal, refresh_time_s * 1000); // 60s
 		rkipc_ntp_update(ntp_server);
 	}
 
@@ -832,6 +833,14 @@ void rk_network_init(rk_network_cb func) { // func_cb func
 	if (func)
 		rk_cb = func;
 
+	if (g_ntp_signal)
+		rk_signal_destroy(g_ntp_signal);
+	g_ntp_signal = rk_signal_create(0, 1);
+	if (!g_ntp_signal) {
+		LOG_ERROR("create signal fail\n");
+		return;
+	}
+
 	if (rk_param_get_int("network.ntp:enable", 0)) {
 		pthread_create(&ntp_client_thread_id, NULL, ntp_client_thread, NULL);
 	}
@@ -839,7 +848,13 @@ void rk_network_init(rk_network_cb func) { // func_cb func
 
 void rk_network_deinit() { // pthread_t pthid
 	g_network_run_ = 0;
+	if (g_ntp_signal)
+		rk_signal_give(g_ntp_signal);
 	pthread_join(ntp_client_thread_id, NULL);
+	if (g_ntp_signal) {
+		rk_signal_destroy(g_ntp_signal);
+		g_ntp_signal = NULL;
+	}
 	close(netlink_fd);
 }
 
