@@ -138,10 +138,14 @@ int rk_isp_get_frame_rate(int cam_id, int *value) {
 }
 
 int rk_isp_enableircut(bool on) {
-	uint32_t open_gpio = GPIO(RK_GPIO1, RK_PA4);
-	uint32_t close_gpio = GPIO(RK_GPIO1, RK_PA3);
-	int ret;
+	int ret, open_gpio, close_gpio;
 
+	open_gpio = rk_param_get_int("isp:ircut_open_gpio", -1);
+	close_gpio = rk_param_get_int("isp:ircut_close_gpio", -1);
+	if ((open_gpio < 0) || (close_gpio < 0)) {
+		LOG_ERROR("fail get gpio form ini file\n");
+		return -1;
+	}
 	ret = rk_gpio_export_direction(open_gpio, false);
 	ret |= rk_gpio_export_direction(close_gpio, false);
 
