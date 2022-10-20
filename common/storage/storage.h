@@ -211,7 +211,7 @@ int rkipc_storage_snap_plan_set(int id, char *value); // TODO
 int rkipc_storage_current_path_get(char **value);
 int rkipc_storage_current_path_set(char *value);
 int rkipc_storage_search(char *file_info); // TODO
-
+int rkipc_storage_dev_mount_status_get();
 // num:The number of files to delete
 // namel_ist:The list of files to be deleted, the number of lists matches the num
 // char *rkipc_response_delete(int id, int num, char *name_list);

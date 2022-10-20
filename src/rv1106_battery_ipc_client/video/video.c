@@ -2636,6 +2636,10 @@ int rk_take_photo() {
 		LOG_WARN("the last photo was not completed\n");
 		return -1;
 	}
+	if (rkipc_storage_dev_mount_status_get() != DISK_MOUNTED) {
+		LOG_WARN("dev not mount\n");
+		return -1;
+	}
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
 	stRecvParam.s32RecvPicNum = 1;

@@ -1602,7 +1602,7 @@ int rkipc_pipe_2_init() {
 
 int rkipc_pipe_2_deinit() {
 	int ret;
-	if (enable_npu){
+	if (enable_npu) {
 		rkipc_osd_draw_nn_deinit();
 		pthread_join(get_vi_2_send_thread, NULL);
 	}
@@ -2977,6 +2977,10 @@ int rk_take_photo() {
 	LOG_DEBUG("start\n");
 	if (send_jpeg_cnt || get_jpeg_cnt) {
 		LOG_WARN("the last photo was not completed\n");
+		return -1;
+	}
+	if (rkipc_storage_dev_mount_status_get() != DISK_MOUNTED) {
+		LOG_WARN("dev not mount\n");
 		return -1;
 	}
 	VENC_RECV_PIC_PARAM_S stRecvParam;

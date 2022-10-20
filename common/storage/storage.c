@@ -2070,6 +2070,11 @@ static int rk_storage_muxer_init_by_id(int id) {
 	return 0;
 }
 
+int rkipc_storage_dev_mount_status_get() {
+	rkipc_storage_handle *phandle = (rkipc_storage_handle *)g_sd_phandle;
+	return phandle->dev_sta.mount_status;
+}
+
 int rk_storage_muxer_deinit_by_id(int id) {
 	LOG_DEBUG("begin\n");
 	char entry[128] = {'\0'};
