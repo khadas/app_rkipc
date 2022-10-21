@@ -738,12 +738,13 @@ static void cb(void *userdata, char *filename, int dir, struct stat *statbuf) {
 	}
 }
 
-int rkipc_storage_read_file_list(rkipc_str_folder *folder) {
+int rkipc_storage_read_file_list(rkipc_str_folder *folder, rkipc_str_folder_attr *folder_attr) {
 	DIR *dir;
 	struct dirent *ptr;
 	struct stat statbuf;
 	char filename[RKIPC_MAX_FILE_PATH_LEN];
 	char d_name[RKIPC_MAX_FILE_PATH_LEN * 3];
+	int file_count = 0;
 
 	if ((dir = opendir(folder->cpath)) == NULL) {
 		LOG_ERROR("Open dir error\n");
@@ -758,6 +759,13 @@ int rkipc_storage_read_file_list(rkipc_str_folder *folder) {
 	}
 
 	while ((ptr = readdir(dir)) != NULL) {
+		// judge file conut, and maybe have some jpeg files not delete, so add 300 to limit
+		if (file_count++ > (folder_attr->limit + 300)) {
+			LOG_ERROR("%s file num more than %d"
+			          "\n\n -----Please confirm whether formatting is required-----\n\n",
+			          folder->cpath, folder_attr->limit + 300);
+			break;
+		}
 		if (strcmp(ptr->d_name, ".") == 0 ||
 		    strcmp(ptr->d_name, "..") == 0) /// current dir OR parrent dir
 			continue;
@@ -848,7 +856,7 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 				goto file_scan_out;
 			}
 			LOG_INFO("[%s] i is %d, before rkipc_storage_read_file_list\n", get_time_string(), i);
-			rkipc_storage_read_file_list(&pHandle->dev_sta.folder[i]);
+			rkipc_storage_read_file_list(&pHandle->dev_sta.folder[i], &devAttr.folder_attr[i]);
 			LOG_INFO("[%s] i is %d, after rkipc_storage_read_file_list\n", get_time_string(), i);
 		}
 	}
