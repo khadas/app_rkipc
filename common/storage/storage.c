@@ -2071,6 +2071,9 @@ static int rk_storage_muxer_init_by_id(int id) {
 }
 
 int rkipc_storage_dev_mount_status_get() {
+	if (g_sd_phandle == NULL) {
+		return DISK_UNMOUNTED;
+	}
 	rkipc_storage_handle *phandle = (rkipc_storage_handle *)g_sd_phandle;
 	return phandle->dev_sta.mount_status;
 }
