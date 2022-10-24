@@ -2506,6 +2506,9 @@ int rk_video_set_rotation(int value) {
 	int rotation = 0;
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "video.source:rotation");
+	g_osd_run_ = 0;
+	rkipc_osd_draw_nn_deinit();
+
 	rk_param_set_int(entry, value);
 	if (value == 0) {
 		rotation = ROTATION_0;
@@ -2526,6 +2529,8 @@ int rk_video_set_rotation(int value) {
 	if (ret)
 		LOG_ERROR("RK_MPI_VENC_SetChnRotation JPEG_VENC_CHN error! ret=%#x\n", ret);
 
+	g_osd_run_ = 1;
+	rkipc_osd_draw_nn_init();
 	return 0;
 }
 
