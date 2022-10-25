@@ -974,6 +974,16 @@ int rkipc_pipe_0_init() {
 			LOG_ERROR("RK_MPI_VENC_EnableMotionStaticSwitch error! ret=%#x\n", ret);
 	}
 
+	VENC_DEBREATHEFFECT_S debfrath_effect;
+	memset(&debfrath_effect, 0, sizeof(VENC_DEBREATHEFFECT_S));
+	if (rk_param_get_int("video.0:enable_debreath_effect", 0)) {
+		debfrath_effect.bEnable = true;
+		debfrath_effect.s32Strength1 = rk_param_get_int("video.0:debreath_effect_strength", 16);
+		ret = RK_MPI_VENC_SetDeBreathEffect(VIDEO_PIPE_0, &debfrath_effect);
+		if (ret)
+			LOG_ERROR("RK_MPI_VENC_SetDeBreathEffect error! ret=%#x\n", ret);
+	}
+
 	// VENC_RC_PARAM_S h265_RcParam;
 	// RK_MPI_VENC_GetRcParam(VIDEO_PIPE_0, &h265_RcParam);
 	// h265_RcParam.s32FirstFrameStartQp = 26;
@@ -1283,6 +1293,16 @@ int rkipc_pipe_1_init() {
 		ret = RK_MPI_VENC_EnableMotionStaticSwitch(VIDEO_PIPE_1, true);
 		if (ret)
 			LOG_ERROR("RK_MPI_VENC_EnableMotionStaticSwitch error! ret=%#x\n", ret);
+	}
+
+	VENC_DEBREATHEFFECT_S debfrath_effect;
+	memset(&debfrath_effect, 0, sizeof(VENC_DEBREATHEFFECT_S));
+	if (rk_param_get_int("video.1:enable_debreath_effect", 0)) {
+		debfrath_effect.bEnable = true;
+		debfrath_effect.s32Strength1 = rk_param_get_int("video.1:debreath_effect_strength", 16);
+		ret = RK_MPI_VENC_SetDeBreathEffect(VIDEO_PIPE_1, &debfrath_effect);
+		if (ret)
+			LOG_ERROR("RK_MPI_VENC_SetDeBreathEffect error! ret=%#x\n", ret);
 	}
 
 	tmp_rc_quality = rk_param_get_string("video.1:rc_quality", NULL);
