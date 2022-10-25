@@ -2,9 +2,9 @@
 
 文件标识：RK-KF-YF-937
 
-发布版本：V1.3.0
+发布版本：V1.5.0
 
-日期：2022-08-31
+日期：2022-10-25
 
 文件密级：□绝密   □秘密   □内部资料   ■公开
 
@@ -80,6 +80,8 @@ Rockchip Electronics Co., Ltd.
 | V1.1.0     | 林刘迪铭 | 2022-07-15   | 新增ini中的avs相关参数                                       |
 | V1.2.0     | 林刘迪铭 | 2022-08-18   | 修改RV1106 IPC框图，去除卷绕部分。</br>新增RV1103 IPC框图。  |
 | V1.3.0     | 林刘迪铭 | 2022-08-31   | 修改RK3588 Multi-IPC框图，JPEG改用VGS预处理，</br>AVS后增加VPSS用于cover。 |
+| V1.4.0     | 林刘迪铭 | 2022-10-10   | 修改RV1106 IPC和RV1103 IPC的IVS模块流程框图，</br>rv1106_battery_ipc细分为rv1106_battery_ipc_client和rv1106_battery_ipc_tuya。 |
+| V1.5.0     | 林刘迪铭 | 2022-10-25   | 修改ini模块参数说明，新增音视频模块API介绍。                 |
 
 ---
 
@@ -130,6 +132,20 @@ graph LR
 	VI_0--get-->TDE_process--send-->VENC_JPEG
 	VENC_0_and_OSD_draw_NN_result-->RTSP_RTMP_0
 	VI_1--bind-->VENC_1-->RTSP_RTMP_1
+	VI_2--get and sned-->NPU
+	VI_2--bind-->IVS_for_OD_MD
+```
+
+### RV1106 Battery IPC Client
+
+```mermaid
+graph LR
+	fast_boot_server-->VI_0
+	AI-->AENC-->MUXER-->MP4
+	VI_0--bind-->VENC_0-->MUXER
+	VENC_0-->RTSP_RTMP_0
+	VENC_0--combo-->VENC_JPEG
+	VI_1--bind-->VENC_1_and_OSD_draw_NN_result-->RTSP_RTMP_1
 	VI_2--get and sned-->NPU
 	VI_2--bind-->IVS_for_OD_MD
 ```
@@ -733,7 +749,28 @@ submitOne(groupName: string, isReboot: boolean = false, isAppRestart = false) {
 
 ### 事件模块
 
-TODO
+目前仅支持rv1126_ipc_rkmedia
+
+| 函数名称                          | 功能                   |
+| --------------------------------- | ---------------------- |
+| rk_event_init                     | 事件模块初始化         |
+| rk_event_deinit                   | 事件模块反初始化       |
+| rk_event_ri_get_enabled           | 获取区域入侵使能状态   |
+| rk_event_ri_set_enabled           | 设置区域入侵使能状态   |
+| rk_event_ri_get_position_x        | 获取区域入侵的x坐标    |
+| rk_event_ri_set_position_x        | 设置区域入侵的x坐标    |
+| rk_event_ri_get_position_y        | 获取区域入侵的y坐标    |
+| rk_event_ri_set_position_y        | 设置区域入侵的x坐标    |
+| rk_event_ri_get_width             | 获取区域入侵的宽度     |
+| rk_event_ri_set_width             | 设置区域入侵的宽度     |
+| rk_event_ri_get_height            | 获取区域入侵的高度     |
+| rk_event_ri_set_height            | 设置区域入侵的高度     |
+| rk_event_ri_get_proportion        | 获取区域入侵的占比     |
+| rk_event_ri_set_proportion        | 设置区域入侵的占比     |
+| rk_event_ri_get_sensitivity_level | 获取区域入侵的灵敏度   |
+| rk_event_ri_set_sensitivity_level | 设置区域入侵的灵敏度   |
+| rk_event_ri_get_time_threshold    | 获取区域入侵的时间阈值 |
+| rk_event_ri_set_time_threshold    | 设置区域入侵的时间阈值 |
 
 ### rtmp推流模块
 
@@ -838,6 +875,86 @@ TODO
 | rk_isp_af_focus_in                   | 聚焦             |
 | rk_isp_af_focus_out                  | 失焦             |
 
+### 音频模块
+
+| 函数名称                 | 功能                   |
+| ------------------------ | ---------------------- |
+| rkipc_audio_rtsp_init    | rtsp音频初始化         |
+| rkipc_audio_init         | 音频模块初始化         |
+| rkipc_audio_deinit       | 音频模块反初始化       |
+| rk_audio_restart         | 重启音频模块           |
+| rk_audio_get_bit_rate    | 获取比特率             |
+| rk_audio_set_bit_rate    | 设置比特率             |
+| rk_audio_get_sample_rate | 获取采样率             |
+| rk_audio_set_sample_rate | 设置采样率             |
+| rk_audio_get_volume      | 获取音量               |
+| rk_audio_set_volume      | 设置音量               |
+| rk_audio_get_enable_vqe  | 获取音频3A算法是否使能 |
+| rk_audio_set_enable_vqe  | 设置音频3A算法是否使能 |
+| rk_audio_get_encode_type | 获取编码类型           |
+| rk_audio_set_encode_type | 设置编码类型           |
+
+### 视频模块
+
+| 函数名称                      | 功能                    |
+| ----------------------------- | ----------------------- |
+| rk_video_init                 | 视频模块初始化          |
+| rk_video_deinit               | 视频模块反初始化        |
+| rk_video_restart              | 重启视频模块            |
+| rk_video_get_gop              | 获取I帧间隔             |
+| rk_video_set_gop              | 设置I帧间隔             |
+| rk_video_get_max_rate         | 获取最大码率            |
+| rk_video_set_max_rate         | 设置最大码率            |
+| rk_video_get_RC_mode          | 获取码率控制类型        |
+| rk_video_set_RC_mode          | 设置码率控制类型        |
+| rk_video_get_output_data_type | 获取编码类型            |
+| rk_video_set_output_data_type | 设置编码类型            |
+| rk_video_get_rc_quality       | 获取码率控制质量        |
+| rk_video_set_rc_quality       | 设置码率控制质量        |
+| rk_video_get_smart            | 获取智能编码状态        |
+| rk_video_set_smart            | 设置智能编码状态        |
+| rk_video_get_gop_mode         | 获取gop模式             |
+| rk_video_set_gop_mode         | 设置gop模式             |
+| rk_video_get_stream_type      | 获取码流名称            |
+| rk_video_set_stream_type      | 设置码流名称            |
+| rk_video_get_h264_profile     | 获取h264的profile       |
+| rk_video_set_h264_profile     | 设置h264的profile       |
+| rk_video_get_resolution       | 获取分辨率              |
+| rk_video_set_resolution       | 设置分辨率              |
+| rk_video_get_frame_rate       | 获取输入帧率            |
+| rk_video_set_frame_rate       | 设置输入帧率            |
+| rk_video_get_frame_rate_in    | 获取输出帧率            |
+| rk_video_set_frame_rate_in    | 设置输出帧率            |
+| rk_video_get_rotation         | 获取旋转角度            |
+| rk_video_set_rotation         | 设置旋转角度            |
+| rk_video_get_smartp_viridrlen | 获取smartP的虚拟I帧长度 |
+| rk_video_set_smartp_viridrlen | 设置smartP的虚拟I帧长度 |
+
+#### IVS模块
+
+| 函数名称                    | 功能                 |
+| --------------------------- | -------------------- |
+| rk_video_get_md_switch      | 获取移动侦测开关状态 |
+| rk_video_set_md_switch      | 设置移动侦测开关状态 |
+| rk_video_get_md_sensebility | 获取移动侦测灵敏度   |
+| rk_video_set_md_sensebility | 设置移动侦测灵敏度   |
+| rk_video_get_od_switch      | 获取隐私遮挡开关状态 |
+| rk_video_set_od_switch      | 设置隐私遮挡开关状态 |
+
+#### JPEG模块
+
+| 函数名称                           | 功能                 |
+| ---------------------------------- | -------------------- |
+| rk_video_get_enable_cycle_snapshot | 获取定时抓拍开关状态 |
+| rk_video_set_enable_cycle_snapshot | 设置定时抓拍开关状态 |
+| rk_video_get_image_quality         | 获取图像质量         |
+| rk_video_set_image_quality         | 设置图像质量         |
+| rk_video_get_snapshot_interval_ms  | 获取抓拍间隔         |
+| rk_video_set_snapshot_interval_ms  | 设置抓拍间隔         |
+| rk_video_get_jpeg_resolution       | 获取jpeg分辨率       |
+| rk_video_set_jpeg_resolution       | 设置jpeg分辨率       |
+| rk_take_photo                      | 抓拍一次             |
+
 ### 参数管理模块
 
 | 函数名称            | 功能                        |
@@ -878,6 +995,10 @@ rt_audio_period_size = 1024 ; 音频period_size
 
 ### 视频模块
 
+video.source用于控制一些数据流和模块功能的开关，以及旋转这种会应用到所有流上的功能。
+
+video.x则是各个模块的详细参数，取决于应用场景。
+
 ```ini
 [video.source]
 enable_aiq = 1 ; 是否使能aiq功能
@@ -891,11 +1012,15 @@ enable_npu = 1 ; 是否使能npu算法
 npu_fps = 10 ; npu算法输入帧率
 enable_wrap = 1 ; 是否使能卷绕功能
 buffer_line = 720 ; 卷绕的行数，默认为高度一半，半帧卷绕
-jpeg_buffer_size = 409600 ; JPEG输出buffer大小，默认为400KB
 enable_rtsp = 1 ; 是否使能rtsp预览
 enable_rtmp = 1 ; 是否使能rtmp预览
-enable_cycle_snapshot = 0 ; 是否使能定时抓拍功能
-snapshot_interval_ms = 1000 ; 抓拍间隔时间
+video_0_max_width = 2560 ; 主码流的最大宽度，用于预先按最大分辨率申请buffer
+video_0_max_height = 1440 ; 主码流的最大高度，用于预先按最大分辨率申请buffer
+video_1_max_width = 704
+video_1_max_height = 576
+video_2_max_width = 960
+video_2_max_height = 540
+rotation = 0 ; 旋转角度，可选值为0、90、180、270
 
 [video.0]
 buffer_size = 1843200 ; 输出buffer大小，建议值为 w * h / 2
@@ -922,9 +1047,40 @@ gop = 50 ; I帧间隔
 smartp_viridrlen = 25 ; smartP的虚拟I帧长度
 gop_mode = normalP ; gop模式
 stream_smooth = 50 ; 码流平滑度，目前未使用
+enable_motion_deblur = 1 ; 运动去模糊
+enable_motion_static_switch = 0 ; 动静切换开关，用于完全静态场景节省码率，请注意完全静态场景下的质量
+frame_min_i_qp = 26 ; 帧级I帧最小QP
+frame_min_qp = 28 ; 帧级最小QP
+frame_max_i_qp = 51 ; 帧级I帧最大QP
+frame_max_qp = 51 ; 帧级最大QP
+scalinglist = 0 ; 详细请参考rockit文档说明
 
 [video.1]
-input_buffer_count = 1 ; 输入buffer个数，RV1106比较特殊，子码流支持单个buffer
+input_buffer_count = 1 ; 输入buffer个数，RV1106比较特殊，卷绕模式下，子码流支持单个buffer
+
+```
+
+#### IVS模块
+
+```ini
+[ivs]
+smear = 0 ; 详细请参考rockit文档说明
+weightp = 0 ; 详细请参考rockit文档说明
+md = 1 ; 移动侦测
+od = 1 ; 遮挡检测
+md_sensibility = 3 ; 移动侦测灵敏度，可选值: 1 2 3
+```
+
+#### JPEG模块
+
+```ini
+[video.jpeg]
+width = 1920 ; jpeg的宽度，卷绕模式下无效
+height = 1080 ; jpeg的高度，卷绕模式下无效
+jpeg_buffer_size = 1048576 ; 1024KB
+jpeg_qfactor = 70 ; jpeg图像质量
+enable_cycle_snapshot = 0 ; 使能定时抓拍
+snapshot_interval_ms = 1000 ; 定时抓拍间隔，单位为毫秒
 ```
 
 ### ISP模块
@@ -1025,6 +1181,7 @@ focus_level = 0 ; 聚焦/失焦级别
 mount_path = /userdata ; 存储路径
 free_size_del_min = 500 ; 剩余空间小于此值，则开始自动删除文件，单位为MB
 free_size_del_max = 1000 ; 剩余空间大于此值，则停止自动删除文件，单位为MB
+num_limit_enable = 1; 是否通过文件数量来限制，优先级高于剩余空间的限制
 
 [storage.0]
 enable = 0 ; 是否使能对应码流录像
@@ -1032,6 +1189,31 @@ folder_name = video0 ; 文件夹名称
 file_format = mp4 ; 文件格式，例如mp4,flv,ts
 file_duration = 60 ; 文件时长，单位为秒
 video_quota = 30 ; 视频配额，暂未使用
+file_max_num = 300 ; 最大文件数量
+```
+
+### 设备信息模块
+
+用于存储一些设备信息，基本上不变。
+
+```ini
+[system.device_info]
+deivce_name = RK IP Camera
+telecontrol_id = 88
+model = RK-003
+serial_number = RK-003-A
+firmware_version = V0.2.6 build 202108
+encoder_version = V1.0 build 202108
+web_version = V2.12.2 build 202108
+plugin_version = V1.0.0.0
+channels_number = 1
+hard_disks_number = 1
+alarm_inputs_number = 0
+alarm_outputs_number = 0
+firmware_version_info = CP-3-B
+manufacturer = Rockchip
+hardware_id = c3d9b8674f4b94f6
+user_num = 1
 ```
 
 ### 能力集模块
@@ -1237,5 +1419,14 @@ enable_venc_2 = 1
 enable_vo = 0
 vo_dev_id = 3 ; 0 is hdmi, 3 is mipi
 enable_npu = 1
+```
+
+### 网络模块
+
+```ini
+[network.ntp]
+enable = 1 ; 是否使能网络时间同步
+refresh_time_s = 60 ; ntp刷新时间，单位秒
+ntp_server = 119.28.183.184 ; ntp服务器地址
 ```
 
