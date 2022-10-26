@@ -67,9 +67,9 @@ post_chk()
 
 	# if /data/rkipc not exist, cp /usr/share
 	rkipc_ini=/userdata/rkipc.ini
-	default_rkipc_ini=/usr/share/rkipc.ini
+	default_rkipc_ini=/tmp/rkipc-factory-config.ini
 	if [ ! -f "$default_rkipc_ini" ];then
-		default_rkipc_ini=/oem/usr/share/rkipc.ini
+		ln -s -f /oem/usr/share/rkipc.ini $default_rkipc_ini
 	fi
 	if [ ! -f "$default_rkipc_ini" ];then
 		echo "Error: not found rkipc.ini !!!"

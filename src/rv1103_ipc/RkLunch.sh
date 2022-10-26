@@ -75,7 +75,7 @@ post_chk()
 	check_linker /mnt/sdcard /usr/www/sdcard
 	# if /data/rkipc not exist, cp /usr/share
 	rkipc_ini=/userdata/rkipc.ini
-	default_rkipc_ini=/userdata/rkipc-factory-config.ini
+	default_rkipc_ini=/tmp/rkipc-factory-config.ini
 
 	if [ ! -f "/oem/usr/share/rkipc.ini" ]; then
 		lsmod | grep sc530ai

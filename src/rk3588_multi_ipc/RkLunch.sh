@@ -68,18 +68,14 @@ post_chk()
 
 	# if /data/rkipc not exist, cp /usr/share
 	rkipc_ini=/userdata/rkipc.ini
-	default_rkipc_ini=usr/share/rkipc.ini
+	default_rkipc_ini=/tmp/rkipc-factory-config.ini
 
 	result=`ls -l /proc/rkisp* | wc -l`
 	if [ "$result"x == "8"x ] ;then
-		cp /oem/usr/share/rkipc-8x.ini /oem/usr/share/rkipc.ini
+		ln -s -f /oem/usr/share/rkipc-8x.ini $default_rkipc_ini
 	fi
 	if [ "$result"x == "6"x ] ;then
-		cp /oem/usr/share/rkipc-6x.ini /oem/usr/share/rkipc.ini
-	fi
-
-	if [ ! -f "$default_rkipc_ini" ];then
-		default_rkipc_ini=/oem/usr/share/rkipc.ini
+		ln -s -f /oem/usr/share/rkipc-6x.ini $default_rkipc_ini
 	fi
 
 	if [ ! -f "$default_rkipc_ini" ];then
