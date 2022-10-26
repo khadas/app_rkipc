@@ -137,7 +137,7 @@ int rk_isp_get_frame_rate(int cam_id, int *value) {
 	return 0;
 }
 
-int rk_isp_enableircut(bool on) {
+int rk_isp_enable_ircut(bool on) {
 	int ret, open_gpio, close_gpio;
 
 	open_gpio = rk_param_get_int("isp:ircut_open_gpio", -1);
@@ -523,15 +523,17 @@ int rk_isp_set_night_to_day(int cam_id, const char *value) {
 	aie_attrib_t attr;
 	rk_aiq_user_api2_aie_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	if (!strcmp(value, "night")) {
-		rk_isp_enableircut(false);
 		attr.mode = RK_AIQ_IE_EFFECT_BW;
+		rk_aiq_user_api2_aie_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
+		rk_isp_enable_ircut(false);
 	} else {
-		rk_isp_enableircut(true);
+		rk_isp_enable_ircut(true);
 		if (light_state == 1)
 			rk_isp_close_light(3);
 		attr.mode = RK_AIQ_IE_EFFECT_NONE;
+		rk_aiq_user_api2_aie_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	}
-	rk_aiq_user_api2_aie_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
+
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.night_to_day:night_to_day", rkipc_get_scenario_id(cam_id));
 	rk_param_set_string(entry, value);
