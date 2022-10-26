@@ -320,6 +320,17 @@ int rk_osd_init() {
 			osd_data.width = UPALIGNTO16((int)(rk_param_get_int(entry, -1) * g_x_rate));
 			snprintf(entry, 127, "osd.%d:height", i);
 			osd_data.height = UPALIGNTO16((int)(rk_param_get_int(entry, -1) * g_y_rate));
+			while (osd_data.origin_x + osd_data.width > video_width) {
+				osd_data.width -= 16;
+			}
+			while (osd_data.origin_y + osd_data.height > video_height) {
+				osd_data.height -= 16;
+			}
+			if (osd_data.origin_x < 0 || osd_data.origin_y < 0 || osd_data.width < 0 ||
+			    osd_data.height < 0) {
+				continue;
+			}
+
 			snprintf(entry, 127, "osd.%d:style", i);
 			const char *style = rk_param_get_string(entry, "cover");
 			if (!strcmp(style, "cover") && rk_osd_cover_create_)

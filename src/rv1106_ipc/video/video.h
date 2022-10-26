@@ -11,22 +11,20 @@
 #include "rtsp_demo.h"
 #include "storage.h"
 
-#include "rk_mpi_mmz.h"
+#include <rga/im2d.h>
+#include <rga/rga.h>
+#include <rk_comm_tde.h>
 #include <rk_debug.h>
+#include <rk_mpi_cal.h>
 #include <rk_mpi_ivs.h>
 #include <rk_mpi_mb.h>
+#include <rk_mpi_mmz.h>
 #include <rk_mpi_rgn.h>
 #include <rk_mpi_sys.h>
+#include <rk_mpi_tde.h>
 #include <rk_mpi_venc.h>
 #include <rk_mpi_vi.h>
 #include <rk_mpi_vpss.h>
-
-#include <inttypes.h> // PRId64
-
-#include "rk_comm_tde.h"
-#include "rk_mpi_tde.h"
-#include <rga/im2d.h>
-#include <rga/rga.h>
 
 int rk_video_init();
 int rk_video_deinit();

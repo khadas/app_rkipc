@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <getopt.h>
+#include <inttypes.h> // PRId64
 #include <pthread.h>
 #include <semaphore.h>
 #include <signal.h>
