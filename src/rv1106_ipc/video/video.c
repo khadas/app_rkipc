@@ -2528,6 +2528,7 @@ int rk_video_set_rotation(int value) {
 	ret = RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN, rotation);
 	if (ret)
 		LOG_ERROR("RK_MPI_VENC_SetChnRotation JPEG_VENC_CHN error! ret=%#x\n", ret);
+	rk_roi_set_all(); // update roi info
 
 	g_osd_run_ = 1;
 	rkipc_osd_draw_nn_init();

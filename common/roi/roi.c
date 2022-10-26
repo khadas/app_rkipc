@@ -21,26 +21,36 @@ int rk_roi_set_all() {
 	roi_data_s roi_data;
 	char entry[128] = {'\0'};
 	double x_rate, y_rate;
-	int video_width, video_height;
+	int video_width, video_height, stream_id;
 	int normalized_screen_width = rk_param_get_int("osd.common:normalized_screen_width", -1);
 	int normalized_screen_height = rk_param_get_int("osd.common:normalized_screen_height", -1);
+	int rotation = rk_param_get_int("video.source:rotation", 0);
 
 	for (int id = 0; id < MAX_ROI_NUM; id++) {
 		snprintf(entry, 127, "roi.%d:stream_type", id);
 		roi_data.stream_type = rk_param_get_string(entry, "mainStream");
 		if (!strcmp(roi_data.stream_type, "mainStream")) {
-			video_width = rk_param_get_int("video.0:width", -1);
-			video_height = rk_param_get_int("video.0:height", -1);
+			stream_id = 0;
 		} else if (!strcmp(roi_data.stream_type, "subStream")) {
-			video_width = rk_param_get_int("video.1:width", -1);
-			video_height = rk_param_get_int("video.1:height", -1);
+			stream_id = 1;
 		} else {
-			video_width = rk_param_get_int("video.2:width", -1);
-			video_height = rk_param_get_int("video.2:height", -1);
+			stream_id = 2;
+		}
+		if (rotation == 90 || rotation == 270) {
+			snprintf(entry, 127, "video.%d:width", stream_id);
+			video_height = rk_param_get_int(entry, -1);
+			snprintf(entry, 127, "video.%d:height", stream_id);
+			video_width = rk_param_get_int(entry, -1);
+		} else {
+			snprintf(entry, 127, "video.%d:width", stream_id);
+			video_width = rk_param_get_int(entry, -1);
+			snprintf(entry, 127, "video.%d:height", stream_id);
+			video_height = rk_param_get_int(entry, -1);
 		}
 		x_rate = (double)video_width / (double)normalized_screen_width;
 		y_rate = (double)video_height / (double)normalized_screen_height;
-		LOG_DEBUG("x_rate is %f, y_rate is %f\n", x_rate, y_rate);
+		LOG_DEBUG("video_width is %d, video_height is %d, x_rate is %f, y_rate is %f\n",
+		          video_width, video_height, x_rate, y_rate);
 
 		snprintf(entry, 127, "roi.%d:id", id);
 		roi_data.id = rk_param_get_int(entry, -1);
@@ -56,6 +66,16 @@ int rk_roi_set_all() {
 		roi_data.height = UPALIGNTO16((int)(rk_param_get_int(entry, -1) * y_rate));
 		snprintf(entry, 127, "roi.%d:quality_level", id);
 		roi_data.quality_level = rk_param_get_int(entry, -1);
+		while (roi_data.position_x + roi_data.width >= video_width) {
+			roi_data.width -= 16;
+		}
+		while (roi_data.position_y + roi_data.height >= video_height) {
+			roi_data.height -= 16;
+		}
+		if (roi_data.position_x < 0 || roi_data.position_y < 0 || roi_data.width < 0 ||
+		    roi_data.height < 0) {
+			continue;
+		}
 		rk_roi_set_(&roi_data);
 	}
 
