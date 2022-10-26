@@ -2829,8 +2829,6 @@ int rk_video_init() {
 		ret |= rkipc_pipe_jpeg_init();
 	// if (g_enable_vo)
 	// 	ret |= rkipc_pipe_vpss_vo_init();
-	if (enable_osd)
-		ret |= rkipc_osd_init();
 	if (enable_pp)
 		ret |= rkipc_pipe_3_init();
 	rk_roi_set_callback_register(rk_roi_set);
@@ -2842,6 +2840,10 @@ int rk_video_init() {
 		ret |= rkipc_pipe_2_init();
 		ret |= rkipc_osd_draw_nn_init();
 	}
+	// The osd dma buffer must be placed in the last application,
+	// otherwise, when the font size is switched, holes may be caused
+	if (enable_osd)
+		ret |= rkipc_osd_init();
 	LOG_DEBUG("over\n");
 
 	return ret;
