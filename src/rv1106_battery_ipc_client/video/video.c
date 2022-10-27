@@ -1691,16 +1691,21 @@ int rk_video_set_max_rate(int stream_id, int value) {
 	snprintf(entry, 127, "video.%d:rc_mode", stream_id);
 	tmp_rc_mode = rk_param_get_string(entry, "CBR");
 	if (!strcmp(tmp_output_data_type, "H.264")) {
-		if (!strcmp(tmp_rc_mode, "CBR"))
+		if (!strcmp(tmp_rc_mode, "CBR")) {
 			venc_chn_attr.stRcAttr.stH264Cbr.u32BitRate = value;
-		else
-			venc_chn_attr.stRcAttr.stH264Vbr.u32MaxBitRate =
-			    value; // venc_chn_attr.stRcAttr.stH264Vbr.u32BitRate = value;
+		} else {
+			venc_chn_attr.stRcAttr.stH264Vbr.u32MinBitRate = value / 3;
+			venc_chn_attr.stRcAttr.stH264Vbr.u32BitRate = value / 3 * 2;
+			venc_chn_attr.stRcAttr.stH264Vbr.u32MaxBitRate = value;
+		}
 	} else if (!strcmp(tmp_output_data_type, "H.265")) {
-		if (!strcmp(tmp_rc_mode, "CBR"))
+		if (!strcmp(tmp_rc_mode, "CBR")) {
 			venc_chn_attr.stRcAttr.stH265Cbr.u32BitRate = value;
-		else
+		} else {
+			venc_chn_attr.stRcAttr.stH265Vbr.u32MinBitRate = value / 3;
+			venc_chn_attr.stRcAttr.stH265Vbr.u32BitRate = value / 3 * 2;
 			venc_chn_attr.stRcAttr.stH265Vbr.u32MaxBitRate = value;
+		}
 	} else {
 		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
 		return -1;
