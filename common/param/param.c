@@ -64,7 +64,6 @@ int rk_param_set_int(const char *entry, int val) {
 	sprintf(tmp, "%d", val);
 	pthread_mutex_lock(&g_param_mutex);
 	iniparser_set(g_ini_d_, entry, tmp);
-	rk_param_save();
 	pthread_mutex_unlock(&g_param_mutex);
 
 	return 0;
@@ -82,7 +81,6 @@ const char *rk_param_get_string(const char *entry, const char *default_val) {
 int rk_param_set_string(const char *entry, const char *val) {
 	pthread_mutex_lock(&g_param_mutex);
 	iniparser_set(g_ini_d_, entry, val);
-	rk_param_save();
 	pthread_mutex_unlock(&g_param_mutex);
 
 	return 0;
