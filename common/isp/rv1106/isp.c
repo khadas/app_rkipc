@@ -1492,23 +1492,23 @@ int rk_isp_af_focus_once(int cam_id) {
 
 int rk_isp_fastboot_init(int cam_id) {
 	RK_S32 s32chnlId = 0;
-	int is_bw_night, file_size, fd, ret = 0;
+	int rk_color_mode, file_size, fd, ret = 0;
 	void *mem, *vir_addr, *iq_mem, *vir_iqaddr;
-	off_t bw_night_addr, addr_iq;
+	off_t rk_color_mode_addr, addr_iq;
 
 	RK_S64 s64AiqInitStart = rkipc_get_curren_time_ms();
 	rk_aiq_working_mode_t hdr_mode = RK_AIQ_WORKING_MODE_NORMAL;
 
-	bw_night_addr = (off_t)get_cmd_val("bw_night_addr", 16);
+	rk_color_mode_addr = (off_t)get_cmd_val("rk_color_mode", 16);
 	if ((fd = open("/dev/mem", O_RDWR | O_SYNC)) < 0) {
 		perror("open error");
 		return -1;
 	}
 
 	mem = mmap(0, MAP_SIZE_NIGHT, PROT_READ | PROT_WRITE, MAP_SHARED, fd,
-	           bw_night_addr & ~MAP_MASK_NIGHT);
-	vir_addr = mem + (bw_night_addr & MAP_MASK_NIGHT);
-	is_bw_night = *((unsigned long *)vir_addr);
+	           rk_color_mode_addr & ~MAP_MASK_NIGHT);
+	vir_addr = mem + (rk_color_mode_addr & MAP_MASK_NIGHT);
+	rk_color_mode = *((unsigned long *)vir_addr);
 
 	addr_iq = (off_t)get_cmd_val("rk_iqbin_addr", 16);
 	file_size = (int)get_cmd_val("rk_iqbin_size", 16);
@@ -1518,7 +1518,7 @@ int rk_isp_fastboot_init(int cam_id) {
 	rk_aiq_static_info_t aiq_static_info;
 	rk_aiq_uapi2_sysctl_enumStaticMetas(s32chnlId, &aiq_static_info);
 
-	if (is_bw_night) {
+	if (rk_color_mode) {
 		LOG_INFO("=====night mode=====\n");
 		ret = rk_aiq_uapi2_sysctl_preInit_scene(aiq_static_info.sensor_info.sensor_name, "normal",
 		                                        "night");
