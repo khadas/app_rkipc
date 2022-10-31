@@ -84,6 +84,7 @@ void rkipc_get_opt(int argc, char *argv[]) {
 int main(int argc, char **argv) {
 	LOG_INFO("main begin\n");
 	signal(SIGINT, sig_proc);
+	signal(SIGTERM, sig_proc);
 
 	rkipc_get_opt(argc, argv);
 	LOG_INFO("rkipc_ini_path_ is %s, rkipc_iq_file_path_ is %s, rkipc_log_level "
