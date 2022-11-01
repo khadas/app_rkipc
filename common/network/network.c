@@ -848,12 +848,14 @@ void rk_network_init(rk_network_cb func) { // func_cb func
 
 void rk_network_deinit() { // pthread_t pthid
 	g_network_run_ = 0;
-	if (g_ntp_signal)
-		rk_signal_give(g_ntp_signal);
-	pthread_join(ntp_client_thread_id, NULL);
-	if (g_ntp_signal) {
-		rk_signal_destroy(g_ntp_signal);
-		g_ntp_signal = NULL;
+	if (rk_param_get_int("network.ntp:enable", 0)) {
+		if (g_ntp_signal)
+			rk_signal_give(g_ntp_signal);
+		pthread_join(ntp_client_thread_id, NULL);
+		if (g_ntp_signal) {
+			rk_signal_destroy(g_ntp_signal);
+			g_ntp_signal = NULL;
+		}
 	}
 	close(netlink_fd);
 }
