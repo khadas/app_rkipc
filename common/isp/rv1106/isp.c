@@ -1346,18 +1346,26 @@ int rk_isp_set_image_flip(int cam_id, const char *value) {
 	if (!strcmp(value, "close")) {
 		mirror = 0;
 		flip = 0;
+		if (access("/dev/block/by-name/meta", F_OK) == 0)
+			system("make_meta --update --meta_path /dev/block/by-name/meta --rk_cam_mirror_flip 0");
 	}
 	if (!strcmp(value, "flip")) {
 		mirror = 0;
 		flip = 1;
+		if (access("/dev/block/by-name/meta", F_OK) == 0)
+			system("make_meta --update --meta_path /dev/block/by-name/meta --rk_cam_mirror_flip 1");
 	}
 	if (!strcmp(value, "mirror")) {
 		mirror = 1;
 		flip = 0;
+		if (access("/dev/block/by-name/meta", F_OK) == 0)
+			system("make_meta --update --meta_path /dev/block/by-name/meta --rk_cam_mirror_flip 2");
 	}
 	if (!strcmp(value, "centrosymmetric")) {
 		mirror = 1;
 		flip = 1;
+		if (access("/dev/block/by-name/meta", F_OK) == 0)
+			system("make_meta --update --meta_path /dev/block/by-name/meta --rk_cam_mirror_flip 3");
 	}
 	rk_aiq_uapi2_setMirrorFlip(rkipc_aiq_get_ctx(cam_id), mirror, flip, 4); // skip 4 frame
 	snprintf(entry, 127, "isp.%d.video_adjustment:image_flip", rkipc_get_scenario_id(cam_id));
