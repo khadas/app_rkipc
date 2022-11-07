@@ -29,6 +29,8 @@ char sub_scene[32];
 static int light_level = -1;
 static int light_state = -1;
 static int current_scenario_id = 0;
+static int fastboot_fd, file_size;
+static void *iq_mem;
 static rk_aiq_sys_ctx_t *g_aiq_ctx[MAX_AIQ_CTX];
 rk_aiq_working_mode_t g_WDRMode[MAX_AIQ_CTX];
 rk_aiq_wb_gain_t gs_wb_gain = {2.083900, 1.000000, 1.000000, 2.018500};
@@ -1500,27 +1502,29 @@ int rk_isp_af_focus_once(int cam_id) {
 
 int rk_isp_fastboot_init(int cam_id) {
 	RK_S32 s32chnlId = 0;
-	int rk_color_mode, file_size, fd, ret = 0;
-	void *mem, *vir_addr, *iq_mem, *vir_iqaddr;
+	int rk_color_mode, file_size, ret = 0;
+	void *mem, *vir_addr, *vir_iqaddr;
 	off_t rk_color_mode_addr, addr_iq;
 
 	RK_S64 s64AiqInitStart = rkipc_get_curren_time_ms();
 	rk_aiq_working_mode_t hdr_mode = RK_AIQ_WORKING_MODE_NORMAL;
 
 	rk_color_mode_addr = (off_t)get_cmd_val("rk_color_mode", 16);
-	if ((fd = open("/dev/mem", O_RDWR | O_SYNC)) < 0) {
+	if ((fastboot_fd = open("/dev/mem", O_RDWR | O_SYNC)) < 0) {
 		perror("open error");
 		return -1;
 	}
 
-	mem = mmap(0, MAP_SIZE_NIGHT, PROT_READ | PROT_WRITE, MAP_SHARED, fd,
+	mem = mmap(0, MAP_SIZE_NIGHT, PROT_READ | PROT_WRITE, MAP_SHARED, fastboot_fd,
 	           rk_color_mode_addr & ~MAP_MASK_NIGHT);
 	vir_addr = mem + (rk_color_mode_addr & MAP_MASK_NIGHT);
 	rk_color_mode = *((unsigned long *)vir_addr);
-
+	if (mem != MAP_FAILED)
+		munmap(mem, MAP_SIZE_NIGHT);
 	addr_iq = (off_t)get_cmd_val("rk_iqbin_addr", 16);
 	file_size = (int)get_cmd_val("rk_iqbin_size", 16);
-	iq_mem = mmap(0, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, addr_iq & ~MAP_MASK);
+	iq_mem =
+	    mmap(0, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fastboot_fd, addr_iq & ~MAP_MASK);
 	vir_iqaddr = iq_mem + (addr_iq & MAP_MASK);
 
 	rk_aiq_static_info_t aiq_static_info;
@@ -1566,6 +1570,16 @@ int rk_isp_fastboot_init(int cam_id) {
 	LOG_INFO("Aiq:%lld us\n", s64AiqInitEnd - s64AiqInitStart);
 
 	return 0;
+}
+
+int rk_isp_fastboot_deinit(int cam_id) {
+	if (fastboot_fd > 0)
+		close(fastboot_fd);
+	if (iq_mem != MAP_FAILED)
+		munmap(iq_mem, file_size);
+
+	rk_aiq_uapi2_sysctl_stop(g_aiq_ctx[cam_id], false);
+	rk_aiq_uapi2_sysctl_deinit(g_aiq_ctx[cam_id]);
 }
 
 int rk_isp_set_from_ini(int cam_id) {

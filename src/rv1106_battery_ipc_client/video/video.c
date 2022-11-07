@@ -150,9 +150,9 @@ static void *rkipc_get_venc_0(void *arg) {
 			}
 			// fwrite(data, 1, stFrame.pstPack->u32Len, fp);
 			// fflush(fp);
-			LOG_DEBUG("Count:%d, Len:%d, PTS is %" PRId64 ", enH264EType is %d\n", loopCount,
-			          stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
-			          stFrame.pstPack->DataType.enH264EType);
+			// LOG_DEBUG("Count:%d, Len:%d, PTS is %" PRId64 ", enH264EType is %d\n", loopCount,
+			//           stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
+			//           stFrame.pstPack->DataType.enH264EType);
 
 			if (g_rtsplive && g_rtsp_session_0) {
 				pthread_mutex_lock(&g_rtsp_mutex);
@@ -319,9 +319,9 @@ static void *rkipc_get_venc_1(void *arg) {
 		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_1, &stFrame, 1000);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
-			LOG_DEBUG("Count:%d, Len:%d, PTS is %" PRId64 ", enH264EType is %d\n", loopCount,
-			          stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
-			          stFrame.pstPack->DataType.enH264EType);
+			// LOG_DEBUG("Count:%d, Len:%d, PTS is %" PRId64 ", enH264EType is %d\n", loopCount,
+			//           stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
+			//           stFrame.pstPack->DataType.enH264EType);
 			if (g_rtsplive && g_rtsp_session_1) {
 				pthread_mutex_lock(&g_rtsp_mutex);
 				rtsp_tx_video(g_rtsp_session_1, data, stFrame.pstPack->u32Len,
@@ -524,8 +524,8 @@ static void *rkipc_ivs_get_results(void *arg) {
 		ret = RK_MPI_IVS_GetResults(0, &stResults, 1000);
 		if (ret >= 0) {
 			resultscount++;
-			LOG_DEBUG("get chn %d results %d\n", 0, resultscount);
-			LOG_DEBUG("get stResults.s32ResultNum %d\n", stResults.s32ResultNum);
+			// LOG_DEBUG("get chn %d results %d\n", 0, resultscount);
+			// LOG_DEBUG("get stResults.s32ResultNum %d\n", stResults.s32ResultNum);
 			if (md == 1) {
 				if (resultscount % 10 == 0 && stResults.s32ResultNum == 1) {
 					int x = width / 8 / 8;
@@ -3034,12 +3034,9 @@ int rk_video_restart() {
 	int ret;
 	ret = rk_storage_deinit();
 	ret |= rk_video_deinit();
-	if (rk_param_get_int("video.source:enable_aiq", 1))
-		ret |= rk_isp_deinit(0);
 	if (rk_param_get_int("video.source:enable_aiq", 1)) {
-		ret |= rk_isp_init(0, rkipc_iq_file_path_);
-		if (rk_param_get_int("isp:init_form_ini", 1))
-			ret |= rk_isp_set_from_ini(0);
+		ret |= rk_isp_fastboot_deinit(0);
+		ret |= rk_isp_fastboot_init(0);
 	}
 	ret |= rk_video_init();
 	if (rk_param_get_int("audio.0:enable", 0))
