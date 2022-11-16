@@ -146,19 +146,16 @@ int rkipc_audio_aed_init() {
 	return result;
 }
 
-void test_bcd_callback() { LOG_INFO("baby cry callback successed\n"); }
-
 int rkipc_audio_bcd_init() {
 	int result;
 	AI_BCD_CONFIG_S ai_bcd_config;
 
-	ai_bcd_config.sUserMode = 1;
-	ai_bcd_config.sBypass = 0;
-	ai_bcd_config.sAlarmThreshold = 80;
-	ai_bcd_config.sTimeLimit = 1000;
-	ai_bcd_config.sTimeLimitThresholdCount = 20;
-	ai_bcd_config.sIntervalTime = 0;
-	ai_bcd_config.cbBcd = test_bcd_callback;
+	ai_bcd_config.mFrameLen = 120;
+	ai_bcd_config.mBlankFrameMax = 50;
+	ai_bcd_config.mCryEnergy = -1.25f;
+	ai_bcd_config.mJudgeEnergy = -0.75f;
+	ai_bcd_config.mCryThres1 = 0.70f;
+	ai_bcd_config.mCryThres2 = 0.55f;
 	result = RK_MPI_AI_SetBcdAttr(ai_dev_id, ai_chn_id, &ai_bcd_config);
 	if (result != RK_SUCCESS) {
 		LOG_ERROR("RK_MPI_AI_SetBcdAttr(%d,%d) failed with %#x\n", ai_dev_id, ai_chn_id, result);
@@ -227,14 +224,13 @@ static void *ai_get_detect_result(void *arg) {
 		if (enable_aed) {
 			result = RK_MPI_AI_GetAedResult(ai_dev_id, ai_chn_id, &aed_result);
 			if (result == 0) {
-				RK_LOGD("aed_result: %d, %d", aed_result.bAcousticEventDetected,
-				        aed_result.bLoudSoundDetected);
+				RK_LOGD("aed_result: %d, %d", aed_result.bAcousticEvent, aed_result.bLoudSound);
 			}
 		}
 		if (enable_bcd) {
 			result = RK_MPI_AI_GetBcdResult(ai_dev_id, ai_chn_id, &bcd_result);
 			if (result == 0) {
-				RK_LOGD("bcd_result: %d", bcd_result.bBabyCryDetected);
+				RK_LOGD("bcd_result: %d", bcd_result.bBabyCry);
 			}
 		}
 	}
