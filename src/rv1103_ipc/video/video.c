@@ -2505,12 +2505,8 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 	MPP_CHN_S stCoverChn;
 	RGN_CHN_ATTR_S stCoverChnAttr;
 	int rotation = rk_param_get_int("video.source:rotation", 0);
-	int video_0_width = rk_param_get_int("video.0:width", -1);
-	int video_0_height = rk_param_get_int("video.0:height", -1);
-	int video_1_width = rk_param_get_int("video.1:width", -1);
-	int video_1_height = rk_param_get_int("video.1:height", -1);
-	double x_rate = 1.0;
-	double y_rate = 1.0;
+	int video_0_width = rk_param_get_int("video.source:video_0_max_width", -1);
+	int video_0_height = rk_param_get_int("video.source:video_0_max_height", -1);
 	double video_0_w_h_rate = 1.0;
 
 	memset(&stCoverAttr, 0, sizeof(stCoverAttr));
@@ -2528,8 +2524,6 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 	// when cover is attached to VI,
 	// coordinate conversion of three angles shall be considered when rotating VENC
 	video_0_w_h_rate = (double)video_0_width / (double)video_0_height;
-	x_rate = (double)video_1_width / (double)video_0_width;
-	y_rate = (double)video_1_height / (double)video_0_height;
 	if (rotation == 90) {
 		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X =
 		    (double)osd_data->origin_y * video_0_w_h_rate;
@@ -2586,57 +2580,23 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 	// display cover regions to vi
 	stCoverChn.enModId = RK_ID_VI;
 	stCoverChn.s32DevId = 0;
+	stCoverChn.s32ChnId = VI_MAX_CHN_NUM;
 	stCoverChnAttr.bShow = osd_data->enable;
 	stCoverChnAttr.enType = COVER_RGN;
 	stCoverChnAttr.unChnAttr.stCoverChn.u32Color = 0xffffffff;
 	stCoverChnAttr.unChnAttr.stCoverChn.u32Layer = id;
 	LOG_DEBUG("cover region to chn success\n");
-	if (enable_venc_0) {
-		stCoverChn.s32ChnId = 0;
-		ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
-		if (RK_SUCCESS != ret) {
-			LOG_ERROR("0 RK_MPI_RGN_AttachToChn (%d) failed with %#x\n", coverHandle, ret);
-			return RK_FAILURE;
-		}
-		ret = RK_MPI_RGN_SetDisplayAttr(coverHandle, &stCoverChn, &stCoverChnAttr);
-		if (RK_SUCCESS != ret) {
-			LOG_ERROR("0 RK_MPI_RGN_SetDisplayAttr failed with %#x\n", ret);
-			return RK_FAILURE;
-		}
-		LOG_DEBUG("RK_MPI_RGN_AttachToChn to vi 0 success\n");
+	ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("vi pipe RK_MPI_RGN_AttachToChn (%d) failed with %#x\n", coverHandle, ret);
+		return RK_FAILURE;
 	}
-	if (enable_venc_1) {
-		stCoverChn.s32ChnId = 1;
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X =
-		    UPALIGNTO16((int)(stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X * x_rate));
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y =
-		    UPALIGNTO16((int)(stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y * y_rate));
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width =
-		    UPALIGNTO16((int)(stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width * x_rate));
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height =
-		    UPALIGNTO16((int)(stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height * y_rate));
-		while (stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X +
-		           stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width >=
-		       video_1_width) {
-			stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width -= 16;
-		}
-		while (stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y +
-		           stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height >=
-		       video_1_height) {
-			stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height -= 16;
-		}
-		ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
-		if (RK_SUCCESS != ret) {
-			LOG_ERROR("1 RK_MPI_RGN_AttachToChn (%d) failed with %#x\n", coverHandle, ret);
-			return RK_FAILURE;
-		}
-		ret = RK_MPI_RGN_SetDisplayAttr(coverHandle, &stCoverChn, &stCoverChnAttr);
-		if (RK_SUCCESS != ret) {
-			LOG_ERROR("1 RK_MPI_RGN_SetDisplayAttr failed with %#x\n", ret);
-			return RK_FAILURE;
-		}
-		LOG_DEBUG("RK_MPI_RGN_AttachToChn to vi 1 success\n");
+	ret = RK_MPI_RGN_SetDisplayAttr(coverHandle, &stCoverChn, &stCoverChnAttr);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("vi pipe RK_MPI_RGN_SetDisplayAttr failed with %#x\n", ret);
+		return RK_FAILURE;
 	}
+	LOG_DEBUG("RK_MPI_RGN_AttachToChn to vi 0 success\n");
 
 	return ret;
 }
@@ -2650,18 +2610,10 @@ int rkipc_osd_cover_destroy(int id) {
 
 	stMppChn.enModId = RK_ID_VI;
 	stMppChn.s32DevId = 0;
-	if (enable_venc_0) {
-		stMppChn.s32ChnId = 0;
-		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
-		if (RK_SUCCESS != ret)
-			LOG_DEBUG("RK_MPI_RGN_DetachFrmChn (%d) to vi 0 failed with %#x\n", RgnHandle, ret);
-	}
-	if (enable_venc_1) {
-		stMppChn.s32ChnId = 1;
-		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
-		if (RK_SUCCESS != ret)
-			LOG_DEBUG("RK_MPI_RGN_DetachFrmChn (%d) to vi 1 failed with %#x\n", RgnHandle, ret);
-	}
+	stMppChn.s32ChnId = VI_MAX_CHN_NUM;
+	ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
+	if (RK_SUCCESS != ret)
+		LOG_DEBUG("RK_MPI_RGN_DetachFrmChn (%d) to vi pipe failed with %#x\n", RgnHandle, ret);
 
 	// destory region
 	ret = RK_MPI_RGN_Destroy(RgnHandle);
