@@ -2263,6 +2263,11 @@ int rk_video_set_rotation(int value) {
 	if (ret)
 		LOG_ERROR("RK_MPI_VENC_SetChnRotation VIDEO_PIPE_1 error! ret=%#x\n", ret);
 	rk_roi_set_all(); // update roi info
+	// update osd info, cover currently attaches to VI
+	if (enable_osd) {
+		ret |= rkipc_osd_deinit();
+		ret |= rkipc_osd_init();
+	}
 
 	g_osd_run_ = 1;
 	rkipc_osd_draw_nn_init();
@@ -2758,6 +2763,7 @@ int rk_video_get_jpeg_resolution(char **value) {
 }
 
 int rk_video_set_jpeg_resolution(const char *value) {
+#if 0
 	int width, height, ret;
 	char entry[128] = {'\0'};
 	sscanf(value, "%d*%d", &width, &height);
@@ -2775,6 +2781,9 @@ int rk_video_set_jpeg_resolution(const char *value) {
 	ret = RK_MPI_VENC_SetChnAttr(JPEG_VENC_CHN, &venc_chn_attr);
 	if (ret)
 		LOG_ERROR("JPEG RK_MPI_VENC_SetChnAttr error! ret=%#x\n", ret);
+#else
+	LOG_INFO("1103 combo, jpeg resolution must be consistent with the main stream resolution\n");
+#endif
 
 	return 0;
 }
@@ -2951,6 +2960,7 @@ int rk_video_init() {
 	          "enable_wrap is %d, enable_osd is %d\n",
 	          g_vi_chn_id, g_enable_vo, g_vo_dev_id, enable_npu, enable_wrap, enable_osd);
 	g_video_run_ = 1;
+	g_osd_run_ = 1;
 	// ret |= rkipc_vi_dev_init(); //跨进程已在server初始化
 	if (enable_venc_0)
 		ret |= rkipc_pipe_0_init();
