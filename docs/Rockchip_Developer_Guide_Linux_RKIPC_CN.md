@@ -102,7 +102,7 @@ Rockchip Electronics Co., Ltd.
 | rv1103_ipc                | rockit、rkaiq    | 针对rv1103平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改，默认开启卷绕。 |
 | rv1106_ipc                | rockit、rkaiq    | 针对rv1106平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改，关闭卷绕。 |
 | rv1106_battery_ipc_client | rockit、rkaiq    | 针对rv1103/rv1106平台的电池类产品，支持网页和rtsp/rtmp预览，参数动态修改，做为快速启动双进程的client。 |
-| rv1106_battery_ipc_tuya   | rockit、rkaiq    | 针对rv1103/rv1106平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能(TODO)。 |
+| rv1106_battery_ipc_tuya   | rockit、rkaiq    | 针对rv1103/rv1106平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能。 |
 | rk3588_ipc                | rockit、rkaiq    | 针对rk3588平台的单目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
 | rk3588_muliti_ipc         | rockit、rkaiq    | 针对rk3588平台的多目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
 | rv1126_ipc_rkmedia        | rockit、rkaiq    | 针对rv1126/rv1109平台的IPC产品，使用rkmedia，支持网页和rtsp/rtmp预览，参数动态修改。 |
