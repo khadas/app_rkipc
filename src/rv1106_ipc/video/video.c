@@ -2102,6 +2102,10 @@ int rk_video_set_max_rate(int stream_id, int value) {
 	RK_MPI_VENC_SetChnAttr(stream_id, &venc_chn_attr);
 	snprintf(entry, 127, "video.%d:max_rate", stream_id);
 	rk_param_set_int(entry, value);
+	snprintf(entry, 127, "video.%d:mid_rate", stream_id);
+	rk_param_set_int(entry, value / 3 * 2);
+	snprintf(entry, 127, "video.%d:min_rate", stream_id);
+	rk_param_set_int(entry, value / 3);
 
 	return 0;
 }
