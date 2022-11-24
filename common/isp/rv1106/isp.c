@@ -858,9 +858,9 @@ int rk_isp_set_dark_boost_level(int cam_id, int value) {
 	int ret;
 	float Alpha = 0.1;
 	float Clip = 16.0;
-	float Gain = (value * 1.0f);
+	float Gain = ((value / 14.3f + 1) * 1.0f);
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	ret = rk_aiq_uapi2_setDrcGain(rkipc_aiq_get_ctx(cam_id), Gain, Alpha, Clip);
+	ret = rk_aiq_uapi2_setDrcGain(rkipc_aiq_get_ctx(cam_id), Gain, Alpha, Clip);  // [0,100]→[1,8]
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.blc:dark_boost_level", rkipc_get_scenario_id(cam_id));
 	rk_param_set_int(entry, value);
