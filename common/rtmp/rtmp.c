@@ -18,6 +18,7 @@ int rk_rtmp_init(int id, const char *rtmp_url) {
 	int ret = 0;
 	char entry[128] = {'\0'};
 	LOG_DEBUG("begin\n");
+	system("ifconfig lo up");
 
 	// set g_video_param
 	memset(&g_video_param, 0, sizeof(g_video_param));
