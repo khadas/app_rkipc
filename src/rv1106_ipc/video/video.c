@@ -1475,7 +1475,6 @@ int rkipc_pipe_1_init() {
 
 	stLayerAttr.u32DispFrmRt = 25;
 	stLayerAttr.enPixFormat = RK_FMT_RGB888;
-	stLayerAttr.bDoubleFrame = RK_TRUE;
 	VideoCSC.enCscMatrix = VO_CSC_MATRIX_IDENTITY;
 	VideoCSC.u32Contrast = 50;
 	VideoCSC.u32Hue = 50;
