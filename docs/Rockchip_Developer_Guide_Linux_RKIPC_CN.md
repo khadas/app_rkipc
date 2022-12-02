@@ -2,9 +2,9 @@
 
 文件标识：RK-KF-YF-937
 
-发布版本：V1.5.0
+发布版本：V1.6.0
 
-日期：2022-10-25
+日期：2022-12-02
 
 文件密级：□绝密   □秘密   □内部资料   ■公开
 
@@ -82,6 +82,7 @@ Rockchip Electronics Co., Ltd.
 | V1.3.0     | 林刘迪铭 | 2022-08-31   | 修改RK3588 Multi-IPC框图，JPEG改用VGS预处理，</br>AVS后增加VPSS用于cover。 |
 | V1.4.0     | 林刘迪铭 | 2022-10-10   | 修改RV1106 IPC和RV1103 IPC的IVS模块流程框图，</br>rv1106_battery_ipc细分为rv1106_battery_ipc_client和rv1106_battery_ipc_tuya。 |
 | V1.5.0     | 林刘迪铭 | 2022-10-25   | 修改ini模块参数说明，新增音视频模块API介绍。                 |
+| V1.6.0     | 林刘迪铭 | 2022-12-02   | 新增RV1106 Dual-IPC框图。                                    |
 
 ---
 
@@ -103,6 +104,7 @@ Rockchip Electronics Co., Ltd.
 | rv1106_ipc                | rockit、rkaiq    | 针对rv1106平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改，关闭卷绕。 |
 | rv1106_battery_ipc_client | rockit、rkaiq    | 针对rv1103/rv1106平台的电池类产品，支持网页和rtsp/rtmp预览，参数动态修改，做为快速启动双进程的client。 |
 | rv1106_battery_ipc_tuya   | rockit、rkaiq    | 针对rv1103/rv1106平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能。 |
+| rv1106_dual_ipc           | rockit、rkaiq    | 针对rv1103/rv1106平台的双目拼接类产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
 | rk3588_ipc                | rockit、rkaiq    | 针对rk3588平台的单目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
 | rk3588_muliti_ipc         | rockit、rkaiq    | 针对rk3588平台的多目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
 | rv1126_ipc_rkmedia        | rockit、rkaiq    | 针对rv1126/rv1109平台的IPC产品，使用rkmedia，支持网页和rtsp/rtmp预览，参数动态修改。 |
@@ -163,6 +165,14 @@ graph LR
 	phone_app-->|wake up from sleep| tuya_clound
 	VI_1-->VPSS-->NN_detect
 	VI_1-->draw-->VENC_1-->RTSP_1
+```
+
+### RV1106 Dual-IPC
+```mermaid
+graph LR
+	VI_0-->AVS
+	VI_1-->AVS-->VPSS-->VENC_0-->RTSP
+
 ```
 
 ### RK3588 IPC

@@ -6,10 +6,13 @@ option(COMPILE_FOR_RV1103_IPC "compile for rv1103 ipc" OFF)
 option(COMPILE_FOR_RV1106_IPC "compile for rv1106 ipc" OFF)
 option(COMPILE_FOR_RV1106_BATTERY_IPC_TUYA "compile for rv1106 battery ipc tuya" OFF)
 option(COMPILE_FOR_RV1106_BATTERY_IPC_CLIENT "compile for rv1106 battery ipc client" OFF)
+option(COMPILE_FOR_RV1106_DUAL_IPC "compile for rv1106 dual-ipc" OFF)
+
 option(COMPILE_FOR_RV1126_RKMEDIA "compile for rv1126 ipc rkmedia" OFF)
 option(COMPILE_FOR_RV1126_ROCKIT "compile for rv1126 ipc rockit" OFF)
 option(COMPILE_FOR_RV1126_BATTERY_IPC "compile for rv1126 battery ipc" OFF)
 option(COMPILE_FOR_RV1126_SNAPSHOT "compile for rv1126 snapshot" OFF)
+
 option(COMPILE_FOR_RK3588 "compile for rk3588 ipc" OFF)
 option(COMPILE_FOR_RK3588_MULTI_IPC "compile for rk3588 multi-ipc" OFF)
 
@@ -47,6 +50,10 @@ endif()
 
 if(COMPILE_FOR_RV1106_BATTERY_IPC_CLIENT)
   add_subdirectory(src/rv1106_battery_ipc_client)
+endif()
+
+if(COMPILE_FOR_RV1106_DUAL_IPC)
+  add_subdirectory(src/rv1106_dual_ipc)
 endif()
 
 if(COMPILE_FOR_RV1126_RKMEDIA)
