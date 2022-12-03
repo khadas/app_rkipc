@@ -14,6 +14,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include
 					${CMAKE_SYSROOT}/usr/include/rkaiq/iq_parser
 					${CMAKE_SYSROOT}/usr/include/rkaiq/iq_parser_v2
 					${CMAKE_SYSROOT}/usr/include/libdrm
+					${CMAKE_SYSROOT}/usr/include/freetype2
 					${WPA_SUPPLICANT_INCLUDE_DIRS}
 					)
 
@@ -70,8 +71,3 @@ install(PROGRAMS RkLunch.sh DESTINATION bin)
 install(PROGRAMS RkLunch-stop.sh DESTINATION bin)
 install(FILES ${PROJECT_SOURCE_DIR}/common/osd/image.bmp DESTINATION share)
 install(FILES ${PROJECT_SOURCE_DIR}/common/osd/simsun_en.ttf DESTINATION share)
-install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-gnueabihf/libwpa_client.so DESTINATION lib)
-install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-gnueabihf/libz.so DESTINATION lib)
-install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-gnueabihf/libz.so.1 DESTINATION lib)
-install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-gnueabihf/librkmuxer.so DESTINATION lib)
-install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-gnueabihf/librkfsmk.so DESTINATION lib)
