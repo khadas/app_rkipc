@@ -117,18 +117,11 @@ post_chk()
 		cp -fa /oem/usr/share/image.bmp /userdata/
 	fi
 
-	#if [ -d "/oem/usr/share/iqfiles" ];then
-	#	rkipc -a /oem/usr/share/iqfiles &
-	#else
-	#	rkipc &
-	#fi
-cd /sys/devices/system/cpu/cpufreq/policy0/
-echo userspace > scaling_governor
-cat scaling_available_frequencies
-echo 1416000 > scaling_setspeed
-cat scaling_cur_freq
-
-io -4 0xff110008 0x404
+	if [ -d "/oem/usr/share/iqfiles" ];then
+		rkipc -a /oem/usr/share/iqfiles &
+	else
+		rkipc &
+	fi
 }
 
 rcS
