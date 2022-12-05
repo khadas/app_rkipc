@@ -31,15 +31,24 @@ static int light_state = -1;
 static int current_scenario_id = 0;
 static int fastboot_fd, file_size;
 static void *iq_mem;
+static int rkipc_aiq_use_group = 0;
 static rk_aiq_sys_ctx_t *g_aiq_ctx[MAX_AIQ_CTX];
+static rk_aiq_camgroup_ctx_t *g_camera_group_ctx[MAX_AIQ_CTX];
 rk_aiq_working_mode_t g_WDRMode[MAX_AIQ_CTX];
 rk_aiq_wb_gain_t gs_wb_gain = {2.083900, 1.000000, 1.000000, 2.018500};
 
 #define RK_ISP_CHECK_CAMERA_ID(CAMERA_ID)                                                          \
 	do {                                                                                           \
-		if (CAMERA_ID >= MAX_AIQ_CTX || !g_aiq_ctx[CAMERA_ID]) {                                   \
-			LOG_ERROR("camera_id is over 3 or not init\n");                                        \
-			return -1;                                                                             \
+		if (rkipc_aiq_use_group) {                                                                 \
+			if (CAMERA_ID >= MAX_AIQ_CTX || !g_camera_group_ctx[CAMERA_ID]) {                      \
+				LOG_ERROR("camera_group_id is over 3 or not init\n");                              \
+				return -1;                                                                         \
+			}                                                                                      \
+		} else {                                                                                   \
+			if (CAMERA_ID >= MAX_AIQ_CTX || !g_aiq_ctx[CAMERA_ID]) {                               \
+				LOG_ERROR("camera_id is over 3 or not init\n");                                    \
+				return -1;                                                                         \
+			}                                                                                      \
 		}                                                                                          \
 	} while (0)
 
@@ -51,7 +60,12 @@ rk_aiq_wb_gain_t gs_wb_gain = {2.083900, 1.000000, 1.000000, 2.018500};
 		}                                                                                          \
 	} while (0)
 
-rk_aiq_sys_ctx_t *rkipc_aiq_get_ctx(int cam_id) { return g_aiq_ctx[cam_id]; }
+rk_aiq_sys_ctx_t *rkipc_aiq_get_ctx(int cam_id) {
+	if (rkipc_aiq_use_group)
+		return (rk_aiq_sys_ctx_t *)g_camera_group_ctx[cam_id];
+
+	return g_aiq_ctx[cam_id];
+}
 
 int rkipc_get_scenario_id(int cam_id) {
 	int scenario_id = cam_id * MAX_SCENARIO_NUM + current_scenario_id;
@@ -89,6 +103,7 @@ int sample_common_isp_init(int cam_id, rk_aiq_working_mode_t WDRMode, bool Multi
 	         aiq_static_info.sensor_info.sensor_name, iq_file_dir);
 
 	int ret;
+	rk_aiq_uapi2_sysctl_preInit_devBufCnt(aiq_static_info.sensor_info.sensor_name, "rkraw_rx", 2);
 
 	if (WDRMode == RK_AIQ_WORKING_MODE_NORMAL)
 		strcpy(main_scene, "normal");
@@ -127,6 +142,63 @@ int sample_common_isp_run(int cam_id) {
 		return -1;
 	}
 	LOG_INFO("%s: rk_aiq_uapi2_sysctl_start succeed\n", get_time_string());
+	return 0;
+}
+
+int isp_camera_group_init(int cam_group_id, rk_aiq_working_mode_t WDRMode, bool MultiCam,
+                          const char *iq_file_dir) {
+	int ret;
+	rk_aiq_static_info_t aiq_static_info;
+	char sensor_name_array[MAX_AIQ_CTX][128];
+	rk_aiq_camgroup_instance_cfg_t camgroup_cfg;
+	memset(&camgroup_cfg, 0, sizeof(camgroup_cfg));
+
+	camgroup_cfg.sns_num = rk_param_get_int("avs:sensor_num", 6);
+	LOG_INFO("camgroup_cfg.sns_num is %d\n", camgroup_cfg.sns_num);
+	for (int i = 0; i < camgroup_cfg.sns_num; i++) {
+		rk_aiq_uapi2_sysctl_enumStaticMetas(i, &aiq_static_info);
+		LOG_INFO("cam_group_id:%d, cam_id: %d, sensor_name is %s, iqfiles is %s\n", cam_group_id, i,
+		         aiq_static_info.sensor_info.sensor_name, iq_file_dir);
+		memcpy(sensor_name_array[i], aiq_static_info.sensor_info.sensor_name,
+		       strlen(aiq_static_info.sensor_info.sensor_name) + 1);
+		camgroup_cfg.sns_ent_nm_array[i] = sensor_name_array[i];
+		LOG_INFO("camgroup_cfg.sns_ent_nm_array[%d] is %s\n", i, camgroup_cfg.sns_ent_nm_array[i]);
+		rk_aiq_uapi2_sysctl_preInit_devBufCnt(aiq_static_info.sensor_info.sensor_name, "rkraw_rx",
+		                                      2);
+		if (WDRMode == RK_AIQ_WORKING_MODE_NORMAL)
+			ret = rk_aiq_uapi2_sysctl_preInit_scene(aiq_static_info.sensor_info.sensor_name,
+			                                        "normal", "day");
+		else
+			ret = rk_aiq_uapi2_sysctl_preInit_scene(aiq_static_info.sensor_info.sensor_name, "hdr",
+			                                        "day");
+		if (ret < 0)
+			LOG_ERROR("%s: failed to set scene\n", aiq_static_info.sensor_info.sensor_name);
+	}
+
+	camgroup_cfg.config_file_dir = iq_file_dir;
+	g_camera_group_ctx[cam_group_id] = rk_aiq_uapi2_camgroup_create(&camgroup_cfg);
+	if (!g_camera_group_ctx[cam_group_id]) {
+		LOG_ERROR("create camgroup ctx error!\n");
+		return -1;
+	}
+	LOG_INFO("rk_aiq_uapi2_camgroup_create over\n");
+	ret = rk_aiq_uapi2_camgroup_prepare(g_camera_group_ctx[cam_group_id], WDRMode);
+	LOG_INFO("rk_aiq_uapi2_camgroup_prepare over\n");
+	ret |= rk_aiq_uapi2_camgroup_start(g_camera_group_ctx[cam_group_id]);
+	LOG_INFO("rk_aiq_uapi2_camgroup_start over\n");
+
+	return ret;
+}
+
+int isp_camera_group_stop(int cam_group_id) {
+	RK_ISP_CHECK_CAMERA_ID(cam_group_id);
+	LOG_INFO("rk_aiq_uapi2_camgroup_stop enter\n");
+	rk_aiq_uapi2_camgroup_stop(g_camera_group_ctx[cam_group_id]);
+	LOG_INFO("rk_aiq_uapi2_camgroup_destroy enter\n");
+	rk_aiq_uapi2_camgroup_destroy(g_camera_group_ctx[cam_group_id]);
+	LOG_INFO("rk_aiq_uapi2_camgroup_destroy exit\n");
+	g_camera_group_ctx[cam_group_id] = NULL;
+
 	return 0;
 }
 
@@ -860,7 +932,7 @@ int rk_isp_set_dark_boost_level(int cam_id, int value) {
 	float Clip = 16.0;
 	float Gain = ((value / 14.3f + 1) * 1.0f);
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	ret = rk_aiq_uapi2_setDrcGain(rkipc_aiq_get_ctx(cam_id), Gain, Alpha, Clip);  // [0,100]→[1,8]
+	ret = rk_aiq_uapi2_setDrcGain(rkipc_aiq_get_ctx(cam_id), Gain, Alpha, Clip); // [0,100]→[1,8]
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.blc:dark_boost_level", rkipc_get_scenario_id(cam_id));
 	rk_param_set_int(entry, value);
@@ -1297,6 +1369,55 @@ int rk_isp_set_ldch_level(int cam_id, int value) {
 	rk_param_set_int(entry, value);
 
 	return ret;
+}
+
+int rk_isp_set_group_ldch_level_form_file(int cam_id) {
+	int ret;
+	rk_aiq_camgroup_camInfos_t camInfos;
+
+	memset(&camInfos, 0, sizeof(camInfos));
+	if (rk_aiq_uapi2_camgroup_getCamInfos(rkipc_aiq_get_ctx(cam_id), &camInfos) !=
+	    XCAM_RETURN_NO_ERROR) {
+		LOG_ERROR("rk_aiq_uapi2_camgroup_getCamInfos fail\n");
+		return -1;
+	}
+	for (int i = 0; i < camInfos.valid_sns_num; i++) {
+		rk_aiq_sys_ctx_t *aiq_ctx = NULL;
+		rk_aiq_ldch_v21_attrib_t ldchAttr;
+		memset(&ldchAttr, 0, sizeof(ldchAttr));
+		aiq_ctx = rk_aiq_uapi2_camgroup_getAiqCtxBySnsNm(rkipc_aiq_get_ctx(cam_id),
+		                                                 camInfos.sns_ent_nm[i]);
+		if (!aiq_ctx)
+			continue;
+		LOG_INFO("aiq_ctx sns name: %s, camPhyId %d\n", camInfos.sns_ent_nm[i],
+		         camInfos.sns_camPhyId[i]);
+		ret = rk_aiq_user_api2_aldch_v21_GetAttrib(aiq_ctx, &ldchAttr);
+		if (ret != XCAM_RETURN_NO_ERROR) {
+			LOG_ERROR("rk_aiq_user_api2_aldch_v21_GetAttrib fail\n");
+			return -1;
+		}
+		ldchAttr.en = true;
+		ldchAttr.lut.flag = true;
+		strcpy(ldchAttr.lut.config_file_dir,
+		       rk_param_get_string("avs:middle_lut_path", "/oem/usr/share/middle_lut/5m/"));
+		if (camInfos.sns_camPhyId[i] > 0) {
+			strcpy(ldchAttr.lut.mesh_file, "cam1_ldch_mesh.bin");
+		} else {
+			strcpy(ldchAttr.lut.mesh_file, "cam0_ldch_mesh.bin");
+		}
+
+		LOG_INFO("sns name %s, camPhyId %d\n", camInfos.sns_ent_nm[i], camInfos.sns_camPhyId[i]);
+		LOG_INFO("lut file_dir %s, mesh_file %s\n", ldchAttr.lut.config_file_dir,
+		         ldchAttr.lut.mesh_file);
+
+		ret = rk_aiq_user_api2_aldch_v21_SetAttrib(aiq_ctx, &ldchAttr);
+		if (ret != XCAM_RETURN_NO_ERROR) {
+			LOG_ERROR("Failed to set ldch attrib : %d\n", ret);
+			return -1;
+		}
+	}
+
+	return 0;
 }
 
 // video_adjustment
@@ -1740,4 +1861,35 @@ int rk_isp_deinit(int cam_id) {
 	g_aiq_ctx[cam_id] = NULL;
 
 	return 0;
+}
+
+int rk_isp_group_init(int cam_group_id, char *iqfile_path) {
+	LOG_INFO("cam_group_id is %d\n", cam_group_id);
+	int ret;
+	rkipc_aiq_use_group = 1;
+	if (iqfile_path)
+		memcpy(g_iq_file_dir_, iqfile_path, strlen(iqfile_path));
+	else
+		memcpy(g_iq_file_dir_, "/etc/iqfiles", strlen("/etc/iqfiles"));
+	LOG_INFO("g_iq_file_dir_ is %s\n", g_iq_file_dir_);
+
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "isp.%d.blc:hdr", cam_group_id);
+	const char *hdr_mode = rk_param_get_string(entry, "close");
+	LOG_INFO("cam_group_id is %d, hdr_mode is %s\n", cam_group_id, hdr_mode);
+	if (!strcmp(hdr_mode, "HDR2")) {
+		ret = isp_camera_group_init(cam_group_id, RK_AIQ_WORKING_MODE_ISP_HDR2, false,
+		                            g_iq_file_dir_);
+	} else {
+		ret =
+		    isp_camera_group_init(cam_group_id, RK_AIQ_WORKING_MODE_NORMAL, false, g_iq_file_dir_);
+	}
+	ret |= rk_isp_set_from_ini(cam_group_id);
+
+	return ret;
+}
+
+int rk_isp_group_deinit(int cam_group_id) {
+	LOG_INFO("cam_group_id is %d\n", cam_group_id);
+	return isp_camera_group_stop(cam_group_id);
 }

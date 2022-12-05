@@ -85,7 +85,7 @@ void rkipc_get_opt(int argc, char *argv[]) {
 	}
 }
 
-#define AO_FREAD_SIZE 1024*4
+#define AO_FREAD_SIZE 1024 * 4
 static void *wait_key_event(void *arg) {
 	int key_fd;
 	key_fd = open("/dev/input/event0", O_RDONLY);

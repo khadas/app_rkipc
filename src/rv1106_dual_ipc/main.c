@@ -85,7 +85,7 @@ void rkipc_get_opt(int argc, char *argv[]) {
 	}
 }
 
-#define AO_FREAD_SIZE 1024*4
+#define AO_FREAD_SIZE 1024 * 4
 static void *wait_key_event(void *arg) {
 	int key_fd;
 	key_fd = open("/dev/input/event0", O_RDONLY);
@@ -159,26 +159,32 @@ int main(int argc, char **argv) {
 	rk_system_init();
 	if (rk_param_get_int("video.source:enable_npu", 0))
 		rkipc_rockiva_init();
-	if (rk_param_get_int("video.source:enable_aiq", 1)) {
-		rk_isp_init(0, rkipc_iq_file_path_);
+	if (rk_param_get_int("isp:group_mode", 1)) {
+		rk_isp_group_init(0, rkipc_iq_file_path_);
 		rk_isp_set_frame_rate(0, rk_param_get_int("isp.0.adjustment:fps", 30));
-		if (rk_param_get_int("isp:init_form_ini", 1))
-			rk_isp_set_from_ini(0);
+		if (rk_param_get_int("isp:group_ldch", 1))
+			rk_isp_set_group_ldch_level_form_file(0);
+	} else {
+		rk_isp_init(0, rkipc_iq_file_path_);
+		rk_isp_init(1, rkipc_iq_file_path_);
+		rk_isp_set_frame_rate(0, rk_param_get_int("isp.0.adjustment:fps", 30));
+		rk_isp_set_frame_rate(1, rk_param_get_int("isp.0.adjustment:fps", 30));
 	}
+
 	RK_MPI_SYS_Init();
 	rk_video_init();
-	if (rk_param_get_int("audio.0:enable", 0))
-		rkipc_audio_init();
-	rkipc_server_init();
-	rk_storage_init();
-	//pthread_create(&key_chk, NULL, wait_key_event, NULL);
+	// if (rk_param_get_int("audio.0:enable", 0))
+	// 	rkipc_audio_init();
+	// rkipc_server_init();
+	// rk_storage_init();
+	// pthread_create(&key_chk, NULL, wait_key_event, NULL);
 
 	while (g_main_run_) {
 		usleep(1000 * 1000);
 	}
 
 	// deinit
-	//pthread_join(key_chk, NULL);
+	// pthread_join(key_chk, NULL);
 	rk_storage_deinit();
 	rkipc_server_deinit();
 	rk_system_deinit();

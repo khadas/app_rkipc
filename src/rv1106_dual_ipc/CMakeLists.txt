@@ -62,7 +62,9 @@ add_definitions(-DISP_HW_V32)
 # link_libraries(asan)
 
 add_executable(${PROJECT_NAME} ${SRCS})
-target_link_libraries(${PROJECT_NAME} pthread rockit rockchip_mpp rkaiq rtsp rkaudio_detect aec_bf_process wpa_client m rkmuxer rkfsmk freetype rockiva iconv rknnmrt rga stdc++ rksysutils)
+target_link_libraries(${PROJECT_NAME} pthread rockit rockchip_mpp rkaiq rtsp rkaudio_detect 
+aec_bf_process wpa_client m rkmuxer rkfsmk freetype rockiva iconv rknnmrt rga stdc++ rksysutils
+rkAVS_stitchFor1106)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 install(FILES rkipc.ini DESTINATION share)
