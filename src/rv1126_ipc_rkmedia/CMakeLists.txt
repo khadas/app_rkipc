@@ -7,6 +7,8 @@ include_directories(${PROJECT_SOURCE_DIR}/./include
 					${CMAKE_SYSROOT}/usr/include/rkaiq/xcore
 					${CMAKE_SYSROOT}/usr/include/rkaiq/iq_parser
 					${CMAKE_SYSROOT}/usr/include/libdrm
+					${CMAKE_SYSROOT}/usr/include/freetype2
+					${CMAKE_SYSROOT}/usr/include/easymedia
 					${WPA_SUPPLICANT_INCLUDE_DIRS}
 					)
 
@@ -21,11 +23,12 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/common/param SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/system SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/rtmp SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/osd SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/roi SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/osd/freetype2 SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/network SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/storage SRCS)
-# aux_source_directory(${PROJECT_SOURCE_DIR}/common/ivm SRCS)
-aux_source_directory(${PROJECT_SOURCE_DIR}/common/event SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/ivm SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/region_clip SRCS)
 
 include_directories(audio
 					${PROJECT_SOURCE_DIR}/common/isp/rv1126
@@ -39,10 +42,12 @@ include_directories(audio
 					${PROJECT_SOURCE_DIR}/common/system
 					${PROJECT_SOURCE_DIR}/common/osd
 					${PROJECT_SOURCE_DIR}/common/osd/freetype2
+					${PROJECT_SOURCE_DIR}/common/roi
 					${PROJECT_SOURCE_DIR}/common/network
 					${PROJECT_SOURCE_DIR}/common/storage
-#					${PROJECT_SOURCE_DIR}/common/ivm
+					${PROJECT_SOURCE_DIR}/common/ivm
 					${PROJECT_SOURCE_DIR}/common/event
+					${PROJECT_SOURCE_DIR}/common/region_clip
 					)
 
 link_directories(${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-gnueabihf)
@@ -61,8 +66,5 @@ install(PROGRAMS RkLunch-stop.sh DESTINATION bin )
 install(FILES ${PROJECT_SOURCE_DIR}/common/osd/image.bmp DESTINATION share)
 install(FILES ${PROJECT_SOURCE_DIR}/common/osd/simsun_cn.ttc DESTINATION share)
 install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-gnueabihf/libivm_share.so DESTINATION lib)
-install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-gnueabihf/libz.so.1 DESTINATION lib)
 install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-gnueabihf/libwpa_client.so DESTINATION lib)
-install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-gnueabihf/librkmuxer.so DESTINATION lib)
 install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-gnueabihf/librknn_api.so DESTINATION lib)
-install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-gnueabihf/librkfsmk.so DESTINATION lib)

@@ -649,9 +649,6 @@ int rkipc_pipe_0_to_RTSP_init() { // VI 0 2688*1520 -> VENC 0 H264 ->RTSP 0 &
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
 	} else if (!strcmp(g_gop_mode, "smartP")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
-		venc_chn_attr.stGopAttr.s32VirIdrLen = rk_param_get_int("video.0:smartp_viridrlen", 25);
-	} else if (!strcmp(g_gop_mode, "TSVC4")) {
-		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC4;
 	}
 	venc_chn_attr.stVencAttr.imageType = IMAGE_TYPE_NV12;
 	venc_chn_attr.stVencAttr.u32PicWidth = video_width;
@@ -822,9 +819,6 @@ int rkipc_pipe_1_init() { // VI 1 640*480 -> VENC 1 H264 ->RTSP 1 & RTMP
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
 	} else if (!strcmp(g_gop_mode, "smartP")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
-		venc_chn_attr.stGopAttr.s32VirIdrLen = rk_param_get_int("video.1:smartp_viridrlen", 25);
-	} else if (!strcmp(g_gop_mode, "TSVC4")) {
-		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC4;
 	}
 	venc_chn_attr.stVencAttr.imageType = IMAGE_TYPE_NV12;
 	venc_chn_attr.stVencAttr.u32PicWidth = video_width;
@@ -1002,9 +996,6 @@ int rkipc_pipe_2_init() { // VI 2 1920*1080 -> VENC 2 H264 ->RTSP 2  & RTMP
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
 	} else if (!strcmp(g_gop_mode, "smartP")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
-		venc_chn_attr.stGopAttr.s32VirIdrLen = rk_param_get_int("video.2:smartp_viridrlen", 25);
-	} else if (!strcmp(g_gop_mode, "TSVC4")) {
-		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_TSVC4;
 	}
 	venc_chn_attr.stVencAttr.imageType = IMAGE_TYPE_NV12;
 	venc_chn_attr.stVencAttr.u32PicWidth = video_width;

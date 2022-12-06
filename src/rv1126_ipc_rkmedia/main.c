@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
 	rk_system_init();
 	rk_isp_init(0, rkipc_iq_file_path_);
 	rk_video_init();
-	rk_audio_init();
+	rkipc_audio_init();
 	rkipc_server_init();
 	rk_storage_init();
 	// rk_event_init();
@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
 	rk_storage_deinit();
 	rkipc_server_deinit();
 	rk_system_deinit();
-	rk_audio_deinit();
+	rkipc_audio_deinit();
 	rk_video_deinit();
 	rk_isp_deinit(0);
 	rk_param_deinit();
