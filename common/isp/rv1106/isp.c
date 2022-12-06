@@ -1374,7 +1374,7 @@ int rk_isp_set_ldch_level(int cam_id, int value) {
 int rk_isp_set_group_ldch_level_form_file(int cam_id) {
 	int ret;
 	rk_aiq_camgroup_camInfos_t camInfos;
-
+#if 0
 	memset(&camInfos, 0, sizeof(camInfos));
 	if (rk_aiq_uapi2_camgroup_getCamInfos(rkipc_aiq_get_ctx(cam_id), &camInfos) !=
 	    XCAM_RETURN_NO_ERROR) {
@@ -1416,7 +1416,7 @@ int rk_isp_set_group_ldch_level_form_file(int cam_id) {
 			return -1;
 		}
 	}
-
+#endif
 	return 0;
 }
 
