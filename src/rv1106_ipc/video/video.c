@@ -47,7 +47,7 @@ rtsp_session_handle g_rtsp_session_0, g_rtsp_session_1, g_rtsp_session_2;
 static int send_jpeg_cnt = 0;
 static int get_jpeg_cnt = 0;
 static int enable_ivs, enable_jpeg, enable_venc_0, enable_venc_1, enable_rtsp, enable_rtmp;
-static int g_enable_vo, g_vo_dev_id, g_vi_chn_id, enable_npu, enable_wrap, enable_osd;
+static int g_enable_vo, g_vo_dev_id, g_vi_chn_id, enable_npu, enable_osd;
 static int g_video_run_ = 1;
 static int g_nn_osd_run_ = 1;
 static int pipe_id_ = 0;
@@ -822,21 +822,6 @@ int rkipc_pipe_0_init() {
 		return ret;
 	}
 
-	VI_CHN_BUF_WRAP_S stViWrap;
-	memset(&stViWrap, 0, sizeof(VI_CHN_BUF_WRAP_S));
-	if (enable_wrap) {
-		if (buffer_line < 64 || buffer_line > video_height) {
-			LOG_ERROR("wrap mode buffer line must between [64, H]\n");
-			return -1;
-		}
-		stViWrap.bEnable = enable_wrap;
-		stViWrap.u32BufLine = buffer_line;
-		stViWrap.u32WrapBufferSize = stViWrap.u32BufLine * video_width * 3 / 2;
-		LOG_INFO("set vi channel wrap line: %d, wrapBuffSize = %d\n", stViWrap.u32BufLine,
-		         stViWrap.u32WrapBufferSize);
-		RK_MPI_VI_SetChnWrapBufAttr(pipe_id_, VIDEO_PIPE_0, &stViWrap);
-	}
-
 	ret = RK_MPI_VI_EnableChn(pipe_id_, VIDEO_PIPE_0);
 	if (ret) {
 		LOG_ERROR("ERROR: create VI error! ret=%d\n", ret);
@@ -1043,15 +1028,6 @@ int rkipc_pipe_0_init() {
 		return -1;
 	}
 	RK_MPI_VENC_SetRcParam(VIDEO_PIPE_0, &venc_rc_param);
-
-	VENC_CHN_BUF_WRAP_S stVencChnBufWrap;
-	memset(&stVencChnBufWrap, 0, sizeof(stVencChnBufWrap));
-	if (enable_wrap) {
-		stVencChnBufWrap.bEnable = enable_wrap;
-		stVencChnBufWrap.u32BufLine =
-		    rk_param_get_int("video.source:buffer_line", video_height / 4);
-		RK_MPI_VENC_SetChnBufWrapAttr(VIDEO_PIPE_0, &stVencChnBufWrap);
-	}
 
 	if (!strcmp(tmp_output_data_type, "H.264")) {
 		VENC_H264_TRANS_S pstH264Trans;
@@ -1687,23 +1663,7 @@ int rkipc_pipe_jpeg_init() {
 	} else if (rotation == 270) {
 		RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN, ROTATION_270);
 	}
-#if 0
-	VENC_CHN_BUF_WRAP_S stVencChnBufWrap;
-	memset(&stVencChnBufWrap, 0, sizeof(stVencChnBufWrap));
-	if (enable_wrap) {
-		stVencChnBufWrap.bEnable = enable_wrap;
-		stVencChnBufWrap.u32BufLine =
-		    rk_param_get_int("video.source:buffer_line", video_height / 4);
-		RK_MPI_VENC_SetChnBufWrapAttr(JPEG_VENC_CHN, &stVencChnBufWrap);
-	}
 
-	VENC_COMBO_ATTR_S stComboAttr;
-	memset(&stComboAttr, 0, sizeof(VENC_COMBO_ATTR_S));
-	stComboAttr.bEnable = RK_TRUE;
-	stComboAttr.s32ChnId = VIDEO_PIPE_0;
-	RK_MPI_VENC_SetComboAttr(JPEG_VENC_CHN, &stComboAttr);
-
-#endif
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
 	stRecvParam.s32RecvPicNum = 1;
@@ -3162,11 +3122,10 @@ int rk_video_init() {
 	g_enable_vo = rk_param_get_int("video.source:enable_vo", 1);
 	g_vo_dev_id = rk_param_get_int("video.source:vo_dev_id", 3);
 	enable_npu = rk_param_get_int("video.source:enable_npu", 0);
-	enable_wrap = rk_param_get_int("video.source:enable_wrap", 0);
 	enable_osd = rk_param_get_int("osd.common:enable_osd", 0);
 	LOG_DEBUG("g_vi_chn_id is %d, g_enable_vo is %d, g_vo_dev_id is %d, enable_npu is %d, "
-	          "enable_wrap is %d, enable_osd is %d\n",
-	          g_vi_chn_id, g_enable_vo, g_vo_dev_id, enable_npu, enable_wrap, enable_osd);
+	          "enable_osd is %d\n",
+	          g_vi_chn_id, g_enable_vo, g_vo_dev_id, enable_npu, enable_osd);
 	g_video_run_ = 1;
 	g_nn_osd_run_ = 1;
 	ret |= rkipc_vi_dev_init();
