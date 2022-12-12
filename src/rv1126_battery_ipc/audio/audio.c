@@ -186,17 +186,16 @@ int rk_aenc_init() {
 	const char *encode_type = rk_param_get_string("audio.0:encode_type", NULL);
 	if (!strcmp(encode_type, "MP2")) {
 		stAencAttr.enType = RK_AUDIO_ID_MP2;
-		stAencAttr.stCodecAttr.enType = RK_AUDIO_ID_MP2;
 	} else {
 		LOG_ERROR("not support %s\n", encode_type);
 	}
-	stAencAttr.stCodecAttr.u32Channels = rk_param_get_int("audio.0:channels", 2);
-	stAencAttr.stCodecAttr.u32SampleRate = rk_param_get_int("audio.0:sample_rate", 16000);
+	stAencAttr.stAencCodec.u32Channels = rk_param_get_int("audio.0:channels", 2);
+	stAencAttr.stAencCodec.u32SampleRate = rk_param_get_int("audio.0:sample_rate", 16000);
 	const char *format = rk_param_get_string("audio.0:format", NULL);
 	if (!strcmp(format, "S16")) {
-		stAencAttr.stCodecAttr.enBitwidth = AUDIO_BIT_WIDTH_16;
+		stAencAttr.stAencCodec.enBitwidth = AUDIO_BIT_WIDTH_16;
 	} else if (!strcmp(format, "U8")) {
-		stAencAttr.stCodecAttr.enBitwidth = AUDIO_BIT_WIDTH_8;
+		stAencAttr.stAencCodec.enBitwidth = AUDIO_BIT_WIDTH_8;
 	} else {
 		LOG_ERROR("not support %s\n", format);
 	}

@@ -522,7 +522,7 @@ int rkipc_pipe_1_init() {
 	VoChnAttr.stRect.u32Height = stLayerAttr.stDispRect.u32Height;
 	VoChnAttr.enRotation = ROTATION_90;
 
-	ret = RK_MPI_VO_SetChnAttr(VoLayer, 0, &VoChnAttr);
+	ret = RT_MPI_VO_SetChnAttr(VoLayer, 0, &VoChnAttr);
 
 	// RK_MPI_VO_SetChnFrameRate(VoLayer, 0, 30);
 
