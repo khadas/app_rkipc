@@ -115,8 +115,8 @@ int rk_ai_init() {
 	RK_U32 u32SampleRate = rk_param_get_int("audio.0:sample_rate", 16000);
 
 	const char *card_name = rk_param_get_string("audio.0:card_name", "default");
-	snprintf(ai_attr.pcAudioNode, 8, "%s", card_name);
-	LOG_INFO("ai_attr.pcAudioNode is %s\n", ai_attr.pcAudioNode);
+	// snprintf(ai_attr.pcAudioNode, 8, "%s", card_name);
+	// LOG_INFO("ai_attr.pcAudioNode is %s\n", ai_attr.pcAudioNode);
 	const char *format = rk_param_get_string("audio.0:format", NULL);
 	if (!strcmp(format, "S16")) {
 		ai_attr.enSampleFormat = RK_SAMPLE_FMT_S16;
@@ -126,7 +126,7 @@ int rk_ai_init() {
 		LOG_ERROR("not support %s\n", format);
 	}
 
-	// ai_attr.pcAudioNode = card_name;
+	ai_attr.pcAudioNode = card_name;
 	// ai_attr.enSampleFormat = format;
 	ai_attr.u32NbSamples = u32FrameCnt;
 	ai_attr.u32SampleRate = u32SampleRate;

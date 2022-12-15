@@ -308,8 +308,11 @@ int rkipc_rtsp_init(int URL_option) {
 
 int rkipc_rtsp_deinit() {
 	LOG_INFO("%s\n", __func__);
-	if (g_rtsplive)
+	if (g_rtsplive) {
 		rtsp_del_demo(g_rtsplive);
+		g_rtsplive = NULL;
+	}
+
 	LOG_INFO("%s over\n", __func__);
 
 	return 0;
@@ -699,6 +702,13 @@ int rkipc_pipe_0_to_RTSP_deinit() {
 		return -1;
 	}
 	LOG_INFO("Destroy VENC[0] success\n");
+	// destroy vi
+	ret = RK_MPI_VI_DisableChn(pipe_id_, VIDEO_PIPE_0);
+	if (ret) {
+		LOG_ERROR("ERROR: Destroy VI error! ret=%d\n", ret);
+		return -1;
+	}
+	LOG_INFO("Destroy VI success\n");
 	rkipc_rtmp_deinit(0);
 	rkipc_rtsp_deinit();
 	pthread_join(venc_thread_id_0, NULL);
@@ -708,7 +718,7 @@ int rkipc_pipe_0_to_RTSP_deinit() {
 int rkipc_pipe_1_init() { // VI 1 640*480 -> VENC 1 H264 ->RTSP 1 & RTMP
 	int video_width = rk_param_get_int("video.1:width", -1);
 	int video_height = rk_param_get_int("video.1:height", -1);
-	const char *video_device_name = rk_param_get_string("video.1:src_node", "rkispp_scale0");
+	const char *video_device_name = rk_param_get_string("video.1:src_node", "rkispp_scale1");
 	g_output_data_type = rk_param_get_string("video.1:output_data_type", NULL);
 	g_rc_mode = rk_param_get_string("video.1:rc_mode", NULL);
 	g_h264_profile = rk_param_get_string("video.1:h264_profile", NULL);
@@ -885,7 +895,7 @@ int rkipc_pipe_1_deinit() {
 int rkipc_pipe_2_init() { // VI 2 1920*1080 -> VENC 2 H264 ->RTSP 2  & RTMP
 	int video_width = rk_param_get_int("video.2:width", -1);
 	int video_height = rk_param_get_int("video.2:height", -1);
-	const char *video_device_name = rk_param_get_string("video.2:src_node", "rkispp_scale0");
+	const char *video_device_name = rk_param_get_string("video.2:src_node", "rkispp_scale2");
 	g_output_data_type = rk_param_get_string("video.2:output_data_type", NULL);
 	g_rc_mode = rk_param_get_string("video.2:rc_mode", NULL);
 	g_h264_profile = rk_param_get_string("video.2:h264_profile", NULL);
@@ -1744,11 +1754,11 @@ int rk_video_init() {
 	g_video_run_ = 1;
 	ret = RK_MPI_SYS_Init();
 	ret |= rkipc_pipe_0_to_RTSP_init(); //主码流
-	ret |= rkipc_pipe_0_to_jpeg_init();
+	// ret |= rkipc_pipe_0_to_jpeg_init();
 	ret |= rkipc_pipe_1_init();
-	ret |= rkipc_pipe_2_init();
+	// ret |= rkipc_pipe_2_init();
 	ret |= rkipc_pipe_3_init();
-	ret |= rkipc_osd_init();
+	// ret |= rkipc_osd_init();
 
 	return ret;
 }
@@ -1757,25 +1767,25 @@ int rk_video_deinit() {
 	LOG_INFO("%s\n", __func__);
 	g_video_run_ = 0;
 	int ret = 0;
-	ret |= rkipc_osd_deinit();
-	ret |= rkipc_pipe_0_to_RTSP_deinit(); //主码流
-	ret |= rkipc_pipe_0_to_jpeg_deinit();
+	// ret = rkipc_osd_deinit();
+	ret = rkipc_pipe_3_deinit();
+	// ret |= rkipc_pipe_2_deinit();
 	ret |= rkipc_pipe_1_deinit();
-	ret |= rkipc_pipe_2_deinit();
-	ret |= rkipc_pipe_3_deinit();
+	// ret |= rkipc_pipe_0_to_jpeg_deinit();
+	ret |= rkipc_pipe_0_to_RTSP_deinit(); //主码流
 
 	return ret;
 }
 
 int rk_video_restart() {
 	int ret;
-	// ret = rk_video_deinit();
-	// rk_isp_deinit(0);
+	ret = rk_video_deinit();
+	rk_isp_deinit(0);
 	// rk_isp_deinit(1);
 	sleep(1);
-	// ret |= rk_video_init();
-	// rk_isp_init(0);
-	// rk_isp_init(1);
+	rk_isp_init(0, NULL);
+	ret |= rk_video_init();
+	// rk_isp_init(1, NULL);
 
 	return ret;
 }
