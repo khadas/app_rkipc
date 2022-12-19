@@ -24,8 +24,8 @@
 
 #define VIDEO_PIPE_0 0
 #define VIDEO_PIPE_1 1
-#define VIDEO_PIPE_2 2
-#define JPEG_CHN_VENC 3
+// #define VIDEO_PIPE_2 2
+#define JPEG_CHN_VENC 2
 
 #define RV1126_VO_DEV_MIPI 0
 #define RV1126_VOP_LAYER_CLUSTER0 0
@@ -337,7 +337,7 @@ int rkipc_rtmp_deinit(int id) {
 	return 0;
 }
 
-static void *rkipc_VENC3_get_jpeg(void *arg) {
+static void *rkipc_VENC2_get_jpeg(void *arg) {
 	printf("#Start %s thread, arg:%p\n", __func__, arg);
 	MEDIA_BUFFER mb = NULL;
 	int loopCount = 0;
@@ -398,7 +398,7 @@ int rkipc_pipe_0_to_jpeg_init() { // VI 0 2688*1520 ->VENC 3 JPEG ->save jpeg
 	venc_chn_attr.stVencAttr.enRotation = VENC_ROTATION_0;
 	ret = RK_MPI_VENC_CreateChn(JPEG_CHN_VENC, &venc_chn_attr);
 	if (ret) {
-		LOG_ERROR("ERROR: create VENC[3] error! ret=%d\n", ret);
+		LOG_ERROR("ERROR: create VENC[2] error! ret=%d\n", ret);
 		return 0;
 	}
 
@@ -411,7 +411,7 @@ int rkipc_pipe_0_to_jpeg_init() { // VI 0 2688*1520 ->VENC 3 JPEG ->save jpeg
 	pipe_0_vi_chn.s32ChnId = VIDEO_PIPE_0;
 	ret = RK_MPI_SYS_Bind(&pipe_0_vi_chn, &pipe_0_venc_chn);
 	if (ret) {
-		LOG_ERROR("ERROR: Bind VI[0] and VENC[3] error! ret=%d\n", ret);
+		LOG_ERROR("ERROR: Bind VI[0] and VENC[2] error! ret=%d\n", ret);
 		return -1;
 	}
 	VENC_JPEG_PARAM_S stJpegParam;
@@ -421,7 +421,7 @@ int rkipc_pipe_0_to_jpeg_init() { // VI 0 2688*1520 ->VENC 3 JPEG ->save jpeg
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
 	stRecvParam.s32RecvPicNum = 1;
 	RK_MPI_VENC_StartRecvFrame(JPEG_CHN_VENC, &stRecvParam);
-	pthread_create(&venc_thread_JPEG, NULL, rkipc_VENC3_get_jpeg, NULL);
+	pthread_create(&venc_thread_JPEG, NULL, rkipc_VENC2_get_jpeg, NULL);
 }
 
 // jpeg
@@ -510,6 +510,7 @@ int rk_take_photo() {
 int rkipc_pipe_0_to_jpeg_deinit() {
 	int ret = 0;
 	// unbind first
+	pipe_0_venc_chn.s32ChnId = JPEG_CHN_VENC;
 	ret = RK_MPI_SYS_UnBind(&pipe_0_vi_chn, &pipe_0_venc_chn);
 	if (ret) {
 		LOG_ERROR("ERROR: UnBind VI and VENC error! ret=%d\n", ret);
@@ -518,19 +519,12 @@ int rkipc_pipe_0_to_jpeg_deinit() {
 	LOG_INFO("UnBind VI and VENC success\n");
 	// destroy venc before vi
 	// ret = RK_MPI_VENC_StopRecvFrame(VIDEO_PIPE_0);
-	ret |= RK_MPI_VENC_DestroyChn(3);
+	ret |= RK_MPI_VENC_DestroyChn(2);
 	if (ret) {
 		LOG_ERROR("ERROR: Destroy VENC error! ret=%d\n", ret);
 		return -1;
 	}
 	LOG_INFO("Destroy VENC success\n");
-	// destroy vi
-	ret = RK_MPI_VI_DisableChn(pipe_id_, VIDEO_PIPE_0);
-	if (ret) {
-		LOG_ERROR("ERROR: Destroy VI error! ret=%d\n", ret);
-		return -1;
-	}
-	LOG_INFO("Destroy VI success\n");
 	pthread_join(venc_thread_JPEG, NULL);
 	return 0;
 }
@@ -648,10 +642,15 @@ int rkipc_pipe_0_to_RTSP_init() { // VI 0 2688*1520 -> VENC 0 H264 ->RTSP 0 &
 	}
 	g_smart = rk_param_get_string("video.0:smart", NULL);
 	g_gop_mode = rk_param_get_string("video.0:gop_mode", NULL);
+	memset(&(venc_chn_attr.stGopAttr), 0, sizeof(venc_chn_attr.stGopAttr));
 	if (!strcmp(g_gop_mode, "normalP")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
 	} else if (!strcmp(g_gop_mode, "smartP")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
+		// venc_chn_attr.stGopAttr.s32IPQpDelta = 3;
+		// venc_chn_attr.stGopAttr.s32ViQpDelta = 3;
+		venc_chn_attr.stGopAttr.u32BgInterval = 300;
+		venc_chn_attr.stGopAttr.u32GopSize = 30;
 	}
 	venc_chn_attr.stVencAttr.imageType = IMAGE_TYPE_NV12;
 	venc_chn_attr.stVencAttr.u32PicWidth = video_width;
@@ -688,6 +687,7 @@ int rkipc_pipe_0_to_RTSP_init() { // VI 0 2688*1520 -> VENC 0 H264 ->RTSP 0 &
 int rkipc_pipe_0_to_RTSP_deinit() {
 	int ret = 0;
 	// unbind first
+	pipe_0_venc_chn.s32ChnId = VIDEO_PIPE_0;
 	ret = RK_MPI_SYS_UnBind(&pipe_0_vi_chn, &pipe_0_venc_chn);
 	if (ret) {
 		LOG_ERROR("ERROR: UnBind VI and VENC error! ret=%d\n", ret);
@@ -825,10 +825,15 @@ int rkipc_pipe_1_init() { // VI 1 640*480 -> VENC 1 H264 ->RTSP 1 & RTMP
 	}
 	g_smart = rk_param_get_string("video.1:smart", NULL);
 	g_gop_mode = rk_param_get_string("video.1:gop_mode", NULL);
+	memset(&(venc_chn_attr.stGopAttr), 0, sizeof(venc_chn_attr.stGopAttr));
 	if (!strcmp(g_gop_mode, "normalP")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
 	} else if (!strcmp(g_gop_mode, "smartP")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_SMARTP;
+		// venc_chn_attr.stGopAttr.s32IPQpDelta = 3;
+		// venc_chn_attr.stGopAttr.s32ViQpDelta = 3;
+		venc_chn_attr.stGopAttr.u32BgInterval = 300;
+		venc_chn_attr.stGopAttr.u32GopSize = 30;
 	}
 	venc_chn_attr.stVencAttr.imageType = IMAGE_TYPE_NV12;
 	venc_chn_attr.stVencAttr.u32PicWidth = video_width;
@@ -892,6 +897,7 @@ int rkipc_pipe_1_deinit() {
 	return 0;
 }
 
+#if 0
 int rkipc_pipe_2_init() { // VI 2 1920*1080 -> VENC 2 H264 ->RTSP 2  & RTMP
 	int video_width = rk_param_get_int("video.2:width", -1);
 	int video_height = rk_param_get_int("video.2:height", -1);
@@ -1068,6 +1074,7 @@ int rkipc_pipe_2_deinit() {
 	pthread_join(venc_thread_id_2, NULL);
 	return 0;
 }
+#endif
 
 int rkipc_pipe_3_init() { // VI 3 1280*720 ->RGA 720*1280 ->VO
 	int video_width = 1280;
@@ -1754,7 +1761,7 @@ int rk_video_init() {
 	g_video_run_ = 1;
 	ret = RK_MPI_SYS_Init();
 	ret |= rkipc_pipe_0_to_RTSP_init(); //主码流
-	// ret |= rkipc_pipe_0_to_jpeg_init();
+	ret |= rkipc_pipe_0_to_jpeg_init();
 	ret |= rkipc_pipe_1_init();
 	// ret |= rkipc_pipe_2_init();
 	ret |= rkipc_pipe_3_init();
@@ -1771,7 +1778,7 @@ int rk_video_deinit() {
 	ret = rkipc_pipe_3_deinit();
 	// ret |= rkipc_pipe_2_deinit();
 	ret |= rkipc_pipe_1_deinit();
-	// ret |= rkipc_pipe_0_to_jpeg_deinit();
+	ret |= rkipc_pipe_0_to_jpeg_deinit();
 	ret |= rkipc_pipe_0_to_RTSP_deinit(); //主码流
 
 	return ret;
