@@ -2458,131 +2458,13 @@ int rk_video_set_od_switch(int value) {
 }
 
 int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
-	LOG_DEBUG("id is %d\n", id);
-	int ret = 0;
-	RGN_HANDLE coverHandle = id;
-	RGN_ATTR_S stCoverAttr;
-	MPP_CHN_S stCoverChn;
-	RGN_CHN_ATTR_S stCoverChnAttr;
-	int rotation = rk_param_get_int("avs:rotation", 0);
-	int video_0_width = rk_param_get_int("avs:video_0_max_width", -1);
-	int video_0_height = rk_param_get_int("avs:video_0_max_height", -1);
-	double video_0_w_h_rate = 1.0;
-
-	memset(&stCoverAttr, 0, sizeof(stCoverAttr));
-	memset(&stCoverChnAttr, 0, sizeof(stCoverChnAttr));
-	// create cover regions
-	stCoverAttr.enType = COVER_RGN;
-	ret = RK_MPI_RGN_Create(coverHandle, &stCoverAttr);
-	if (RK_SUCCESS != ret) {
-		LOG_ERROR("RK_MPI_RGN_Create (%d) failed with %#x\n", coverHandle, ret);
-		RK_MPI_RGN_Destroy(coverHandle);
-		return RK_FAILURE;
-	}
-	LOG_DEBUG("The handle: %d, create success\n", coverHandle);
-
-	// when cover is attached to VI,
-	// coordinate conversion of three angles shall be considered when rotating VENC
-	video_0_w_h_rate = (double)video_0_width / (double)video_0_height;
-	if (rotation == 90) {
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X =
-		    (double)osd_data->origin_y * video_0_w_h_rate;
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y =
-		    (video_0_height - ((double)(osd_data->width + osd_data->origin_x) / video_0_w_h_rate));
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width =
-		    (double)osd_data->height * video_0_w_h_rate;
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height =
-		    (double)osd_data->width / video_0_w_h_rate;
-	} else if (rotation == 270) {
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X =
-		    (video_0_width - ((double)(osd_data->height + osd_data->origin_y) * video_0_w_h_rate));
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y =
-		    (double)osd_data->origin_x / video_0_w_h_rate;
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width =
-		    (double)osd_data->height * video_0_w_h_rate;
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height =
-		    (double)osd_data->width / video_0_w_h_rate;
-	} else if (rotation == 180) {
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X =
-		    video_0_width - osd_data->width - osd_data->origin_x;
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y =
-		    video_0_height - osd_data->height - osd_data->origin_y;
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width = osd_data->width;
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height = osd_data->height;
-	} else {
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X = osd_data->origin_x;
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y = osd_data->origin_y;
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width = osd_data->width;
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height = osd_data->height;
-	}
-	stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X =
-	    UPALIGNTO16(stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X);
-	stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y =
-	    UPALIGNTO16(stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y);
-	stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width =
-	    UPALIGNTO16(stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width);
-	stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height =
-	    UPALIGNTO16(stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height);
-	// because the rotation is done in the VENC,
-	// and the cover and VI resolution are both before the rotation,
-	// there is no need to judge the rotation here
-	while (stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X +
-	           stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width >
-	       video_0_width) {
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width -= 16;
-	}
-	while (stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y +
-	           stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height >
-	       video_0_height) {
-		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height -= 16;
-	}
-
-	// display cover regions to vi
-	stCoverChn.enModId = RK_ID_VI;
-	stCoverChn.s32DevId = 0;
-	stCoverChn.s32ChnId = VI_MAX_CHN_NUM;
-	stCoverChnAttr.bShow = osd_data->enable;
-	stCoverChnAttr.enType = COVER_RGN;
-	stCoverChnAttr.unChnAttr.stCoverChn.u32Color = 0xffffffff;
-	stCoverChnAttr.unChnAttr.stCoverChn.u32Layer = id;
-	LOG_DEBUG("cover region to chn success\n");
-	ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
-	if (RK_SUCCESS != ret) {
-		LOG_ERROR("vi pipe RK_MPI_RGN_AttachToChn (%d) failed with %#x\n", coverHandle, ret);
-		return RK_FAILURE;
-	}
-	ret = RK_MPI_RGN_SetDisplayAttr(coverHandle, &stCoverChn, &stCoverChnAttr);
-	if (RK_SUCCESS != ret) {
-		LOG_ERROR("vi pipe RK_MPI_RGN_SetDisplayAttr failed with %#x\n", ret);
-		return RK_FAILURE;
-	}
-	LOG_DEBUG("RK_MPI_RGN_AttachToChn to vi 0 success\n");
-
-	return ret;
+	// TODO
+	return 0;
 }
 
 int rkipc_osd_cover_destroy(int id) {
-	LOG_DEBUG("%s\n", __func__);
-	int ret = 0;
-	// Detach osd from chn
-	MPP_CHN_S stMppChn;
-	RGN_HANDLE RgnHandle = id;
-
-	stMppChn.enModId = RK_ID_VI;
-	stMppChn.s32DevId = 0;
-	stMppChn.s32ChnId = VI_MAX_CHN_NUM;
-	ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
-	if (RK_SUCCESS != ret)
-		LOG_DEBUG("RK_MPI_RGN_DetachFrmChn (%d) to vi pipe failed with %#x\n", RgnHandle, ret);
-
-	// destory region
-	ret = RK_MPI_RGN_Destroy(RgnHandle);
-	if (RK_SUCCESS != ret) {
-		LOG_ERROR("RK_MPI_RGN_Destroy [%d] failed with %#x\n", RgnHandle, ret);
-	}
-	LOG_DEBUG("Destory handle:%d success\n", RgnHandle);
-
-	return ret;
+	// TODO
+	return 0;
 }
 
 int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {

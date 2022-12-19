@@ -2236,7 +2236,7 @@ int rk_video_set_resolution(int stream_id, const char *value) {
 	rk_param_set_int(entry, width);
 	snprintf(entry, 127, "video.%d:height", stream_id);
 	rk_param_set_int(entry, height);
-	if ((height / 4) > 128 )
+	if ((height / 4) > 128)
 		rk_param_set_int("video.source:buffer_line", height / 4);
 	else
 		rk_param_set_int("video.source:buffer_line", height);
@@ -2518,9 +2518,18 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 	MPP_CHN_S stCoverChn;
 	RGN_CHN_ATTR_S stCoverChnAttr;
 	int rotation = rk_param_get_int("video.source:rotation", 0);
-	int video_0_width = rk_param_get_int("video.source:video_0_max_width", -1);
-	int video_0_height = rk_param_get_int("video.source:video_0_max_height", -1);
+	int video_0_width = rk_param_get_int("video.0:width", -1);
+	int video_0_height = rk_param_get_int("video.0:height", -1);
+	int video_0_max_width = rk_param_get_int("video.source:video_0_max_width", -1);
+	int video_0_max_height = rk_param_get_int("video.source:video_0_max_height", -1);
 	double video_0_w_h_rate = 1.0;
+
+	// since the coordinates stored in the OSD module are of actual resolution,
+	// 1106 needs to be converted back to the maximum resolution
+	osd_data->origin_x = osd_data->origin_x * video_0_max_width / video_0_width;
+	osd_data->origin_y = osd_data->origin_y * video_0_max_height / video_0_height;
+	osd_data->width = osd_data->width * video_0_max_width / video_0_width;
+	osd_data->height = osd_data->height * video_0_max_height / video_0_height;
 
 	memset(&stCoverAttr, 0, sizeof(stCoverAttr));
 	memset(&stCoverChnAttr, 0, sizeof(stCoverChnAttr));
@@ -2536,19 +2545,21 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 
 	// when cover is attached to VI,
 	// coordinate conversion of three angles shall be considered when rotating VENC
-	video_0_w_h_rate = (double)video_0_width / (double)video_0_height;
+	video_0_w_h_rate = (double)video_0_max_width / (double)video_0_max_height;
 	if (rotation == 90) {
 		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X =
 		    (double)osd_data->origin_y * video_0_w_h_rate;
 		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y =
-		    (video_0_height - ((double)(osd_data->width + osd_data->origin_x) / video_0_w_h_rate));
+		    (video_0_max_height -
+		     ((double)(osd_data->width + osd_data->origin_x) / video_0_w_h_rate));
 		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width =
 		    (double)osd_data->height * video_0_w_h_rate;
 		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height =
 		    (double)osd_data->width / video_0_w_h_rate;
 	} else if (rotation == 270) {
 		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X =
-		    (video_0_width - ((double)(osd_data->height + osd_data->origin_y) * video_0_w_h_rate));
+		    (video_0_max_width -
+		     ((double)(osd_data->height + osd_data->origin_y) * video_0_w_h_rate));
 		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y =
 		    (double)osd_data->origin_x / video_0_w_h_rate;
 		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width =
@@ -2557,9 +2568,9 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 		    (double)osd_data->width / video_0_w_h_rate;
 	} else if (rotation == 180) {
 		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X =
-		    video_0_width - osd_data->width - osd_data->origin_x;
+		    video_0_max_width - osd_data->width - osd_data->origin_x;
 		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y =
-		    video_0_height - osd_data->height - osd_data->origin_y;
+		    video_0_max_height - osd_data->height - osd_data->origin_y;
 		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width = osd_data->width;
 		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height = osd_data->height;
 	} else {
@@ -2581,12 +2592,12 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 	// there is no need to judge the rotation here
 	while (stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X +
 	           stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width >
-	       video_0_width) {
+	       video_0_max_width) {
 		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width -= 16;
 	}
 	while (stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y +
 	           stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height >
-	       video_0_height) {
+	       video_0_max_height) {
 		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height -= 16;
 	}
 
