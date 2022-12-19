@@ -2363,7 +2363,10 @@ int rk_video_set_resolution(int stream_id, const char *value) {
 	ret = RK_MPI_VENC_SetChnAttr(stream_id, &venc_chn_attr);
 	if (ret)
 		LOG_ERROR("RK_MPI_VENC_SetChnAttr error! ret=%#x\n", ret);
-
+	if (enable_osd) {
+		ret |= rkipc_osd_deinit();
+		ret |= rkipc_osd_init();
+	}
 	if (stream_id == 0 && enable_npu) {
 		g_nn_osd_run_ = 1;
 		rkipc_osd_draw_nn_init();

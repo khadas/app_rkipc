@@ -2266,6 +2266,10 @@ int rk_video_set_resolution(int stream_id, const char *value) {
 		if (ret)
 			LOG_ERROR("JPEG RK_MPI_VENC_SetChnAttr error! ret=%#x\n", ret);
 	}
+	if (enable_osd) {
+		ret |= rkipc_osd_deinit();
+		ret |= rkipc_osd_init();
+	}
 	if (stream_id == 1 && enable_npu) {
 		g_nn_osd_run_ = 1;
 		rkipc_osd_draw_nn_init();
