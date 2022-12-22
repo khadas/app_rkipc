@@ -25,6 +25,7 @@
 #define DRAW_NN_OSD_ID 7
 #define RED_COLOR 0x0000FF
 #define BLUE_COLOR 0xFF0000
+#define TMP_BUFFER_HEIGHT 3840
 
 #define RTSP_URL_0 "/live/0"
 #define RTSP_URL_1 "/live/1"
@@ -423,6 +424,7 @@ int cpu_blend_init() {
 		     MESH_SCALE_BIT) +
 		    1;
 		int32_t mapSize = (meshHeight * meshWidth * 1.5) * sizeof(uint16_t);
+		LOG_INFO("mapSize is %d\n", mapSize);
 		meshYUV[cam] = (uint8_t *)malloc(mapSize);
 		if (cam == 0) {
 			snprintf(file_path, 127, "%s/MeshLdchCpu_0.bin",
@@ -443,20 +445,19 @@ int cpu_blend_init() {
 		alphaYSize += curralphaYSize;
 	}
 	uint64_t alphaYuvSize = alphaYSize + (alphaYSize >> 1);
+	LOG_INFO("alphaYuvSize is %d\n", alphaYuvSize);
 	alphaYuv = (uint8_t *)malloc(alphaYuvSize);
 	snprintf(file_path, 127, "%s/AlphaYuv.bin",
 	         rk_param_get_string("avs:middle_lut_path", "/oem/usr/share/middle_lut/5m/"));
 	readBinParams(file_path, (char *)alphaYuv, alphaYuvSize);
 
 	/********************************************配置输入输出参数*********************************************/
+	LOG_INFO("tmpBuffer Size is %d\n", imageWidth * imageHeight * 3 * sizeof(int16_t));
 	uint8_t *tmpBuffer = (uint8_t *)malloc(imageWidth * imageHeight * 3 * sizeof(int16_t));
 	avsSetParams.pu8LeftMesh = meshYUV[0];
 	avsSetParams.pu8RightMesh = meshYUV[1];
 	avsSetParams.pu8AlphaYuv = alphaYuv;
 	avsSetParams.pu8TmpBuffer = tmpBuffer;
-
-	uint64_t stitchImageDataSize = (imageHeight * 2) * (imageWidth)*3 / 2;
-	stitchImage = (uint8_t *)malloc(stitchImageDataSize);
 
 	stStitchImageEx.imageSize.s32ImageWidth = imageWidth;
 	stStitchImageEx.imageSize.s32ImageHeight = imageHeight * 2;
@@ -494,9 +495,9 @@ static void *sample_get_vi_to_vpss_thread(void *arg) {
 	dst_frame.stVFrame.enPixelFormat = RK_FMT_YUV420SP;
 	dst_frame.stVFrame.enCompressMode = COMPRESS_MODE_NONE;
 	dst_frame.stVFrame.u32Width = 1080;
-	dst_frame.stVFrame.u32Height = 3840;
+	dst_frame.stVFrame.u32Height = TMP_BUFFER_HEIGHT;
 	dst_frame.stVFrame.u32VirWidth = 1080;
-	dst_frame.stVFrame.u32VirHeight = 3840;
+	dst_frame.stVFrame.u32VirHeight = TMP_BUFFER_HEIGHT;
 
 	// rga处理
 	im_handle_param_t param;
@@ -561,7 +562,7 @@ static void *sample_get_vi_to_vpss_thread(void *arg) {
 		rga_buffer_src =
 		    wrapbuffer_handle(rga_handle_src, 1920, 1080, RK_FORMAT_YCbCr_420_SP, 1920, 1080);
 		rga_buffer_dst =
-		    wrapbuffer_handle(rga_handle_dst, 1080, 3840, RK_FORMAT_YCbCr_420_SP, 1080, 3840);
+		    wrapbuffer_handle(rga_handle_dst, 1080, TMP_BUFFER_HEIGHT, RK_FORMAT_YCbCr_420_SP, 1080, TMP_BUFFER_HEIGHT);
 
 		src_rect.x = 0;
 		src_rect.y = 0;
@@ -586,7 +587,7 @@ static void *sample_get_vi_to_vpss_thread(void *arg) {
 		rga_buffer_src =
 		    wrapbuffer_handle(rga_handle_src, 1920, 1080, RK_FORMAT_YCbCr_420_SP, 1920, 1080);
 		rga_buffer_dst =
-		    wrapbuffer_handle(rga_handle_dst, 1080, 3840, RK_FORMAT_YCbCr_420_SP, 1080, 3840);
+		    wrapbuffer_handle(rga_handle_dst, 1080, TMP_BUFFER_HEIGHT, RK_FORMAT_YCbCr_420_SP, 1080, TMP_BUFFER_HEIGHT);
 
 		src_rect.x = 0;
 		src_rect.y = 0;
@@ -929,7 +930,7 @@ int rkipc_avs_init() {
 	stPoolConfig.u32MBCnt = 2;
 	// stPoolConfig.u64MBSize = 1080 * avsSetParams.stStitchParams.stStitchImageSize.s32ImageHeight
 	// * 3 / 2;
-	stPoolConfig.u64MBSize = 1080 * 3840 * 3 / 2; // 为了非融合，得先按3840开
+	stPoolConfig.u64MBSize = 1080 * TMP_BUFFER_HEIGHT * 3 / 2; // 为了非融合，得先按3840开
 	stPoolConfig.enRemapMode = MB_REMAP_MODE_CACHED;
 	stPoolConfig.enAllocType = MB_ALLOC_TYPE_DMA;
 	stPoolConfig.enDmaType = MB_DMA_TYPE_CMA;
@@ -1002,8 +1003,8 @@ int rkipc_vpss_0_init() {
 	stVpssChnAttr[0].enPixelFormat = RK_FMT_YUV420SP;
 	stVpssChnAttr[0].stFrameRate.s32SrcFrameRate = -1;
 	stVpssChnAttr[0].stFrameRate.s32DstFrameRate = -1;
-	stVpssChnAttr[0].u32Width = 1080;
-	stVpssChnAttr[0].u32Height = 3840;
+	stVpssChnAttr[0].u32Width = rk_param_get_int("video.0:width", 1080);
+	stVpssChnAttr[0].u32Height = rk_param_get_int("video.0:height", 3840);
 	stVpssChnAttr[0].u32FrameBufCnt = 1; // 可能帧率不足
 	stVpssChnAttr[0].u32Depth = 1;
 	ret = RK_MPI_VPSS_SetChnAttr(VpssGrp, VpssChn[0], &stVpssChnAttr[0]);
@@ -1227,8 +1228,8 @@ int rkipc_venc_0_init() {
 	}
 	// venc_chn_attr.stGopAttr.u32GopSize = rk_param_get_int("video.0:gop", -1);
 	venc_chn_attr.stVencAttr.enPixelFormat = RK_FMT_YUV420SP;
-	venc_chn_attr.stVencAttr.u32MaxPicWidth = 1920;
-	venc_chn_attr.stVencAttr.u32MaxPicHeight = 1080;
+	venc_chn_attr.stVencAttr.u32MaxPicWidth = video_width;
+	venc_chn_attr.stVencAttr.u32MaxPicHeight = video_height;
 	venc_chn_attr.stVencAttr.u32PicWidth = video_width;
 	venc_chn_attr.stVencAttr.u32PicHeight = video_height;
 	venc_chn_attr.stVencAttr.u32VirWidth = video_width;
@@ -1327,7 +1328,10 @@ int rkipc_venc_0_init() {
 		pstH265Trans.bScalingListEnabled = scalinglist;
 		RK_MPI_VENC_SetH265Trans(VIDEO_PIPE_0, &pstH265Trans);
 	}
-
+	VENC_CHN_REF_BUF_SHARE_S stVencChnRefBufShare;
+	memset(&stVencChnRefBufShare, 0, sizeof(VENC_CHN_REF_BUF_SHARE_S));
+	stVencChnRefBufShare.bEnable = rk_param_get_int("video.0:enable_refer_buffer_share", 0);
+	RK_MPI_VENC_SetChnRefBufShareAttr(VIDEO_PIPE_0, &stVencChnRefBufShare);
 	if (rotation == 0) {
 		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0, ROTATION_0);
 	} else if (rotation == 90) {
@@ -2636,6 +2640,15 @@ int rkipc_osd_deinit() {
 	rk_osd_bmp_destroy_callback_register(NULL);
 	rk_osd_bmp_change_callback_register(NULL);
 
+	return 0;
+}
+
+// jpeg
+int rk_video_get_enable_cycle_snapshot(int *value) {
+	return 0;
+}
+
+int rk_video_set_enable_cycle_snapshot(int value) {
 	return 0;
 }
 

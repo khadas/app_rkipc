@@ -175,8 +175,8 @@ int main(int argc, char **argv) {
 	rk_video_init();
 	// if (rk_param_get_int("audio.0:enable", 0))
 	// 	rkipc_audio_init();
-	// rkipc_server_init();
-	// rk_storage_init();
+	rkipc_server_init();
+	rk_storage_init();
 	// pthread_create(&key_chk, NULL, wait_key_event, NULL);
 
 	while (g_main_run_) {
