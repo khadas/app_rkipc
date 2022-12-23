@@ -4,7 +4,7 @@
 
 #include "video.h"
 #include "audio.h"
-#include "rkAVS_stitchFor1106.h"
+#include "rkAVS_stitchFor1106App.h"
 #include "rockiva.h"
 
 #ifdef LOG_TAG
@@ -69,11 +69,10 @@ static MPP_CHN_S vi_chn[2], vpss_chn[2], venc_chn[2];
 static AVS_IMAGE_DATA_EX stLeftImageEx, stRightImageEx;
 static AVS_IMAGE_DATA_EX stStitchImageEx;
 static AVS_INPUT_PARAMS avsSetParams;
-static AVS_STITCH_ROI_PARAMS *sptStitchRoiParams;
+static AVS_STITCH_ROI_PARAMS_S *sptStitchRoiParams;
 static AVS_ENGINE stEngine;
-static uint8_t *meshYUV[2];
-static uint8_t *alphaYuv;
-static uint8_t *alphaUV;
+static uint16_t *meshYUV[2];
+static uint16_t *alphaYuv;
 static uint8_t *stitchImage;
 
 typedef enum rkCOLOR_INDEX_E {
@@ -400,8 +399,8 @@ int cpu_blend_init() {
 	         rk_param_get_string("avs:middle_lut_path", "/oem/usr/share/middle_lut/5m/"));
 	readBinParams(file_path, (char *)(&avsSetParams.stStitchParams), sizeof(AVS_STITCH_PARAMS_S));
 	sptStitchRoiParams = avsSetParams.stStitchParams.stStitchRoiParams;
-	AVS_IMAGE_SIZE stStitchImageSize = avsSetParams.stStitchParams.stStitchImageSize;
-	AVS_IMAGE_SIZE stAlphaSize = avsSetParams.stStitchParams.stAlphaSize;
+	AVS_IMAGE_SIZE_S  stStitchImageSize = avsSetParams.stStitchParams.stStitchImageSize;
+	AVS_IMAGE_SIZE_S  stAlphaSize = avsSetParams.stStitchParams.stAlphaSize;
 	int32_t bandNum = avsSetParams.stStitchParams.s32BandNum;
 
 	// 设置分割图像参数
@@ -425,7 +424,7 @@ int cpu_blend_init() {
 		    1;
 		int32_t mapSize = (meshHeight * meshWidth * 1.5) * sizeof(uint16_t);
 		LOG_INFO("mapSize is %d\n", mapSize);
-		meshYUV[cam] = (uint8_t *)malloc(mapSize);
+		meshYUV[cam] = (uint16_t *)malloc(mapSize);
 		if (cam == 0) {
 			snprintf(file_path, 127, "%s/MeshLdchCpu_0.bin",
 			         rk_param_get_string("avs:middle_lut_path", "/oem/usr/share/middle_lut/5m/"));
@@ -446,18 +445,18 @@ int cpu_blend_init() {
 	}
 	uint64_t alphaYuvSize = alphaYSize + (alphaYSize >> 1);
 	LOG_INFO("alphaYuvSize is %d\n", alphaYuvSize);
-	alphaYuv = (uint8_t *)malloc(alphaYuvSize);
+	alphaYuv = (uint16_t *)malloc(alphaYuvSize);
 	snprintf(file_path, 127, "%s/AlphaYuv.bin",
 	         rk_param_get_string("avs:middle_lut_path", "/oem/usr/share/middle_lut/5m/"));
 	readBinParams(file_path, (char *)alphaYuv, alphaYuvSize);
 
 	/********************************************配置输入输出参数*********************************************/
-	LOG_INFO("tmpBuffer Size is %d\n", imageWidth * imageHeight * 3 * sizeof(int16_t));
-	uint8_t *tmpBuffer = (uint8_t *)malloc(imageWidth * imageHeight * 3 * sizeof(int16_t));
-	avsSetParams.pu8LeftMesh = meshYUV[0];
-	avsSetParams.pu8RightMesh = meshYUV[1];
-	avsSetParams.pu8AlphaYuv = alphaYuv;
-	avsSetParams.pu8TmpBuffer = tmpBuffer;
+	LOG_INFO("tmpBuffer Size is %d\n", 1080 * 128 * 8 * sizeof(int16_t));
+	uint16_t *tmpBuffer = (uint16_t *)malloc(1080 * 128 * 8 * sizeof(int16_t));
+	avsSetParams.pu16LutForCpu[0] = meshYUV[0];
+	avsSetParams.pu16LutForCpu[1] = meshYUV[1];
+	avsSetParams.pu16Alpha = alphaYuv;
+	avsSetParams.pu16TmpBuffer = tmpBuffer;
 
 	stStitchImageEx.imageSize.s32ImageWidth = imageWidth;
 	stStitchImageEx.imageSize.s32ImageHeight = imageHeight * 2;
