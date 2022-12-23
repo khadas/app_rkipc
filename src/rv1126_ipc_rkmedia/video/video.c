@@ -1651,7 +1651,7 @@ int rk_video_set_rotation(int value) {
 	return 0;
 }
 
-int rkipc_osd_cover_create(int id, VENC_CHN VeChn, osd_data_s *osd_data) {
+int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 	LOG_INFO("id is %d\n", id);
 	int ret = 0;
 
@@ -1667,7 +1667,13 @@ int rkipc_osd_cover_create(int id, VENC_CHN VeChn, osd_data_s *osd_data) {
 	pstCoverInfo.enPixelFormat = PIXEL_FORMAT_ARGB_8888; // RK_FMT_ARGB8888;  //for now ,not sure
 	pstCoverInfo.u32Color = 0xffffff;
 
-	ret = RK_MPI_VENC_RGN_SetCover(VeChn, &pstRgnInfo, &pstCoverInfo);
+	ret = RK_MPI_VENC_RGN_SetCover(VIDEO_PIPE_0, &pstRgnInfo, &pstCoverInfo);
+
+	pstRgnInfo.u32PosX = UPALIGNTO16(osd_data->origin_x * rk_param_get_int("video.1:width", 1) /
+	    rk_param_get_int("video.0:width", 1));
+	pstRgnInfo.u32PosY = UPALIGNTO16(osd_data->origin_y * rk_param_get_int("video.1:height", 1) /
+	    rk_param_get_int("video.0:height", 1));
+	ret |= RK_MPI_VENC_RGN_SetCover(VIDEO_PIPE_1, &pstRgnInfo, &pstCoverInfo);
 	// ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
 	if (RK_SUCCESS != ret) {
 		LOG_ERROR("RK_MPI_VENC_RGN_SetCover failed \n");
@@ -1678,7 +1684,11 @@ int rkipc_osd_cover_create(int id, VENC_CHN VeChn, osd_data_s *osd_data) {
 	return ret;
 }
 
-int rkipc_osd_bmp_create(int id, VENC_CHN VeChn, osd_data_s *osd_data) {
+int rkipc_osd_cover_destroy(int id, osd_data_s *osd_data) {
+	return 0;
+}
+
+int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 	LOG_INFO("id is %d\n", id);
 	int ret = 0;
 	BITMAP_S stBitmap;
@@ -1696,17 +1706,27 @@ int rkipc_osd_bmp_create(int id, VENC_CHN VeChn, osd_data_s *osd_data) {
 	stBitmap.u32Width = osd_data->width;
 	stBitmap.u32Height = osd_data->height;
 	stBitmap.pData = (RK_VOID *)osd_data->buffer;
-	ret = RK_MPI_VENC_RGN_SetBitMap(VeChn, &pstRgnInfo, &stBitmap);
+	ret = RK_MPI_VENC_RGN_SetBitMap(VIDEO_PIPE_0, &pstRgnInfo, &stBitmap);
+
+	pstRgnInfo.u32PosX = UPALIGNTO16(osd_data->origin_x * rk_param_get_int("video.1:width", 1) /
+	    rk_param_get_int("video.0:width", 1));
+	pstRgnInfo.u32PosY = UPALIGNTO16(osd_data->origin_y * rk_param_get_int("video.1:height", 1) /
+	    rk_param_get_int("video.0:height", 1));
+	ret |= RK_MPI_VENC_RGN_SetBitMap(VIDEO_PIPE_1, &pstRgnInfo, &stBitmap);
 	// ret = RK_MPI_RGN_SetBitMap(RgnHandle, &stBitmap);
 	if (ret != RK_SUCCESS) {
-		LOG_ERROR("RK_MPI_RGN_SetBitMap failed with %#x\n", ret);
+		LOG_ERROR("RK_MPI_RGN_SetBitMap failed with %d\n", ret);
 		return RK_FAILURE;
 	}
 
 	return ret;
 }
 
-int rkipc_osd_bmp_change(int id, VENC_CHN VeChn, osd_data_s *osd_data) {
+int rkipc_osd_bmp_destroy(int id, osd_data_s *osd_data) {
+	return 0;
+}
+
+int rkipc_osd_bmp_change(int id, osd_data_s *osd_data) {
 	// LOG_INFO("id is %d\n", id);
 	int ret = 0;
 	BITMAP_S stBitmap;
@@ -1724,9 +1744,15 @@ int rkipc_osd_bmp_change(int id, VENC_CHN VeChn, osd_data_s *osd_data) {
 	stBitmap.u32Width = osd_data->width;
 	stBitmap.u32Height = osd_data->height;
 	stBitmap.pData = (RK_VOID *)osd_data->buffer;
-	ret = RK_MPI_VENC_RGN_SetBitMap(VeChn, &pstRgnInfo, &stBitmap);
+	ret = RK_MPI_VENC_RGN_SetBitMap(VIDEO_PIPE_0, &pstRgnInfo, &stBitmap);
+
+	pstRgnInfo.u32PosX = UPALIGNTO16(osd_data->origin_x * rk_param_get_int("video.1:width", 1) /
+	    rk_param_get_int("video.0:width", 1));
+	pstRgnInfo.u32PosY = UPALIGNTO16(osd_data->origin_y * rk_param_get_int("video.1:height", 1) /
+	    rk_param_get_int("video.0:height", 1));
+	ret |= RK_MPI_VENC_RGN_SetBitMap(VIDEO_PIPE_1, &pstRgnInfo, &stBitmap);
 	if (ret != RK_SUCCESS) {
-		LOG_ERROR("RK_MPI_RGN_SetBitMap failed with %#x\n", ret);
+		LOG_ERROR("RK_MPI_RGN_SetBitMap failed with %d\n", ret);
 		return RK_FAILURE;
 	}
 
@@ -1734,12 +1760,14 @@ int rkipc_osd_bmp_change(int id, VENC_CHN VeChn, osd_data_s *osd_data) {
 }
 
 int rkipc_osd_init() {
+	RK_MPI_VENC_RGN_Init(VIDEO_PIPE_0, NULL);
+	RK_MPI_VENC_RGN_Init(VIDEO_PIPE_1, NULL);
 	rk_osd_cover_create_callback_register(rkipc_osd_cover_create);
-	// rk_osd_cover_destroy_callback_register(rkipc_osd_cover_destroy);
+	rk_osd_cover_destroy_callback_register(rkipc_osd_cover_destroy);
 	rk_osd_bmp_create_callback_register(rkipc_osd_bmp_create);
-	// rk_osd_bmp_destroy_callback_register(rkipc_osd_bmp_destroy);
+	rk_osd_bmp_destroy_callback_register(rkipc_osd_bmp_destroy);
 	rk_osd_bmp_change_callback_register(rkipc_osd_bmp_change);
-	// rk_osd_init();
+	rk_osd_init();
 
 	return 0;
 }
@@ -1747,9 +1775,9 @@ int rkipc_osd_init() {
 int rkipc_osd_deinit() {
 	rk_osd_deinit();
 	rk_osd_cover_create_callback_register(NULL);
-	// rk_osd_cover_destroy_callback_register(NULL);
+	rk_osd_cover_destroy_callback_register(NULL);
 	rk_osd_bmp_create_callback_register(NULL);
-	// rk_osd_bmp_destroy_callback_register(NULL);
+	rk_osd_bmp_destroy_callback_register(NULL);
 	rk_osd_bmp_change_callback_register(NULL);
 
 	return 0;
@@ -1765,7 +1793,7 @@ int rk_video_init() {
 	ret |= rkipc_pipe_1_init();
 	// ret |= rkipc_pipe_2_init();
 	ret |= rkipc_pipe_3_init();
-	// ret |= rkipc_osd_init();
+	ret |= rkipc_osd_init();
 
 	return ret;
 }
@@ -1774,8 +1802,8 @@ int rk_video_deinit() {
 	LOG_INFO("%s\n", __func__);
 	g_video_run_ = 0;
 	int ret = 0;
-	// ret = rkipc_osd_deinit();
-	ret = rkipc_pipe_3_deinit();
+	ret = rkipc_osd_deinit();
+	ret |= rkipc_pipe_3_deinit();
 	// ret |= rkipc_pipe_2_deinit();
 	ret |= rkipc_pipe_1_deinit();
 	ret |= rkipc_pipe_0_to_jpeg_deinit();
