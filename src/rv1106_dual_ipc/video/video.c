@@ -399,8 +399,8 @@ int cpu_blend_init() {
 	         rk_param_get_string("avs:middle_lut_path", "/oem/usr/share/middle_lut/5m/"));
 	readBinParams(file_path, (char *)(&avsSetParams.stStitchParams), sizeof(AVS_STITCH_PARAMS_S));
 	sptStitchRoiParams = avsSetParams.stStitchParams.stStitchRoiParams;
-	AVS_IMAGE_SIZE_S  stStitchImageSize = avsSetParams.stStitchParams.stStitchImageSize;
-	AVS_IMAGE_SIZE_S  stAlphaSize = avsSetParams.stStitchParams.stAlphaSize;
+	AVS_IMAGE_SIZE_S stStitchImageSize = avsSetParams.stStitchParams.stStitchImageSize;
+	AVS_IMAGE_SIZE_S stAlphaSize = avsSetParams.stStitchParams.stAlphaSize;
 	int32_t bandNum = avsSetParams.stStitchParams.s32BandNum;
 
 	// 设置分割图像参数
@@ -560,8 +560,8 @@ static void *sample_get_vi_to_vpss_thread(void *arg) {
 		rga_handle_dst = importbuffer_fd(RK_MPI_MB_Handle2Fd(dst_mb_ready), &param);
 		rga_buffer_src =
 		    wrapbuffer_handle(rga_handle_src, 1920, 1080, RK_FORMAT_YCbCr_420_SP, 1920, 1080);
-		rga_buffer_dst =
-		    wrapbuffer_handle(rga_handle_dst, 1080, TMP_BUFFER_HEIGHT, RK_FORMAT_YCbCr_420_SP, 1080, TMP_BUFFER_HEIGHT);
+		rga_buffer_dst = wrapbuffer_handle(rga_handle_dst, 1080, TMP_BUFFER_HEIGHT,
+		                                   RK_FORMAT_YCbCr_420_SP, 1080, TMP_BUFFER_HEIGHT);
 
 		src_rect.x = 0;
 		src_rect.y = 0;
@@ -585,8 +585,8 @@ static void *sample_get_vi_to_vpss_thread(void *arg) {
 		rga_handle_dst = importbuffer_fd(RK_MPI_MB_Handle2Fd(dst_mb_ready), &param);
 		rga_buffer_src =
 		    wrapbuffer_handle(rga_handle_src, 1920, 1080, RK_FORMAT_YCbCr_420_SP, 1920, 1080);
-		rga_buffer_dst =
-		    wrapbuffer_handle(rga_handle_dst, 1080, TMP_BUFFER_HEIGHT, RK_FORMAT_YCbCr_420_SP, 1080, TMP_BUFFER_HEIGHT);
+		rga_buffer_dst = wrapbuffer_handle(rga_handle_dst, 1080, TMP_BUFFER_HEIGHT,
+		                                   RK_FORMAT_YCbCr_420_SP, 1080, TMP_BUFFER_HEIGHT);
 
 		src_rect.x = 0;
 		src_rect.y = 0;
@@ -1005,13 +1005,32 @@ int rkipc_vpss_0_init() {
 	stVpssChnAttr[0].u32Width = rk_param_get_int("video.0:width", 1080);
 	stVpssChnAttr[0].u32Height = rk_param_get_int("video.0:height", 3840);
 	stVpssChnAttr[0].u32FrameBufCnt = 1; // 可能帧率不足
-	stVpssChnAttr[0].u32Depth = 1;
+	// stVpssChnAttr[0].u32Depth = 1;
 	ret = RK_MPI_VPSS_SetChnAttr(VpssGrp, VpssChn[0], &stVpssChnAttr[0]);
 	if (ret != RK_SUCCESS)
 		LOG_ERROR("RK_MPI_VPSS_SetChnAttr error! ret is %#x\n", ret);
 	ret = RK_MPI_VPSS_EnableChn(VpssGrp, VpssChn[0]);
 	if (ret != RK_SUCCESS)
 		LOG_ERROR("RK_MPI_VPSS_EnableChn error! ret is %#x\n", ret);
+
+	if (enable_venc_1) {
+		stVpssChnAttr[1].enChnMode = VPSS_CHN_MODE_USER;
+		stVpssChnAttr[1].enCompressMode = COMPRESS_MODE_NONE;
+		stVpssChnAttr[1].enDynamicRange = DYNAMIC_RANGE_SDR8;
+		stVpssChnAttr[1].enPixelFormat = RK_FMT_YUV420SP;
+		stVpssChnAttr[1].stFrameRate.s32SrcFrameRate = -1;
+		stVpssChnAttr[1].stFrameRate.s32DstFrameRate = -1;
+		stVpssChnAttr[1].u32Width = rk_param_get_int("video.1:width", 1920);
+		stVpssChnAttr[1].u32Height = rk_param_get_int("video.1:height", 544);
+		stVpssChnAttr[1].u32FrameBufCnt = 1; // 可能帧率不足
+		// stVpssChnAttr[1].u32Depth = 1;
+		ret = RK_MPI_VPSS_SetChnAttr(VpssGrp, VpssChn[1], &stVpssChnAttr[1]);
+		if (ret != RK_SUCCESS)
+			LOG_ERROR("RK_MPI_VPSS_SetChnAttr error! ret is %#x\n", ret);
+		ret = RK_MPI_VPSS_EnableChn(VpssGrp, VpssChn[1]);
+		if (ret != RK_SUCCESS)
+			LOG_ERROR("RK_MPI_VPSS_EnableChn error! ret is %#x\n", ret);
+	}
 
 	ret = RK_MPI_VPSS_SetVProcDev(VpssGrp, VIDEO_PROC_DEV_RGA);
 	ret = RK_MPI_VPSS_StartGrp(VpssGrp);
@@ -1020,18 +1039,6 @@ int rkipc_vpss_0_init() {
 		return ret;
 	}
 	LOG_INFO("end\n");
-
-	// if (g_two_stream) {
-	// 	ctx->vpss[0].stVpssChnAttr[1].enChnMode = VPSS_CHN_MODE_USER;
-	// 	ctx->vpss[0].stVpssChnAttr[1].enCompressMode = COMPRESS_MODE_NONE;
-	// 	ctx->vpss[0].stVpssChnAttr[1].enDynamicRange = DYNAMIC_RANGE_SDR8;
-	// 	ctx->vpss[0].stVpssChnAttr[1].enPixelFormat = RK_FMT_YUV420SP;
-	// 	ctx->vpss[0].stVpssChnAttr[1].stFrameRate.s32SrcFrameRate = -1;
-	// 	ctx->vpss[0].stVpssChnAttr[1].stFrameRate.s32DstFrameRate = -1;
-	// 	ctx->vpss[0].stVpssChnAttr[1].u32Width = sub_venc_width;
-	// 	ctx->vpss[0].stVpssChnAttr[1].u32Height = sub_venc_height;
-	// 	ctx->vpss[0].stVpssChnAttr[1].u32FrameBufCnt = VPSS_BUFFER_COUNT;
-	// }
 
 	return 0;
 }
@@ -1042,6 +1049,7 @@ int rkipc_vpss_0_deinit() {
 	VPSS_GRP VpssGrp = 0;
 	ret |= RK_MPI_VPSS_StopGrp(VpssGrp);
 	ret |= RK_MPI_VPSS_DisableChn(VpssGrp, VpssChn[0]);
+	ret |= RK_MPI_VPSS_DisableChn(VpssGrp, VpssChn[1]);
 	ret |= RK_MPI_VPSS_DestroyGrp(VpssGrp);
 
 	return ret;
@@ -1071,7 +1079,7 @@ int rkipc_bind_init() {
 	if (enable_venc_0) {
 		ret = RK_MPI_SYS_Bind(&vpss_chn[0], &venc_chn[0]);
 		if (ret != RK_SUCCESS) {
-			LOG_ERROR("bind error %#x: vpss_chn[0] [%d, %d] -> venc_chn[0] [%d, %d]", ret,
+			LOG_ERROR("bind error %#x: vpss_chn[0] [%d, %d] -> venc_chn[0] [%d, %d]\n", ret,
 			          vpss_chn[0].s32DevId, vpss_chn[0].s32ChnId, venc_chn[0].s32DevId,
 			          venc_chn[0].s32ChnId);
 			return ret;
@@ -1080,7 +1088,7 @@ int rkipc_bind_init() {
 	if (enable_venc_1) {
 		ret = RK_MPI_SYS_Bind(&vpss_chn[1], &venc_chn[1]);
 		if (ret != RK_SUCCESS) {
-			LOG_ERROR("bind error %#x: vpss_chn[1] [%d, %d] -> venc_chn[1] [%d, %d]", ret,
+			LOG_ERROR("bind error %#x: vpss_chn[1] [%d, %d] -> venc_chn[1] [%d, %d]\n", ret,
 			          vpss_chn[1].s32DevId, vpss_chn[1].s32ChnId, venc_chn[1].s32DevId,
 			          venc_chn[1].s32ChnId);
 			return ret;
@@ -1475,8 +1483,8 @@ int rkipc_venc_1_init() {
 	// venc_chn_attr.stGopAttr.u32GopSize = rk_param_get_int("video.1:gop", -1);
 
 	venc_chn_attr.stVencAttr.enPixelFormat = RK_FMT_YUV420SP;
-	venc_chn_attr.stVencAttr.u32MaxPicWidth = 960;
-	venc_chn_attr.stVencAttr.u32MaxPicHeight = 544;
+	venc_chn_attr.stVencAttr.u32MaxPicWidth = video_width;
+	venc_chn_attr.stVencAttr.u32MaxPicHeight = video_height;
 	venc_chn_attr.stVencAttr.u32PicWidth = video_width;
 	venc_chn_attr.stVencAttr.u32PicHeight = video_height;
 	venc_chn_attr.stVencAttr.u32VirWidth = video_width;
@@ -2643,13 +2651,9 @@ int rkipc_osd_deinit() {
 }
 
 // jpeg
-int rk_video_get_enable_cycle_snapshot(int *value) {
-	return 0;
-}
+int rk_video_get_enable_cycle_snapshot(int *value) { return 0; }
 
-int rk_video_set_enable_cycle_snapshot(int value) {
-	return 0;
-}
+int rk_video_set_enable_cycle_snapshot(int value) { return 0; }
 
 int rk_video_get_image_quality(int *value) {
 	char entry[128] = {'\0'};

@@ -957,7 +957,8 @@ int rk_isp_set_ldch_level(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	value = value < 0 ? 0 : value;
 	int set_value = (int)(value * 2.53 + 2);
-	int ret = rk_aiq_uapi_setLdchCorrectLevel(g_aiq_ctx[cam_id], set_value); // [0, 100] -> [2 , 255]
+	int ret =
+	    rk_aiq_uapi_setLdchCorrectLevel(g_aiq_ctx[cam_id], set_value); // [0, 100] -> [2 , 255]
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.enhancement:ldch_level", cam_id);
 	rk_param_set_int(entry, value);
