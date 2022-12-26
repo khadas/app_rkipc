@@ -25,7 +25,6 @@
 #define DRAW_NN_OSD_ID 7
 #define RED_COLOR 0x0000FF
 #define BLUE_COLOR 0xFF0000
-#define TMP_BUFFER_HEIGHT 3840
 
 #define RTSP_URL_0 "/live/0"
 #define RTSP_URL_1 "/live/1"
@@ -47,6 +46,8 @@ static int g_osd_run_ = 1;
 static int pipe_id_ = 0;
 static int dev_id_ = 0;
 static int cycle_snapshot_flag = 0;
+static int g_avs_width = 0;
+static int g_avs_height = 0;
 static const char *tmp_output_data_type = "H.264";
 static const char *tmp_rc_mode;
 static const char *tmp_h264_profile;
@@ -493,10 +494,10 @@ static void *sample_get_vi_to_vpss_thread(void *arg) {
 	memset(&dst_frame, 0, sizeof(VIDEO_FRAME_INFO_S));
 	dst_frame.stVFrame.enPixelFormat = RK_FMT_YUV420SP;
 	dst_frame.stVFrame.enCompressMode = COMPRESS_MODE_NONE;
-	dst_frame.stVFrame.u32Width = 1080;
-	dst_frame.stVFrame.u32Height = TMP_BUFFER_HEIGHT;
-	dst_frame.stVFrame.u32VirWidth = 1080;
-	dst_frame.stVFrame.u32VirHeight = TMP_BUFFER_HEIGHT;
+	dst_frame.stVFrame.u32Width = g_avs_width;
+	dst_frame.stVFrame.u32Height = g_avs_height;
+	dst_frame.stVFrame.u32VirWidth = g_avs_width;
+	dst_frame.stVFrame.u32VirHeight = g_avs_height;
 
 	// rga处理
 	im_handle_param_t param;
@@ -560,8 +561,8 @@ static void *sample_get_vi_to_vpss_thread(void *arg) {
 		rga_handle_dst = importbuffer_fd(RK_MPI_MB_Handle2Fd(dst_mb_ready), &param);
 		rga_buffer_src =
 		    wrapbuffer_handle(rga_handle_src, 1920, 1080, RK_FORMAT_YCbCr_420_SP, 1920, 1080);
-		rga_buffer_dst = wrapbuffer_handle(rga_handle_dst, 1080, TMP_BUFFER_HEIGHT,
-		                                   RK_FORMAT_YCbCr_420_SP, 1080, TMP_BUFFER_HEIGHT);
+		rga_buffer_dst = wrapbuffer_handle(rga_handle_dst, g_avs_width, g_avs_height,
+		                                   RK_FORMAT_YCbCr_420_SP, g_avs_width, g_avs_height);
 
 		src_rect.x = 0;
 		src_rect.y = 0;
@@ -576,7 +577,7 @@ static void *sample_get_vi_to_vpss_thread(void *arg) {
 		ret = improcess(rga_buffer_src, rga_buffer_dst, rga_buffer_pat, src_rect, dst_rect,
 		                pat_rect, IM_HAL_TRANSFORM_ROT_90 | IM_SYNC);
 		if (ret != IM_STATUS_SUCCESS)
-			LOG_ERROR("improcess ret is %d, reason: %s\n", ret, imStrError(ret));
+			LOG_ERROR("top improcess ret is %d, reason: %s\n", ret, imStrError(ret));
 		releasebuffer_handle(rga_handle_src);
 		releasebuffer_handle(rga_handle_dst);
 
@@ -585,8 +586,8 @@ static void *sample_get_vi_to_vpss_thread(void *arg) {
 		rga_handle_dst = importbuffer_fd(RK_MPI_MB_Handle2Fd(dst_mb_ready), &param);
 		rga_buffer_src =
 		    wrapbuffer_handle(rga_handle_src, 1920, 1080, RK_FORMAT_YCbCr_420_SP, 1920, 1080);
-		rga_buffer_dst = wrapbuffer_handle(rga_handle_dst, 1080, TMP_BUFFER_HEIGHT,
-		                                   RK_FORMAT_YCbCr_420_SP, 1080, TMP_BUFFER_HEIGHT);
+		rga_buffer_dst = wrapbuffer_handle(rga_handle_dst, g_avs_width, g_avs_height,
+		                                   RK_FORMAT_YCbCr_420_SP, g_avs_width, g_avs_height);
 
 		src_rect.x = 0;
 		src_rect.y = 0;
@@ -601,7 +602,7 @@ static void *sample_get_vi_to_vpss_thread(void *arg) {
 		ret = improcess(rga_buffer_src, rga_buffer_dst, rga_buffer_pat, src_rect, dst_rect,
 		                pat_rect, IM_HAL_TRANSFORM_ROT_90 | IM_SYNC);
 		if (ret != IM_STATUS_SUCCESS)
-			LOG_ERROR("improcess ret is %d, reason: %s\n", ret, imStrError(ret));
+			LOG_ERROR("bottom improcess ret is %d, reason: %s\n", ret, imStrError(ret));
 		releasebuffer_handle(rga_handle_src);
 		releasebuffer_handle(rga_handle_dst);
 
@@ -679,12 +680,12 @@ static void *sample_get_vi_thread(void *arg) {
 		rga_buffer_src =
 		    wrapbuffer_handle(rga_handle_src, 1920, 1080, RK_FORMAT_YCbCr_420_SP, 1920, 1080);
 		rga_buffer_dst = wrapbuffer_handle(
-		    rga_handle_dst, 1080, avsSetParams.stStitchParams.stStitchImageSize.s32ImageHeight,
-		    RK_FORMAT_YCbCr_420_SP, 1080,
-		    avsSetParams.stStitchParams.stStitchImageSize.s32ImageHeight);
+		    rga_handle_dst, g_avs_width,
+		    avsSetParams.stStitchParams.stStitchImageSize.s32ImageHeight, RK_FORMAT_YCbCr_420_SP,
+		    g_avs_width, avsSetParams.stStitchParams.stStitchImageSize.s32ImageHeight);
 
 		src_rect.x = UPALIGNTO2(sptStitchRoiParams[0].s32SrcCopyStartY);
-		src_rect.y = UPALIGNTO2(1080 - sptStitchRoiParams[0].s32SrcCopyStartX -
+		src_rect.y = UPALIGNTO2(g_avs_width - sptStitchRoiParams[0].s32SrcCopyStartX -
 		                        sptStitchRoiParams[0].s32SrcCopyWidth);
 		src_rect.width = UPALIGNTO2(sptStitchRoiParams[0].s32SrcCopyHeight);
 		src_rect.height = UPALIGNTO2(sptStitchRoiParams[0].s32SrcCopyWidth);
@@ -707,12 +708,12 @@ static void *sample_get_vi_thread(void *arg) {
 		rga_buffer_src =
 		    wrapbuffer_handle(rga_handle_src, 1920, 1080, RK_FORMAT_YCbCr_420_SP, 1920, 1080);
 		rga_buffer_dst = wrapbuffer_handle(
-		    rga_handle_dst, 1080, avsSetParams.stStitchParams.stStitchImageSize.s32ImageHeight,
-		    RK_FORMAT_YCbCr_420_SP, 1080,
-		    avsSetParams.stStitchParams.stStitchImageSize.s32ImageHeight);
+		    rga_handle_dst, g_avs_width,
+		    avsSetParams.stStitchParams.stStitchImageSize.s32ImageHeight, RK_FORMAT_YCbCr_420_SP,
+		    g_avs_width, avsSetParams.stStitchParams.stStitchImageSize.s32ImageHeight);
 
 		src_rect.x = UPALIGNTO2(sptStitchRoiParams[1].s32SrcCopyStartY);
-		src_rect.y = UPALIGNTO2(1080 - sptStitchRoiParams[1].s32SrcCopyStartX -
+		src_rect.y = UPALIGNTO2(g_avs_width - sptStitchRoiParams[1].s32SrcCopyStartX -
 		                        sptStitchRoiParams[1].s32SrcCopyWidth);
 		src_rect.width = UPALIGNTO2(sptStitchRoiParams[1].s32SrcCopyHeight);
 		src_rect.height = UPALIGNTO2(sptStitchRoiParams[1].s32SrcCopyWidth);
@@ -732,11 +733,11 @@ static void *sample_get_vi_thread(void *arg) {
 		// 中间1/2的拼接，先旋转到tmp buffer，再传入cpu算法
 		rga_handle_src = importbuffer_fd(RK_MPI_MB_Handle2Fd(vi_0_frame.stVFrame.pMbBlk), &param);
 		rga_handle_dst = importbuffer_fd(RK_MPI_MB_Handle2Fd(tmp_top_mb), &param);
-		rga_buffer_src =
-		    wrapbuffer_handle(rga_handle_src, 1920, 1080, RK_FORMAT_YCbCr_420_SP, 1920, 1080);
+		rga_buffer_src = wrapbuffer_handle(rga_handle_src, 1920, g_avs_width,
+		                                   RK_FORMAT_YCbCr_420_SP, 1920, g_avs_width);
 		rga_buffer_dst = wrapbuffer_handle(
-		    rga_handle_dst, 1080, sptStitchRoiParams[0].s32SrcRemapHeight, RK_FORMAT_YCbCr_420_SP,
-		    1080, sptStitchRoiParams[0].s32SrcRemapHeight);
+		    rga_handle_dst, g_avs_width, sptStitchRoiParams[0].s32SrcRemapHeight,
+		    RK_FORMAT_YCbCr_420_SP, g_avs_width, sptStitchRoiParams[0].s32SrcRemapHeight);
 		src_rect.x = sptStitchRoiParams[0].s32SrcRemapStartY;
 		src_rect.y = 0;
 		src_rect.width = sptStitchRoiParams[0].s32SrcRemapHeight;
@@ -929,7 +930,7 @@ int rkipc_avs_init() {
 	stPoolConfig.u32MBCnt = 2;
 	// stPoolConfig.u64MBSize = 1080 * avsSetParams.stStitchParams.stStitchImageSize.s32ImageHeight
 	// * 3 / 2;
-	stPoolConfig.u64MBSize = 1080 * TMP_BUFFER_HEIGHT * 3 / 2; // 为了非融合，得先按3840开
+	stPoolConfig.u64MBSize = g_avs_width * g_avs_height * 3 / 2;
 	stPoolConfig.enRemapMode = MB_REMAP_MODE_CACHED;
 	stPoolConfig.enAllocType = MB_ALLOC_TYPE_DMA;
 	stPoolConfig.enDmaType = MB_DMA_TYPE_CMA;
@@ -2857,6 +2858,8 @@ int rk_video_init() {
 	          g_vi_chn_id, g_enable_vo, g_vo_dev_id, enable_npu, enable_wrap, enable_osd);
 	g_video_run_ = 1;
 	g_osd_run_ = 1;
+	g_avs_width = rk_param_get_int("avs:avs_width", 0);
+	g_avs_height = rk_param_get_int("avs:avs_height", 0);
 	ret |= rkipc_vi_dev_init();
 	ret |= rkipc_multi_vi_init();
 	ret |= rkipc_avs_init();
