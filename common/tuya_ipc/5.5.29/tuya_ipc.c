@@ -75,7 +75,7 @@ STATIC VOID __TUYA_APP_rev_audio_cb(IN CONST TRANSFER_AUDIO_FRAME_S *p_audio_fra
 	//           p_audio_frame->buf_len, p_audio_frame->audio_codec, p_audio_frame->audio_sample,
 	//           p_audio_frame->audio_databits, p_audio_frame->audio_channel);
 	int data_len;
-	tuya_g711_decode(TUYA_G711_A_LAW, (unsigned short *)p_audio_frame->p_audio_buf,
+	tuya_g711_decode(TUYA_G711_MU_LAW, (unsigned short *)p_audio_frame->p_audio_buf,
 	                 p_audio_frame->buf_len, ao_data, &data_len);
 	// LOG_INFO("p_audio_frame->buf_len is %d, data_len is %d\n", p_audio_frame->buf_len, data_len);
 	rk_tuya_ao_write_(ao_data, data_len);

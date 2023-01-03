@@ -219,7 +219,8 @@ static void *ai_get_detect_result(void *arg) {
 		if (enable_aed) {
 			result = RK_MPI_AI_GetAedResult(ai_dev_id, ai_chn_id, &aed_result);
 			if (result == 0) {
-				RK_LOGD("aed_result: %d, %d", aed_result.bAcousticEvent, aed_result.bLoudSound);
+				RK_LOGD("aed_result: %d, %d", aed_result.bAcousticEventDetected,
+				        aed_result.bLoudSoundDetected);
 			}
 		}
 		if (enable_bcd) {
