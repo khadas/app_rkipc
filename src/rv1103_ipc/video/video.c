@@ -1709,11 +1709,11 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 		usleep(40 * 1000);
 		rotation = rk_param_get_int("video.source:rotation", 0);
 		if (rotation == 90 || rotation == 270) {
-			video_width = rk_param_get_int("video.1:height", -1);
-			video_height = rk_param_get_int("video.1:width", -1);
+			video_width = rk_param_get_int("video.0:height", -1);
+			video_height = rk_param_get_int("video.0:width", -1);
 		} else {
-			video_width = rk_param_get_int("video.1:width", -1);
-			video_height = rk_param_get_int("video.1:height", -1);
+			video_width = rk_param_get_int("video.0:width", -1);
+			video_height = rk_param_get_int("video.0:height", -1);
 		}
 		ret = rkipc_rknn_object_get(&ba_result);
 		// LOG_DEBUG("ret is %d, ba_result.objNum is %d\n", ret, ba_result.objNum);
