@@ -1801,12 +1801,13 @@ int rkipc_osd_draw_nn_init() {
 	memset(&stRgnAttr, 0, sizeof(stRgnAttr));
 	stRgnAttr.enType = OVERLAY_RGN;
 	stRgnAttr.unAttr.stOverlay.enPixelFmt = RK_FMT_2BPP;
+	stRgnAttr.unAttr.stOverlay.u32CanvasNum = 1;
 	if (rotation == 90 || rotation == 270) {
-		stRgnAttr.unAttr.stOverlay.stSize.u32Width = rk_param_get_int("video.1:height", -1);
-		stRgnAttr.unAttr.stOverlay.stSize.u32Height = rk_param_get_int("video.1:width", -1);
+		stRgnAttr.unAttr.stOverlay.stSize.u32Width = rk_param_get_int("video.0:height", -1);
+		stRgnAttr.unAttr.stOverlay.stSize.u32Height = rk_param_get_int("video.0:width", -1);
 	} else {
-		stRgnAttr.unAttr.stOverlay.stSize.u32Width = rk_param_get_int("video.1:width", -1);
-		stRgnAttr.unAttr.stOverlay.stSize.u32Height = rk_param_get_int("video.1:height", -1);
+		stRgnAttr.unAttr.stOverlay.stSize.u32Width = rk_param_get_int("video.0:width", -1);
+		stRgnAttr.unAttr.stOverlay.stSize.u32Height = rk_param_get_int("video.0:height", -1);
 	}
 	ret = RK_MPI_RGN_Create(RgnHandle, &stRgnAttr);
 	if (RK_SUCCESS != ret) {
@@ -1829,13 +1830,13 @@ int rkipc_osd_draw_nn_init() {
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32ColorLUT[RGN_COLOR_LUT_INDEX_1] = RED_COLOR;
 	stMppChn.enModId = RK_ID_VENC;
 	stMppChn.s32DevId = 0;
-	stMppChn.s32ChnId = 1;
+	stMppChn.s32ChnId = 0;
 	ret = RK_MPI_RGN_AttachToChn(RgnHandle, &stMppChn, &stRgnChnAttr);
 	if (RK_SUCCESS != ret) {
-		LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc1 failed with %#x\n", RgnHandle, ret);
+		LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc0 failed with %#x\n", RgnHandle, ret);
 		return RK_FAILURE;
 	}
-	LOG_DEBUG("RK_MPI_RGN_AttachToChn to venc1 success\n");
+	LOG_DEBUG("RK_MPI_RGN_AttachToChn to venc0 success\n");
 	pthread_create(&get_nn_update_osd_thread_id, NULL, rkipc_get_nn_update_osd, NULL);
 	LOG_DEBUG("end\n");
 
@@ -1851,10 +1852,10 @@ int rkipc_osd_draw_nn_deinit() {
 	RGN_HANDLE RgnHandle = DRAW_NN_OSD_ID;
 	stMppChn.enModId = RK_ID_VENC;
 	stMppChn.s32DevId = 0;
-	stMppChn.s32ChnId = 1;
+	stMppChn.s32ChnId = 0;
 	ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 	if (RK_SUCCESS != ret)
-		LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc1 failed with %#x\n", RgnHandle, ret);
+		LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc0 failed with %#x\n", RgnHandle, ret);
 
 	// destory region
 	ret = RK_MPI_RGN_Destroy(RgnHandle);
@@ -2666,6 +2667,7 @@ int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 	memset(&stRgnAttr, 0, sizeof(stRgnAttr));
 	stRgnAttr.enType = OVERLAY_RGN;
 	stRgnAttr.unAttr.stOverlay.enPixelFmt = RK_FMT_ARGB8888;
+	stRgnAttr.unAttr.stOverlay.u32CanvasNum = 1;
 	stRgnAttr.unAttr.stOverlay.stSize.u32Width = osd_data->width;
 	stRgnAttr.unAttr.stOverlay.stSize.u32Height = osd_data->height;
 	ret = RK_MPI_RGN_Create(RgnHandle, &stRgnAttr);

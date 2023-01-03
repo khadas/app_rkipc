@@ -1787,6 +1787,7 @@ int rkipc_osd_draw_nn_init() {
 	memset(&stRgnAttr, 0, sizeof(stRgnAttr));
 	stRgnAttr.enType = OVERLAY_RGN;
 	stRgnAttr.unAttr.stOverlay.enPixelFmt = RK_FMT_2BPP;
+	stRgnAttr.unAttr.stOverlay.u32CanvasNum = 1;
 	if (rotation == 90 || rotation == 270) {
 		stRgnAttr.unAttr.stOverlay.stSize.u32Width = rk_param_get_int("video.0:height", -1);
 		stRgnAttr.unAttr.stOverlay.stSize.u32Height = rk_param_get_int("video.0:width", -1);
@@ -2495,6 +2496,7 @@ int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 	memset(&stRgnAttr, 0, sizeof(stRgnAttr));
 	stRgnAttr.enType = OVERLAY_RGN;
 	stRgnAttr.unAttr.stOverlay.enPixelFmt = RK_FMT_ARGB8888;
+	stRgnAttr.unAttr.stOverlay.u32CanvasNum = 1;
 	stRgnAttr.unAttr.stOverlay.stSize.u32Width = osd_data->width;
 	stRgnAttr.unAttr.stOverlay.stSize.u32Height = osd_data->height;
 	ret = RK_MPI_RGN_Create(RgnHandle, &stRgnAttr);
