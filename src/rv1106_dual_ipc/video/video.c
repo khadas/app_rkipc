@@ -1704,7 +1704,7 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 		ret = RK_MPI_RGN_GetCanvasInfo(RgnHandle, &stCanvasInfo);
 		if (ret != RK_SUCCESS) {
 			LOG_ERROR("RK_MPI_RGN_GetCanvasInfo failed with %#x!", ret);
-			return NULL;
+			continue;
 		}
 		memset((void *)stCanvasInfo.u64VirAddr, 0,
 		       stCanvasInfo.u32VirWidth * stCanvasInfo.u32VirHeight >> 2);
@@ -1766,7 +1766,7 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 		ret = RK_MPI_RGN_UpdateCanvas(RgnHandle);
 		if (ret != RK_SUCCESS) {
 			LOG_ERROR("RK_MPI_RGN_UpdateCanvas failed with %#x!", ret);
-			return NULL;
+			continue;
 		}
 	}
 
