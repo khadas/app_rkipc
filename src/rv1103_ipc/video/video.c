@@ -670,9 +670,10 @@ int rkipc_pipe_0_init() {
 	int ret;
 	int video_width = rk_param_get_int("video.0:width", -1);
 	int video_height = rk_param_get_int("video.0:height", -1);
-	int buffer_line = rk_param_get_int("video.source:buffer_line", video_height / 4);
+	int video_max_height = rk_param_get_int("video.source:video_0_max_height", -1);
+	int buffer_line = rk_param_get_int("video.source:buffer_line", video_max_height / 4);
 	if (buffer_line < 128)
-		buffer_line = video_height;
+		buffer_line = video_max_height;
 	int rotation = rk_param_get_int("video.source:rotation", 0);
 	int buf_cnt = 2;
 	int frame_min_i_qp = rk_param_get_int("video.0:frame_min_i_qp", 26);
@@ -704,9 +705,9 @@ int rkipc_pipe_0_init() {
 	VI_CHN_BUF_WRAP_S stViWrap;
 	memset(&stViWrap, 0, sizeof(VI_CHN_BUF_WRAP_S));
 	if (enable_wrap) {
-		if (buffer_line < 128 || buffer_line > video_height) {
-			LOG_ERROR("wrap mode buffer line must between [128, H], set as video_height\n");
-			buffer_line = video_height;
+		if (buffer_line < 128 || buffer_line > video_max_height) {
+			LOG_ERROR("wrap mode buffer line must between [128, H], set as video_max_height\n");
+			buffer_line = video_max_height;
 		}
 		stViWrap.bEnable = enable_wrap;
 		stViWrap.u32BufLine = buffer_line;
@@ -917,9 +918,9 @@ int rkipc_pipe_0_init() {
 	if (enable_wrap) {
 		stVencChnBufWrap.bEnable = enable_wrap;
 		stVencChnBufWrap.u32BufLine =
-		    rk_param_get_int("video.source:buffer_line", video_height / 4);
+		    rk_param_get_int("video.source:buffer_line", video_max_height);
 		if (stVencChnBufWrap.u32BufLine < 128)
-			stVencChnBufWrap.u32BufLine = video_height;
+			stVencChnBufWrap.u32BufLine = video_max_height;
 		RK_MPI_VENC_SetChnBufWrapAttr(VIDEO_PIPE_0, &stVencChnBufWrap);
 	}
 
@@ -1510,6 +1511,7 @@ int rkipc_pipe_jpeg_init() {
 	int ret;
 	int video_width = rk_param_get_int("video.jpeg:width", 1920);
 	int video_height = rk_param_get_int("video.jpeg:height", 1080);
+	int video_max_height = rk_param_get_int("video.source:video_0_max_height", -1);
 	int rotation = rk_param_get_int("video.source:rotation", 0);
 	// VENC[3] init
 	VENC_CHN_ATTR_S jpeg_chn_attr;
@@ -1551,9 +1553,9 @@ int rkipc_pipe_jpeg_init() {
 	if (enable_wrap) {
 		stVencChnBufWrap.bEnable = enable_wrap;
 		stVencChnBufWrap.u32BufLine =
-		    rk_param_get_int("video.source:buffer_line", video_height / 4);
+		    rk_param_get_int("video.source:buffer_line", video_max_height / 4);
 		if (stVencChnBufWrap.u32BufLine < 128)
-			stVencChnBufWrap.u32BufLine = video_height;
+			stVencChnBufWrap.u32BufLine = video_max_height;
 		RK_MPI_VENC_SetChnBufWrapAttr(JPEG_VENC_CHN, &stVencChnBufWrap);
 	}
 
@@ -2237,10 +2239,6 @@ int rk_video_set_resolution(int stream_id, const char *value) {
 	rk_param_set_int(entry, width);
 	snprintf(entry, 127, "video.%d:height", stream_id);
 	rk_param_set_int(entry, height);
-	if ((height / 4) > 128)
-		rk_param_set_int("video.source:buffer_line", height / 4);
-	else
-		rk_param_set_int("video.source:buffer_line", height);
 
 	VENC_CHN_ATTR_S venc_chn_attr;
 	RK_MPI_VENC_GetChnAttr(stream_id, &venc_chn_attr);
