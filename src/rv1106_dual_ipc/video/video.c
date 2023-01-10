@@ -2496,7 +2496,7 @@ int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 	memset(&stRgnAttr, 0, sizeof(stRgnAttr));
 	stRgnAttr.enType = OVERLAY_RGN;
 	stRgnAttr.unAttr.stOverlay.enPixelFmt = RK_FMT_ARGB8888;
-	stRgnAttr.unAttr.stOverlay.u32CanvasNum = 1;
+	stRgnAttr.unAttr.stOverlay.u32CanvasNum = 2;
 	stRgnAttr.unAttr.stOverlay.stSize.u32Width = osd_data->width;
 	stRgnAttr.unAttr.stOverlay.stSize.u32Height = osd_data->height;
 	ret = RK_MPI_RGN_Create(RgnHandle, &stRgnAttr);
