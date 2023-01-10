@@ -21,7 +21,6 @@
 
 //#include "cJSON.h"
 #include "common.h"
-#include "rkfsmk.h"
 #include "rkmuxer.h"
 
 #define RKIPC_MAX_FORMAT_ID_LEN 8

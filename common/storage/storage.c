@@ -425,218 +425,6 @@ again:
 	return 0;
 }
 
-// RKIPC_MAYBE_UNUSED static int rkipc_storage_file_list_save(rkipc_str_folder pst_folder,
-//                                                            rkipc_str_folder_attr pst_folder_attr,
-//                                                            char *mount_path) {
-// 	int i, len;
-// 	char dataFileName[RKIPC_MAX_FILE_PATH_LEN];
-// 	char jsonFileName[2 * RKIPC_MAX_FILE_PATH_LEN];
-// 	FILE *fp;
-// 	cJSON *folder = NULL;
-// 	cJSON *fileArray = NULL;
-// 	cJSON *info = NULL;
-// 	char *folderStr = NULL;
-// 	rkipc_str_file *tmp = pst_folder.file_list_first;
-
-// 	folder = cJSON_CreateObject();
-// 	cJSON_AddStringToObject(folder, JSON_KEY_FOLDER_NAME, pst_folder_attr.folder_path);
-// 	cJSON_AddNumberToObject(folder, JSON_KEY_FILE_NUMBER, pst_folder.file_num);
-// 	cJSON_AddNumberToObject(folder, JSON_KEY_TOTAL_SIZE, pst_folder.total_size);
-// 	cJSON_AddNumberToObject(folder, JSON_KEY_TOTAL_SPACE, pst_folder.total_space);
-// 	cJSON_AddItemToObject(folder, JSON_KEY_FILE_ARRAY, fileArray = cJSON_CreateArray());
-// 	for (i = 0; i < pst_folder.file_num && tmp != NULL; i++) {
-// 		cJSON_AddItemToArray(fileArray, info = cJSON_CreateObject());
-// 		cJSON_AddStringToObject(info, JSON_KEY_FILE_NAME, tmp->filename);
-// 		cJSON_AddNumberToObject(info, JSON_KEY_MODIFY_TIME, tmp->time);
-// 		cJSON_AddNumberToObject(info, JSON_KEY_FILE_SIZE, tmp->size);
-// 		cJSON_AddNumberToObject(info, JSON_KEY_FILE_SPACE, tmp->space);
-// 		tmp = tmp->next;
-// 	}
-// 	folderStr = cJSON_Print(folder);
-// 	cJSON_Delete(folder);
-
-// 	len = strlen(pst_folder_attr.folder_path);
-// 	strncpy(dataFileName, pst_folder_attr.folder_path, len);
-// 	dataFileName[len] = '\0';
-// 	sprintf(jsonFileName, "%s/.%s.json", mount_path, dataFileName);
-// 	LOG_DEBUG("Save fileList data in %s\n", jsonFileName);
-
-// 	if ((fp = fopen(jsonFileName, "w+")) == NULL) {
-// 		LOG_ERROR("Open %s error!\n", jsonFileName);
-// 		free(folderStr);
-// 		return -1;
-// 	}
-
-// 	if (fwrite(folderStr, strlen(folderStr), 1, fp) != 1) {
-// 		LOG_ERROR("Write file error!\n");
-// 		fclose(fp);
-// 		free(folderStr);
-// 		return -1;
-// 	}
-
-// 	fclose(fp);
-// 	sync();
-// 	free(folderStr);
-// 	return 0;
-// }
-
-// RKIPC_MAYBE_UNUSED static int rkipc_storage_file_list_load(rkipc_str_folder *pst_folder,
-//                                                            rkipc_str_folder_attr pst_folder_attr,
-//                                                            char *mount_path) {
-// 	int i, len;
-// 	long long lenStr;
-// 	char *str;
-// 	char dataFileName[RKIPC_MAX_FILE_PATH_LEN];
-// 	char jsonFileName[2 * RKIPC_MAX_FILE_PATH_LEN];
-// 	FILE *fp;
-// 	cJSON *value = NULL;
-// 	cJSON *folder = NULL;
-// 	cJSON *fileArray = NULL;
-// 	cJSON *info = NULL;
-// 	rkipc_str_file *tmp = NULL;
-
-// 	RKIPC_CHECK_POINTER(pst_folder, RKIPC_STORAGE_FAIL);
-
-// 	len = strlen(pst_folder_attr.folder_path);
-// 	strncpy(dataFileName, pst_folder_attr.folder_path, len);
-// 	dataFileName[len] = '\0';
-// 	sprintf(jsonFileName, "%s/.%s.json", mount_path, dataFileName);
-// 	LOG_DEBUG("Load fileList data from %s", jsonFileName);
-
-// 	if ((fp = fopen(jsonFileName, "r")) == NULL) {
-// 		LOG_ERROR("Open %s error!", jsonFileName);
-// 		return -1;
-// 	}
-
-// 	fseek(fp, 0, SEEK_END);
-// 	lenStr = ftell(fp);
-// 	str = (char *)malloc(lenStr + 1);
-// 	if (str == NULL) {
-// 		LOG_ERROR("malloc str failed!");
-// 		fclose(fp);
-// 		return -1;
-// 	}
-
-// 	fseek(fp, 0, SEEK_SET);
-// 	if (fread(str, lenStr, 1, fp) != 1) {
-// 		LOG_ERROR("Read file error!");
-// 		fclose(fp);
-// 		free(str);
-// 		return -1;
-// 	}
-// 	str[lenStr] = '\0';
-// 	fclose(fp);
-
-// 	if ((folder = cJSON_Parse(str)) == NULL) {
-// 		LOG_ERROR("Parse error!");
-// 		free(str);
-// 		return -1;
-// 	}
-// 	free(str);
-
-// 	pthread_mutex_lock(&pst_folder->mutex);
-// 	value = cJSON_GetObjectItem(folder, JSON_KEY_FILE_NUMBER);
-// 	pst_folder->file_num = value->valuedouble;
-// 	value = cJSON_GetObjectItem(folder, JSON_KEY_TOTAL_SIZE);
-// 	pst_folder->total_size = value->valuedouble;
-// 	value = cJSON_GetObjectItem(folder, JSON_KEY_TOTAL_SPACE);
-// 	pst_folder->total_space = value->valuedouble;
-// 	if ((fileArray = cJSON_GetObjectItem(folder, JSON_KEY_FILE_ARRAY)) == NULL) {
-// 		LOG_ERROR("Get fileArray object item error!");
-// 		cJSON_Delete(folder);
-// 		pthread_mutex_unlock(&pst_folder->mutex);
-// 		return -1;
-// 	}
-
-// 	for (i = 0; i < pst_folder->file_num; i++) {
-// 		tmp = (rkipc_str_file *)malloc(sizeof(rkipc_str_file));
-// 		if (!tmp) {
-// 			LOG_ERROR("tmp malloc failed.");
-// 			cJSON_Delete(folder);
-// 			pthread_mutex_unlock(&pst_folder->mutex);
-// 			return -1;
-// 		}
-
-// 		memset(tmp, 0, sizeof(rkipc_str_file));
-// 		info = cJSON_GetArrayItem(fileArray, i);
-// 		value = cJSON_GetObjectItem(info, JSON_KEY_FILE_NAME);
-// 		sprintf(tmp->filename, "%s", value->valuestring);
-// 		value = cJSON_GetObjectItem(info, JSON_KEY_FILE_SIZE);
-// 		tmp->size = value->valuedouble;
-// 		value = cJSON_GetObjectItem(info, JSON_KEY_FILE_SPACE);
-// 		tmp->space = value->valuedouble;
-// 		value = cJSON_GetObjectItem(info, JSON_KEY_MODIFY_TIME);
-// 		tmp->time = value->valuedouble;
-// 		tmp->next = NULL;
-
-// 		if (pst_folder->file_list_first) {
-// 			pst_folder->file_list_last->next = tmp;
-// 			pst_folder->file_list_last = tmp;
-// 		} else {
-// 			pst_folder->file_list_first = tmp;
-// 			pst_folder->file_list_last = tmp;
-// 		}
-// 	}
-
-// 	cJSON_Delete(folder);
-// 	pthread_mutex_unlock(&pst_folder->mutex);
-// 	return 0;
-// }
-
-static int rkipc_storage_repair(rkipc_storage_handle *pHandle, rkipc_str_dev_attr *dev_attr) {
-	int i;
-	int j;
-	int ret = 0;
-	char file[3 * RKIPC_MAX_FILE_PATH_LEN];
-
-	for (i = 0; i < dev_attr->folder_num; i++) {
-		rkipc_str_folder *folder = &pHandle->dev_sta.folder[i];
-		rkipc_str_file *current = NULL;
-		rkipc_str_file *next = NULL;
-
-		pthread_mutex_lock(&folder->mutex);
-		current = folder->file_list_first;
-		if (current) {
-			snprintf(file, 3 * RKIPC_MAX_FILE_PATH_LEN, "%s/%s/%s", dev_attr->mount_path,
-			         dev_attr->folder_attr[i].folder_path, current->filename);
-			if ((current->size == 0) || (repair_mp4(file) == REPA_FAIL)) {
-				LOG_ERROR("Delete %s file. %ld\n", file, current->size);
-				if (remove(file))
-					LOG_ERROR("Delete %s file error\n", file);
-				folder->file_list_first = current->next;
-				free(current);
-				if (folder->file_list_first == NULL)
-					folder->file_list_last = NULL;
-				else if (folder->file_list_first->next == NULL)
-					folder->file_list_last = folder->file_list_first;
-				folder->file_num--;
-			}
-		}
-		current = folder->file_list_first;
-
-		for (j = 0; j < 8 && current && current->next; j++) {
-			snprintf(file, 3 * RKIPC_MAX_FILE_PATH_LEN, "%s/%s/%s", dev_attr->mount_path,
-			         dev_attr->folder_attr[i].folder_path, current->next->filename);
-			if ((current->next->size == 0) || (repair_mp4(file) == REPA_FAIL)) {
-				LOG_ERROR("Delete %s file. %ld", file, current->next->size);
-				if (remove(file))
-					LOG_ERROR("Delete %s file error.", file);
-				next = current->next;
-				current->next = next->next;
-				free(next);
-				if (current->next == NULL)
-					folder->file_list_last = current;
-				folder->file_num--;
-			}
-			current = current->next;
-		}
-		pthread_mutex_unlock(&folder->mutex);
-	}
-	sync();
-
-	return ret;
-}
-
 static void *rkipc_storage_file_monitor_thread(void *arg) {
 	rkipc_storage_handle *pHandle = (rkipc_storage_handle *)arg;
 	int fd;
@@ -785,39 +573,6 @@ int rkipc_storage_read_file_list(rkipc_str_folder *folder, rkipc_str_folder_attr
 	return 0;
 }
 
-RKIPC_MAYBE_UNUSED static int rkipc_storage_RKFSCK(rkipc_storage_handle *pHandle,
-                                                   rkipc_str_dev_attr *dev_attr) {
-	int i;
-	int ret = 0;
-	struct reg_para para;
-
-	para.folder_num = 4;
-	para.folder = (struct folder_para *)malloc(sizeof(struct folder_para) * para.folder_num);
-	if (para.folder == NULL) {
-		LOG_ERROR("malloc para.folder failed!\n");
-		return -1;
-	}
-
-	memcpy(para.format_id, dev_attr->format_id, RKIPC_MAX_FORMAT_ID_LEN);
-	para.check_format_id = dev_attr->check_format_id;
-	para.quit = &pHandle->dev_sta.fsck_quit;
-	pHandle->dev_sta.fsck_quit = 0;
-	for (i = 0; i < para.folder_num; i++) {
-		para.folder[i].path = dev_attr->folder_attr[i].folder_path;
-		para.folder[i].userdata = &pHandle->dev_sta.folder[i];
-		para.folder[i].cb = &cb;
-	}
-
-	// rkfsmk only support vfat
-	// umount2(pHandle->dev_attr.mount_path, MNT_DETACH);
-	// ret = rkfsmk_fat_check(pHandle->dev_sta.dev_path, &para);
-	// sync();
-	// mount(pHandle->dev_attr.dev_path, pHandle->dev_attr.mount_path, "vfat", MS_NOATIME |
-	// MS_NOSUID, NULL);
-
-	return ret;
-}
-
 static void *rkipc_storage_file_scan_thread(void *arg) {
 	rkipc_storage_handle *pHandle = (rkipc_storage_handle *)arg;
 	int i, limit;
@@ -860,15 +615,6 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 			LOG_INFO("[%s] i is %d, after rkipc_storage_read_file_list\n", get_time_string(), i);
 		}
 	}
-
-	// if (rkipc_storage_RKFSCK(pHandle, &devAttr) == RKFSCK_ID_ERR) {
-	//     LOG_ERROR("RKFSCK_ID_ERR");
-	//     if (pHandle->dev_sta.mount_status != DISK_UNMOUNTED)
-	//         pHandle->dev_sta.mount_status = DISK_FORMAT_ERR;
-	//     goto file_scan_out;
-	// }
-
-	rkipc_storage_repair(pHandle, &devAttr);
 
 	if (pHandle->dev_sta.mount_status == DISK_UNMOUNTED)
 		goto file_scan_out;
@@ -1426,10 +1172,6 @@ err_event_listener:
 static int rkipc_storage_para_init(rkipc_storage_handle *pstHandle,
                                    rkipc_str_dev_attr *pstDevAttr) {
 	int i;
-	// const char *folder_name = NULL;
-	// int quota;
-	// const char *mount_path = NULL;
-	// const char *dev_path = NULL;
 
 	RKIPC_CHECK_POINTER(pstHandle, RKIPC_STORAGE_FAIL);
 
@@ -1481,54 +1223,6 @@ static int rkipc_storage_para_init(rkipc_storage_handle *pstHandle,
 		}
 	}
 	rkipc_storage_set_dev_attr(&pstHandle->dev_attr);
-	// LOG_INFO("Set default device attributes.\n");
-	// mount_path = rk_param_get_string("storage:mount_path", "/userdata/");
-	// sprintf(pstHandle->dev_attr.mount_path, mount_path);
-	// dev_path  = rk_param_get_string("storage:dev_path", "/dev/mmcblk0p6");
-	// sprintf(pstHandle->dev_attr.dev_path, dev_path);
-	// LOG_INFO("mount path is %s, dev_path is %s\n", mount_path, dev_path);
-	// pstHandle->dev_attr.auto_delete = 1;
-	// pstHandle->dev_attr.free_size_del_min = rk_param_get_int("storage:free_size_del_min ", 500);
-	// pstHandle->dev_attr.free_size_del_max = rk_param_get_int("storage:free_size_del_max ", 1000);
-	// pstHandle->dev_attr.folder_num = STORAGE_NUM;
-	// pstHandle->dev_attr.folder_attr = (rkipc_str_folder_attr *)malloc(
-	//     sizeof(rkipc_str_folder_attr) * pstHandle->dev_attr.folder_num);
-
-	// if (!pstHandle->dev_attr.folder_attr) {
-	// 	LOG_ERROR("dev_attr.folder_attr malloc failed.\n");
-	// 	return -1;
-	// }
-	// memset(pstHandle->dev_attr.folder_attr, 0,
-	//        sizeof(rkipc_str_folder_attr) * pstHandle->dev_attr.folder_num);
-
-	// quota = rk_param_get_int("storage.0:video_quota", 30);
-	// folder_name = rk_param_get_string("storage.0:folder_name", NULL);
-	// pstHandle->dev_attr.folder_attr[0].sort_cond = SORT_FILE_NAME;
-	// pstHandle->dev_attr.folder_attr[0].num_limit = false;
-	// pstHandle->dev_attr.folder_attr[0].limit = quota;
-	// sprintf(pstHandle->dev_attr.folder_attr[0].folder_path, folder_name);
-
-	// quota = rk_param_get_int("storage.1:video_quota", 30);
-	// folder_name = rk_param_get_string("storage.1:folder_name", NULL);
-	// pstHandle->dev_attr.folder_attr[1].sort_cond = SORT_FILE_NAME;
-	// pstHandle->dev_attr.folder_attr[1].num_limit = false;
-	// pstHandle->dev_attr.folder_attr[1].limit = quota;
-	// sprintf(pstHandle->dev_attr.folder_attr[1].folder_path, folder_name);
-
-	// quota = rk_param_get_int("storage.2:video_quota", 30);
-	// folder_name = rk_param_get_string("storage.2:folder_name", NULL);
-	// pstHandle->dev_attr.folder_attr[2].sort_cond = SORT_FILE_NAME;
-	// pstHandle->dev_attr.folder_attr[2].num_limit = false;
-	// pstHandle->dev_attr.folder_attr[2].limit = quota;
-	// sprintf(pstHandle->dev_attr.folder_attr[2].folder_path, folder_name);
-
-	// for (i = 0; i < pstHandle->dev_attr.folder_num; i++) {
-	// 	LOG_INFO("DevAttr set:  AutoDel--%d, FreeSizeDel--%d~%d, Path--%s/%s, Limit--%d\n",
-	// 	         pstHandle->dev_attr.auto_delete, pstHandle->dev_attr.free_size_del_min,
-	// 	         pstHandle->dev_attr.free_size_del_max, pstHandle->dev_attr.mount_path,
-	// 	         pstHandle->dev_attr.folder_attr[i].folder_path,
-	// 	         pstHandle->dev_attr.folder_attr[i].limit);
-	// }
 
 	return 0;
 }
@@ -1787,38 +1481,6 @@ char *rkipc_storage_get_dev_path(void *pHandle) {
 	pstHandle = (rkipc_storage_handle *)pHandle;
 
 	return pstHandle->dev_sta.dev_path;
-}
-
-int rkipc_storage_format(void *pHandle, char *cFormat) {
-	int err = 0;
-	rkipc_storage_handle *pstHandle = NULL;
-
-	RKIPC_CHECK_POINTER(pHandle, RKIPC_STORAGE_FAIL);
-	pstHandle = (rkipc_storage_handle *)pHandle;
-
-	if (pstHandle->dev_sta.mount_status != DISK_UNMOUNTED) {
-		int ret = 0;
-		sync();
-
-		if (!pstHandle->dev_attr.dev_path[0])
-			return -1;
-
-		if (pstHandle->dev_sta.mount_status != DISK_NOT_FORMATTED)
-			rkipc_storage_dev_remove(pstHandle->dev_attr.dev_path, pstHandle);
-
-		ret = rkfsmk_format_ex(pstHandle->dev_attr.dev_path, pstHandle->dev_attr.volume,
-		                       pstHandle->dev_attr.format_id);
-		if (!ret)
-			err = -1;
-		ret = mount(pstHandle->dev_attr.dev_path, pstHandle->dev_attr.mount_path, cFormat,
-		            MS_NOATIME | MS_NOSUID, NULL);
-		if (ret == 0)
-			rkipc_storage_dev_add(pstHandle->dev_attr.dev_path, pstHandle);
-		else
-			err = -1;
-	}
-
-	return err;
 }
 
 // get quota ,response set quota by id
@@ -2117,12 +1779,6 @@ int rk_storage_init() {
 		LOG_ERROR("Storage init failed.\n");
 		return -1;
 	}
-	// rkipc_storage_handle *phandle = (rkipc_storage_handle *)g_sd_phandle;
-	// for (int j = 0; j < phandle->dev_sta.folder_num; j++) {
-	// 	rkipc_storage_file_list_load(&phandle->dev_sta.folder[j],
-	//                                   g_sd_dev_attr.folder_attr[j],
-	//                                   phandle->dev_attr.mount_path);
-	// }
 	for (int i = 0; i < STORAGE_NUM; i++) {
 		LOG_DEBUG("i:%d\n", i);
 		rk_storage_muxer_init_by_id(i);
@@ -2135,12 +1791,6 @@ int rk_storage_deinit() {
 	for (int i = 0; i < STORAGE_NUM; i++) {
 		rk_storage_muxer_deinit_by_id(i);
 	}
-	// rkipc_storage_handle *phandle = (rkipc_storage_handle *)g_sd_phandle;
-	// for (int j = 0; j < phandle->dev_sta.folder_num; j++) {
-	// 	rkipc_storage_file_list_save(phandle->dev_sta.folder[j],
-	//                                   g_sd_dev_attr.folder_attr[j],
-	//                                   phandle->dev_attr.mount_path);
-	// }
 	rkipc_storage_free_dev_attr(g_sd_dev_attr);
 	rkipc_storage_manager_deinit(g_sd_phandle);
 	g_sd_phandle = NULL;

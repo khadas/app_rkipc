@@ -57,7 +57,7 @@ add_definitions(-g -ggdb)
 
 add_executable(${PROJECT_NAME} ${SRCS})
 
-target_link_libraries(${PROJECT_NAME} pthread easymedia third_media rkaiq rtsp rkmuxer freetype wpa_client m rga rknn_api drm png16 z rkfsmk)
+target_link_libraries(${PROJECT_NAME} pthread easymedia third_media rkaiq rtsp rkmuxer freetype wpa_client m rga rknn_api drm png16 z)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 install(FILES rkipc.ini DESTINATION share)
