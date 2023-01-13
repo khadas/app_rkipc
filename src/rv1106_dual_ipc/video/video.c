@@ -2236,6 +2236,8 @@ int rk_video_set_resolution(int stream_id, const char *value) {
 	// 	LOG_ERROR("RK_MPI_VENC_SetChnAttr error! ret=%#x\n", ret);
 	// if (enable_osd) {
 	// 	ret |= rkipc_osd_deinit();
+	//  temporarily avoid the memory hole problem, and later change it to osd not to rebuild
+	//	usleep(1000 * 1000);
 	// 	ret |= rkipc_osd_init();
 	// }
 	// if (stream_id == 0) {
@@ -2395,6 +2397,8 @@ int rk_video_set_rotation(int value) {
 	// update osd info, cover currently attaches to VI
 	if (enable_osd) {
 		ret |= rkipc_osd_deinit();
+		// temporarily avoid the memory hole problem, and later change it to osd not to rebuild
+		usleep(1000 * 1000);
 		ret |= rkipc_osd_init();
 	}
 

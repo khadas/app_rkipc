@@ -2267,6 +2267,8 @@ int rk_video_set_resolution(int stream_id, const char *value) {
 	}
 	if (enable_osd) {
 		ret |= rkipc_osd_deinit();
+		// temporarily avoid the memory hole problem, and later change it to osd not to rebuild
+		usleep(1000 * 1000);
 		ret |= rkipc_osd_init();
 	}
 	if (stream_id == 1 && enable_npu) {
@@ -2433,6 +2435,8 @@ int rk_video_set_rotation(int value) {
 	// update osd info, cover currently attaches to VI
 	if (enable_osd) {
 		ret |= rkipc_osd_deinit();
+		// temporarily avoid the memory hole problem, and later change it to osd not to rebuild
+		usleep(1000 * 1000);
 		ret |= rkipc_osd_init();
 	}
 	if (enable_npu) {
