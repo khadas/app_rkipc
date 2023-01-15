@@ -1239,14 +1239,14 @@ int rk_video_set_max_rate(int stream_id,
 
 	if (!strcmp(g_output_data_type, "H.264")) {
 		if (!strcmp(g_rc_mode, "CBR"))
-			venc_chn_attr.stRcAttr.stH264Cbr.u32BitRate = value;
+			venc_chn_attr.stRcAttr.stH264Cbr.u32BitRate = value * 1000;
 		else
-			venc_chn_attr.stRcAttr.stH264Vbr.u32MaxBitRate = value;
+			venc_chn_attr.stRcAttr.stH264Vbr.u32MaxBitRate = value * 1000;
 	} else if (!strcmp(g_output_data_type, "H.265")) {
 		if (!strcmp(g_rc_mode, "CBR"))
-			venc_chn_attr.stRcAttr.stH265Cbr.u32BitRate = value;
+			venc_chn_attr.stRcAttr.stH265Cbr.u32BitRate = value * 1000;
 		else
-			venc_chn_attr.stRcAttr.stH265Vbr.u32MaxBitRate = value;
+			venc_chn_attr.stRcAttr.stH265Vbr.u32MaxBitRate = value * 1000;
 	} else {
 		LOG_ERROR("g_output_data_type is %s, not support\n", g_output_data_type);
 		return -1;
