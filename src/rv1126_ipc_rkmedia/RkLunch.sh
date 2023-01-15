@@ -45,7 +45,7 @@ post_chk()
 	rkipc_ini=/userdata/rkipc.ini
 	default_rkipc_ini=/usr/share/rkipc.ini
 	if [ ! -f "$default_rkipc_ini" ];then
-		default_rkipc_ini=/oem/share/rkipc.ini
+		default_rkipc_ini=/oem/usr/share/rkipc.ini
 	fi
 	if [ ! -f "$default_rkipc_ini" ];then
 		echo "Error: not found rkipc.ini !!!"
