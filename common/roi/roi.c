@@ -11,8 +11,6 @@
 #endif
 #define LOG_TAG "roi.c"
 
-#define MAX_ROI_NUM 6
-
 rk_roi_set_callback rk_roi_set_ = NULL;
 
 void rk_roi_set_callback_register(rk_roi_set_callback callback_ptr) { rk_roi_set_ = callback_ptr; }

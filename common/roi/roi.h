@@ -5,6 +5,8 @@
 #ifndef _RKIPC_ROI_H_
 #define _RKIPC_ROI_H_
 
+#define MAX_ROI_NUM 6
+
 typedef struct roi_data {
 	const char *stream_type;
 	int id;

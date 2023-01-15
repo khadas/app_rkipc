@@ -7,6 +7,7 @@
 #include "isp.h"
 #include "osd.h"
 #include "rkmuxer.h"
+#include "roi.h"
 #include "rtmp.h"
 #include "rtsp_demo.h"
 
@@ -29,6 +30,7 @@
 
 #define RV1126_VO_DEV_MIPI 0
 #define RV1126_VOP_LAYER_CLUSTER0 0
+#define RV1126_ROI_REGION 2
 
 #define RTSP_URL_0 "/live/0"
 #define RTSP_URL_1 "/live/1"
@@ -48,6 +50,8 @@ static int g_video_run_ = 1;
 static int pipe_id_ = 0;
 static int dev_id_ = 0;
 static int g_rtmp_start = 0;
+static int g_roi_region_cnt = 0;
+static VENC_ROI_ATTR_S *g_pst_roi_attr = NULL;
 static rtsp_demo_handle g_rtsplive = NULL;
 static rtsp_session_handle g_rtsp_session_0;
 static rtsp_session_handle g_rtsp_session_1;
@@ -1783,6 +1787,78 @@ int rkipc_osd_deinit() {
 	return 0;
 }
 
+int rk_roi_set(roi_data_s *roi_data) {
+	// LOG_DEBUG("id is %d\n", id);
+	int ret = 0;
+	int venc_chn = 0;
+	int region_index = roi_data->id - 1;
+
+	// 同一个码流的多个区域数据需要保存下来为一组，以便后续同时SetRoiAttr
+	if (g_roi_region_cnt == 0)
+		g_pst_roi_attr = (VENC_ROI_ATTR_S *)malloc(RV1126_ROI_REGION * sizeof(VENC_ROI_ATTR_S));
+
+	g_roi_region_cnt++;
+	if (!strcmp(roi_data->stream_type, "mainStream")) {
+		venc_chn = 0;
+	} else if (!strcmp(roi_data->stream_type, "subStream")) {
+		venc_chn = 1;
+	} else {
+		ret = RK_FAILURE;
+		LOG_DEBUG("%s is not exit\n", roi_data->stream_type);
+		goto exit;
+	}
+
+	LOG_DEBUG("region[%d]: venc_chn is %d, region_index is %d\n", g_roi_region_cnt, venc_chn, region_index);
+	g_pst_roi_attr[region_index].u32Index = roi_data->id;
+	g_pst_roi_attr[region_index].bEnable = roi_data->enabled;
+	g_pst_roi_attr[region_index].bAbsQp = RK_FALSE;
+	g_pst_roi_attr[region_index].bIntra = RK_FALSE;
+	g_pst_roi_attr[region_index].stRect.s32X = roi_data->position_x;
+	g_pst_roi_attr[region_index].stRect.s32Y = roi_data->position_y;
+	g_pst_roi_attr[region_index].stRect.u32Width = roi_data->width;
+	g_pst_roi_attr[region_index].stRect.u32Height = roi_data->height;
+	switch (roi_data->quality_level) {
+	case 6:
+		g_pst_roi_attr[region_index].s32Qp = -16;
+		break;
+	case 5:
+		g_pst_roi_attr[region_index].s32Qp = -14;
+		break;
+	case 4:
+		g_pst_roi_attr[region_index].s32Qp = -12;
+		break;
+	case 3:
+		g_pst_roi_attr[region_index].s32Qp = -10;
+		break;
+	case 2:
+		g_pst_roi_attr[region_index].s32Qp = -8;
+		break;
+	case 1:
+	default:
+		g_pst_roi_attr[region_index].s32Qp = -6;
+	}
+
+	if (roi_data->id == RV1126_ROI_REGION) {
+		ret = RK_MPI_VENC_SetRoiAttr(venc_chn, g_pst_roi_attr, RV1126_ROI_REGION);
+		if (RK_SUCCESS != ret) {
+			LOG_ERROR("RK_MPI_VENC_SetRoiAttr to venc %d failed with %d\n", venc_chn, ret);
+		} else {
+			LOG_DEBUG("RK_MPI_VENC_SetRoiAttr to venc %d success\n", venc_chn);
+		}
+	}
+
+exit:
+	if (g_roi_region_cnt == MAX_ROI_NUM) {
+		g_roi_region_cnt = 0;
+		if (g_pst_roi_attr) {
+			free(g_pst_roi_attr);
+			g_pst_roi_attr = NULL;
+		}
+	}
+
+	return ret;
+}
+
 int rk_video_init() {
 	LOG_INFO("%s\n", __func__);
 	int ret = 0;
@@ -1794,6 +1870,8 @@ int rk_video_init() {
 	// ret |= rkipc_pipe_2_init();
 	ret |= rkipc_pipe_3_init();
 	ret |= rkipc_osd_init();
+	rk_roi_set_callback_register(rk_roi_set);
+	ret |= rk_roi_set_all();
 
 	return ret;
 }
@@ -1802,6 +1880,7 @@ int rk_video_deinit() {
 	LOG_INFO("%s\n", __func__);
 	g_video_run_ = 0;
 	int ret = 0;
+	rk_roi_set_callback_register(NULL);
 	ret = rkipc_osd_deinit();
 	ret |= rkipc_pipe_3_deinit();
 	// ret |= rkipc_pipe_2_deinit();
