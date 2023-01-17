@@ -670,6 +670,7 @@ int rkipc_pipe_0_init() {
 	int ret;
 	int video_width = rk_param_get_int("video.0:width", -1);
 	int video_height = rk_param_get_int("video.0:height", -1);
+	int video_max_width = rk_param_get_int("video.source:video_0_max_width", -1);
 	int video_max_height = rk_param_get_int("video.source:video_0_max_height", -1);
 	int buffer_line = rk_param_get_int("video.source:buffer_line", video_max_height / 4);
 	if (buffer_line < 128)
@@ -711,7 +712,7 @@ int rkipc_pipe_0_init() {
 		}
 		stViWrap.bEnable = enable_wrap;
 		stViWrap.u32BufLine = buffer_line;
-		stViWrap.u32WrapBufferSize = stViWrap.u32BufLine * video_width * 3 / 2;
+		stViWrap.u32WrapBufferSize = stViWrap.u32BufLine * video_max_width * 3 / 2;
 		LOG_INFO("set vi channel wrap line: %d, wrapBuffSize = %d\n", stViWrap.u32BufLine,
 		         stViWrap.u32WrapBufferSize);
 		RK_MPI_VI_SetChnWrapBufAttr(pipe_id_, VIDEO_PIPE_0, &stViWrap);
