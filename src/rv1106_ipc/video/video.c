@@ -193,8 +193,8 @@ static void *rkipc_get_vi_send_jpeg(void *arg) {
 	VENC_CHN_ATTR_S pstChnAttr;
 	MB_BLK dstBlk = RK_NULL;
 
-	Dst_stPicBufAttr.u32Width = rk_param_get_int("video.source:video_0_max_width", 2304);
-	Dst_stPicBufAttr.u32Height = rk_param_get_int("video.source:video_0_max_height", 1296);
+	Dst_stPicBufAttr.u32Width = rk_param_get_int("video.0:max_width", 2304);
+	Dst_stPicBufAttr.u32Height = rk_param_get_int("video.0:max_height", 1296);
 	Dst_stPicBufAttr.enPixelFormat = RK_FMT_YUV420SP;
 	Dst_stPicBufAttr.enCompMode = COMPRESS_MODE_NONE;
 
@@ -807,10 +807,8 @@ int rkipc_pipe_0_init() {
 	memset(&vi_chn_attr, 0, sizeof(vi_chn_attr));
 	vi_chn_attr.stIspOpt.u32BufCount = buf_cnt;
 	vi_chn_attr.stIspOpt.enMemoryType = VI_V4L2_MEMORY_TYPE_DMABUF;
-	vi_chn_attr.stIspOpt.stMaxSize.u32Width =
-	    rk_param_get_int("video.source:video_0_max_width", 2560);
-	vi_chn_attr.stIspOpt.stMaxSize.u32Height =
-	    rk_param_get_int("video.source:video_0_max_height", 1440);
+	vi_chn_attr.stIspOpt.stMaxSize.u32Width = rk_param_get_int("video.0:max_width", 2560);
+	vi_chn_attr.stIspOpt.stMaxSize.u32Height = rk_param_get_int("video.0:max_height", 1440);
 	vi_chn_attr.stSize.u32Width = video_width;
 	vi_chn_attr.stSize.u32Height = video_height;
 	vi_chn_attr.enPixelFormat = RK_FMT_YUV420SP;
@@ -927,10 +925,8 @@ int rkipc_pipe_0_init() {
 	}
 	// venc_chn_attr.stGopAttr.u32GopSize = rk_param_get_int("video.0:gop", -1);
 	venc_chn_attr.stVencAttr.enPixelFormat = RK_FMT_YUV420SP;
-	venc_chn_attr.stVencAttr.u32MaxPicWidth =
-	    rk_param_get_int("video.source:video_0_max_width", 2560);
-	venc_chn_attr.stVencAttr.u32MaxPicHeight =
-	    rk_param_get_int("video.source:video_0_max_height", 1440);
+	venc_chn_attr.stVencAttr.u32MaxPicWidth = rk_param_get_int("video.0:max_width", 2560);
+	venc_chn_attr.stVencAttr.u32MaxPicHeight = rk_param_get_int("video.0:max_height", 1440);
 	venc_chn_attr.stVencAttr.u32PicWidth = video_width;
 	venc_chn_attr.stVencAttr.u32PicHeight = video_height;
 	venc_chn_attr.stVencAttr.u32VirWidth = video_width;
@@ -1122,10 +1118,8 @@ int rkipc_pipe_1_init() {
 	memset(&vi_chn_attr, 0, sizeof(vi_chn_attr));
 	vi_chn_attr.stIspOpt.u32BufCount = buf_cnt;
 	vi_chn_attr.stIspOpt.enMemoryType = VI_V4L2_MEMORY_TYPE_DMABUF;
-	vi_chn_attr.stIspOpt.stMaxSize.u32Width =
-	    rk_param_get_int("video.source:video_1_max_width", 704);
-	vi_chn_attr.stIspOpt.stMaxSize.u32Height =
-	    rk_param_get_int("video.source:video_1_max_height", 576);
+	vi_chn_attr.stIspOpt.stMaxSize.u32Width = rk_param_get_int("video.0:max_width", 704);
+	vi_chn_attr.stIspOpt.stMaxSize.u32Height = rk_param_get_int("video.0:max_height", 576);
 	vi_chn_attr.stSize.u32Width = video_width;
 	vi_chn_attr.stSize.u32Height = video_height;
 	vi_chn_attr.enPixelFormat = RK_FMT_YUV420SP;
@@ -1239,10 +1233,8 @@ int rkipc_pipe_1_init() {
 	// venc_chn_attr.stGopAttr.u32GopSize = rk_param_get_int("video.1:gop", -1);
 
 	venc_chn_attr.stVencAttr.enPixelFormat = RK_FMT_YUV420SP;
-	venc_chn_attr.stVencAttr.u32MaxPicWidth =
-	    rk_param_get_int("video.source:video_1_max_width", 704);
-	venc_chn_attr.stVencAttr.u32MaxPicHeight =
-	    rk_param_get_int("video.source:video_1_max_height", 576);
+	venc_chn_attr.stVencAttr.u32MaxPicWidth = rk_param_get_int("video.1:max_width", 704);
+	venc_chn_attr.stVencAttr.u32MaxPicHeight = rk_param_get_int("video.1:max_height", 576);
 	venc_chn_attr.stVencAttr.u32PicWidth = video_width;
 	venc_chn_attr.stVencAttr.u32PicHeight = video_height;
 	venc_chn_attr.stVencAttr.u32VirWidth = video_width;
@@ -1551,10 +1543,8 @@ int rkipc_pipe_2_init() {
 		buf_cnt += 1;
 	vi_chn_attr.stIspOpt.u32BufCount = buf_cnt;
 	vi_chn_attr.stIspOpt.enMemoryType = VI_V4L2_MEMORY_TYPE_DMABUF;
-	vi_chn_attr.stIspOpt.stMaxSize.u32Width =
-	    rk_param_get_int("video.source:video_2_max_width", 960);
-	vi_chn_attr.stIspOpt.stMaxSize.u32Height =
-	    rk_param_get_int("video.source:video_2_max_height", 540);
+	vi_chn_attr.stIspOpt.stMaxSize.u32Width = rk_param_get_int("video.2:max_width", 960);
+	vi_chn_attr.stIspOpt.stMaxSize.u32Height = rk_param_get_int("video.2:max_height", 540);
 	vi_chn_attr.stSize.u32Width = video_width;
 	vi_chn_attr.stSize.u32Height = video_height;
 	vi_chn_attr.enPixelFormat = RK_FMT_YUV420SP;
@@ -1634,10 +1624,8 @@ int rkipc_pipe_jpeg_init() {
 	memset(&jpeg_chn_attr, 0, sizeof(jpeg_chn_attr));
 	jpeg_chn_attr.stVencAttr.enType = RK_VIDEO_ID_JPEG;
 	jpeg_chn_attr.stVencAttr.enPixelFormat = RK_FMT_YUV420SP;
-	jpeg_chn_attr.stVencAttr.u32MaxPicWidth =
-	    rk_param_get_int("video.source:video_0_max_width", 2560);
-	jpeg_chn_attr.stVencAttr.u32MaxPicHeight =
-	    rk_param_get_int("video.source:video_0_max_height", 1440);
+	jpeg_chn_attr.stVencAttr.u32MaxPicWidth = rk_param_get_int("video.0:max_width", 2560);
+	jpeg_chn_attr.stVencAttr.u32MaxPicHeight = rk_param_get_int("video.0:max_height", 1440);
 	jpeg_chn_attr.stVencAttr.u32PicWidth = video_width;
 	jpeg_chn_attr.stVencAttr.u32PicHeight = video_height;
 	jpeg_chn_attr.stVencAttr.u32VirWidth = video_width;
@@ -2621,8 +2609,8 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 	int rotation = rk_param_get_int("video.source:rotation", 0);
 	int video_0_width = rk_param_get_int("video.0:width", -1);
 	int video_0_height = rk_param_get_int("video.0:height", -1);
-	int video_0_max_width = rk_param_get_int("video.source:video_0_max_width", -1);
-	int video_0_max_height = rk_param_get_int("video.source:video_0_max_height", -1);
+	int video_0_max_width = rk_param_get_int("video.0:max_width", -1);
+	int video_0_max_height = rk_param_get_int("video.0:max_height", -1);
 	double video_0_w_h_rate = 1.0;
 
 	// since the coordinates stored in the OSD module are of actual resolution,

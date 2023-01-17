@@ -1024,12 +1024,6 @@ enable_wrap = 1 ; 是否使能卷绕功能
 buffer_line = 720 ; 卷绕的行数，默认为高度一半，半帧卷绕
 enable_rtsp = 1 ; 是否使能rtsp预览
 enable_rtmp = 1 ; 是否使能rtmp预览
-video_0_max_width = 2560 ; 主码流的最大宽度，用于预先按最大分辨率申请buffer
-video_0_max_height = 1440 ; 主码流的最大高度，用于预先按最大分辨率申请buffer
-video_1_max_width = 704
-video_1_max_height = 576
-video_2_max_width = 960
-video_2_max_height = 540
 rotation = 0 ; 旋转角度，可选值为0、90、180、270
 
 [video.0]
@@ -1038,6 +1032,8 @@ buffer_count = 4 ; 输出buffer个数
 enable_refer_buffer_share = 1 ； 是否开启参考帧和重构帧共享
 stream_type = mainStream ; 码流名称，供web判断使用
 video_type = compositeStream ; 码流类型，供web判断使用
+max_width = 2560 ; 主码流的最大宽度，用于预先按最大分辨率申请buffer
+max_height = 1440 ; 主码流的最大高度，用于预先按最大分辨率申请buffer
 width = 2560
 height = 1440
 rc_mode = CBR ; 码率控制类型
