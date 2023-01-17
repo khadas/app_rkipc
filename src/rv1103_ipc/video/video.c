@@ -24,6 +24,7 @@
 #define VIDEO_PIPE_2 2
 #define VIDEO_PIPE_3 3
 #define JPEG_VENC_CHN 4
+#define DRAW_NN_VENC_CHN_ID 0
 #define VPSS_ROTATE 6
 #define VPSS_BGR 0
 #define DRAW_NN_OSD_ID 7
@@ -508,8 +509,8 @@ static void *rkipc_ivs_get_results(void *arg) {
 		ret = RK_MPI_IVS_GetResults(0, &stResults, 1000);
 		if (ret >= 0) {
 			resultscount++;
-			LOG_DEBUG("get chn %d results %d\n", 0, resultscount);
-			LOG_DEBUG("get stResults.s32ResultNum %d\n", stResults.s32ResultNum);
+			// LOG_DEBUG("get chn %d results %d\n", 0, resultscount);
+			// LOG_DEBUG("get stResults.s32ResultNum %d\n", stResults.s32ResultNum);
 			if (md == 1) {
 				if (resultscount % 10 == 0 && stResults.s32ResultNum == 1) {
 					int x = width / 8 / 8;
@@ -1502,7 +1503,7 @@ int rkipc_pipe_jpeg_init() {
 	int ret;
 	int video_width = rk_param_get_int("video.jpeg:width", 1920);
 	int video_height = rk_param_get_int("video.jpeg:height", 1080);
-	int video_max_height = rk_param_get_int("video.source:video_0_max_height", -1);
+	int video_max_height = rk_param_get_int("video.0:max_height", -1);
 	int rotation = rk_param_get_int("video.source:rotation", 0);
 	// VENC[3] init
 	VENC_CHN_ATTR_S jpeg_chn_attr;
@@ -1794,11 +1795,11 @@ int rkipc_osd_draw_nn_init() {
 	stRgnAttr.unAttr.stOverlay.enPixelFmt = RK_FMT_2BPP;
 	stRgnAttr.unAttr.stOverlay.u32CanvasNum = 1;
 	if (rotation == 90 || rotation == 270) {
-		stRgnAttr.unAttr.stOverlay.stSize.u32Width = rk_param_get_int("video.0:height", -1);
-		stRgnAttr.unAttr.stOverlay.stSize.u32Height = rk_param_get_int("video.0:width", -1);
+		stRgnAttr.unAttr.stOverlay.stSize.u32Width = rk_param_get_int("video.0:max_height", -1);
+		stRgnAttr.unAttr.stOverlay.stSize.u32Height = rk_param_get_int("video.0:max_width", -1);
 	} else {
-		stRgnAttr.unAttr.stOverlay.stSize.u32Width = rk_param_get_int("video.0:width", -1);
-		stRgnAttr.unAttr.stOverlay.stSize.u32Height = rk_param_get_int("video.0:height", -1);
+		stRgnAttr.unAttr.stOverlay.stSize.u32Width = rk_param_get_int("video.0:max_width", -1);
+		stRgnAttr.unAttr.stOverlay.stSize.u32Height = rk_param_get_int("video.0:max_height", -1);
 	}
 	ret = RK_MPI_RGN_Create(RgnHandle, &stRgnAttr);
 	if (RK_SUCCESS != ret) {
@@ -1821,7 +1822,7 @@ int rkipc_osd_draw_nn_init() {
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32ColorLUT[RGN_COLOR_LUT_INDEX_1] = RED_COLOR;
 	stMppChn.enModId = RK_ID_VENC;
 	stMppChn.s32DevId = 0;
-	stMppChn.s32ChnId = 0;
+	stMppChn.s32ChnId = DRAW_NN_VENC_CHN_ID;
 	ret = RK_MPI_RGN_AttachToChn(RgnHandle, &stMppChn, &stRgnChnAttr);
 	if (RK_SUCCESS != ret) {
 		LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc0 failed with %#x\n", RgnHandle, ret);
@@ -1843,7 +1844,7 @@ int rkipc_osd_draw_nn_deinit() {
 	RGN_HANDLE RgnHandle = DRAW_NN_OSD_ID;
 	stMppChn.enModId = RK_ID_VENC;
 	stMppChn.s32DevId = 0;
-	stMppChn.s32ChnId = 0;
+	stMppChn.s32ChnId = DRAW_NN_VENC_CHN_ID;
 	ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 	if (RK_SUCCESS != ret)
 		LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc0 failed with %#x\n", RgnHandle, ret);
@@ -1854,6 +1855,57 @@ int rkipc_osd_draw_nn_deinit() {
 		LOG_ERROR("RK_MPI_RGN_Destroy [%d] failed with %#x\n", RgnHandle, ret);
 	}
 	LOG_DEBUG("Destory handle:%d success\n", RgnHandle);
+
+	return ret;
+}
+
+int rkipc_osd_draw_nn_change() {
+	LOG_INFO("%s\n", __func__);
+	int ret = 0;
+	int rotation = rk_param_get_int("video.source:rotation", 0);
+	MPP_CHN_S stMppChn;
+	RGN_ATTR_S stRgnAttr;
+	RGN_CHN_ATTR_S stRgnChnAttr;
+	RGN_HANDLE RgnHandle = DRAW_NN_OSD_ID;
+	stMppChn.enModId = RK_ID_VENC;
+	stMppChn.s32DevId = 0;
+	stMppChn.s32ChnId = DRAW_NN_VENC_CHN_ID;
+	ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
+	if (RK_SUCCESS != ret)
+		LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc0 failed with %#x\n", RgnHandle, ret);
+	ret = RK_MPI_RGN_GetAttr(RgnHandle, &stRgnAttr);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("RK_MPI_RGN_GetAttr (%d) failed with %#x!", RgnHandle, ret);
+		return RK_FAILURE;
+	}
+	if (rotation == 90 || rotation == 270) {
+		stRgnAttr.unAttr.stOverlay.stSize.u32Width = rk_param_get_int("video.0:height", -1);
+		stRgnAttr.unAttr.stOverlay.stSize.u32Height = rk_param_get_int("video.0:width", -1);
+	} else {
+		stRgnAttr.unAttr.stOverlay.stSize.u32Width = rk_param_get_int("video.0:width", -1);
+		stRgnAttr.unAttr.stOverlay.stSize.u32Height = rk_param_get_int("video.0:height", -1);
+	}
+	ret = RK_MPI_RGN_SetAttr(RgnHandle, &stRgnAttr);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("RK_MPI_RGN_SetAttr (%d) failed with %#x!", RgnHandle, ret);
+		return RK_FAILURE;
+	}
+
+	memset(&stRgnChnAttr, 0, sizeof(stRgnChnAttr));
+	stRgnChnAttr.bShow = RK_TRUE;
+	stRgnChnAttr.enType = OVERLAY_RGN;
+	stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32X = 0;
+	stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32Y = 0;
+	stRgnChnAttr.unChnAttr.stOverlayChn.u32BgAlpha = 128;
+	stRgnChnAttr.unChnAttr.stOverlayChn.u32FgAlpha = 128;
+	stRgnChnAttr.unChnAttr.stOverlayChn.u32Layer = DRAW_NN_OSD_ID;
+	stRgnChnAttr.unChnAttr.stOverlayChn.u32ColorLUT[RGN_COLOR_LUT_INDEX_0] = BLUE_COLOR;
+	stRgnChnAttr.unChnAttr.stOverlayChn.u32ColorLUT[RGN_COLOR_LUT_INDEX_1] = RED_COLOR;
+	ret = RK_MPI_RGN_AttachToChn(RgnHandle, &stMppChn, &stRgnChnAttr);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) failed with %#x!", RgnHandle, ret);
+		return RK_FAILURE;
+	}
 
 	return ret;
 }
@@ -2206,10 +2258,6 @@ int rk_video_set_resolution(int stream_id, const char *value) {
 
 	sscanf(value, "%d*%d", &width, &height);
 	LOG_INFO("value is %s, width is %d, height is %d\n", value, width, height);
-	if (stream_id == 1 && enable_npu) {
-		g_nn_osd_run_ = 0;
-		rkipc_osd_draw_nn_deinit();
-	}
 
 	// unbind
 	vi_chn.enModId = RK_ID_VI;
@@ -2254,16 +2302,6 @@ int rk_video_set_resolution(int stream_id, const char *value) {
 		if (ret)
 			LOG_ERROR("JPEG RK_MPI_VENC_SetChnAttr error! ret=%#x\n", ret);
 	}
-	if (enable_osd) {
-		ret |= rkipc_osd_deinit();
-		// temporarily avoid the memory hole problem, and later change it to osd not to rebuild
-		usleep(1000 * 1000);
-		ret |= rkipc_osd_init();
-	}
-	if (stream_id == 1 && enable_npu) {
-		g_nn_osd_run_ = 1;
-		rkipc_osd_draw_nn_init();
-	}
 	VI_CHN_ATTR_S vi_chn_attr;
 	RK_MPI_VI_GetChnAttr(0, stream_id, &vi_chn_attr);
 	vi_chn_attr.stSize.u32Width = width;
@@ -2272,6 +2310,9 @@ int rk_video_set_resolution(int stream_id, const char *value) {
 	if (ret)
 		LOG_ERROR("RK_MPI_VI_SetChnAttr error! ret=%#x\n", ret);
 
+	if (stream_id == DRAW_NN_VENC_CHN_ID && enable_npu)
+		rkipc_osd_draw_nn_change();
+	rk_osd_privacy_mask_restart();
 	rk_roi_set_all(); // update roi info, and osd cover attach vi, no update required
 	ret = RK_MPI_SYS_Bind(&vi_chn, &venc_chn);
 	if (ret)
@@ -2390,10 +2431,6 @@ int rk_video_set_rotation(int value) {
 	int rotation = 0;
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "video.source:rotation");
-	if (enable_npu) {
-		g_nn_osd_run_ = 0;
-		rkipc_osd_draw_nn_deinit();
-	}
 
 	rk_param_set_int(entry, value);
 	if (value == 0) {
@@ -2419,19 +2456,11 @@ int rk_video_set_rotation(int value) {
 	ret = RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1, rotation);
 	if (ret)
 		LOG_ERROR("RK_MPI_VENC_SetChnRotation VIDEO_PIPE_1 error! ret=%#x\n", ret);
-
 	rk_roi_set_all(); // update roi info
 	// update osd info, cover currently attaches to VI
-	if (enable_osd) {
-		ret |= rkipc_osd_deinit();
-		// temporarily avoid the memory hole problem, and later change it to osd not to rebuild
-		usleep(1000 * 1000);
-		ret |= rkipc_osd_init();
-	}
-	if (enable_npu) {
-		g_nn_osd_run_ = 1;
-		rkipc_osd_draw_nn_init();
-	}
+	rk_osd_privacy_mask_restart();
+	if (enable_npu)
+		rkipc_osd_draw_nn_change();
 
 	return 0;
 }

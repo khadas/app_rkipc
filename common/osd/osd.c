@@ -465,6 +465,90 @@ int rk_osd_restart() {
 	return 0;
 }
 
+int rk_osd_privacy_mask_restart() {
+	pthread_mutex_lock(&g_osd_mutex);
+	const char *osd_type;
+	char entry[128] = {'\0'};
+	// destroy
+	for (int i = 0; i < MAX_OSD_NUM; i++) {
+		snprintf(entry, 127, "osd.%d:type", i);
+		osd_type = rk_param_get_string(entry, NULL);
+		if (osd_type == NULL)
+			continue;
+		// Because enable has been set to 0, after skipping here, the destroy will also be skipped
+		// snprintf(entry, 127, "osd.%d:enabled", i);
+		// if (rk_param_get_int(entry, 0) == 0)
+		// 	continue;
+		LOG_DEBUG("i is %d, osd_type is %s\n", i, osd_type);
+		if (strcmp(osd_type, "privacyMask"))
+			continue;
+		snprintf(entry, 127, "osd.%d:style", i);
+		const char *style = rk_param_get_string(entry, "cover");
+		if (!strcmp(style, "cover") && rk_osd_cover_destroy_)
+			rk_osd_cover_destroy_(i);
+		else if (!strcmp(style, "mosaic") && rk_osd_mosaic_destroy_)
+			rk_osd_mosaic_destroy_(i);
+	}
+	// create
+	osd_data_s osd_data;
+	int video_width = rk_param_get_int("video.0:width", -1);
+	int video_height = rk_param_get_int("video.0:height", -1);
+	int normalized_screen_width = rk_param_get_int("osd.common:normalized_screen_width", -1);
+	int normalized_screen_height = rk_param_get_int("osd.common:normalized_screen_height", -1);
+	g_x_rate = (double)video_width / (double)normalized_screen_width;
+	g_y_rate = (double)video_height / (double)normalized_screen_height;
+	LOG_DEBUG("g_x_rate is %lf, g_y_rate is %lf\n", g_x_rate, g_y_rate);
+
+	for (int i = 0; i < MAX_OSD_NUM; i++) {
+		snprintf(entry, 127, "osd.%d:type", i);
+		osd_type = rk_param_get_string(entry, NULL);
+		if (osd_type == NULL)
+			continue;
+		LOG_DEBUG("i is %d, osd_type is %s\n", i, osd_type);
+
+		snprintf(entry, 127, "osd.%d:enabled", i);
+		osd_data.enable = rk_param_get_int(entry, 0);
+		if (osd_data.enable == 0)
+			continue;
+		snprintf(entry, 127, "osd.%d:position_x", i);
+		osd_data.origin_x = UPALIGNTO16((int)(rk_param_get_int(entry, -1) * g_x_rate));
+		snprintf(entry, 127, "osd.%d:position_y", i);
+		osd_data.origin_y = UPALIGNTO16((int)(rk_param_get_int(entry, -1) * g_y_rate));
+
+		if (strcmp(osd_type, "privacyMask"))
+			continue;
+
+		snprintf(entry, 127, "osd.%d:width", i);
+		osd_data.width = UPALIGNTO16((int)(rk_param_get_int(entry, -1) * g_x_rate));
+		snprintf(entry, 127, "osd.%d:height", i);
+		osd_data.height = UPALIGNTO16((int)(rk_param_get_int(entry, -1) * g_y_rate));
+
+		while (osd_data.origin_x + osd_data.width > video_width) {
+			osd_data.width -= 16;
+		}
+		while (osd_data.origin_y + osd_data.height > video_height) {
+			osd_data.height -= 16;
+		}
+		if (osd_data.origin_x < 0 || osd_data.origin_y < 0 || osd_data.width < 0 ||
+		    osd_data.height < 0) {
+			continue;
+		}
+		LOG_DEBUG("xywh is %d,%d,%d,%d\n", osd_data.origin_x, osd_data.origin_y, osd_data.width,
+		          osd_data.height);
+
+		snprintf(entry, 127, "osd.%d:style", i);
+		const char *style = rk_param_get_string(entry, "cover");
+		if (!strcmp(style, "cover") && rk_osd_cover_create_)
+			rk_osd_cover_create_(i, &osd_data);
+		else if (!strcmp(style, "mosaic") && rk_osd_mosaic_create_)
+			rk_osd_mosaic_create_(i, &osd_data);
+	}
+	LOG_INFO("over\n");
+	pthread_mutex_unlock(&g_osd_mutex);
+
+	return 0;
+}
+
 // for socket server
 // osd.common
 
