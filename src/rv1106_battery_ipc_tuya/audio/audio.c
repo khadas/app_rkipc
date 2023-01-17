@@ -374,7 +374,6 @@ int rkipc_aenc_init() {
 }
 
 int rkipc_aenc_deinit() {
-	pthread_join(save_aenc_tid, RK_NULL);
 	int ret = RK_MPI_AENC_DestroyChn(aenc_chn_id);
 	if (ret)
 		LOG_ERROR("RK_MPI_AI_DisableChn fail\n");
@@ -515,6 +514,7 @@ int rkipc_audio_deinit() {
 	// 	rkipc_audio_bcd_deinit();
 	// if (enable_vqe)
 	// 	rkipc_audio_vqe_deinit();
+	pthread_join(save_aenc_tid, RK_NULL);
 	ret = RK_MPI_SYS_UnBind(&ai_chn, &aenc_chn);
 	if (ret != RK_SUCCESS) {
 		LOG_ERROR("RK_MPI_SYS_UnBind fail %x\n", ret);
