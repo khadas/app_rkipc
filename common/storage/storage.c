@@ -14,6 +14,7 @@ static int record_flag[STORAGE_NUM] = {-1};
 static void *g_sd_phandle = NULL;
 static void *g_file_scan_signal = NULL;
 static rkipc_str_dev_attr g_sd_dev_attr;
+static pthread_mutex_t g_rkmuxer_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int rk_storage_muxer_init_by_id(int id);
 static int rk_storage_muxer_deinit_by_id(int id);
 
@@ -1636,14 +1637,18 @@ static void *rk_storage_record(void *arg) {
 		         tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec,
 		         rk_storage_muxer_group[id].file_format);
 		LOG_INFO("[%d], file_name is %s\n", id, rk_storage_muxer_group[id].file_name);
+		pthread_mutex_lock(&g_rkmuxer_mutex);
 		rkmuxer_deinit(id);
 		rkmuxer_init(id, NULL, rk_storage_muxer_group[id].file_name,
 		             &rk_storage_muxer_group[id].g_video_param,
 		             &rk_storage_muxer_group[id].g_audio_param);
+		pthread_mutex_unlock(&g_rkmuxer_mutex);
 		rk_signal_wait(rk_storage_muxer_group[id].g_storage_signal,
 		               rk_storage_muxer_group[id].file_duration * 1000);
 	}
+	pthread_mutex_lock(&g_rkmuxer_mutex);
 	rkmuxer_deinit(id);
+	pthread_mutex_unlock(&g_rkmuxer_mutex);
 
 	return NULL;
 }
@@ -1800,15 +1805,23 @@ int rk_storage_deinit() {
 
 int rk_storage_write_video_frame(int id, unsigned char *buffer, unsigned int buffer_size,
                                  int64_t present_time, int key_frame) {
-	if (rk_storage_muxer_group[id].g_record_run_)
+	if (rk_storage_muxer_group[id].g_record_run_) {
+		pthread_mutex_lock(&g_rkmuxer_mutex);
 		rkmuxer_write_video_frame(id, buffer, buffer_size, present_time, key_frame);
+		pthread_mutex_unlock(&g_rkmuxer_mutex);
+	}
+
 	return 0;
 }
 
 int rk_storage_write_audio_frame(int id, unsigned char *buffer, unsigned int buffer_size,
                                  int64_t present_time) {
-	if (rk_storage_muxer_group[id].g_record_run_)
+	if (rk_storage_muxer_group[id].g_record_run_) {
+		pthread_mutex_lock(&g_rkmuxer_mutex);
 		rkmuxer_write_audio_frame(id, buffer, buffer_size, present_time);
+		pthread_mutex_unlock(&g_rkmuxer_mutex);
+	}
+
 	return 0;
 }
 
@@ -1822,10 +1835,12 @@ int rk_storage_record_start() {
 	         rk_storage_muxer_group[0].record_path, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
 	         tm.tm_hour, tm.tm_min, tm.tm_sec, rk_storage_muxer_group[0].file_format);
 	LOG_INFO("file_name is %s\n", rk_storage_muxer_group[0].file_name);
+	pthread_mutex_lock(&g_rkmuxer_mutex);
 	rkmuxer_deinit(0);
 	rkmuxer_init(0, NULL, rk_storage_muxer_group[0].file_name,
 	             &rk_storage_muxer_group[0].g_video_param,
 	             &rk_storage_muxer_group[0].g_audio_param);
+	pthread_mutex_unlock(&g_rkmuxer_mutex);
 	rk_storage_muxer_group[0].g_record_run_ = 1;
 	LOG_INFO("end\n");
 
@@ -1835,7 +1850,9 @@ int rk_storage_record_start() {
 int rk_storage_record_stop() {
 	// only main stream
 	LOG_INFO("start\n");
+	pthread_mutex_lock(&g_rkmuxer_mutex);
 	rkmuxer_deinit(0);
+	pthread_mutex_unlock(&g_rkmuxer_mutex);
 	rk_storage_muxer_group[0].g_record_run_ = 0;
 	LOG_INFO("end\n");
 

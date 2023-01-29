@@ -12,6 +12,7 @@
 
 static int g_rtmp_enable[3] = {0, 0, 0};
 static VideoParam g_video_param;
+static pthread_mutex_t g_rtmp_mutex = PTHREAD_MUTEX_INITIALIZER;
 // static AudioParam g_audio_param;
 
 int rk_rtmp_init(int id, const char *rtmp_url) {
@@ -56,7 +57,9 @@ int rk_rtmp_init(int id, const char *rtmp_url) {
 	// const char *codec = rk_param_get_string("audio.0:encode_type", NULL);
 	// if (codec)
 	// 	memcpy(g_audio_param.codec, codec, strlen(codec));
+	pthread_mutex_lock(&g_rtmp_mutex);
 	rkmuxer_init(id + 3, "flv", rtmp_url, &g_video_param, NULL);
+	pthread_mutex_unlock(&g_rtmp_mutex);
 	g_rtmp_enable[id] = 1;
 
 	return ret;
@@ -64,7 +67,9 @@ int rk_rtmp_init(int id, const char *rtmp_url) {
 
 int rk_rtmp_deinit(int id) {
 	LOG_DEBUG("begin\n");
+	pthread_mutex_lock(&g_rtmp_mutex);
 	rkmuxer_deinit(id + 3);
+	pthread_mutex_unlock(&g_rtmp_mutex);
 	g_rtmp_enable[id] = 0;
 	LOG_DEBUG("end\n");
 
@@ -73,14 +78,21 @@ int rk_rtmp_deinit(int id) {
 
 int rk_rtmp_write_video_frame(int id, unsigned char *buffer, unsigned int buffer_size,
                               int64_t present_time, int key_frame) {
-	if (g_rtmp_enable[id])
+	if (g_rtmp_enable[id]) {
+		pthread_mutex_lock(&g_rtmp_mutex);
 		rkmuxer_write_video_frame(id + 3, buffer, buffer_size, present_time, key_frame);
+		pthread_mutex_unlock(&g_rtmp_mutex);
+	}
+
 	return 0;
 }
 
 int rk_rtmp_write_audio_frame(int id, unsigned char *buffer, unsigned int buffer_size,
                               int64_t present_time) {
-	if (g_rtmp_enable[id])
+	if (g_rtmp_enable[id]) {
+		pthread_mutex_lock(&g_rtmp_mutex);
 		rkmuxer_write_audio_frame(id + 3, buffer, buffer_size, present_time);
+		pthread_mutex_unlock(&g_rtmp_mutex);
+	}
 	return 0;
 }
