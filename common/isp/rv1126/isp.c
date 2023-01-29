@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 #include "common.h"
+#include "rk_gpio.h"
 
 #include <rk_aiq_user_api_imgproc.h>
 #include <rk_aiq_user_api_sysctl.h>
@@ -345,6 +346,35 @@ int rk_isp_set_exposure_gain(int cam_id, int value) {
 	return ret;
 }
 
+int rk_isp_enable_ircut(bool on) {
+	int ret, open_gpio, close_gpio;
+
+	open_gpio = rk_param_get_int("isp:ircut_open_gpio", -1);
+	close_gpio = rk_param_get_int("isp:ircut_close_gpio", -1);
+	if ((open_gpio < 0) || (close_gpio < 0)) {
+		LOG_ERROR("fail get gpio form ini file\n");
+		return -1;
+	}
+	ret = rk_gpio_export_direction(open_gpio, false);
+	ret |= rk_gpio_export_direction(close_gpio, false);
+
+	if (on) {
+		rk_gpio_set_value(open_gpio, 1);
+		usleep(100 * 1000);
+		rk_gpio_set_value(open_gpio, 0);
+
+	} else {
+		rk_gpio_set_value(close_gpio, 1);
+		usleep(100 * 1000);
+		rk_gpio_set_value(close_gpio, 0);
+	}
+
+	rk_gpio_unexport(open_gpio);
+	rk_gpio_unexport(close_gpio);
+
+	return ret;
+}
+
 // night_to_day
 int rk_isp_get_night_to_day(int cam_id, const char **value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
@@ -358,18 +388,17 @@ int rk_isp_get_night_to_day(int cam_id, const char **value) {
 int rk_isp_set_night_to_day(int cam_id, const char *value) {
 	int ret;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	rk_aiq_cpsl_cfg_t cpsl_cfg;
+	rk_aiq_gray_mode_t gray_mode;
 	if (!strcmp(value, "day")) {
-		cpsl_cfg.mode = RK_AIQ_OP_MODE_MANUAL;
-		cpsl_cfg.gray_on = false;
-		cpsl_cfg.u.m.on = 0;
+		gray_mode = RK_AIQ_GRAY_MODE_OFF;
+		rk_isp_enable_ircut(true);
 	} else if (!strcmp(value, "night")) {
-		cpsl_cfg.mode = RK_AIQ_OP_MODE_MANUAL;
-		cpsl_cfg.gray_on = true;
-		cpsl_cfg.u.m.on = 1;
+		gray_mode = RK_AIQ_GRAY_MODE_ON;
+		rk_isp_enable_ircut(false);
 	}
-	LOG_INFO("cpsl_cfg.gray_on is %d, cpsl_cfg.u.m.on is %d\n", cpsl_cfg.gray_on, cpsl_cfg.u.m.on);
-	ret = rk_aiq_uapi_sysctl_setCpsLtCfg(g_aiq_ctx[cam_id], &cpsl_cfg);
+
+	LOG_INFO("gray_mode is %d\n", gray_mode);
+	ret = rk_aiq_uapi_setGrayMode(g_aiq_ctx[cam_id], gray_mode);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.night_to_day:night_to_day", cam_id);
 	rk_param_set_string(entry, value);
