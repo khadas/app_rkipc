@@ -682,7 +682,7 @@ int rk_isp_set_white_blance_style(int cam_id, const char *value) {
 	}
 
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "isp.%d.enhancement:white_blance_style", cam_id);
+	snprintf(entry, 127, "isp.%d.white_blance:white_blance_style", cam_id);
 	rk_param_set_string(entry, value);
 
 	return ret;
@@ -691,7 +691,7 @@ int rk_isp_set_white_blance_style(int cam_id, const char *value) {
 int rk_isp_get_white_blance_red(int cam_id, int *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "isp.%d.exposure:white_blance_red", cam_id);
+	snprintf(entry, 127, "isp.%d.white_blance:white_blance_red", cam_id);
 	*value = rk_param_get_int(entry, -1);
 
 	return 0;
@@ -706,7 +706,7 @@ int rk_isp_set_white_blance_red(int cam_id, int value) {
 	int ret = rk_aiq_uapi_setMWBGain(g_aiq_ctx[cam_id], &gain);
 
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "isp.%d.exposure:white_blance_red", cam_id);
+	snprintf(entry, 127, "isp.%d.white_blance:white_blance_red", cam_id);
 	rk_param_set_int(entry, value);
 
 	return ret;
@@ -715,7 +715,7 @@ int rk_isp_set_white_blance_red(int cam_id, int value) {
 int rk_isp_get_white_blance_green(int cam_id, int *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "isp.%d.exposure:white_blance_green", cam_id);
+	snprintf(entry, 127, "isp.%d.white_blance:white_blance_green", cam_id);
 	*value = rk_param_get_int(entry, -1);
 
 	return 0;
@@ -731,7 +731,7 @@ int rk_isp_set_white_blance_green(int cam_id, int value) {
 	int ret = rk_aiq_uapi_setMWBGain(g_aiq_ctx[cam_id], &gain);
 
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "isp.%d.exposure:white_blance_green", cam_id);
+	snprintf(entry, 127, "isp.%d.white_blance:white_blance_green", cam_id);
 	rk_param_set_int(entry, value);
 
 	return ret;
@@ -740,7 +740,7 @@ int rk_isp_set_white_blance_green(int cam_id, int value) {
 int rk_isp_get_white_blance_blue(int cam_id, int *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "isp.%d.exposure:white_blance_blue", cam_id);
+	snprintf(entry, 127, "isp.%d.white_blance:white_blance_blue", cam_id);
 	*value = rk_param_get_int(entry, -1);
 
 	return 0;
@@ -755,7 +755,7 @@ int rk_isp_set_white_blance_blue(int cam_id, int value) {
 	int ret = rk_aiq_uapi_setMWBGain(g_aiq_ctx[cam_id], &gain);
 
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "isp.%d.exposure:white_blance_green", cam_id);
+	snprintf(entry, 127, "isp.%d.white_blance:white_blance_blue", cam_id);
 	rk_param_set_int(entry, value);
 
 	return ret;
