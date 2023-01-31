@@ -15,6 +15,7 @@ static void *g_sd_phandle = NULL;
 static void *g_file_scan_signal = NULL;
 static rkipc_str_dev_attr g_sd_dev_attr;
 static pthread_mutex_t g_rkmuxer_mutex = PTHREAD_MUTEX_INITIALIZER;
+static int g_storage_record_flag[3]; // only for recording thread
 static int rk_storage_muxer_init_by_id(int id);
 static int rk_storage_muxer_deinit_by_id(int id);
 
@@ -1147,7 +1148,7 @@ static void *rkipc_storage_event_listener_thread(void *arg) {
 					} else if (rkipc_storage_str_search(buf, len, "ACTION=remove")) {
 						LOG_INFO("%s remove\n", dev);
 						for (int i = 0; i < STORAGE_NUM; i++) {
-							rk_storage_muxer_group[i].g_record_run_ = 0;
+							g_storage_record_flag[i] = 0;
 						}
 						if (rkipc_storage_msg_send_msg(MSG_DEV_REMOVE, dev, strlen(dev) + 1,
 						                               &(pHandle->msg_hd)))
@@ -1629,7 +1630,7 @@ static void *rk_storage_record(void *arg) {
 	int id = *id_ptr;
 	printf("id: %d, #Start %s thread, arg:%p\n", id, __func__, arg);
 	prctl(PR_SET_NAME, "rk_storage_record", 0, 0, 0);
-	while (rk_storage_muxer_group[id].g_record_run_ && record_flag[id] == 1) {
+	while (g_storage_record_flag[id] && record_flag[id] == 1) {
 		time_t t = time(NULL);
 		struct tm tm = *localtime(&t);
 		snprintf(rk_storage_muxer_group[id].file_name, 512, "%s/%d%02d%02d%02d%02d%02d.%s",
@@ -1638,15 +1639,18 @@ static void *rk_storage_record(void *arg) {
 		         rk_storage_muxer_group[id].file_format);
 		LOG_INFO("[%d], file_name is %s\n", id, rk_storage_muxer_group[id].file_name);
 		pthread_mutex_lock(&g_rkmuxer_mutex);
+		rk_storage_muxer_group[0].g_record_run_ = 0;
 		rkmuxer_deinit(id);
 		rkmuxer_init(id, NULL, rk_storage_muxer_group[id].file_name,
 		             &rk_storage_muxer_group[id].g_video_param,
 		             &rk_storage_muxer_group[id].g_audio_param);
+		rk_storage_muxer_group[0].g_record_run_ = 1;
 		pthread_mutex_unlock(&g_rkmuxer_mutex);
 		rk_signal_wait(rk_storage_muxer_group[id].g_storage_signal,
 		               rk_storage_muxer_group[id].file_duration * 1000);
 	}
 	pthread_mutex_lock(&g_rkmuxer_mutex);
+	rk_storage_muxer_group[0].g_record_run_ = 0;
 	rkmuxer_deinit(id);
 	pthread_mutex_unlock(&g_rkmuxer_mutex);
 
@@ -1737,7 +1741,7 @@ static int rk_storage_muxer_init_by_id(int id) {
 		LOG_ERROR("create signal fail\n");
 		return -1;
 	}
-	rk_storage_muxer_group[id].g_record_run_ = 1;
+	g_storage_record_flag[id] = 1;
 	pthread_create(&rk_storage_muxer_group[id].record_thread_id, NULL, rk_storage_record,
 	               (void *)&rk_storage_muxer_group[id].id);
 	LOG_INFO("end\n");
@@ -1761,7 +1765,7 @@ int rk_storage_muxer_deinit_by_id(int id) {
 		LOG_DEBUG("storage[%d]:enable is 0\n", id);
 		return 0;
 	}
-	rk_storage_muxer_group[id].g_record_run_ = 0;
+	g_storage_record_flag[id] = 0;
 	if (rk_storage_muxer_group[id].g_storage_signal) {
 		rk_signal_give(rk_storage_muxer_group[id].g_storage_signal);
 		pthread_join(rk_storage_muxer_group[id].record_thread_id, NULL);
@@ -1805,22 +1809,20 @@ int rk_storage_deinit() {
 
 int rk_storage_write_video_frame(int id, unsigned char *buffer, unsigned int buffer_size,
                                  int64_t present_time, int key_frame) {
-	if (rk_storage_muxer_group[id].g_record_run_) {
-		pthread_mutex_lock(&g_rkmuxer_mutex);
+	pthread_mutex_lock(&g_rkmuxer_mutex);
+	if (rk_storage_muxer_group[id].g_record_run_)
 		rkmuxer_write_video_frame(id, buffer, buffer_size, present_time, key_frame);
-		pthread_mutex_unlock(&g_rkmuxer_mutex);
-	}
+	pthread_mutex_unlock(&g_rkmuxer_mutex);
 
 	return 0;
 }
 
 int rk_storage_write_audio_frame(int id, unsigned char *buffer, unsigned int buffer_size,
                                  int64_t present_time) {
-	if (rk_storage_muxer_group[id].g_record_run_) {
-		pthread_mutex_lock(&g_rkmuxer_mutex);
+	pthread_mutex_lock(&g_rkmuxer_mutex);
+	if (rk_storage_muxer_group[id].g_record_run_)
 		rkmuxer_write_audio_frame(id, buffer, buffer_size, present_time);
-		pthread_mutex_unlock(&g_rkmuxer_mutex);
-	}
+	pthread_mutex_unlock(&g_rkmuxer_mutex);
 
 	return 0;
 }
@@ -1836,12 +1838,13 @@ int rk_storage_record_start() {
 	         tm.tm_hour, tm.tm_min, tm.tm_sec, rk_storage_muxer_group[0].file_format);
 	LOG_INFO("file_name is %s\n", rk_storage_muxer_group[0].file_name);
 	pthread_mutex_lock(&g_rkmuxer_mutex);
+	rk_storage_muxer_group[0].g_record_run_ = 0;
 	rkmuxer_deinit(0);
 	rkmuxer_init(0, NULL, rk_storage_muxer_group[0].file_name,
 	             &rk_storage_muxer_group[0].g_video_param,
 	             &rk_storage_muxer_group[0].g_audio_param);
-	pthread_mutex_unlock(&g_rkmuxer_mutex);
 	rk_storage_muxer_group[0].g_record_run_ = 1;
+	pthread_mutex_unlock(&g_rkmuxer_mutex);
 	LOG_INFO("end\n");
 
 	return 0;
@@ -1851,9 +1854,9 @@ int rk_storage_record_stop() {
 	// only main stream
 	LOG_INFO("start\n");
 	pthread_mutex_lock(&g_rkmuxer_mutex);
+	rk_storage_muxer_group[0].g_record_run_ = 0;
 	rkmuxer_deinit(0);
 	pthread_mutex_unlock(&g_rkmuxer_mutex);
-	rk_storage_muxer_group[0].g_record_run_ = 0;
 	LOG_INFO("end\n");
 
 	return 0;
