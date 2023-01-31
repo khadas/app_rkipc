@@ -247,10 +247,22 @@ int rk_isp_get_exposure_mode(int cam_id, const char **value) {
 
 int rk_isp_set_exposure_mode(int cam_id, const char *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	if (!strcmp(value, "auto"))
-		rk_aiq_uapi_setExpMode(g_aiq_ctx[cam_id], OP_AUTO);
-	else
-		rk_aiq_uapi_setExpMode(g_aiq_ctx[cam_id], OP_MANUAL);
+	Uapi_ExpSwAttr_t stExpSwAttr;
+	rk_aiq_user_api_ae_getExpSwAttr(g_aiq_ctx[cam_id], &stExpSwAttr);
+	if (!strcmp(value, "auto")) {
+		stExpSwAttr.AecOpType = RK_AIQ_OP_MODE_AUTO;
+	} else {
+		if (g_WDRMode[cam_id] != RK_AIQ_WORKING_MODE_NORMAL) {
+			stExpSwAttr.AecOpType = RK_AIQ_OP_MODE_MANUAL;
+			stExpSwAttr.stManual.stHdrMe.ManualGainEn = true;
+			stExpSwAttr.stManual.stHdrMe.ManualTimeEn = true;
+		} else {
+			stExpSwAttr.AecOpType = RK_AIQ_OP_MODE_MANUAL;
+			stExpSwAttr.stManual.stLinMe.ManualGainEn = true;
+			stExpSwAttr.stManual.stLinMe.ManualTimeEn = true;
+		}
+	}
+	int ret = rk_aiq_user_api_ae_setExpSwAttr(g_aiq_ctx[cam_id], stExpSwAttr);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.exposure:exposure_mode", cam_id);
 	rk_param_set_string(entry, value);
