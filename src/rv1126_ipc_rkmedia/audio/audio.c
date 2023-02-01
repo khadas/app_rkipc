@@ -71,7 +71,7 @@ void *save_aenc_thread(void *ptr) {
 	// }
 
 	while (g_audio_run_) {
-		mb = RK_MPI_SYS_GetMediaBuffer(RK_ID_AENC, aenc_chn_id, -1);
+		mb = RK_MPI_SYS_GetMediaBuffer(RK_ID_AENC, aenc_chn_id, 1000);
 		if (!mb) {
 			printf("RK_MPI_SYS_GetMediaBuffer get null buffer!\n");
 			break;
