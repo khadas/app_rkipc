@@ -570,7 +570,7 @@ static void *rkipc_get_vi_2_send(void *arg) {
 			LOG_ERROR("RK_MPI_VI_GetChnFrame timeout %x", ret);
 		}
 		cost_time = rkipc_get_curren_time_ms() - before_time;
-		if (cost_time < 100)
+		if ((cost_time > 0) && (cost_time < npu_cycle_time_ms))
 			usleep((npu_cycle_time_ms - cost_time) * 1000);
 	}
 	return NULL;
