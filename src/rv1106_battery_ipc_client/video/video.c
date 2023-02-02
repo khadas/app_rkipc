@@ -1511,11 +1511,12 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 			LOG_ERROR("RK_MPI_RGN_GetCanvasInfo failed with %#x!", ret);
 			continue;
 		}
-		if ((stCanvasInfo.stSize.u32Width != video_width) ||
-			(stCanvasInfo.stSize.u32Height != video_height)) {
+		if ((stCanvasInfo.stSize.u32Width != UPALIGNTO16(video_width)) ||
+			(stCanvasInfo.stSize.u32Height != UPALIGNTO16(video_height))) {
 			LOG_WARN("canvas is %d*%d, not equal %d*%d, maybe in the process of switching,"
 						"skip this time\n", stCanvasInfo.stSize.u32Width,
-						stCanvasInfo.stSize.u32Height, video_width, video_height);
+						stCanvasInfo.stSize.u32Height, UPALIGNTO16(video_width),
+						UPALIGNTO16(video_height));
 			continue;
 		}
 		memset((void *)stCanvasInfo.u64VirAddr, 0,
@@ -1606,6 +1607,19 @@ int rkipc_osd_draw_nn_init() {
 		return RK_FAILURE;
 	}
 	LOG_DEBUG("The handle: %d, create success\n", RgnHandle);
+	// after malloc max size, it needs to be set to the actual size
+	if (rotation == 90 || rotation == 270) {
+		stRgnAttr.unAttr.stOverlay.stSize.u32Width = rk_param_get_int("video.0:height", -1);
+		stRgnAttr.unAttr.stOverlay.stSize.u32Height = rk_param_get_int("video.0:width", -1);
+	} else {
+		stRgnAttr.unAttr.stOverlay.stSize.u32Width = rk_param_get_int("video.0:width", -1);
+		stRgnAttr.unAttr.stOverlay.stSize.u32Height = rk_param_get_int("video.0:height", -1);
+	}
+	ret = RK_MPI_RGN_SetAttr(RgnHandle, &stRgnAttr);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("RK_MPI_RGN_SetAttr (%d) failed with %#x!", RgnHandle, ret);
+		return RK_FAILURE;
+	}
 
 	// display overlay regions to venc groups
 	memset(&stRgnChnAttr, 0, sizeof(stRgnChnAttr));
