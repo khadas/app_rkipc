@@ -1708,8 +1708,8 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 		}
 		if ((stCanvasInfo.stSize.u32Width != video_width) ||
 			(stCanvasInfo.stSize.u32Height != video_height)) {
-			LOG_WARN("canvas is %d*%d, not equal %d*%d, maybe in the process of switching,
-						skip this time\n", stCanvasInfo.stSize.u32Width,
+			LOG_WARN("canvas is %d*%d, not equal %d*%d, maybe in the process of switching,"
+						"skip this time\n", stCanvasInfo.stSize.u32Width,
 						stCanvasInfo.stSize.u32Height, video_width, video_height);
 			continue;
 		}
