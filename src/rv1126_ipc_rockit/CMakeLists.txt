@@ -63,7 +63,7 @@ add_definitions(-g -ggdb)
 add_executable(${PROJECT_NAME} ${SRCS})
 
 target_link_libraries(${PROJECT_NAME}
-						pthread rockit rkaiq rtsp freetype wpa_client rkmuxer m)
+						pthread rockit rkaiq rtsp freetype wpa_client rkmuxer m rksysutils iconv)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 install(FILES rkipc.ini DESTINATION share)
