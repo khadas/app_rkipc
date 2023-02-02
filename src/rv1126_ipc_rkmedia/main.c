@@ -23,7 +23,7 @@
 enum { LOG_ERROR, LOG_WARN, LOG_INFO, LOG_DEBUG };
 
 int enable_minilog = 0;
-int rkipc_log_level = LOG_DEBUG;
+int rkipc_log_level = LOG_INFO;
 
 static int g_main_run_ = 1;
 char *rkipc_ini_path_ = NULL;
