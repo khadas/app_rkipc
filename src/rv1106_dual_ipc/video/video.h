@@ -15,6 +15,7 @@
 #include <rga/rga.h>
 #include <rk_comm_tde.h>
 #include <rk_debug.h>
+#include <rk_mpi_avs.h>
 #include <rk_mpi_cal.h>
 #include <rk_mpi_ivs.h>
 #include <rk_mpi_mb.h>
