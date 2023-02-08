@@ -160,7 +160,7 @@ int rk_system_export_log(const char *path) {
 
 int rk_system_export_db(const char *path) {
 	char cmd[128] = {'\0'};
-	snprintf(cmd, 127, "cp /usr/share/rkipc.ini %s", path);
+	snprintf(cmd, 127, "cp /userdata/rkipc.ini %s", path);
 	LOG_INFO("cmd is %s\n", cmd);
 	system(cmd);
 	return 0;
@@ -168,7 +168,7 @@ int rk_system_export_db(const char *path) {
 
 int rk_system_import_db(const char *path) {
 	char cmd[128] = {'\0'};
-	snprintf(cmd, 127, "cp %s /usr/share/rkipc.ini", path);
+	snprintf(cmd, 127, "cp %s /userdata/rkipc.ini", path);
 	LOG_INFO("cmd is %s\n", cmd);
 	system(cmd);
 	rk_param_reload();
