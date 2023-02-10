@@ -138,12 +138,11 @@ static void *rkipc_get_venc_0(void *arg) {
 				fflush(venc0_file);
 			}
 			if (fp && (loopCount <= SAVE_ENC_FRM_CNT_MAX)) {
-				RK_U64 nowUs = rkipc_get_curren_time_ms();
 				char str[128] = {0};
 				int len;
 				LOG_INFO("chn:0, loopCount:%d enc->seq:%d wd:%d pts=%lld delay=%lldus\n", loopCount,
 				         stFrame.u32Seq, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
-				         nowUs - stFrame.pstPack->u64PTS);
+				         rkipc_get_curren_time_ms() * 1000 - stFrame.pstPack->u64PTS);
 				len = snprintf(str, sizeof(str), "seq:%u, pts:%llums\n", stFrame.u32Seq,
 				               stFrame.pstPack->u64PTS / 1000);
 				fwrite(str, 1, len, fp);

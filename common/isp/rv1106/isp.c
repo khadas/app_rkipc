@@ -1687,8 +1687,7 @@ int rk_isp_fastboot_init(int cam_id) {
 		return -1;
 	}
 	LOG_INFO("aiq start\n");
-	RK_S64 s64AiqInitEnd = rkipc_get_curren_time_ms();
-	LOG_INFO("Aiq:%lld us\n", s64AiqInitEnd - s64AiqInitStart);
+	LOG_INFO("Aiq:%lld ms\n", rkipc_get_curren_time_ms() - s64AiqInitStart);
 
 	return 0;
 }
