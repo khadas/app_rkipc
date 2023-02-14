@@ -654,7 +654,7 @@ int rkipc_pipe_0_to_RTSP_init() { // VI 0 2688*1520 -> VENC 0 H264 ->RTSP 0 &
 		// venc_chn_attr.stGopAttr.s32IPQpDelta = 3;
 		// venc_chn_attr.stGopAttr.s32ViQpDelta = 3;
 		venc_chn_attr.stGopAttr.u32BgInterval = 300;
-		venc_chn_attr.stGopAttr.u32GopSize = 30;
+		venc_chn_attr.stGopAttr.u32GopSize = 25;
 	}
 	venc_chn_attr.stVencAttr.imageType = IMAGE_TYPE_NV12;
 	venc_chn_attr.stVencAttr.u32PicWidth = video_width;
@@ -837,7 +837,7 @@ int rkipc_pipe_1_init() { // VI 1 640*480 -> VENC 1 H264 ->RTSP 1 & RTMP
 		// venc_chn_attr.stGopAttr.s32IPQpDelta = 3;
 		// venc_chn_attr.stGopAttr.s32ViQpDelta = 3;
 		venc_chn_attr.stGopAttr.u32BgInterval = 300;
-		venc_chn_attr.stGopAttr.u32GopSize = 30;
+		venc_chn_attr.stGopAttr.u32GopSize = 25;
 	}
 	venc_chn_attr.stVencAttr.imageType = IMAGE_TYPE_NV12;
 	venc_chn_attr.stVencAttr.u32PicWidth = video_width;
@@ -1213,9 +1213,28 @@ int rk_video_get_gop(int stream_id, int *value) {
 
 int rk_video_set_gop(int stream_id, int value) {
 	LOG_INFO("-------stream_id:%d,value:%d\n", stream_id, value);
+	int ret;
 	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.%d:gop_mode", stream_id);
+	g_gop_mode = rk_param_get_string(entry, NULL);
+
+	if (!strcmp(g_gop_mode, "normalP")) {
+		ret = RK_MPI_VENC_SetGop(stream_id, value);
+	} else if (!strcmp(g_gop_mode, "smartP")) {
+		VENC_GOP_ATTR_S stGopModeAttr;
+		stGopModeAttr.enGopMode = VENC_GOPMODE_SMARTP;
+		stGopModeAttr.u32BgInterval = value;
+		stGopModeAttr.u32GopSize = 25;
+		ret = RK_MPI_VENC_SetGopMode(stream_id, &stGopModeAttr);
+	} else {
+		ret = -1;
+	}
+
+	if (ret) {
+		LOG_ERROR("Set gop error! g_gop_mode is %s, ret is %d\n", g_gop_mode, ret);
+		return -1;
+	}
 	snprintf(entry, 127, "video.%d:gop", stream_id);
-	RK_MPI_VENC_SetGop(stream_id, value);
 	rk_param_set_int(entry, value);
 
 	return 0;
