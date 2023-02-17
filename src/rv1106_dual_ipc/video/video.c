@@ -308,6 +308,12 @@ int rkipc_avs_init() {
 	AVS_GRP_ATTR_S stAvsGrpAttr;
 	AVS_OUTPUT_ATTR_S stAvsOutAttr;
 	AVS_CHN_ATTR_S stAvsChnAttr[4];
+	// for ldch
+	void *ldch_data[g_sensor_num];
+	AVS_FINAL_LUT_S pstFinalLut;
+	MB_EXT_CONFIG_S stMbExtConfig;
+	PIC_BUF_ATTR_S stBufAttr;
+	MB_PIC_CAL_S pic_cal[g_sensor_num];
 
 	memset(&stAvsModParam, 0, sizeof(stAvsModParam));
 	memset(&stAvsGrpAttr, 0, sizeof(stAvsGrpAttr));
@@ -344,12 +350,62 @@ int rkipc_avs_init() {
 	}
 	LOG_INFO("RK_MPI_AVS_SetModParam success\n");
 
+	stAvsGrpAttr.stInAttr.stSize.u32Width = rk_param_get_int("avs:source_width", 1920);
+	stAvsGrpAttr.stInAttr.stSize.u32Height = rk_param_get_int("avs:source_height", 1080);
+	stAvsGrpAttr.stOutAttr.fDistance = rk_param_get_int("avs:stitch_distance", 5);
 	ret = RK_MPI_AVS_CreateGrp(s32GrpId, &stAvsGrpAttr);
 	if (RK_SUCCESS != ret) {
 		LOG_ERROR("RK_MPI_AVS_CreateGrp failed, ret is %#x\n", ret);
 		return ret;
 	}
 	LOG_INFO("RK_MPI_AVS_CreateGrp success\n");
+
+	// set ldch
+	for (RK_S32 i = 0; i < g_sensor_num; i++) {
+		memset(&stBufAttr, 0, sizeof(PIC_BUF_ATTR_S));
+		memset(&pic_cal[i], 0, sizeof(MB_PIC_CAL_S));
+		stBufAttr.u32Width = stAvsGrpAttr.stInAttr.stSize.u32Width;
+		stBufAttr.u32Height = stAvsGrpAttr.stInAttr.stSize.u32Height;
+		ret = RK_MPI_CAL_AVS_GetFinalLutBufferSize(&stBufAttr, &pic_cal[i]);
+		if (RK_SUCCESS != ret || 0 == pic_cal[i].u32MBSize) {
+			LOG_ERROR("avs [%d, %d] calculator ldch mb size failed with %#x, size %d\n", s32GrpId,
+			          i, ret, pic_cal[i].u32MBSize);
+		}
+		LOG_INFO("avs [%d, %d] calculator ldch mb size already, size %d\n", s32GrpId, i,
+		         pic_cal[i].u32MBSize);
+		ldch_data[i] = (RK_U16 *)(malloc(pic_cal[i].u32MBSize));
+
+		memset(&stMbExtConfig, 0, sizeof(MB_EXT_CONFIG_S));
+		stMbExtConfig.pu8VirAddr = (RK_U8 *)ldch_data[i];
+		stMbExtConfig.u64Size = pic_cal[i].u32MBSize;
+
+		ret = RK_MPI_SYS_CreateMB(&(pstFinalLut.pLdchBlk[i]), &stMbExtConfig);
+		if (RK_SUCCESS != ret) {
+			LOG_ERROR("avs [%d, %d] create ldch mb failed with %#x\n", s32GrpId, i, ret);
+		}
+		LOG_INFO("avs [%d, %d] create ldch mb already\n", s32GrpId, i);
+	}
+
+	ret = RK_MPI_AVS_GetFinalLut(s32GrpId, &pstFinalLut);
+	if (ret != RK_SUCCESS) {
+		LOG_ERROR("RK_MPI_AVS_GetFinalLut failed: %#x\n", ret);
+	}
+	LOG_INFO("RK_MPI_AVS_GetFinalLut success\n");
+
+	if (rk_param_get_int("isp:group_ldch", 1)) {
+		ret = rk_isp_set_group_ldch_level_form_buffer(0, ldch_data[0], ldch_data[1],
+		                                              pic_cal[0].u32MBSize, pic_cal[1].u32MBSize);
+		if (ret)
+			LOG_ERROR("rk_isp_set_group_ldch_level_form_buffer fail\n");
+		LOG_INFO("rk_isp_set_group_ldch_level_form_buffer success\n");
+	}
+
+	for (RK_S32 i = 0; i < g_sensor_num; i++) {
+		RK_MPI_SYS_Free(pstFinalLut.pLdchBlk[i]);
+		if (ldch_data[i]) {
+			free(ldch_data[i]);
+		}
+	}
 
 	stAvsChnAttr[0].enCompressMode = COMPRESS_MODE_NONE;
 	stAvsChnAttr[0].stFrameRate.s32SrcFrameRate = -1;

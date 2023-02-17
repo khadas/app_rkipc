@@ -1420,6 +1420,55 @@ int rk_isp_set_group_ldch_level_form_file(int cam_id) {
 	return 0;
 }
 
+int rk_isp_set_group_ldch_level_form_buffer(int cam_id, void *ldch_0, void *ldch_1, int ldch_size_0,
+                                            int ldch_size_1) {
+	int ret;
+	rk_aiq_camgroup_camInfos_t camInfos;
+	memset(&camInfos, 0, sizeof(camInfos));
+	if (rk_aiq_uapi2_camgroup_getCamInfos(rkipc_aiq_get_ctx(cam_id), &camInfos) !=
+	    XCAM_RETURN_NO_ERROR) {
+		LOG_ERROR("rk_aiq_uapi2_camgroup_getCamInfos fail\n");
+		return -1;
+	}
+	LOG_INFO("camInfos.valid_sns_num is %d\n", camInfos.valid_sns_num);
+	for (int i = 0; i < camInfos.valid_sns_num; i++) {
+		rk_aiq_sys_ctx_t *aiq_ctx = NULL;
+		rk_aiq_ldch_v21_attrib_t ldchAttr;
+		memset(&ldchAttr, 0, sizeof(ldchAttr));
+		aiq_ctx = rk_aiq_uapi2_camgroup_getAiqCtxBySnsNm(rkipc_aiq_get_ctx(cam_id),
+		                                                 camInfos.sns_ent_nm[i]);
+		if (!aiq_ctx)
+			continue;
+		LOG_INFO("aiq_ctx sns name: %s, camPhyId %d\n", camInfos.sns_ent_nm[i],
+		         camInfos.sns_camPhyId[i]);
+		ret = rk_aiq_user_api2_aldch_v21_GetAttrib(aiq_ctx, &ldchAttr);
+		if (ret != XCAM_RETURN_NO_ERROR) {
+			LOG_ERROR("rk_aiq_user_api2_aldch_v21_GetAttrib fail\n");
+			return -1;
+		}
+		ldchAttr.en = true;
+		ldchAttr.lut.update_flag = true;
+		ldchAttr.update_lut_mode = RK_AIQ_LDCH_UPDATE_LUT_FROM_EXTERNAL_BUFFER;
+		if (i == 0) {
+			ldchAttr.lut.u.buffer.addr = ldch_0;
+			ldchAttr.lut.u.buffer.size = ldch_size_0;
+		} else {
+			ldchAttr.lut.u.buffer.addr = ldch_1;
+			ldchAttr.lut.u.buffer.size = ldch_size_1;
+		}
+
+		LOG_INFO("sns name %s, camPhyId %d\n", camInfos.sns_ent_nm[i], camInfos.sns_camPhyId[i]);
+
+		ret = rk_aiq_user_api2_aldch_v21_SetAttrib(aiq_ctx, &ldchAttr);
+		if (ret != XCAM_RETURN_NO_ERROR) {
+			LOG_ERROR("Failed to set ldch attrib : %d\n", ret);
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
 // video_adjustment
 int rk_isp_get_power_line_frequency_mode(int cam_id, const char **value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
