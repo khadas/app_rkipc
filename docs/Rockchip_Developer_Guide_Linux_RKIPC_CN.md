@@ -232,12 +232,15 @@ graph LR
 ```mermaid
 graph LR
 	AI-->AENC-->MUXER-->MP4
-	VI-->VPSS-->VENC_0-->MUXER
+	VI_bypass_or_scale0-->VENC_0-->MUXER
+	VI_bypass_or_scale0-->VENC_JPEG
 	VENC_0-->RTSP_RTMP_0
-	VPSS-->VENC_1-->RTSP_RTMP_1
-	VPSS-->VENC_2-->RTSP_RTMP_2
-	VPSS-->VENC_3-->JPEG
-	VI-->VPSS_ROTATE-->VO
+	VI_scale1-->VENC_1-->RTSP_RTMP_1
+	VI_scale1-->VPSS_1-->VENC_2-->RTSP_RTMP_2
+	VI_scale2-->VPSS_2-->NPU
+	VPSS_2-->MD
+	VPSS_2-->OD
+	VPSS_2-->VO
 ```
 
 ### RV1126 Battery IPC
@@ -1101,6 +1104,8 @@ scenario = normal ; normal or custom1
 init_form_ini = 1 ; 是否使用ini参数覆盖IQ参数进行初始化
 normal_scene = day ; 对应IQ文件中第一个场景的sub_scene字段
 custom1_scene = night ; 对应IQ文件中第二个场景的sub_scene字段
+ircut_open_gpio = 71 ; gpio2 RK_PA7 (N=X*32+Y*8+Z; X:gpioX, Y:0/1/2/...(RK_PA/B/C/...) Z:RK_PYZ)
+ircut_close_gpio = 70 ; gpio2 RK_PA6
 
 ; isp.0
 [isp.0.adjustment]
