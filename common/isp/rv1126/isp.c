@@ -404,13 +404,13 @@ int rk_isp_set_night_to_day(int cam_id, const char *value) {
 	if (!strcmp(value, "day")) {
 		gray_mode = RK_AIQ_GRAY_MODE_OFF;
 		rk_isp_enable_ircut(true);
+		ret = rk_aiq_uapi_setGrayMode(g_aiq_ctx[cam_id], gray_mode);
 	} else if (!strcmp(value, "night")) {
 		gray_mode = RK_AIQ_GRAY_MODE_ON;
+		ret = rk_aiq_uapi_setGrayMode(g_aiq_ctx[cam_id], gray_mode);
 		rk_isp_enable_ircut(false);
 	}
-
 	LOG_INFO("gray_mode is %d\n", gray_mode);
-	ret = rk_aiq_uapi_setGrayMode(g_aiq_ctx[cam_id], gray_mode);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.night_to_day:night_to_day", cam_id);
 	rk_param_set_string(entry, value);
