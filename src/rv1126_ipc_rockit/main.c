@@ -93,6 +93,7 @@ int main(int argc, char **argv) {
 
 	// init
 	rk_param_init(rkipc_ini_path_);
+	rk_network_init(NULL);
 	rk_system_init();
 	camera_id = rk_param_get_int("video.0:camera_id", 0); // need rk_param_init
 	rk_isp_init(camera_id, rkipc_iq_file_path_);
@@ -117,6 +118,7 @@ int main(int argc, char **argv) {
 	rk_video_deinit(); // RK_MPI_SYS_Exit
 	RK_MPI_SYS_Exit();
 	rk_isp_deinit(camera_id);
+	rk_network_deinit();
 	rk_param_deinit();
 
 	return 0;

@@ -2382,7 +2382,7 @@ int rk_video_init() {
 	g_video_run_ = 1;
 	ret |= rkipc_vi_dev_init();
 	ret |= rkipc_rtsp_init();
-	// ret |= rkipc_rtmp_init();
+	ret |= rkipc_rtmp_init();
 
 	if (enable_venc_0 || enable_jpeg)
 		ret |= rkipc_pipe_0_init();
@@ -2391,7 +2391,7 @@ int rk_video_init() {
 	if (g_enable_vo) // TODO: md od npu
 		ret |= rkipc_pipe_2_init();
 
-	// ret |= rkipc_osd_init();
+	ret |= rkipc_osd_init();
 	rk_roi_set_callback_register(rk_roi_set);
 	ret |= rk_roi_set_all();
 	rk_region_clip_set_callback_register(rk_region_clip_set);
@@ -2407,7 +2407,7 @@ int rk_video_deinit() {
 	int ret = 0;
 	rk_region_clip_set_callback_register(NULL);
 	rk_roi_set_callback_register(NULL);
-	// ret |= rkipc_osd_deinit();
+	ret |= rkipc_osd_deinit();
 	if (g_enable_vo)
 		ret |= rkipc_pipe_2_deinit();
 	if (enable_venc_0) {
@@ -2422,7 +2422,7 @@ int rk_video_deinit() {
 	// 	ret |= rkipc_venc_jpeg_deinit();
 	// }
 	ret |= rkipc_vi_dev_deinit();
-	// ret |= rkipc_rtmp_deinit();
+	ret |= rkipc_rtmp_deinit();
 	ret |= rkipc_rtsp_deinit();
 
 	return ret;

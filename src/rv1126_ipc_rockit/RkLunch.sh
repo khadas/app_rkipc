@@ -85,6 +85,15 @@ post_chk()
 		cp -fa /oem/usr/share/image.bmp /userdata/
 	fi
 
+	ps|grep nginx|grep -v grep
+	if [ $? -ne 0 ]; then
+		echo "nginx no exit"
+		/oem/usr/etc/init.d/S50fcgiwrap start
+		/oem/usr/etc/init.d/S50nginx start
+	else
+		echo "nginx active"
+	fi
+
 	if [ -d "/oem/usr/share/iqfiles" ];then
 		rkipc -a /oem/usr/share/iqfiles &
 	else
