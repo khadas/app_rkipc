@@ -1170,7 +1170,6 @@ int rkipc_venc_jpeg_deinit() {
 
 int rkipc_pipe_2_init() {
 	int ret = 0;
-
 	// VI init
 	VI_CHN_ATTR_S vi_chn_attr;
 	memset(&vi_chn_attr, 0, sizeof(vi_chn_attr));
@@ -1220,13 +1219,12 @@ int rkipc_pipe_2_init() {
 		LOG_ERROR("RK_MPI_VPSS_SetChnAttr error! ret is %#x\n", ret);
 		return ret;
 	}
-	if (g_vo_dev_id == 3)
+	if (g_vo_dev_id == 0) {
 		ret = RK_MPI_VPSS_SetChnRotation(VpssGrp, VpssChn[0], ROTATION_90);
-	// if (g_vo_dev_id == 0)
-	// 	ret = RK_MPI_VPSS_SetChnRotation(VpssGrp, VpssChn[0], ROTATION_180);
-	if (ret != RK_SUCCESS) {
-		LOG_ERROR("RK_MPI_VPSS_SetChnRotation error! ret is %#x\n", ret);
-		return ret;
+		if (ret != RK_SUCCESS) {
+			LOG_ERROR("RK_MPI_VPSS_SetChnRotation error! ret is %#x\n", ret);
+			return ret;
+		}
 	}
 	ret = RK_MPI_VPSS_EnableChn(VpssGrp, VpssChn[0]);
 	if (ret != RK_SUCCESS) {
@@ -1389,7 +1387,7 @@ int rkipc_pipe_2_init() {
 	vo_chn.s32DevId = RV1126_VOP_LAYER_CLUSTER0;
 	vo_chn.s32ChnId = 0;
 
-	ret = RK_MPI_SYS_Bind(&vi_chn[2], &vo_chn);
+	ret = RK_MPI_SYS_Bind(&vi_chn[2], &vpss_chn[2]);
 	if (ret != RK_SUCCESS) {
 		LOG_ERROR("vi[2] and vpss[2] bind error! ret=%#x\n", ret);
 		return ret;
