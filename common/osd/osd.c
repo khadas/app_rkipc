@@ -364,7 +364,9 @@ int rk_osd_init() {
 #else
 				int ret;
 				int src_len = strlen(display_text);
-				int out_len = 0;
+				// the bytes that Chinese and English in UTF-8 are different,
+				// and cannot be based on src_len calculates out_len
+				int out_len = MAX_WCH_BYTE;
 				// To have this temporary variable,
 				// otherwise iconv will directly overwrite the original pointer
 				char *tmp_out_buffer = (char *)osd_data.text.wch;
@@ -373,6 +375,7 @@ int rk_osd_init() {
 					perror("iconv_open error");
 					continue;
 				}
+				memset(entry, 0, 128);
 				memcpy(entry, display_text, src_len); // iconv maybe change the char *
 				memset(entry + src_len, 0, 1);
 				char *tmp_in_buffer = (char *)entry;
@@ -381,14 +384,14 @@ int rk_osd_init() {
 				if (ret == -1)
 					perror("iconv error");
 				iconv_close(cd);
-				osd_data.text.wch[abs(out_len) / 4] = '\0';
+				osd_data.text.wch[abs(MAX_WCH_BYTE - out_len) / 4] = '\0';
 				LOG_DEBUG("out_len is %d\n", out_len);
 				LOG_DEBUG("wcslen(osd_data.text.wch) is %ld\n", wcslen(osd_data.text.wch));
 				// for(int i=0;i< strlen(display_text); i++) {
 				// 	LOG_INFO("111 display_text [%02x]\n",display_text[i]);
 				// }
 				// for (int i = 0; i < wcslen(osd_data.text.wch); i++) {
-				// 	LOG_INFO("222 osd_data.text.wch [%02x]\n", osd_data.text.wch[i]);
+				// 	LOG_INFO("222 osd_data.text.wch [%04x]\n", osd_data.text.wch[i]);
 				// }
 #endif
 				osd_data.width = UPALIGNTO16(wcslen(osd_data.text.wch) * osd_data.text.font_size);
