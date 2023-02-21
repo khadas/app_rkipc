@@ -1415,17 +1415,21 @@ int rkipc_pipe_2_deinit() {
 		LOG_ERROR("vi and vpss unbind error! ret=%#x\n", ret);
 		return -1;
 	}
-
 	// disable vo layer
 	ret = RK_MPI_VO_DisableLayer(VoLayer);
 	if (ret) {
-		LOG_ERROR("RK_MPI_VO_DisableLayer failed\n");
+		LOG_ERROR("RK_MPI_VO_DisableLayer failed, ret=%#x\n", ret);
 		return -1;
 	}
 	// disable vo dev
 	ret = RK_MPI_VO_Disable(g_vo_dev_id);
 	if (ret) {
-		LOG_ERROR("RK_MPI_VO_Disable failed\n");
+		LOG_ERROR("RK_MPI_VO_Disable failed, ret=%#x\n", ret);
+		return -1;
+	}
+	ret = RK_MPI_VO_UnBindLayer(VoLayer, g_vo_dev_id);
+	if (ret) {
+		LOG_ERROR("RK_MPI_VO_UnBindLayer failed, ret=%#x\n", ret);
 		return -1;
 	}
 	// disable VPSS
