@@ -1511,11 +1511,11 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 			continue;
 		}
 		if ((stCanvasInfo.stSize.u32Width != UPALIGNTO16(video_width)) ||
-			(stCanvasInfo.stSize.u32Height != UPALIGNTO16(video_height))) {
+		    (stCanvasInfo.stSize.u32Height != UPALIGNTO16(video_height))) {
 			LOG_WARN("canvas is %d*%d, not equal %d*%d, maybe in the process of switching,"
-						"skip this time\n", stCanvasInfo.stSize.u32Width,
-						stCanvasInfo.stSize.u32Height, UPALIGNTO16(video_width),
-						UPALIGNTO16(video_height));
+			         "skip this time\n",
+			         stCanvasInfo.stSize.u32Width, stCanvasInfo.stSize.u32Height,
+			         UPALIGNTO16(video_width), UPALIGNTO16(video_height));
 			continue;
 		}
 		memset((void *)stCanvasInfo.u64VirAddr, 0,

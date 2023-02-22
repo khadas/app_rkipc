@@ -1083,7 +1083,7 @@ int rkipc_pipe_1_init() {
 
 int rkipc_pipe_1_deinit() {
 	int ret = 0;
-	
+
 	if (enable_venc_2) {
 		pthread_join(venc_thread_2, NULL);
 		ret = RK_MPI_SYS_UnBind(&vpss_chn[1], &venc_chn[2]);
@@ -1110,7 +1110,7 @@ int rkipc_pipe_1_deinit() {
 		if (ret)
 			LOG_ERROR("ERROR: Destroy VENC[1] error! ret=%#x\n", ret);
 	}
-		
+
 	// VI
 	ret = RK_MPI_VI_DisableChn(0, VIDEO_PIPE_1);
 	if (ret)

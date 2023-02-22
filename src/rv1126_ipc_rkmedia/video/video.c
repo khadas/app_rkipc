@@ -589,7 +589,8 @@ int rkipc_pipe_0_to_RTSP_init() { // VI 0 2688*1520 -> VENC 0 H264 ->RTSP 0 &
 		if (!strcmp(g_rc_mode, "CBR")) {
 			venc_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_H264CBR;
 			venc_chn_attr.stRcAttr.stH264Cbr.u32Gop = rk_param_get_int("video.0:gop", -1);
-			venc_chn_attr.stRcAttr.stH264Cbr.u32BitRate = rk_param_get_int("video.0:max_rate", -1) * 1000;
+			venc_chn_attr.stRcAttr.stH264Cbr.u32BitRate =
+			    rk_param_get_int("video.0:max_rate", -1) * 1000;
 			venc_chn_attr.stRcAttr.stH264Cbr.fr32DstFrameRateDen =
 			    rk_param_get_int("video.0:dst_frame_rate_den", -1);
 			venc_chn_attr.stRcAttr.stH264Cbr.fr32DstFrameRateNum =
@@ -617,7 +618,8 @@ int rkipc_pipe_0_to_RTSP_init() { // VI 0 2688*1520 -> VENC 0 H264 ->RTSP 0 &
 		if (!strcmp(g_rc_mode, "CBR")) {
 			venc_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_H265CBR;
 			venc_chn_attr.stRcAttr.stH265Cbr.u32Gop = rk_param_get_int("video.0:gop", -1);
-			venc_chn_attr.stRcAttr.stH265Cbr.u32BitRate = rk_param_get_int("video.0:max_rate", -1) * 1000;
+			venc_chn_attr.stRcAttr.stH265Cbr.u32BitRate =
+			    rk_param_get_int("video.0:max_rate", -1) * 1000;
 			venc_chn_attr.stRcAttr.stH265Cbr.fr32DstFrameRateDen =
 			    rk_param_get_int("video.0:dst_frame_rate_den", -1);
 			venc_chn_attr.stRcAttr.stH265Cbr.fr32DstFrameRateNum =
@@ -772,7 +774,8 @@ int rkipc_pipe_1_init() { // VI 1 640*480 -> VENC 1 H264 ->RTSP 1 & RTMP
 		if (!strcmp(g_rc_mode, "CBR")) {
 			venc_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_H264CBR;
 			venc_chn_attr.stRcAttr.stH264Cbr.u32Gop = rk_param_get_int("video.1:gop", -1);
-			venc_chn_attr.stRcAttr.stH264Cbr.u32BitRate = rk_param_get_int("video.1:max_rate", -1) * 1000;
+			venc_chn_attr.stRcAttr.stH264Cbr.u32BitRate =
+			    rk_param_get_int("video.1:max_rate", -1) * 1000;
 			venc_chn_attr.stRcAttr.stH264Cbr.fr32DstFrameRateDen =
 			    rk_param_get_int("video.1:dst_frame_rate_den", -1);
 			venc_chn_attr.stRcAttr.stH264Cbr.fr32DstFrameRateNum =
@@ -800,7 +803,8 @@ int rkipc_pipe_1_init() { // VI 1 640*480 -> VENC 1 H264 ->RTSP 1 & RTMP
 		if (!strcmp(g_rc_mode, "CBR")) {
 			venc_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_H265CBR;
 			venc_chn_attr.stRcAttr.stH265Cbr.u32Gop = rk_param_get_int("video.1:gop", -1);
-			venc_chn_attr.stRcAttr.stH265Cbr.u32BitRate = rk_param_get_int("video.1:max_rate", -1) * 1000;
+			venc_chn_attr.stRcAttr.stH265Cbr.u32BitRate =
+			    rk_param_get_int("video.1:max_rate", -1) * 1000;
 			venc_chn_attr.stRcAttr.stH265Cbr.fr32DstFrameRateDen =
 			    rk_param_get_int("video.1:dst_frame_rate_den", -1);
 			venc_chn_attr.stRcAttr.stH265Cbr.fr32DstFrameRateNum =
@@ -1697,7 +1701,7 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 	pstCoverInfo.u32Color = 0xffffff;
 
 	LOG_DEBUG("PosX:%d, PosY:%d, Width:%d, Height:%d\n", pstRgnInfo.u32PosX, pstRgnInfo.u32PosY,
-	                                                     pstRgnInfo.u32Width, pstRgnInfo.u32Height);
+	          pstRgnInfo.u32Width, pstRgnInfo.u32Height);
 	ret = RK_MPI_VENC_RGN_SetCover(VIDEO_PIPE_0, &pstRgnInfo, &pstCoverInfo);
 	if (RK_SUCCESS != ret) {
 		LOG_ERROR("VIDEO_PIPE_0: RK_MPI_VENC_RGN_SetCover failed \n");
@@ -1709,11 +1713,11 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 	pstRgnInfo.u32PosY = UPALIGNTO16(osd_data->origin_y * rk_param_get_int("video.1:height", 1) /
 	                                 rk_param_get_int("video.0:height", 1));
 	pstRgnInfo.u32Width = UPALIGNTO16(osd_data->width * rk_param_get_int("video.1:width", 1) /
-	                                 rk_param_get_int("video.0:width", 1));
+	                                  rk_param_get_int("video.0:width", 1));
 	pstRgnInfo.u32Height = UPALIGNTO16(osd_data->height * rk_param_get_int("video.1:height", 1) /
-	                                 rk_param_get_int("video.0:height", 1));
+	                                   rk_param_get_int("video.0:height", 1));
 	LOG_DEBUG("PosX:%d, PosY:%d, Width:%d, Height:%d\n", pstRgnInfo.u32PosX, pstRgnInfo.u32PosY,
-	                                                     pstRgnInfo.u32Width, pstRgnInfo.u32Height);
+	          pstRgnInfo.u32Width, pstRgnInfo.u32Height);
 	ret = RK_MPI_VENC_RGN_SetCover(VIDEO_PIPE_1, &pstRgnInfo, &pstCoverInfo);
 	// ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
 	if (RK_SUCCESS != ret) {
@@ -1771,7 +1775,7 @@ int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 	stBitmap.u32Height = osd_data->height;
 	stBitmap.pData = (RK_VOID *)osd_data->buffer;
 	LOG_DEBUG("PosX:%d, PosY:%d, Width:%d, Height:%d\n", pstRgnInfo.u32PosX, pstRgnInfo.u32PosY,
-	                                                     pstRgnInfo.u32Width, pstRgnInfo.u32Height);
+	          pstRgnInfo.u32Width, pstRgnInfo.u32Height);
 	ret = RK_MPI_VENC_RGN_SetBitMap(VIDEO_PIPE_0, &pstRgnInfo, &stBitmap);
 	if (ret != RK_SUCCESS) {
 		LOG_ERROR("VIDEO_PIPE_0: RK_MPI_VENC_RGN_SetBitMap failed with %d\n", ret);
@@ -1783,7 +1787,7 @@ int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 	pstRgnInfo.u32PosY = UPALIGNTO16(osd_data->origin_y * rk_param_get_int("video.1:height", 1) /
 	                                 rk_param_get_int("video.0:height", 1));
 	LOG_DEBUG("PosX:%d, PosY:%d, Width:%d, Height:%d\n", pstRgnInfo.u32PosX, pstRgnInfo.u32PosY,
-	                                                     pstRgnInfo.u32Width, pstRgnInfo.u32Height);
+	          pstRgnInfo.u32Width, pstRgnInfo.u32Height);
 	ret = RK_MPI_VENC_RGN_SetBitMap(VIDEO_PIPE_1, &pstRgnInfo, &stBitmap);
 	// ret = RK_MPI_RGN_SetBitMap(RgnHandle, &stBitmap);
 	if (ret != RK_SUCCESS) {
