@@ -12,12 +12,17 @@
 #endif
 #define LOG_TAG "isp.c"
 
+#define MAX_SCENARIO_NUM 2
 #define MAX_AIQ_CTX 4
 #define FPS 30
 
+static int current_scenario_id = 0;
 char g_iq_file_dir_[256];
-
+char main_scene[32];
+char sub_scene[32];
+static int rkipc_aiq_use_group = 0;
 static rk_aiq_sys_ctx_t *g_aiq_ctx[MAX_AIQ_CTX];
+// static rk_aiq_camgroup_ctx_t *g_camera_group_ctx[MAX_AIQ_CTX];
 rk_aiq_working_mode_t g_WDRMode[MAX_AIQ_CTX];
 rk_aiq_wb_gain_t gs_wb_gain = {2.083900, 1.000000, 1.000000, 2.018500};
 
@@ -28,6 +33,18 @@ rk_aiq_wb_gain_t gs_wb_gain = {2.083900, 1.000000, 1.000000, 2.018500};
 			return -1;                                                                             \
 		}                                                                                          \
 	} while (0)
+
+rk_aiq_sys_ctx_t *rkipc_aiq_get_ctx(int cam_id) {
+	// if (rkipc_aiq_use_group)
+	// 	return (rk_aiq_sys_ctx_t *)g_camera_group_ctx[cam_id];
+
+	return g_aiq_ctx[cam_id];
+}
+
+int rkipc_get_scenario_id(int cam_id) {
+	int scenario_id = cam_id * MAX_SCENARIO_NUM + current_scenario_id;
+	return scenario_id;
+}
 
 int sample_common_isp_init(int cam_id, rk_aiq_working_mode_t WDRMode, bool MultiCam,
                            const char *iq_file_dir) {
@@ -124,6 +141,18 @@ int rk_isp_get_scenario(int cam_id, const char **value) {
 }
 
 int rk_isp_set_scenario(int cam_id, const char *value) {
+	if (!strcmp(value, "normal")) {
+		current_scenario_id = 0;
+		strcpy(sub_scene, rk_param_get_string("isp:normal_scene", "day"));
+	} else if (!strcmp(value, "custom1")) {
+		current_scenario_id = 1;
+		strcpy(sub_scene, rk_param_get_string("isp:custom1_scene", "night"));
+	}
+	LOG_INFO("main_scene is %s, sub_scene is %s\n", main_scene, sub_scene);
+	// rk_aiq_uapi2_sysctl_switch_scene(rkipc_aiq_get_ctx(cam_id), main_scene, sub_scene);
+
+	if (rk_param_get_int("isp:init_form_ini", 1))
+		rk_isp_set_from_ini(0);
 	rk_param_set_string("isp:scenario", value);
 
 	return 0;
@@ -1215,14 +1244,112 @@ int rk_isp_af_focus_once(int cam_id) {
 int rk_isp_set_from_ini(int cam_id) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret = 0;
-	LOG_INFO("start\n");
-	rk_isp_set_frame_rate(cam_id, rk_param_get_int("isp.0.adjustment:fps", 30));
-	rk_isp_set_contrast(cam_id, rk_param_get_int("isp.0.adjustment:contrast", 50));
-	rk_isp_set_brightness(cam_id, rk_param_get_int("isp.0.adjustment:brightness", 50));
-	rk_isp_set_saturation(cam_id, rk_param_get_int("isp.0.adjustment:saturation", 50));
-	rk_isp_set_sharpness(cam_id, rk_param_get_int("isp.0.adjustment:sharpness", 50));
-	rk_isp_set_hue(cam_id, rk_param_get_int("isp.0.adjustment:hue", 50));
-	LOG_INFO("end\n");
+	char value[128];
+	char entry[128] = {'\0'};
+	LOG_DEBUG("start\n");
+	snprintf(entry, 127, "isp.%d.adjustment:fps", rkipc_get_scenario_id(cam_id));
+	rk_isp_set_frame_rate(cam_id, rk_param_get_int(entry, 30));
+	// image adjustment
+	LOG_DEBUG("image adjustment\n");
+	snprintf(entry, 127, "isp.%d.adjustment:contrast", rkipc_get_scenario_id(cam_id));
+	rk_isp_set_contrast(cam_id, rk_param_get_int(entry, 50));
+	snprintf(entry, 127, "isp.%d.adjustment:brightness", rkipc_get_scenario_id(cam_id));
+	rk_isp_set_brightness(cam_id, rk_param_get_int(entry, 50));
+	snprintf(entry, 127, "isp.%d.adjustment:saturation", rkipc_get_scenario_id(cam_id));
+	rk_isp_set_saturation(cam_id, rk_param_get_int(entry, 50));
+	snprintf(entry, 127, "isp.%d.adjustment:sharpness", rkipc_get_scenario_id(cam_id));
+	rk_isp_set_sharpness(cam_id, rk_param_get_int(entry, 50));
+	snprintf(entry, 127, "isp.%d.adjustment:hue", rkipc_get_scenario_id(cam_id));
+	rk_isp_set_hue(cam_id, rk_param_get_int(entry, 50));
+	// exposure
+	LOG_DEBUG("exposure\n");
+	snprintf(entry, 127, "isp.%d.exposure:exposure_mode", rkipc_get_scenario_id(cam_id));
+	strcpy(value, rk_param_get_string(entry, "auto"));
+	rk_isp_set_exposure_mode(cam_id, value);
+	snprintf(entry, 127, "isp.%d.exposure:gain_mode", rkipc_get_scenario_id(cam_id));
+	strcpy(value, rk_param_get_string(entry, "auto"));
+	rk_isp_set_gain_mode(cam_id, value);
+	snprintf(entry, 127, "isp.%d.exposure:exposure_time", rkipc_get_scenario_id(cam_id));
+	strcpy(value, rk_param_get_string(entry, "1/6"));
+	rk_isp_set_exposure_time(cam_id, value);
+	snprintf(entry, 127, "isp.%d.exposure:exposure_gain", rkipc_get_scenario_id(cam_id));
+	rk_isp_set_exposure_gain(cam_id, rk_param_get_int(entry, 1));
+	// night_to_day
+	LOG_DEBUG("night_to_day\n");
+	snprintf(entry, 127, "isp.%d.night_to_day:night_to_day", rkipc_get_scenario_id(cam_id));
+	strcpy(value, rk_param_get_string(entry, "day"));
+	rk_isp_set_night_to_day(cam_id, value);
+	snprintf(entry, 127, "isp.%d.night_to_day:fill_light_mode", rkipc_get_scenario_id(cam_id));
+	strcpy(value, rk_param_get_string(entry, "IR"));
+	rk_isp_set_fill_light_mode(cam_id, value);
+	snprintf(entry, 127, "isp.%d.night_to_day:light_brightness", rkipc_get_scenario_id(cam_id));
+	rk_isp_set_light_brightness(cam_id, rk_param_get_int(entry, 1));
+	// rk_isp_set_night_to_day_filter_level
+	// rk_isp_set_night_to_day_filter_time
+	// blc
+	LOG_DEBUG("blc\n");
+	// rk_isp_set_hdr will loop infinitely, and it has been set during init
+	snprintf(entry, 127, "isp.%d.blc:blc_region", rkipc_get_scenario_id(cam_id));
+	strcpy(value, rk_param_get_string(entry, "close"));
+	rk_isp_set_blc_region(cam_id, value);
+	snprintf(entry, 127, "isp.%d.blc:hlc", rkipc_get_scenario_id(cam_id));
+	strcpy(value, rk_param_get_string(entry, "close"));
+	rk_isp_set_hlc(cam_id, value);
+	snprintf(entry, 127, "isp.%d.blc:hdr_level", rkipc_get_scenario_id(cam_id));
+	rk_isp_set_hdr_level(cam_id, rk_param_get_int(entry, 1));
+	snprintf(entry, 127, "isp.%d.blc:blc_strength", rkipc_get_scenario_id(cam_id));
+	rk_isp_set_blc_strength(cam_id, rk_param_get_int(entry, 1));
+	snprintf(entry, 127, "isp.%d.blc:hlc_level", rkipc_get_scenario_id(cam_id));
+	rk_isp_set_hlc_level(cam_id, rk_param_get_int(entry, 0));
+	snprintf(entry, 127, "isp.%d.blc:dark_boost_level", rkipc_get_scenario_id(cam_id));
+	rk_isp_set_dark_boost_level(cam_id, rk_param_get_int(entry, 0));
+	// white_blance
+	LOG_DEBUG("white_blance\n");
+	snprintf(entry, 127, "isp.%d.white_blance:white_blance_style", rkipc_get_scenario_id(cam_id));
+	strcpy(value, rk_param_get_string(entry, "autoWhiteBalance"));
+	rk_isp_set_white_blance_style(cam_id, value);
+	snprintf(entry, 127, "isp.%d.white_blance:white_blance_red", rkipc_get_scenario_id(cam_id));
+	rk_isp_set_white_blance_red(cam_id, rk_param_get_int(entry, 50));
+	snprintf(entry, 127, "isp.%d.white_blance:white_blance_green", rkipc_get_scenario_id(cam_id));
+	rk_isp_set_white_blance_green(cam_id, rk_param_get_int(entry, 50));
+	snprintf(entry, 127, "isp.%d.white_blance:white_blance_blue", rkipc_get_scenario_id(cam_id));
+	rk_isp_set_white_blance_blue(cam_id, rk_param_get_int(entry, 50));
+	// enhancement
+	LOG_DEBUG("enhancement\n");
+	snprintf(entry, 127, "isp.%d.enhancement:noise_reduce_mode", rkipc_get_scenario_id(cam_id));
+	strcpy(value, rk_param_get_string(entry, "close"));
+	rk_isp_set_noise_reduce_mode(cam_id, value);
+	snprintf(entry, 127, "isp.%d.enhancement:dehaze", rkipc_get_scenario_id(cam_id));
+	strcpy(value, rk_param_get_string(entry, "close"));
+	rk_isp_set_dehaze(cam_id, value);
+	snprintf(entry, 127, "isp.%d.enhancement:gray_scale_mode", rkipc_get_scenario_id(cam_id));
+	strcpy(value, rk_param_get_string(entry, "[0-255]"));
+	rk_isp_set_gray_scale_mode(cam_id, value);
+	snprintf(entry, 127, "isp.%d.enhancement:distortion_correction", rkipc_get_scenario_id(cam_id));
+	strcpy(value, rk_param_get_string(entry, "close"));
+	rk_isp_set_distortion_correction(cam_id, value);
+	snprintf(entry, 127, "isp.%d.enhancement:spatial_denoise_level", rkipc_get_scenario_id(cam_id));
+	rk_isp_set_spatial_denoise_level(cam_id, rk_param_get_int(entry, 50));
+	snprintf(entry, 127, "isp.%d.enhancement:temporal_denoise_level",
+	         rkipc_get_scenario_id(cam_id));
+	rk_isp_set_temporal_denoise_level(cam_id, rk_param_get_int(entry, 50));
+	snprintf(entry, 127, "isp.%d.enhancement:dehaze_level", rkipc_get_scenario_id(cam_id));
+	rk_isp_set_dehaze_level(cam_id, rk_param_get_int(entry, 50));
+	snprintf(entry, 127, "isp.%d.enhancement:ldch_level", rkipc_get_scenario_id(cam_id));
+	rk_isp_set_ldch_level(cam_id, rk_param_get_int(entry, 0));
+	// video_adjustment
+	LOG_DEBUG("video_adjustment\n");
+	snprintf(entry, 127, "isp.%d.video_adjustment:power_line_frequency_mode",
+	         rkipc_get_scenario_id(cam_id));
+	strcpy(value, rk_param_get_string(entry, "PAL(50HZ)"));
+	rk_isp_set_power_line_frequency_mode(cam_id, value);
+	snprintf(entry, 127, "isp.%d.video_adjustment:image_flip", rkipc_get_scenario_id(cam_id));
+	strcpy(value, rk_param_get_string(entry, "close"));
+	rk_isp_set_image_flip(cam_id, value);
+	// auto focus
+	// LOG_DEBUG("auto focus\n");
+	// rk_isp_set_af_mode(cam_id, const char *value);
+	LOG_DEBUG("end\n");
 
 	return ret;
 }
@@ -1250,6 +1377,9 @@ int rk_isp_init(int cam_id, char *iqfile_path) {
 
 	ret = sample_common_isp_init(cam_id, mode, true, g_iq_file_dir_);
 	ret |= sample_common_isp_run(cam_id);
+
+	if (rk_param_get_int("isp:init_form_ini", 1))
+		rk_isp_set_from_ini(cam_id);
 
 	return ret;
 }
