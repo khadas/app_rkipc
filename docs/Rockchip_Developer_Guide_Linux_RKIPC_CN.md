@@ -2,9 +2,9 @@
 
 文件标识：RK-KF-YF-937
 
-发布版本：V1.6.0
+发布版本：V1.6.1
 
-日期：2022-12-02
+日期：2023-02-18
 
 文件密级：□绝密   □秘密   □内部资料   ■公开
 
@@ -83,6 +83,7 @@ Rockchip Electronics Co., Ltd.
 | V1.4.0     | 林刘迪铭 | 2022-10-10   | 修改RV1106 IPC和RV1103 IPC的IVS模块流程框图，</br>rv1106_battery_ipc细分为rv1106_battery_ipc_client和rv1106_battery_ipc_tuya。 |
 | V1.5.0     | 林刘迪铭 | 2022-10-25   | 修改ini模块参数说明，新增音视频模块API介绍。                 |
 | V1.6.0     | 林刘迪铭 | 2022-12-02   | 新增RV1106 Dual-IPC框图。                                    |
+| V1.6.1     | 林刘迪铭 | 2323-02-18   | 修改RV1126 IPC Rockit流程框图                                |
 
 ---
 
@@ -168,11 +169,11 @@ graph LR
 ```
 
 ### RV1106 Dual-IPC
+
 ```mermaid
 graph LR
 	VI_0-->AVS
 	VI_1-->AVS-->VPSS-->VENC_0-->RTSP
-
 ```
 
 ### RK3588 IPC
