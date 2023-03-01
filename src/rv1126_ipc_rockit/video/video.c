@@ -447,9 +447,9 @@ int rkipc_pipe_0_init() {
 	vi_chn_attr.stSize.u32Width = video_width;
 	vi_chn_attr.stSize.u32Height = video_height;
 	vi_chn_attr.enPixelFormat = RK_FMT_YUV420SP;
-	if ((video_width == video_max_width) && (video_height == video_max_height)) {
-		LOG_INFO("w,h is %d,%d , need use rkispp_m_bypass and fbc format\n", video_width,
-		         video_height);
+	if ((video_width == video_max_width) && (video_height == video_max_height) && (!enable_jpeg)) {
+		LOG_INFO("w,h is %d,%d , enable_jpeg is %d, need use rkispp_m_bypass and fbc format\n",
+		         video_width, video_height, enable_jpeg);
 		vi_chn_attr.enCompressMode = COMPRESS_AFBC_16x16;
 		memcpy(vi_chn_attr.stIspOpt.aEntityName, "rkispp_m_bypass", strlen("rkispp_m_bypass"));
 	} else {
@@ -625,16 +625,38 @@ int rkipc_pipe_0_init() {
 
 	ret = RK_MPI_SYS_Bind(&vi_chn[0], &venc_chn[0]);
 	if (ret)
-		LOG_ERROR("Bind VI and VENC error! ret=%#x\n", ret);
+		LOG_ERROR("Bind VI[0] and VENC[0] error! ret=%#x\n", ret);
 	else
-		LOG_INFO("Bind VI and VENC success\n");
-	// TODO: JPEG VENC
+		LOG_INFO("Bind VI[0] and VENC[0] success\n");
+
+	// JPEG
+	if (enable_jpeg) {
+		rkipc_venc_jpeg_init();
+		venc_chn[JPEG_VENC_CHN].enModId = RK_ID_VENC;
+		venc_chn[JPEG_VENC_CHN].s32DevId = 0;
+		venc_chn[JPEG_VENC_CHN].s32ChnId = JPEG_VENC_CHN;
+		ret = RK_MPI_SYS_Bind(&vi_chn[0], &venc_chn[JPEG_VENC_CHN]);
+		if (ret)
+			LOG_ERROR("Bind VI[0] and VENC[JPEG_VENC_CHN] error! ret=%#x\n", ret);
+		else
+			LOG_INFO("Bind VI[0] and VENC[JPEG_VENC_CHN] success\n");
+	}
 
 	return ret;
 }
 
 int rkipc_pipe_0_deinit() {
 	int ret = 0;
+	// JPEG
+	if (enable_jpeg) {
+		pthread_join(jpeg_venc_thread_id, NULL);
+		ret = RK_MPI_SYS_UnBind(&vi_chn[0], &venc_chn[JPEG_VENC_CHN]);
+		if (ret)
+			LOG_ERROR("Unbind VI[0] and VENC[JPEG_VENC_CHN] error! ret=%#x\n", ret);
+		else
+			LOG_INFO("Unbind VI[0] and VENC[JPEG_VENC_CHN] success\n");
+		rkipc_venc_jpeg_deinit();
+	}
 	pthread_join(venc_thread_0, NULL);
 	// unbind
 	ret = RK_MPI_SYS_UnBind(&vi_chn[0], &venc_chn[0]);
@@ -2415,10 +2437,6 @@ int rk_video_deinit() {
 
 		ret |= rkipc_pipe_1_deinit();
 	}
-	// if (enable_jpeg) {
-	// 	pthread_join(jpeg_venc_thread_id, NULL);
-	// 	ret |= rkipc_venc_jpeg_deinit();
-	// }
 	ret |= rkipc_vi_dev_deinit();
 	ret |= rkipc_rtmp_deinit();
 	ret |= rkipc_rtsp_deinit();
