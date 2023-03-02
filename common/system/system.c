@@ -132,11 +132,17 @@ int rk_system_factory_reset() {
 int rk_system_export_log(const char *path) {
 	char cmd[128] = {'\0'};
 	char *cmd_list[] = {
+	    // nginx
 	    "cat /tmp/messages",
+	    "cat /tmp/nginx/error.log",
+	    "cat /tmp/nginx/access.log",
+	    // system
 	    "cat /proc/uptime",
 	    "cat /proc/meminfo",
 	    "cat /proc/net/snmp",
 	    "cat /proc/interrupts",
+	    "cat /sys/kernel/debug/clk/clk_summary",
+	    "cat /sys/class/thermal/thermal_zone0/temp",
 	    "top -b -n 1",
 	    "cat /sys/class/net/eth0/speed",
 	    "netstat -an",
@@ -144,6 +150,31 @@ int rk_system_export_log(const char *path) {
 	    "route -n",
 	    "cat /etc/resolv.conf",
 	    "cat /proc/net/wireless",
+	    // venc
+	    "cat /proc/mpp_service/session_summary",
+	    // rga
+	    "cat /sys/kernel/debug/rkrga/driver_version",
+	    "cat /proc/rkrga/driver_version",
+	    "cat /sys/kernel/debug/rkrga/load",
+	    "cat /proc/rkrga/load",
+	    // isp
+	    "media-ctl -p -d /dev/media0",
+	    "media-ctl -p -d /dev/media1",
+	    "media-ctl -p -d /dev/media2",
+	    "media-ctl -p -d /dev/media3",
+	    "media-ctl -p -d /dev/media4",
+	    "media-ctl -p -d /dev/media5",
+	    "cat /proc/rkcif*",
+	    "cat /proc/rkisp*",
+	    // rockit
+	    "dumpsys",
+	    "dumpsys version",
+	    "dumpsys mb d",
+	    // just for rv1106
+	    "cat /proc/rk_dma_heap/dma_heap_info",
+	    "cat /dev/mpi/valloc",
+	    "cat /proc/vcodec/enc/venc_info",
+	    "cat /dev/mpi/vsys",
 	};
 	if (!access(path, F_OK)) {
 		snprintf(cmd, 127, "rm -f %s", path);
