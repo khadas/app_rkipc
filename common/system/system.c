@@ -124,7 +124,7 @@ int rk_system_reboot() {
 int rk_system_factory_reset() {
 	system("cp /tmp/rkipc-factory-config.ini /userdata/rkipc.ini");
 	system("sync");
-	system("reboot");
+	system("reboot -f");
 	// system("update factory");
 	return 0;
 }
@@ -171,8 +171,15 @@ int rk_system_import_db(const char *path) {
 	snprintf(cmd, 127, "cp %s /userdata/rkipc.ini", path);
 	LOG_INFO("cmd is %s\n", cmd);
 	system(cmd);
+	// It is possible that the ini parameter is being used in some places,
+	// and a sudden update may cause a crash, so use reboot -f
+#if 0
 	rk_param_reload();
 	rk_system_reboot();
+#else
+	system("sync");
+	system("reboot -f");
+#endif
 	return 0;
 }
 
