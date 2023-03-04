@@ -273,13 +273,6 @@ static void *osd_time_server(void *arg) {
 int rk_osd_init() {
 	LOG_DEBUG("%s\n", __func__);
 	pthread_mutex_lock(&g_osd_mutex);
-	if (g_osd_signal)
-		rk_signal_destroy(g_osd_signal);
-	g_osd_signal = rk_signal_create(0, 1);
-	if (!g_osd_signal) {
-		LOG_ERROR("create signal fail\n");
-		return -1;
-	}
 	const char *osd_type;
 	char entry[128] = {'\0'};
 	osd_data_s osd_data;
@@ -387,8 +380,8 @@ int rk_osd_init() {
 				osd_data.text.wch[abs(MAX_WCH_BYTE - out_len) / 4] = '\0';
 				LOG_DEBUG("out_len is %d\n", out_len);
 				LOG_DEBUG("wcslen(osd_data.text.wch) is %ld\n", wcslen(osd_data.text.wch));
-				// for(int i=0;i< strlen(display_text); i++) {
-				// 	LOG_INFO("111 display_text [%02x]\n",display_text[i]);
+				// for (int i = 0; i < strlen(display_text); i++) {
+				// 	LOG_INFO("111 display_text [%02x]\n", display_text[i]);
 				// }
 				// for (int i = 0; i < wcslen(osd_data.text.wch); i++) {
 				// 	LOG_INFO("222 osd_data.text.wch [%04x]\n", osd_data.text.wch[i]);
@@ -405,6 +398,13 @@ int rk_osd_init() {
 			} else if (!strcmp(osd_type, "dateTime")) {
 				g_osd_server_run_ = 1;
 				pthread_create(&osd_time_thread_id_, NULL, osd_time_server, NULL);
+				if (g_osd_signal)
+					rk_signal_destroy(g_osd_signal);
+				g_osd_signal = rk_signal_create(0, 1);
+				if (!g_osd_signal) {
+					LOG_ERROR("create signal fail\n");
+					return -1;
+				}
 			}
 		}
 	}
