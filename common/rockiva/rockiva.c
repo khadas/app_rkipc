@@ -243,7 +243,12 @@ int rkipc_rockiva_init() {
 	    web_width / 100 * rk_param_get_int("event.regional_invasion:proportion", 5);
 	initParams.baRules.areaInBreakRule[0].event = ROCKIVA_BA_TRIP_EVENT_STAY;
 	initParams.baRules.areaInBreakRule[0].ruleID = 0;
-	initParams.baRules.areaInBreakRule[0].objType = ROCKIVA_OBJECT_TYPE_BITMASK(ROCKIVA_OBJECT_TYPE_PERSON);
+	initParams.baRules.areaInBreakRule[0].objType =
+	    ROCKIVA_OBJECT_TYPE_BITMASK(ROCKIVA_OBJECT_TYPE_PERSON);
+	initParams.baRules.areaInBreakRule[0].objType |=
+	    ROCKIVA_OBJECT_TYPE_BITMASK(ROCKIVA_OBJECT_TYPE_FACE);
+	initParams.baRules.areaInBreakRule[0].objType |=
+	    ROCKIVA_OBJECT_TYPE_BITMASK(ROCKIVA_OBJECT_TYPE_PET);
 	initParams.baRules.areaInBreakRule[0].area.pointNum = 4;
 	initParams.baRules.areaInBreakRule[0].area.points[0].x =
 	    ROCKIVA_PIXEL_RATION_CONVERT(web_width, ri_x);

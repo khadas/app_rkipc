@@ -240,10 +240,10 @@ graph LR
 	VENC_0-->RTSP_RTMP_0
 	VI_scale1-->VENC_1-->RTSP_RTMP_1
 	VI_scale1-->VPSS_1-->VENC_2-->RTSP_RTMP_2
-	VI_scale2-->VPSS_2-->NPU
+	VI_scale2-->VPSS_2-->VO
 	VPSS_2-->MD
 	VPSS_2-->OD
-	VPSS_2-->VO
+	VI_scale2-->NPU
 ```
 
 ### RV1126 Battery IPC
