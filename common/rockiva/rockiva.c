@@ -201,14 +201,11 @@ int rkipc_rockiva_init() {
 	snprintf(globalParams.modelPath, ROCKIVA_PATH_LENGTH, "/usr/lib/");
 	globalParams.coreMask = 0x04;
 	globalParams.logLevel = ROCKIVA_LOG_ERROR;
-	globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_FACE;
-	globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_PERSON;
 	model_type = rk_param_get_string("event.regional_invasion:rockiva_model_type", "small");
 	if (!strcmp(model_type, "small") || !strcmp(model_type, "medium")) {
-		globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_PET;
+		globalParams.detModel |= ROCKIVA_DET_MODEL_PFP;
 	} else if (!strcmp(model_type, "big")) {
-		globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_NON_VEHICLE;
-		globalParams.detObjectType |= ROCKIVA_OBJECT_TYPE_VEHICLE;
+		globalParams.detModel |= ROCKIVA_DET_MODEL_CLS7;
 	}
 	globalParams.imageInfo.width = rk_param_get_int("video.2:width", 960);
 	globalParams.imageInfo.height = rk_param_get_int("video.2:height", 540);
@@ -225,69 +222,7 @@ int rkipc_rockiva_init() {
 
 	ROCKIVA_Init(&rkba_handle, ROCKIVA_MODE_VIDEO, &globalParams, NULL);
 	LOG_INFO("ROCKIVA_Init over\n");
-#if 0
-	// 构建一个进入区域规则
-	initParams.baRules.areaInRule[0].ruleEnable = 1;
-	initParams.baRules.areaInRule[0].alertTime = 2000; // 2000ms
-	initParams.baRules.areaInRule[0].event = ROCKIVA_BA_TRIP_EVENT_IN;
-	initParams.baRules.areaInRule[0].ruleID = 1;
-	initParams.baRules.areaInRule[0].objType = ROCKIVA_BA_RULE_OBJ_PERSON;
-	initParams.baRules.areaInRule[0].area.pointNum = 4;
-	initParams.baRules.areaInRule[0].area.points[0].x = ROCKIVA_PIXEL_RATION_CONVERT(1920, 0);
-	initParams.baRules.areaInRule[0].area.points[0].y = ROCKIVA_PIXEL_RATION_CONVERT(1080, 0);
-	initParams.baRules.areaInRule[0].area.points[1].x = ROCKIVA_PIXEL_RATION_CONVERT(1920, 1920);
-	initParams.baRules.areaInRule[0].area.points[1].y = ROCKIVA_PIXEL_RATION_CONVERT(1080, 0);
-	initParams.baRules.areaInRule[0].area.points[2].x = ROCKIVA_PIXEL_RATION_CONVERT(1920, 1920);
-	initParams.baRules.areaInRule[0].area.points[2].y = ROCKIVA_PIXEL_RATION_CONVERT(1080, 1080);
-	initParams.baRules.areaInRule[0].area.points[3].x = ROCKIVA_PIXEL_RATION_CONVERT(1920, 0);
-	initParams.baRules.areaInRule[0].area.points[3].y = ROCKIVA_PIXEL_RATION_CONVERT(1080, 1080);
 
-	// 构建一个离开区域规则
-	initParams.baRules.areaOutRule[0].ruleEnable = 1;
-	initParams.baRules.areaOutRule[0].alertTime = 2000; // 2000ms
-	initParams.baRules.areaOutRule[0].event = ROCKIVA_BA_TRIP_EVENT_OUT;
-	initParams.baRules.areaOutRule[0].ruleID = 2;
-	initParams.baRules.areaOutRule[0].objType = ROCKIVA_BA_RULE_OBJ_FULL;
-	initParams.baRules.areaOutRule[0].area.pointNum = 4;
-	initParams.baRules.areaOutRule[0].area.points[0].x = ROCKIVA_PIXEL_RATION_CONVERT(1920, 0);
-	initParams.baRules.areaOutRule[0].area.points[0].y = ROCKIVA_PIXEL_RATION_CONVERT(1080, 0);
-	initParams.baRules.areaOutRule[0].area.points[1].x = ROCKIVA_PIXEL_RATION_CONVERT(1920, 1920);
-	initParams.baRules.areaOutRule[0].area.points[1].y = ROCKIVA_PIXEL_RATION_CONVERT(1080, 0);
-	initParams.baRules.areaOutRule[0].area.points[2].x = ROCKIVA_PIXEL_RATION_CONVERT(1920, 1920);
-	initParams.baRules.areaOutRule[0].area.points[2].y = ROCKIVA_PIXEL_RATION_CONVERT(1080, 1080);
-	initParams.baRules.areaOutRule[0].area.points[3].x = ROCKIVA_PIXEL_RATION_CONVERT(1920, 0);
-	initParams.baRules.areaOutRule[0].area.points[3].y = ROCKIVA_PIXEL_RATION_CONVERT(1080, 1080);
-
-	// 构建一个越界规则
-	initParams.baRules.tripWireRule[0].ruleEnable = 1;
-	initParams.baRules.tripWireRule[0].event = ROCKIVA_BA_TRIP_EVENT_BOTH;
-	initParams.baRules.tripWireRule[0].ruleID = 3;
-	initParams.baRules.tripWireRule[0].objType = ROCKIVA_BA_RULE_OBJ_FULL;
-	initParams.baRules.tripWireRule[0].line.head.x = ROCKIVA_PIXEL_RATION_CONVERT(1920, 200);
-	initParams.baRules.tripWireRule[0].line.head.y = ROCKIVA_PIXEL_RATION_CONVERT(1080, 10);
-	initParams.baRules.tripWireRule[0].line.tail.x = ROCKIVA_PIXEL_RATION_CONVERT(1920, 200);
-	initParams.baRules.tripWireRule[0].line.tail.y = ROCKIVA_PIXEL_RATION_CONVERT(1080, 1000);
-
-	// 构建一个区域入侵规则
-	initParams.baRules.areaInBreakRule[0].ruleEnable = 1;
-	initParams.baRules.areaInBreakRule[0].alertTime = 1000; // 1000ms
-	initParams.baRules.areaInBreakRule[0].event = ROCKIVA_BA_TRIP_EVENT_STAY;
-	initParams.baRules.areaInBreakRule[0].ruleID = 4;
-	initParams.baRules.areaInBreakRule[0].objType = ROCKIVA_BA_RULE_OBJ_FULL;
-	initParams.baRules.areaInBreakRule[0].area.pointNum = 4;
-	initParams.baRules.areaInBreakRule[0].area.points[0].x = ROCKIVA_PIXEL_RATION_CONVERT(1920, 0);
-	initParams.baRules.areaInBreakRule[0].area.points[0].y = ROCKIVA_PIXEL_RATION_CONVERT(1080, 0);
-	initParams.baRules.areaInBreakRule[0].area.points[1].x =
-	    ROCKIVA_PIXEL_RATION_CONVERT(1920, 1920);
-	initParams.baRules.areaInBreakRule[0].area.points[1].y = ROCKIVA_PIXEL_RATION_CONVERT(1080, 0);
-	initParams.baRules.areaInBreakRule[0].area.points[2].x =
-	    ROCKIVA_PIXEL_RATION_CONVERT(1920, 1920);
-	initParams.baRules.areaInBreakRule[0].area.points[2].y =
-	    ROCKIVA_PIXEL_RATION_CONVERT(1080, 1080);
-	initParams.baRules.areaInBreakRule[0].area.points[3].x = ROCKIVA_PIXEL_RATION_CONVERT(1920, 0);
-	initParams.baRules.areaInBreakRule[0].area.points[3].y =
-	    ROCKIVA_PIXEL_RATION_CONVERT(1080, 1080);
-#else
 	// 构建一个区域入侵规则
 	int web_width = rk_param_get_int("osd.common:normalized_screen_width", 704);
 	int web_height = rk_param_get_int("osd.common:normalized_screen_height", 480);
@@ -296,7 +231,6 @@ int rkipc_rockiva_init() {
 	int ri_w = rk_param_get_int("event.regional_invasion:width", 256);
 	int ri_h = rk_param_get_int("event.regional_invasion:height", 256);
 
-#if 1
 	initParams.baRules.areaInBreakRule[0].ruleEnable =
 	    rk_param_get_int("event.regional_invasion:enabled", 0);
 	initParams.baRules.areaInBreakRule[0].sense =
@@ -309,7 +243,7 @@ int rkipc_rockiva_init() {
 	    web_width / 100 * rk_param_get_int("event.regional_invasion:proportion", 5);
 	initParams.baRules.areaInBreakRule[0].event = ROCKIVA_BA_TRIP_EVENT_STAY;
 	initParams.baRules.areaInBreakRule[0].ruleID = 0;
-	initParams.baRules.areaInBreakRule[0].objType = ROCKIVA_BA_RULE_OBJ_FULL;
+	initParams.baRules.areaInBreakRule[0].objType = ROCKIVA_OBJECT_TYPE_BITMASK(ROCKIVA_OBJECT_TYPE_PERSON);
 	initParams.baRules.areaInBreakRule[0].area.pointNum = 4;
 	initParams.baRules.areaInBreakRule[0].area.points[0].x =
 	    ROCKIVA_PIXEL_RATION_CONVERT(web_width, ri_x);
@@ -336,49 +270,10 @@ int rkipc_rockiva_init() {
 	         initParams.baRules.areaInBreakRule[0].area.points[2].y,
 	         initParams.baRules.areaInBreakRule[0].area.points[3].x,
 	         initParams.baRules.areaInBreakRule[0].area.points[3].y);
+#if 1
 	initParams.aiConfig.detectResultMode = 0;
 #else
-	initParams.baRules.areaInBreakRule[0].ruleEnable =
-	    rk_param_get_int("event.regional_invasion:enabled", 0);
-	initParams.baRules.areaInBreakRule[0].sense =
-	    rk_param_get_int("event.regional_invasion:sensitivity_level", 50); // [1, 100]
-	initParams.baRules.areaInBreakRule[0].alertTime =
-	    rk_param_get_int("event.regional_invasion:time_threshold", 1) * 1000; // ms
-	initParams.baRules.areaInBreakRule[0].minObjSize[2].height =
-	    web_height / 100 * rk_param_get_int("event.regional_invasion:proportion", 5);
-	initParams.baRules.areaInBreakRule[0].minObjSize[2].width =
-	    web_width / 100 * rk_param_get_int("event.regional_invasion:proportion", 5);
-	initParams.baRules.areaInBreakRule[0].event = ROCKIVA_BA_TRIP_EVENT_STAY;
-	initParams.baRules.areaInBreakRule[0].ruleID = 0;
-	initParams.baRules.areaInBreakRule[0].objType = ROCKIVA_BA_RULE_OBJ_FULL;
-	initParams.baRules.areaInBreakRule[0].area.pointNum = 4;
-	initParams.baRules.areaInBreakRule[0].area.points[0].x =
-	    ROCKIVA_PIXEL_RATION_CONVERT(web_width, ri_x);
-	initParams.baRules.areaInBreakRule[0].area.points[0].y =
-	    ROCKIVA_PIXEL_RATION_CONVERT(web_height, ri_y);
-	initParams.baRules.areaInBreakRule[0].area.points[1].x =
-	    ROCKIVA_PIXEL_RATION_CONVERT(web_width, ri_x + ri_w);
-	initParams.baRules.areaInBreakRule[0].area.points[1].y =
-	    ROCKIVA_PIXEL_RATION_CONVERT(web_height, ri_y);
-	initParams.baRules.areaInBreakRule[0].area.points[2].x =
-	    ROCKIVA_PIXEL_RATION_CONVERT(web_width, ri_x + ri_w);
-	initParams.baRules.areaInBreakRule[0].area.points[2].y =
-	    ROCKIVA_PIXEL_RATION_CONVERT(web_height, ri_y + ri_h);
-	initParams.baRules.areaInBreakRule[0].area.points[3].x =
-	    ROCKIVA_PIXEL_RATION_CONVERT(web_width, ri_x);
-	initParams.baRules.areaInBreakRule[0].area.points[3].y =
-	    ROCKIVA_PIXEL_RATION_CONVERT(web_height, ri_y + ri_h);
-	LOG_INFO("(%d,%d), (%d,%d), (%d,%d), (%d,%d)\n",
-	         initParams.baRules.areaInBreakRule[0].area.points[0].x,
-	         initParams.baRules.areaInBreakRule[0].area.points[0].y,
-	         initParams.baRules.areaInBreakRule[0].area.points[1].x,
-	         initParams.baRules.areaInBreakRule[0].area.points[1].y,
-	         initParams.baRules.areaInBreakRule[0].area.points[2].x,
-	         initParams.baRules.areaInBreakRule[0].area.points[2].y,
-	         initParams.baRules.areaInBreakRule[0].area.points[3].x,
-	         initParams.baRules.areaInBreakRule[0].area.points[3].y);
 	initParams.aiConfig.detectResultMode = 1; // 上报没有触发规则的检测目标, 临时调试用
-#endif
 #endif
 	ret = ROCKIVA_BA_Init(rkba_handle, &initParams, rkba_callback);
 	if (ret != ROCKIVA_RET_SUCCESS) {
