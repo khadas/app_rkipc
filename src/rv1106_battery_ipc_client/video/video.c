@@ -50,7 +50,7 @@ static int get_jpeg_cnt = 0;
 static int enable_pp, enable_jpeg, enable_venc_0, enable_venc_1, enable_rtsp, enable_rtmp;
 static int g_enable_vo, g_vo_dev_id, g_vi_chn_id, enable_npu, enable_wrap, enable_osd;
 static int g_video_run_ = 1;
-static int g_nn_osd_run_ = 1;
+static int g_nn_osd_run_ = 0;
 static int pipe_id_ = 0;
 static int dev_id_ = 0;
 static int cycle_snapshot_flag = 0;
@@ -1470,6 +1470,7 @@ RK_S32 draw_rect_2bpp(RK_U8 *buffer, RK_U32 width, RK_U32 height, int rgn_x, int
 }
 
 static void *rkipc_get_nn_update_osd(void *arg) {
+	g_nn_osd_run_ = 1;
 	LOG_DEBUG("#Start %s thread, arg:%p\n", __func__, arg);
 	prctl(PR_SET_NAME, "RkipcNpuOsd", 0, 0, 0);
 
@@ -1650,7 +1651,10 @@ int rkipc_osd_draw_nn_init() {
 int rkipc_osd_draw_nn_deinit() {
 	LOG_DEBUG("%s\n", __func__);
 	int ret = 0;
-	pthread_join(get_nn_update_osd_thread_id, NULL);
+	if (g_nn_osd_run_) {
+		g_nn_osd_run_ = 0;
+		pthread_join(get_nn_update_osd_thread_id, NULL);
+	}
 	// Detach osd from chn
 	MPP_CHN_S stMppChn;
 	RGN_HANDLE RgnHandle = DRAW_NN_OSD_ID;
@@ -2979,7 +2983,6 @@ int rk_video_init() {
 	          "enable_wrap is %d, enable_osd is %d\n",
 	          g_vi_chn_id, g_enable_vo, g_vo_dev_id, enable_npu, enable_wrap, enable_osd);
 	g_video_run_ = 1;
-	g_nn_osd_run_ = 1;
 	// ret |= rkipc_vi_dev_init(); //跨进程已在server初始化
 	if (enable_venc_0)
 		ret |= rkipc_pipe_0_init();
@@ -3017,7 +3020,6 @@ int rk_video_init() {
 int rk_video_deinit() {
 	LOG_DEBUG("%s\n", __func__);
 	g_video_run_ = 0;
-	g_nn_osd_run_ = 0;
 	int ret = 0;
 	if (enable_npu) {
 		ret |= rkipc_osd_draw_nn_deinit();
