@@ -14,6 +14,7 @@ RockIvaHandle rkba_handle;
 RockIvaBaTaskParams initParams;
 RockIvaInitParam globalParams;
 int rockit_run_flag = 0;
+static void *rockiva_signal = NULL;
 rknn_list *rknn_list_;
 
 void create_rknn_list(rknn_list **s) {
@@ -170,6 +171,11 @@ void rkba_callback(const RockIvaBaResult *result, const RockIvaExecuteStatus sta
 	//         write_image(image, out_img_path);
 	//         release_image(cached_image_mem);
 	//     }
+}
+
+void rockiva_frame_release_callback(const RockIvaReleaseFrames *releaseFrames, void *userdata) {
+	// LOG_INFO("%s: releaseFrames channelId is %d, count is %d\n", get_time_string());
+	rk_signal_give(rockiva_signal);
 }
 
 int rkipc_rockiva_init() {
@@ -380,6 +386,16 @@ int rkipc_rockiva_init() {
 		return -1;
 	}
 	LOG_INFO("ROCKIVA_BA_Init success\n");
+
+	if (rockiva_signal)
+		rk_signal_destroy(rockiva_signal);
+	rockiva_signal = rk_signal_create(0, 1);
+	if (!rockiva_signal) {
+		LOG_ERROR("create signal fail\n");
+		return;
+	}
+	ROCKIVA_SetFrameReleaseCallback(rkba_handle, rockiva_frame_release_callback);
+
 	create_rknn_list(&rknn_list_);
 	rockit_run_flag = 1;
 	LOG_INFO("end\n");
@@ -394,6 +410,11 @@ int rkipc_rockiva_deinit() {
 	LOG_INFO("ROCKIVA_BA_Release over\n");
 	ROCKIVA_Release(rkba_handle);
 	destory_rknn_list(&rknn_list_);
+	if (rockiva_signal) {
+		rk_signal_give(rockiva_signal);
+		rk_signal_destroy(rockiva_signal);
+		rockiva_signal = NULL;
+	}
 	LOG_INFO("end\n");
 
 	return 0;
@@ -412,6 +433,10 @@ int rkipc_rockiva_write_rgb888_frame(uint16_t width, uint16_t height, uint32_t f
 	image->dataAddr = buffer;
 	image->frameId = frame_id;
 	ret = ROCKIVA_PushFrame(rkba_handle, image, NULL);
+	if (ret == 0)
+		rk_signal_wait(rockiva_signal, 10000);
+	else
+		LOG_ERROR("ROCKIVA_PushFrame fail, ret is %d\n", ret);
 	free(image);
 
 	return ret;
@@ -432,6 +457,10 @@ int rkipc_rockiva_write_rgb888_frame_by_fd(uint16_t width, uint16_t height, uint
 	image->dataPhyAddr = NULL;
 	image->dataFd = fd;
 	ret = ROCKIVA_PushFrame(rkba_handle, image, NULL);
+	if (ret == 0)
+		rk_signal_wait(rockiva_signal, 10000);
+	else
+		LOG_ERROR("ROCKIVA_PushFrame fail, ret is %d\n", ret);
 	free(image);
 
 	return ret;
@@ -462,6 +491,10 @@ int rkipc_rockiva_write_nv12_frame_by_fd(uint16_t width, uint16_t height, uint32
 	image->dataPhyAddr = NULL;
 	image->dataFd = fd;
 	ret = ROCKIVA_PushFrame(rkba_handle, image, NULL);
+	if (ret == 0)
+		rk_signal_wait(rockiva_signal, 10000);
+	else
+		LOG_ERROR("ROCKIVA_PushFrame fail, ret is %d\n", ret);
 	free(image);
 
 	return ret;
