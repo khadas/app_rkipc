@@ -1837,8 +1837,8 @@ int rkipc_osd_draw_nn_init() {
 	stRgnChnAttr.enType = OVERLAY_RGN;
 	stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32X = 0;
 	stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32Y = 0;
-	stRgnChnAttr.unChnAttr.stOverlayChn.u32BgAlpha = 128;
-	stRgnChnAttr.unChnAttr.stOverlayChn.u32FgAlpha = 128;
+	stRgnChnAttr.unChnAttr.stOverlayChn.u32BgAlpha = 0;
+	stRgnChnAttr.unChnAttr.stOverlayChn.u32FgAlpha = 255;
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32Layer = DRAW_NN_OSD_ID;
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32ColorLUT[RGN_COLOR_LUT_INDEX_0] = BLUE_COLOR;
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32ColorLUT[RGN_COLOR_LUT_INDEX_1] = RED_COLOR;
@@ -1921,8 +1921,8 @@ int rkipc_osd_draw_nn_change() {
 	stRgnChnAttr.enType = OVERLAY_RGN;
 	stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32X = 0;
 	stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32Y = 0;
-	stRgnChnAttr.unChnAttr.stOverlayChn.u32BgAlpha = 128;
-	stRgnChnAttr.unChnAttr.stOverlayChn.u32FgAlpha = 128;
+	stRgnChnAttr.unChnAttr.stOverlayChn.u32BgAlpha = 0;
+	stRgnChnAttr.unChnAttr.stOverlayChn.u32FgAlpha = 255;
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32Layer = DRAW_NN_OSD_ID;
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32ColorLUT[RGN_COLOR_LUT_INDEX_0] = BLUE_COLOR;
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32ColorLUT[RGN_COLOR_LUT_INDEX_1] = RED_COLOR;
