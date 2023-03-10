@@ -936,20 +936,54 @@ int rk_isp_get_distortion_correction(int cam_id, const char **value) {
 int rk_isp_set_distortion_correction(int cam_id, const char *value) {
 	int ret;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
+	const char *old_value = NULL;
+	rk_isp_get_distortion_correction(cam_id, &old_value);
+	LOG_INFO("cam_id is %d, value is %s, old_value is %s\n", cam_id, value, old_value);
+	if (!strcmp(value, old_value)) {
+		return 0;
+	}
+	int enable_jpeg = rk_param_get_int("video.source:enable_jpeg", 1);
+	int enable_venc_0 = rk_param_get_int("video.source:enable_venc_0", 1);
+	int enable_venc_1 = rk_param_get_int("video.source:enable_venc_1", 1);
+	int enable_venc_2 = rk_param_get_int("video.source:enable_venc_2", 1);
+	int enable_vo = rk_param_get_int("video.source:enable_vo", 1);
+	if (enable_venc_0 || enable_jpeg)
+		RK_MPI_VI_PauseChn(0, 0);
+	if (enable_venc_1 || enable_venc_2)
+		RK_MPI_VI_PauseChn(0, 1);
+	if (enable_vo) // TODO: md od npu
+		RK_MPI_VI_PauseChn(0, 2);
+	LOG_INFO("rk_aiq_uapi_sysctl_stop\n");
+	rk_aiq_uapi_sysctl_stop(g_aiq_ctx[cam_id], false);
+	LOG_INFO("rk_aiq_uapi_setFecEn and rk_aiq_uapi_setLdchEn\n");
 	if (!strcmp(value, "close")) {
 		rk_aiq_uapi_setFecEn(g_aiq_ctx[cam_id], false);
 		rk_aiq_uapi_setLdchEn(g_aiq_ctx[cam_id], false);
 	} else if (!strcmp(value, "FEC")) {
 		rk_aiq_uapi_setFecEn(g_aiq_ctx[cam_id], true);
 		rk_aiq_uapi_setLdchEn(g_aiq_ctx[cam_id], false);
-		// rk_aiq_uapi_setFecCorrectLevel(g_aiq_ctx[cam_id], level); // [0-100] ->
-		// [0->255]
 	} else if (!strcmp(value, "LDCH")) {
 		rk_aiq_uapi_setFecEn(g_aiq_ctx[cam_id], false);
 		rk_aiq_uapi_setLdchEn(g_aiq_ctx[cam_id], true);
-		// rk_aiq_uapi_setLdchCorrectLevel(g_aiq_ctx[cam_id], level); // [1, 100] ->
-		// [2 , 255]
 	}
+	if (rk_aiq_uapi_sysctl_prepare(g_aiq_ctx[cam_id], 0, 0, g_WDRMode[cam_id])) {
+		printf("rkaiq engine prepare failed !\n");
+		g_aiq_ctx[cam_id] = NULL;
+		return -1;
+	}
+	LOG_INFO("rk_aiq_uapi_sysctl_init/prepare succeed\n");
+	if (rk_aiq_uapi_sysctl_start(g_aiq_ctx[cam_id])) {
+		printf("rk_aiq_uapi_sysctl_start  failed\n");
+		return -1;
+	}
+	LOG_INFO("rk_aiq_uapi_sysctl_start succeed\n");
+	LOG_INFO("RK_MPI_VI_ResumeChn\n");
+	if (enable_venc_0 || enable_jpeg)
+		RK_MPI_VI_ResumeChn(0, 0);
+	if (enable_venc_1 || enable_venc_2)
+		RK_MPI_VI_ResumeChn(0, 1);
+	if (enable_vo) // TODO: md od npu
+		RK_MPI_VI_ResumeChn(0, 2);
 
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.enhancement:distortion_correction", cam_id);
@@ -1376,6 +1410,17 @@ int rk_isp_init(int cam_id, char *iqfile_path) {
 		mode = RK_AIQ_WORKING_MODE_ISP_HDR3;
 
 	ret = sample_common_isp_init(cam_id, mode, true, g_iq_file_dir_);
+	rk_isp_get_distortion_correction(cam_id, &value);
+	if (!strcmp(value, "close")) {
+		rk_aiq_uapi_setFecEn(g_aiq_ctx[cam_id], false);
+		rk_aiq_uapi_setLdchEn(g_aiq_ctx[cam_id], false);
+	} else if (!strcmp(value, "FEC")) {
+		rk_aiq_uapi_setFecEn(g_aiq_ctx[cam_id], true);
+		rk_aiq_uapi_setLdchEn(g_aiq_ctx[cam_id], false);
+	} else if (!strcmp(value, "LDCH")) {
+		rk_aiq_uapi_setFecEn(g_aiq_ctx[cam_id], false);
+		rk_aiq_uapi_setLdchEn(g_aiq_ctx[cam_id], true);
+	}
 	ret |= sample_common_isp_run(cam_id);
 
 	if (rk_param_get_int("isp:init_form_ini", 1))
