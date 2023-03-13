@@ -658,7 +658,6 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 		for (i = 0; i < devAttr.folder_num; i++) {
 			if (devAttr.folder_attr[i].num_limit == false)
 				continue;
-			pthread_mutex_lock(&pHandle->dev_sta.folder[i].mutex);
 			limit = pHandle->dev_sta.folder[i].file_num;
 			while (limit > devAttr.folder_attr[i].limit) {
 				limit = pHandle->dev_sta.folder[i].file_num;
@@ -667,7 +666,6 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 					        devAttr.folder_attr[i].folder_path,
 					        pHandle->dev_sta.folder[i].file_list_last->filename);
 					LOG_INFO("delete file by num limit: %s\n", file);
-					pthread_mutex_unlock(&pHandle->dev_sta.folder[i].mutex);
 					// when the deletion is too fast,
 					// the other listener thread cannot respond in time,
 					// which will cause duplication twice, so delete it directly here first
@@ -681,7 +679,6 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 					continue;
 				}
 			}
-			pthread_mutex_unlock(&pHandle->dev_sta.folder[i].mutex);
 		}
 
 		if (rkipc_storage_get_disk_size(devAttr.mount_path, &pHandle->dev_sta.total_size,
@@ -709,7 +706,6 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 		for (i = 0; i < devAttr.folder_num; i++) {
 			if (devAttr.folder_attr[i].num_limit == true)
 				continue;
-			pthread_mutex_lock(&pHandle->dev_sta.folder[i].mutex);
 			limit = pHandle->dev_sta.folder[i].total_space * 100 / total_space;
 			// LOG_INFO("pHandle->dev_sta.folder[i].total_space*100 is %lld, total_space is %lld\n",
 			// pHandle->dev_sta.folder[i].total_space*100, total_space); LOG_INFO("limit is %d,
@@ -721,7 +717,6 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 					        devAttr.folder_attr[i].folder_path,
 					        pHandle->dev_sta.folder[i].file_list_last->filename);
 					LOG_INFO("delete file by space limit: %s\n", file);
-					pthread_mutex_unlock(&pHandle->dev_sta.folder[i].mutex);
 					// when the deletion is too fast,
 					// the other listener thread cannot respond in time,
 					// which will cause duplication twice, so delete it directly here first
@@ -735,7 +730,6 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 					continue;
 				}
 			}
-			pthread_mutex_unlock(&pHandle->dev_sta.folder[i].mutex);
 		}
 	}
 
