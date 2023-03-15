@@ -8,7 +8,7 @@
 #include "rockiva.h"
 #include "roi.h"
 #include "rtmp.h"
-#include "rtsp_demo.h"
+#include "rtsp.h"
 #include "storage.h"
 
 #include <rga/im2d.h>

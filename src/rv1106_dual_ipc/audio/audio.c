@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 #include "common.h"
 #include "log.h"
-#include "rtsp_demo.h"
+#include "rtsp.h"
 #include "storage.h"
 
 #include <rk_debug.h>
@@ -26,9 +26,6 @@ static int aenc_chn_id = 0;
 static int g_audio_run_ = 1;
 static int enable_aed, enable_bcd, enable_vqe;
 MPP_CHN_S ai_chn, aenc_chn;
-extern pthread_mutex_t g_rtsp_mutex;
-extern rtsp_demo_handle g_rtsplive;
-extern rtsp_session_handle g_rtsp_session_0, g_rtsp_session_1, g_rtsp_session_2;
 
 static void *ai_get_detect_result(void *arg);
 
@@ -87,20 +84,7 @@ void *save_aenc_thread(void *ptr) {
 				rk_storage_write_audio_frame(1, buffer, pstStream.u32Len, fake_time);
 				rk_storage_write_audio_frame(2, buffer, pstStream.u32Len, fake_time);
 #endif
-				if (g_rtsplive && g_rtsp_session_0) {
-					pthread_mutex_lock(&g_rtsp_mutex);
-					rtsp_tx_audio(g_rtsp_session_0, buffer, pstStream.u32Len,
-					              pstStream.u64TimeStamp);
-					rtsp_do_event(g_rtsplive);
-					pthread_mutex_unlock(&g_rtsp_mutex);
-				}
-				if (g_rtsplive && g_rtsp_session_1) {
-					pthread_mutex_lock(&g_rtsp_mutex);
-					rtsp_tx_audio(g_rtsp_session_1, buffer, pstStream.u32Len,
-					              pstStream.u64TimeStamp);
-					rtsp_do_event(g_rtsplive);
-					pthread_mutex_unlock(&g_rtsp_mutex);
-				}
+				rkipc_rtsp_write_audio_frame(0, buffer, pstStream.u32Len, pstStream.u64TimeStamp);
 				// if (file) {
 				// 	fwrite(buffer, pstStream.u32Len, 1, file);
 				// 	fflush(file);
@@ -388,19 +372,6 @@ int rkipc_aenc_deinit() {
 	return 0;
 }
 
-int rkipc_audio_rtsp_init() {
-	rtsp_set_audio(g_rtsp_session_0, RTSP_CODEC_ID_AUDIO_G711A, NULL, 0);
-	rtsp_set_audio(g_rtsp_session_1, RTSP_CODEC_ID_AUDIO_G711A, NULL, 0);
-	rtsp_sync_audio_ts(g_rtsp_session_0, rtsp_get_reltime(), rtsp_get_ntptime());
-	rtsp_sync_audio_ts(g_rtsp_session_1, rtsp_get_reltime(), rtsp_get_ntptime());
-	rtsp_set_audio_sample_rate(g_rtsp_session_0, rk_param_get_int("audio.0:sample_rate", 16000));
-	rtsp_set_audio_sample_rate(g_rtsp_session_1, rk_param_get_int("audio.0:sample_rate", 16000));
-	rtsp_set_audio_channels(g_rtsp_session_0, rk_param_get_int("audio.0:channels", 2));
-	rtsp_set_audio_channels(g_rtsp_session_1, rk_param_get_int("audio.0:channels", 2));
-
-	return 0;
-}
-
 int rkipc_ao_init() {
 	int ret;
 	AIO_ATTR_S aoAttr;
@@ -511,7 +482,6 @@ int rkipc_audio_init() {
 		LOG_ERROR("RK_MPI_SYS_Bind fail %x\n", ret);
 	}
 	LOG_DEBUG("RK_MPI_SYS_Bind success\n");
-	rkipc_audio_rtsp_init();
 
 	return ret;
 }

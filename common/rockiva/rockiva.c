@@ -392,7 +392,7 @@ int rkipc_rockiva_init() {
 	rockiva_signal = rk_signal_create(0, 1);
 	if (!rockiva_signal) {
 		LOG_ERROR("create signal fail\n");
-		return;
+		return -1;
 	}
 	ROCKIVA_SetFrameReleaseCallback(rkba_handle, rockiva_frame_release_callback);
 

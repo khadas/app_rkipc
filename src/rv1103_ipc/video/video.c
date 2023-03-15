@@ -42,9 +42,6 @@
 #define RTMP_URL_1 "rtmp://127.0.0.1:1935/live/substream"
 #define RTMP_URL_2 "rtmp://127.0.0.1:1935/live/thirdstream"
 
-pthread_mutex_t g_rtsp_mutex = PTHREAD_MUTEX_INITIALIZER;
-rtsp_demo_handle g_rtsplive = NULL;
-rtsp_session_handle g_rtsp_session_0, g_rtsp_session_1;
 static int get_jpeg_cnt = 0;
 static int enable_ivs, enable_jpeg, enable_venc_0, enable_venc_1, enable_rtsp, enable_rtmp;
 static int g_enable_vo, g_vo_dev_id, g_vi_chn_id, enable_npu, enable_wrap, enable_osd;
@@ -135,13 +132,7 @@ static void *rkipc_get_venc_0(void *arg) {
 			// LOG_DEBUG("Count:%d, Len:%d, PTS is %" PRId64", enH264EType is %d\n", loopCount,
 			// stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
 			// stFrame.pstPack->DataType.enH264EType);
-			pthread_mutex_lock(&g_rtsp_mutex);
-			if (g_rtsplive && g_rtsp_session_0) {
-				rtsp_tx_video(g_rtsp_session_0, data, stFrame.pstPack->u32Len,
-				              stFrame.pstPack->u64PTS);
-				rtsp_do_event(g_rtsplive);
-			}
-			pthread_mutex_unlock(&g_rtsp_mutex);
+			rkipc_rtsp_write_video_frame(0, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS);
 			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_IDRSLICE) ||
 			    (stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
 			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_IDRSLICE) ||
@@ -299,13 +290,7 @@ static void *rkipc_get_venc_1(void *arg) {
 			// LOG_INFO("Count:%d, Len:%d, PTS is %" PRId64", enH264EType is %d\n", loopCount,
 			// stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
 			// stFrame.pstPack->DataType.enH264EType);
-			pthread_mutex_lock(&g_rtsp_mutex);
-			if (g_rtsplive && g_rtsp_session_1) {
-				rtsp_tx_video(g_rtsp_session_1, data, stFrame.pstPack->u32Len,
-				              stFrame.pstPack->u64PTS);
-				rtsp_do_event(g_rtsplive);
-			}
-			pthread_mutex_unlock(&g_rtsp_mutex);
+			rkipc_rtsp_write_video_frame(1, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS);
 			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_IDRSLICE) ||
 			    (stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
 			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_IDRSLICE) ||
@@ -553,55 +538,6 @@ static void *rkipc_ivs_get_results(void *arg) {
 		}
 	}
 	return NULL;
-}
-
-int rkipc_rtsp_init() {
-	LOG_DEBUG("start\n");
-	pthread_mutex_lock(&g_rtsp_mutex);
-	g_rtsplive = create_rtsp_demo(554);
-	g_rtsp_session_0 = rtsp_new_session(g_rtsplive, RTSP_URL_0);
-	g_rtsp_session_1 = rtsp_new_session(g_rtsplive, RTSP_URL_1);
-	tmp_output_data_type = rk_param_get_string("video.0:output_data_type", "H.264");
-	if (!strcmp(tmp_output_data_type, "H.264"))
-		rtsp_set_video(g_rtsp_session_0, RTSP_CODEC_ID_VIDEO_H264, NULL, 0);
-	else if (!strcmp(tmp_output_data_type, "H.265"))
-		rtsp_set_video(g_rtsp_session_0, RTSP_CODEC_ID_VIDEO_H265, NULL, 0);
-	else
-		LOG_DEBUG("0 tmp_output_data_type is %s, not support\n", tmp_output_data_type);
-
-	tmp_output_data_type = rk_param_get_string("video.1:output_data_type", "H.264");
-	if (!strcmp(tmp_output_data_type, "H.264"))
-		rtsp_set_video(g_rtsp_session_1, RTSP_CODEC_ID_VIDEO_H264, NULL, 0);
-	else if (!strcmp(tmp_output_data_type, "H.265"))
-		rtsp_set_video(g_rtsp_session_1, RTSP_CODEC_ID_VIDEO_H265, NULL, 0);
-	else
-		LOG_DEBUG("1 tmp_output_data_type is %s, not support\n", tmp_output_data_type);
-
-	rtsp_sync_video_ts(g_rtsp_session_0, rtsp_get_reltime(), rtsp_get_ntptime());
-	rtsp_sync_video_ts(g_rtsp_session_1, rtsp_get_reltime(), rtsp_get_ntptime());
-	pthread_mutex_unlock(&g_rtsp_mutex);
-	LOG_DEBUG("end\n");
-
-	return 0;
-}
-
-int rkipc_rtsp_deinit() {
-	LOG_DEBUG("%s\n", __func__);
-	pthread_mutex_lock(&g_rtsp_mutex);
-	if (g_rtsp_session_0) {
-		rtsp_del_session(g_rtsp_session_0);
-		g_rtsp_session_0 = NULL;
-	}
-	if (g_rtsp_session_1) {
-		rtsp_del_session(g_rtsp_session_1);
-		g_rtsp_session_1 = NULL;
-	}
-	if (g_rtsplive)
-		rtsp_del_demo(g_rtsplive);
-	g_rtsplive = NULL;
-	pthread_mutex_unlock(&g_rtsp_mutex);
-
-	return 0;
 }
 
 int rkipc_rtmp_init() {
@@ -3105,7 +3041,7 @@ int rk_video_init() {
 	g_video_run_ = 1;
 	ret |= rkipc_vi_dev_init();
 	if (enable_rtsp)
-		ret |= rkipc_rtsp_init();
+		ret |= rkipc_rtsp_init(RTSP_URL_0, RTSP_URL_1, NULL);
 	if (enable_rtmp)
 		ret |= rkipc_rtmp_init();
 	if (enable_venc_0)
@@ -3182,8 +3118,6 @@ int rk_video_restart() {
 			ret |= rk_isp_set_from_ini(0);
 	}
 	ret |= rk_video_init();
-	if (rk_param_get_int("audio.0:enable", 0))
-		rkipc_audio_rtsp_init();
 	ret |= rk_storage_init();
 
 	return ret;
