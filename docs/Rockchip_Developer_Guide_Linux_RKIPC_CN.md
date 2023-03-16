@@ -895,7 +895,6 @@ submitOne(groupName: string, isReboot: boolean = false, isAppRestart = false) {
 
 | 函数名称                 | 功能                   |
 | ------------------------ | ---------------------- |
-| rkipc_audio_rtsp_init    | rtsp音频初始化         |
 | rkipc_audio_init         | 音频模块初始化         |
 | rkipc_audio_deinit       | 音频模块反初始化       |
 | rk_audio_restart         | 重启音频模块           |
