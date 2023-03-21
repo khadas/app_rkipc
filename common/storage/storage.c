@@ -1633,18 +1633,18 @@ static void *rk_storage_record(void *arg) {
 		         rk_storage_muxer_group[id].file_format);
 		LOG_INFO("[%d], file_name is %s\n", id, rk_storage_muxer_group[id].file_name);
 		pthread_mutex_lock(&g_rkmuxer_mutex);
-		rk_storage_muxer_group[0].g_record_run_ = 0;
+		rk_storage_muxer_group[id].g_record_run_ = 0;
 		rkmuxer_deinit(id);
 		rkmuxer_init(id, NULL, rk_storage_muxer_group[id].file_name,
 		             &rk_storage_muxer_group[id].g_video_param,
 		             &rk_storage_muxer_group[id].g_audio_param);
-		rk_storage_muxer_group[0].g_record_run_ = 1;
+		rk_storage_muxer_group[id].g_record_run_ = 1;
 		pthread_mutex_unlock(&g_rkmuxer_mutex);
 		rk_signal_wait(rk_storage_muxer_group[id].g_storage_signal,
 		               rk_storage_muxer_group[id].file_duration * 1000);
 	}
 	pthread_mutex_lock(&g_rkmuxer_mutex);
-	rk_storage_muxer_group[0].g_record_run_ = 0;
+	rk_storage_muxer_group[id].g_record_run_ = 0;
 	rkmuxer_deinit(id);
 	pthread_mutex_unlock(&g_rkmuxer_mutex);
 
@@ -1822,7 +1822,7 @@ int rk_storage_write_audio_frame(int id, unsigned char *buffer, unsigned int buf
 }
 
 int rk_storage_record_start() {
-	// only main stream
+	// only main stream, id default is 0
 	LOG_INFO("start\n");
 	time_t t = time(NULL);
 	struct tm tm = *localtime(&t);
@@ -1845,7 +1845,7 @@ int rk_storage_record_start() {
 }
 
 int rk_storage_record_stop() {
-	// only main stream
+	// only main stream, id default is 0
 	LOG_INFO("start\n");
 	pthread_mutex_lock(&g_rkmuxer_mutex);
 	rk_storage_muxer_group[0].g_record_run_ = 0;
