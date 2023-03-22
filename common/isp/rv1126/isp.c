@@ -1404,7 +1404,7 @@ int rk_isp_init(int cam_id, char *iqfile_path) {
 	else if (!strcmp(value, "HDR3"))
 		mode = RK_AIQ_WORKING_MODE_ISP_HDR3;
 
-	ret = sample_common_isp_init(cam_id, mode, true, g_iq_file_dir_);
+	ret = sample_common_isp_init(cam_id, mode, false, g_iq_file_dir_);
 	rk_isp_get_distortion_correction(cam_id, &value);
 	if (!strcmp(value, "close")) {
 		rk_aiq_uapi_setFecEn(g_aiq_ctx[cam_id], false);
