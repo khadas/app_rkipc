@@ -286,6 +286,7 @@ static void *rkipc_get_jpeg(void *arg) {
 			LOG_ERROR("RK_MPI_VENC_GetStream timeout %x\n", ret);
 		}
 		// usleep(33 * 1000);
+		take_photo_one = 0;
 	}
 	if (stFrame.pstPack)
 		free(stFrame.pstPack);
