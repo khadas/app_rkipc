@@ -247,7 +247,7 @@ int rk_isp_set_contrast(int cam_id, int value) {
 	acp_attrib_t attrib;
 	ret = rk_aiq_user_api2_acp_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
 	attrib.contrast = value * 2.55; // value[0,255]
-	ret |= rk_aiq_user_api2_acp_SetAttrib(rkipc_aiq_get_ctx(cam_id), attrib);
+	ret |= rk_aiq_user_api2_acp_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
 	snprintf(entry, 127, "isp.%d.adjustment:contrast", cam_id);
 	rk_param_set_int(entry, value);
 
@@ -270,7 +270,7 @@ int rk_isp_set_brightness(int cam_id, int value) {
 	acp_attrib_t attrib;
 	ret = rk_aiq_user_api2_acp_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
 	attrib.brightness = value * 2.55; // value[0,255]
-	ret |= rk_aiq_user_api2_acp_SetAttrib(rkipc_aiq_get_ctx(cam_id), attrib);
+	ret |= rk_aiq_user_api2_acp_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
 	snprintf(entry, 127, "isp.%d.adjustment:brightness", cam_id);
 	rk_param_set_int(entry, value);
 
@@ -293,7 +293,7 @@ int rk_isp_set_saturation(int cam_id, int value) {
 	acp_attrib_t attrib;
 	ret = rk_aiq_user_api2_acp_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
 	attrib.saturation = value * 2.55; // value[0,255]
-	ret |= rk_aiq_user_api2_acp_SetAttrib(rkipc_aiq_get_ctx(cam_id), attrib);
+	ret |= rk_aiq_user_api2_acp_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
 	snprintf(entry, 127, "isp.%d.adjustment:saturation", cam_id);
 	rk_param_set_int(entry, value);
 
@@ -341,7 +341,7 @@ int rk_isp_set_hue(int cam_id, int value) {
 	acp_attrib_t attrib;
 	ret = rk_aiq_user_api2_acp_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
 	attrib.hue = value * 2.55; // value[0,255]
-	ret |= rk_aiq_user_api2_acp_SetAttrib(rkipc_aiq_get_ctx(cam_id), attrib);
+	ret |= rk_aiq_user_api2_acp_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
 	snprintf(entry, 127, "isp.%d.adjustment:hue", cam_id);
 	rk_param_set_int(entry, value);
 
@@ -490,7 +490,7 @@ int rk_isp_set_night_to_day(int cam_id, const char *value) {
 		attr.mode = RK_AIQ_IE_EFFECT_BW;
 	else
 		attr.mode = RK_AIQ_IE_EFFECT_NONE;
-	rk_aiq_user_api2_aie_SetAttrib(rkipc_aiq_get_ctx(cam_id), attr);
+	rk_aiq_user_api2_aie_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.night_to_day:night_to_day", cam_id);
 	rk_param_set_string(entry, value);
@@ -1047,7 +1047,7 @@ int rk_isp_set_gray_scale_mode(int cam_id, const char *value) {
 		attr.param.full_range = false;
 	else
 		attr.param.full_range = true;
-	rk_aiq_user_api2_acsm_SetAttrib(rkipc_aiq_get_ctx(cam_id), attr);
+	rk_aiq_user_api2_acsm_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	snprintf(entry, 127, "isp.%d.enhancement:gray_scale_mode", cam_id);
 	rk_param_set_string(entry, value);
 
@@ -1072,7 +1072,7 @@ int rk_isp_set_distortion_correction(int cam_id, const char *value) {
 		ldchAttr.en = false;
 	else
 		ldchAttr.en = true;
-	ret = rk_aiq_user_api2_aldch_SetAttrib(rkipc_aiq_get_ctx(cam_id), ldchAttr);
+	ret = rk_aiq_user_api2_aldch_SetAttrib(rkipc_aiq_get_ctx(cam_id), &ldchAttr);
 
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.enhancement:distortion_correction", cam_id);
@@ -1223,7 +1223,7 @@ int rk_isp_set_ldch_level(int cam_id, int value) {
 	value = value < 0 ? 0 : value;
 	ret = rk_aiq_user_api2_aldch_GetAttrib(rkipc_aiq_get_ctx(cam_id), &ldchAttr);
 	ldchAttr.correct_level = (int)(value * 2.53 + 2); // [0, 100] -> [2 , 255]
-	ret = rk_aiq_user_api2_aldch_SetAttrib(rkipc_aiq_get_ctx(cam_id), ldchAttr);
+	ret = rk_aiq_user_api2_aldch_SetAttrib(rkipc_aiq_get_ctx(cam_id), &ldchAttr);
 
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.enhancement:ldch_level", cam_id);
