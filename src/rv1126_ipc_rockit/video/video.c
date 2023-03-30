@@ -1647,7 +1647,8 @@ int rkipc_osd_draw_nn_init() {
 	stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32Y = 0;
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32BgAlpha = 128;
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32FgAlpha = 128;
-	stRgnChnAttr.unChnAttr.stOverlayChn.u32Layer = DRAW_NN_OSD_ID;
+	// 1126 osd alpha not support multi layer, so use layer 0 to draw nn
+	stRgnChnAttr.unChnAttr.stOverlayChn.u32Layer = 0;
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32ColorLUT[RGN_COLOR_LUT_INDEX_0] = BLUE_COLOR;
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32ColorLUT[RGN_COLOR_LUT_INDEX_1] = RED_COLOR;
 	stMppChn.enModId = RK_ID_VENC;
@@ -1728,7 +1729,8 @@ int rkipc_osd_draw_nn_change() {
 	stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32Y = 0;
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32BgAlpha = 128;
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32FgAlpha = 128;
-	stRgnChnAttr.unChnAttr.stOverlayChn.u32Layer = DRAW_NN_OSD_ID;
+	// 1126 osd alpha not support multi layer, so use layer 0 to draw nn
+	stRgnChnAttr.unChnAttr.stOverlayChn.u32Layer = 0;
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32ColorLUT[RGN_COLOR_LUT_INDEX_0] = BLUE_COLOR;
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32ColorLUT[RGN_COLOR_LUT_INDEX_1] = RED_COLOR;
 	ret = RK_MPI_RGN_AttachToChn(RgnHandle, &stMppChn, &stRgnChnAttr);
@@ -2206,7 +2208,8 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 	stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width = osd_data->width;
 	stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height = osd_data->height;
 	stCoverChnAttr.unChnAttr.stCoverChn.u32Color = 0xffffff;
-	stCoverChnAttr.unChnAttr.stCoverChn.u32Layer = id;
+	// 1126 osd alpha not support multi layer, so use layer 6 and 7 to draw cover
+	stCoverChnAttr.unChnAttr.stCoverChn.u32Layer = id + 3; // 4 5 → 6 7
 	LOG_INFO("cover region to chn success\n");
 	if (enable_venc_0) {
 		stCoverChn.s32ChnId = 0;
@@ -2334,7 +2337,10 @@ int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 	stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32Y = osd_data->origin_y;
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32BgAlpha = 128;
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32FgAlpha = 128;
-	stRgnChnAttr.unChnAttr.stOverlayChn.u32Layer = id;
+	// 1126 osd alpha not support multi layer, so use layer 0 to draw nn
+	stRgnChnAttr.unChnAttr.stOverlayChn.u32Layer = id + 1; // 0 1 2 3 6 → 1 2 3 4 5
+	if (id == 6)
+		stRgnChnAttr.unChnAttr.stOverlayChn.u32Layer = 5; // make sure cover layer is higher
 	stMppChn.enModId = RK_ID_VENC;
 	stMppChn.s32DevId = 0;
 	if (enable_venc_0) {
