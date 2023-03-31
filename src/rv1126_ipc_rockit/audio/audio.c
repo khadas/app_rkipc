@@ -104,12 +104,16 @@ int rkipc_ai_init() {
 	int ret;
 	AUDIO_DEV aiDevId = ai_dev_id;
 	AIO_ATTR_S aiAttr;
-	memset(&aiAttr, 0, sizeof(AIO_ATTR_S));
+	char period_size_str[16];
+	int period_size = rk_param_get_int("audio.0:rt_audio_period_size", 1024);
+	snprintf(period_size_str, sizeof(period_size_str), "%d", period_size);
+	setenv("rt_audio_period_size", period_size_str, 1);
 
+	memset(&aiAttr, 0, sizeof(AIO_ATTR_S));
 	const char *card_name = rk_param_get_string("audio.0:card_name", "default");
 	snprintf(aiAttr.u8CardName, sizeof(aiAttr.u8CardName), "%s", card_name);
 	LOG_INFO("aiAttr.u8CardName is %s\n", aiAttr.u8CardName);
-	aiAttr.soundCard.channels = rk_param_get_int("audio.0:channels", 2);
+	aiAttr.soundCard.channels = 2;
 	aiAttr.soundCard.sampleRate = rk_param_get_int("audio.0:sample_rate", 16000);
 	const char *format = rk_param_get_string("audio.0:format", NULL);
 	if (!strcmp(format, "S16")) {
@@ -122,14 +126,14 @@ int rkipc_ai_init() {
 		LOG_ERROR("not support %s\n", format);
 	}
 	aiAttr.enSamplerate = rk_param_get_int("audio.0:sample_rate", 16000);
-	if (aiAttr.soundCard.channels == 2)
-		aiAttr.enSoundmode = AUDIO_SOUND_MODE_STEREO;
-	else
-		aiAttr.enSoundmode = AUDIO_SOUND_MODE_MONO;
 	aiAttr.u32FrmNum = 4;
 	aiAttr.u32PtNumPerFrm = rk_param_get_int("audio.0:frame_size", 1024);
 	aiAttr.u32EXFlag = 0;
-	aiAttr.u32ChnCnt = rk_param_get_int("audio.0:channels", 2);
+	aiAttr.u32ChnCnt = 2;
+	if (rk_param_get_int("audio.0:channels", 2) == 2)
+		aiAttr.enSoundmode = AUDIO_SOUND_MODE_STEREO;
+	else
+		aiAttr.enSoundmode = AUDIO_SOUND_MODE_MONO;
 
 	ret = RK_MPI_AI_SetPubAttr(ai_dev_id, &aiAttr);
 	if (ret != 0) {
@@ -155,6 +159,11 @@ int rkipc_ai_init() {
 	//     LOG_ERROR("ai enable resample fail, reason = %x, aoChn = %d\n", ret, ai_chn_id);
 	//     return RK_FAILURE;
 	// }
+
+	RK_MPI_AI_SetVolume(ai_dev_id, rk_param_get_int("audio.0:volume", 50));
+	if (rk_param_get_int("audio.0:channels", 2) == 1) {
+		RK_MPI_AI_SetTrackMode(ai_dev_id, AUDIO_TRACK_FRONT_LEFT);
+	}
 
 	// pthread_create(&save_ai_tid, RK_NULL, save_ai_thread, NULL);
 
@@ -187,6 +196,9 @@ int rkipc_aenc_init() {
 	if (!strcmp(encode_type, "MP2")) {
 		stAencAttr.enType = RK_AUDIO_ID_MP2;
 		stAencAttr.stCodecAttr.enType = RK_AUDIO_ID_MP2;
+	} else if (!strcmp(encode_type, "G711A")) {
+		stAencAttr.enType = RK_AUDIO_ID_PCM_ALAW;
+		stAencAttr.stCodecAttr.enType = RK_AUDIO_ID_PCM_ALAW;
 	} else {
 		LOG_ERROR("not support %s\n", encode_type);
 	}
