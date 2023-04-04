@@ -18,10 +18,8 @@
 #define MAX_SCENARIO_NUM 2
 #define MAX_AIQ_CTX 8
 
-#define MAP_SIZE (4096UL * 50)              // MAP_SIZE = 4 * 50 K
-#define MAP_MASK (MAP_SIZE - 1)             // MAP_MASK = 0XFFF
-#define MAP_SIZE_NIGHT (4096UL)             // MAP_SIZE = 4K
-#define MAP_MASK_NIGHT (MAP_SIZE_NIGHT - 1) // MAP_MASK = 0XFFF
+#define MAP_MASK (sysconf(_SC_PAGE_SIZE) - 1)
+#define MAP_SIZE_COLOR_MODE (sizeof(int32_t))
 
 char g_iq_file_dir_[256];
 char main_scene[32];
@@ -1685,16 +1683,21 @@ int rk_isp_fastboot_init(int cam_id) {
 		return -1;
 	}
 
-	mem = mmap(0, MAP_SIZE_NIGHT, PROT_READ | PROT_WRITE, MAP_SHARED, fastboot_fd,
-	           rk_color_mode_addr & ~MAP_MASK_NIGHT);
-	vir_addr = mem + (rk_color_mode_addr & MAP_MASK_NIGHT);
+	mem = mmap(0, MAP_SIZE_COLOR_MODE, PROT_READ | PROT_WRITE, MAP_SHARED, fastboot_fd,
+	           rk_color_mode_addr & ~(MAP_MASK));
+	vir_addr = mem + (rk_color_mode_addr & (MAP_MASK));
 	rk_color_mode = *((unsigned long *)vir_addr);
 	if (mem != MAP_FAILED)
-		munmap(mem, MAP_SIZE_NIGHT);
+		munmap(mem, MAP_SIZE_COLOR_MODE);
 	addr_iq = (off_t)get_cmd_val("rk_iqbin_addr", 16);
 	file_size = (int)get_cmd_val("rk_iqbin_size", 16);
 	iq_mem =
-	    mmap(0, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fastboot_fd, addr_iq & ~MAP_MASK);
+	    mmap(0, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fastboot_fd, addr_iq & ~(MAP_MASK));
+	if (iq_mem != MAP_FAILED) {
+		printf ( "mmap iq ok\n" );
+	} else {
+		printf ( "mmap iq failed\n" );
+	}
 	vir_iqaddr = iq_mem + (addr_iq & MAP_MASK);
 
 	rk_aiq_static_info_t aiq_static_info;
@@ -1724,8 +1727,18 @@ int rk_isp_fastboot_init(int cam_id) {
 		LOG_ERROR("%s: failed to load binary iqfiles\n", aiq_static_info.sensor_info.sensor_name);
 	}
 
+	rk_aiq_tb_info_t tb_info;
+	tb_info.magic = sizeof(rk_aiq_tb_info_t) - 2;
+	tb_info.is_pre_aiq = false;
+	tb_info.prd_type = RK_AIQ_PRD_TYPE_TB_BATIPC;
+	rk_aiq_uapi2_sysctl_preInit_tb_info(aiq_static_info.sensor_info.sensor_name,
+	                                    &tb_info);
 	g_aiq_ctx[cam_id] = rk_aiq_uapi2_sysctl_init(aiq_static_info.sensor_info.sensor_name,
 	                                             "/etc/iqfiles/", NULL, NULL);
+	if (g_aiq_ctx[cam_id] == NULL) {
+		LOG_ERROR("%s: failed to init aiq\n", aiq_static_info.sensor_info.sensor_name);
+		return -1;
+	}
 
 	if (rk_aiq_uapi2_sysctl_prepare(g_aiq_ctx[cam_id], 0, 0, hdr_mode)) {
 		LOG_ERROR("rkaiq engine prepare failed !\n");
