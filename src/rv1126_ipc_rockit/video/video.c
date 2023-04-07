@@ -493,7 +493,7 @@ int rkipc_pipe_0_init() {
 	// VI init
 	VI_CHN_ATTR_S vi_chn_attr;
 	memset(&vi_chn_attr, 0, sizeof(vi_chn_attr));
-	vi_chn_attr.stIspOpt.u32BufCount = 2;
+	vi_chn_attr.stIspOpt.u32BufCount = 4;
 	vi_chn_attr.stIspOpt.enMemoryType = VI_V4L2_MEMORY_TYPE_DMABUF;
 	vi_chn_attr.stSize.u32Width = video_width;
 	vi_chn_attr.stSize.u32Height = video_height;
@@ -749,7 +749,7 @@ int rkipc_pipe_1_init() {
 	// VI init
 	VI_CHN_ATTR_S vi_chn_attr;
 	memset(&vi_chn_attr, 0, sizeof(vi_chn_attr));
-	vi_chn_attr.stIspOpt.u32BufCount = 2;
+	vi_chn_attr.stIspOpt.u32BufCount = 4;
 	vi_chn_attr.stIspOpt.enMemoryType = VI_V4L2_MEMORY_TYPE_DMABUF;
 	vi_chn_attr.stSize.u32Width = video_width;
 	vi_chn_attr.stSize.u32Height = video_height;
@@ -1423,7 +1423,7 @@ int rkipc_pipe_2_init() {
 	// VI init
 	VI_CHN_ATTR_S vi_chn_attr;
 	memset(&vi_chn_attr, 0, sizeof(vi_chn_attr));
-	vi_chn_attr.stIspOpt.u32BufCount = 2;
+	vi_chn_attr.stIspOpt.u32BufCount = 4;
 	vi_chn_attr.stIspOpt.enMemoryType = VI_V4L2_MEMORY_TYPE_DMABUF;
 	vi_chn_attr.stSize.u32Width = 640;
 	vi_chn_attr.stSize.u32Height = 480;

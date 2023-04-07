@@ -26,6 +26,7 @@ static rk_aiq_sys_ctx_t *g_aiq_ctx[MAX_AIQ_CTX];
 // static rk_aiq_camgroup_ctx_t *g_camera_group_ctx[MAX_AIQ_CTX];
 rk_aiq_working_mode_t g_WDRMode[MAX_AIQ_CTX];
 rk_aiq_wb_gain_t gs_wb_gain = {2.083900, 1.000000, 1.000000, 2.018500};
+rk_aiq_working_mode_t g_aiq_mode = RK_AIQ_WORKING_MODE_NORMAL;
 
 #define RK_ISP_CHECK_CAMERA_ID(CAMERA_ID)                                                          \
 	do {                                                                                           \
@@ -50,12 +51,12 @@ int rkipc_get_scenario_id(int cam_id) {
 int sample_common_isp_init(int cam_id, rk_aiq_working_mode_t WDRMode, bool MultiCam,
                            const char *iq_file_dir) {
 	if (cam_id >= MAX_AIQ_CTX) {
-		printf("%s : cam_id is over 3\n", __FUNCTION__);
+		LOG_ERROR("%s : cam_id is over 3\n", __FUNCTION__);
 		return -1;
 	}
 	setlinebuf(stdout);
 	if (iq_file_dir == NULL) {
-		printf("rk_isp_init : not start.\n");
+		LOG_ERROR("rk_isp_init : not start.\n");
 		g_aiq_ctx[cam_id] = NULL;
 		return 0;
 	}
@@ -70,7 +71,7 @@ int sample_common_isp_init(int cam_id, rk_aiq_working_mode_t WDRMode, bool Multi
 	rk_aiq_static_info_t aiq_static_info;
 	rk_aiq_uapi_sysctl_enumStaticMetas(cam_id, &aiq_static_info);
 
-	printf("ID: %d, sensor_name is %s, iq_file_dir is %s\n", cam_id,
+	LOG_INFO("ID: %d, sensor_name is %s, iq_file_dir is %s\n", cam_id,
 	       aiq_static_info.sensor_info.sensor_name, iq_file_dir);
 
 	aiq_ctx =
@@ -86,26 +87,26 @@ int sample_common_isp_init(int cam_id, rk_aiq_working_mode_t WDRMode, bool Multi
 int sample_common_isp_run(int cam_id) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	if (rk_aiq_uapi_sysctl_prepare(g_aiq_ctx[cam_id], 0, 0, g_WDRMode[cam_id])) {
-		printf("rkaiq engine prepare failed !\n");
+		LOG_ERROR("rkaiq engine prepare failed !\n");
 		g_aiq_ctx[cam_id] = NULL;
 		return -1;
 	}
-	printf("rk_aiq_uapi_sysctl_init/prepare succeed\n");
+	LOG_INFO("rk_aiq_uapi_sysctl_init/prepare succeed\n");
 	if (rk_aiq_uapi_sysctl_start(g_aiq_ctx[cam_id])) {
-		printf("rk_aiq_uapi_sysctl_start  failed\n");
+		LOG_ERROR("rk_aiq_uapi_sysctl_start  failed\n");
 		return -1;
 	}
-	printf("rk_aiq_uapi_sysctl_start succeed\n");
+	LOG_INFO("rk_aiq_uapi_sysctl_start succeed\n");
 	return 0;
 }
 
 int sample_common_isp_stop(int cam_id) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	printf("rk_aiq_uapi_sysctl_stop enter\n");
+	LOG_INFO("rk_aiq_uapi_sysctl_stop enter\n");
 	rk_aiq_uapi_sysctl_stop(g_aiq_ctx[cam_id], false);
-	printf("rk_aiq_uapi_sysctl_deinit enter\n");
+	LOG_INFO("rk_aiq_uapi_sysctl_deinit enter\n");
 	rk_aiq_uapi_sysctl_deinit(g_aiq_ctx[cam_id]);
-	printf("rk_aiq_uapi_sysctl_deinit exit\n");
+	LOG_INFO("rk_aiq_uapi_sysctl_deinit exit\n");
 	g_aiq_ctx[cam_id] = NULL;
 	return 0;
 }
@@ -934,27 +935,40 @@ int rk_isp_set_distortion_correction(int cam_id, const char *value) {
 		RK_MPI_VI_PauseChn(0, 1);
 	if (enable_vo) // TODO: md od npu
 		RK_MPI_VI_PauseChn(0, 2);
-	LOG_INFO("rk_aiq_uapi_sysctl_stop\n");
+	LOG_INFO("RK_MPI_VI_PauseChn over\n");
 	rk_aiq_uapi_sysctl_stop(g_aiq_ctx[cam_id], false);
-	LOG_INFO("rk_aiq_uapi_setFecEn and rk_aiq_uapi_setLdchEn\n");
+	LOG_INFO("rk_aiq_uapi_sysctl_stop over\n");
+	rk_aiq_uapi_sysctl_deinit(g_aiq_ctx[cam_id]);
+	LOG_INFO("rk_aiq_uapi_sysctl_deinit exit\n");
+	g_aiq_ctx[cam_id] = NULL;
+	sample_common_isp_init(cam_id, g_aiq_mode, false, g_iq_file_dir_);
+
 	if (!strcmp(value, "close")) {
 		rk_aiq_uapi_setFecEn(g_aiq_ctx[cam_id], false);
 		rk_aiq_uapi_setLdchEn(g_aiq_ctx[cam_id], false);
+		rk_aiq_user_api_ais_SetEnable(g_aiq_ctx[cam_id], false);
 	} else if (!strcmp(value, "FEC")) {
 		rk_aiq_uapi_setFecEn(g_aiq_ctx[cam_id], true);
 		rk_aiq_uapi_setLdchEn(g_aiq_ctx[cam_id], false);
+		rk_aiq_user_api_ais_SetEnable(g_aiq_ctx[cam_id], false);
 	} else if (!strcmp(value, "LDCH")) {
 		rk_aiq_uapi_setFecEn(g_aiq_ctx[cam_id], false);
 		rk_aiq_uapi_setLdchEn(g_aiq_ctx[cam_id], true);
+		rk_aiq_user_api_ais_SetEnable(g_aiq_ctx[cam_id], false);
+	} else if (!strcmp(value, "DIS")) {
+		rk_aiq_uapi_setFecEn(g_aiq_ctx[cam_id], false);
+		rk_aiq_uapi_setLdchEn(g_aiq_ctx[cam_id], false);
+		rk_aiq_user_api_ais_SetEnable(g_aiq_ctx[cam_id], true);
 	}
+
 	if (rk_aiq_uapi_sysctl_prepare(g_aiq_ctx[cam_id], 0, 0, g_WDRMode[cam_id])) {
-		printf("rkaiq engine prepare failed !\n");
+		LOG_ERROR("rk_aiq_uapi_sysctl_prepare failed !\n");
 		g_aiq_ctx[cam_id] = NULL;
 		return -1;
 	}
-	LOG_INFO("rk_aiq_uapi_sysctl_init/prepare succeed\n");
+	LOG_INFO("rk_aiq_uapi_sysctl_prepare succeed\n");
 	if (rk_aiq_uapi_sysctl_start(g_aiq_ctx[cam_id])) {
-		printf("rk_aiq_uapi_sysctl_start  failed\n");
+		LOG_ERROR("rk_aiq_uapi_sysctl_start failed\n");
 		return -1;
 	}
 	LOG_INFO("rk_aiq_uapi_sysctl_start succeed\n");
@@ -1387,7 +1401,6 @@ int rk_isp_init(int cam_id, char *iqfile_path) {
 	LOG_INFO("%s, cam_id is %d\n", __func__, cam_id);
 	int ret;
 	char entry[128] = {'\0'};
-	rk_aiq_working_mode_t mode = RK_AIQ_WORKING_MODE_NORMAL;
 	if (iqfile_path)
 		memcpy(g_iq_file_dir_, iqfile_path, strlen(iqfile_path));
 	else
@@ -1398,24 +1411,32 @@ int rk_isp_init(int cam_id, char *iqfile_path) {
 	const char *value = rk_param_get_string(entry, "close");
 	LOG_INFO("hdr mode is %s\n", value);
 	if (!strcmp(value, "close"))
-		mode = RK_AIQ_WORKING_MODE_NORMAL;
+		g_aiq_mode = RK_AIQ_WORKING_MODE_NORMAL;
 	else if (!strcmp(value, "HDR2"))
-		mode = RK_AIQ_WORKING_MODE_ISP_HDR2;
+		g_aiq_mode = RK_AIQ_WORKING_MODE_ISP_HDR2;
 	else if (!strcmp(value, "HDR3"))
-		mode = RK_AIQ_WORKING_MODE_ISP_HDR3;
+		g_aiq_mode = RK_AIQ_WORKING_MODE_ISP_HDR3;
 
-	ret = sample_common_isp_init(cam_id, mode, false, g_iq_file_dir_);
+	ret = sample_common_isp_init(cam_id, g_aiq_mode, false, g_iq_file_dir_);
 	rk_isp_get_distortion_correction(cam_id, &value);
 	if (!strcmp(value, "close")) {
 		rk_aiq_uapi_setFecEn(g_aiq_ctx[cam_id], false);
 		rk_aiq_uapi_setLdchEn(g_aiq_ctx[cam_id], false);
+		rk_aiq_user_api_ais_SetEnable(g_aiq_ctx[cam_id], false);
 	} else if (!strcmp(value, "FEC")) {
 		rk_aiq_uapi_setFecEn(g_aiq_ctx[cam_id], true);
 		rk_aiq_uapi_setLdchEn(g_aiq_ctx[cam_id], false);
+		rk_aiq_user_api_ais_SetEnable(g_aiq_ctx[cam_id], false);
 	} else if (!strcmp(value, "LDCH")) {
 		rk_aiq_uapi_setFecEn(g_aiq_ctx[cam_id], false);
 		rk_aiq_uapi_setLdchEn(g_aiq_ctx[cam_id], true);
+		rk_aiq_user_api_ais_SetEnable(g_aiq_ctx[cam_id], false);
+	} else if (!strcmp(value, "DIS")) {
+		rk_aiq_uapi_setFecEn(g_aiq_ctx[cam_id], false);
+		rk_aiq_uapi_setLdchEn(g_aiq_ctx[cam_id], false);
+		rk_aiq_user_api_ais_SetEnable(g_aiq_ctx[cam_id], true);
 	}
+
 	ret |= sample_common_isp_run(cam_id);
 
 	if (rk_param_get_int("isp:init_form_ini", 1))
