@@ -160,10 +160,8 @@ int main(int argc, char **argv) {
 	if (rk_param_get_int("video.source:enable_npu", 0))
 		rkipc_rockiva_init();
 	if (rk_param_get_int("isp:group_mode", 1)) {
-		// rk_isp_group_init(0, rkipc_iq_file_path_);
-		// rk_isp_set_frame_rate(0, rk_param_get_int("isp.0.adjustment:fps", 30));
-		// if (rk_param_get_int("isp:group_ldch", 1))
-		// 	rk_isp_set_group_ldch_level_form_file(0);
+		rk_isp_group_init(0, rkipc_iq_file_path_);
+		rk_isp_set_frame_rate(0, rk_param_get_int("isp.0.adjustment:fps", 30));
 	} else {
 		rk_isp_init(0, rkipc_iq_file_path_);
 		rk_isp_init(1, rkipc_iq_file_path_);
@@ -189,8 +187,11 @@ int main(int argc, char **argv) {
 	rkipc_server_deinit();
 	rk_system_deinit();
 	rk_video_deinit();
-	if (rk_param_get_int("video.source:enable_aiq", 1))
+	if (rk_param_get_int("isp:group_mode", 1)) {
+		rk_isp_group_deinit(0);
+	} else {
 		rk_isp_deinit(0);
+	}
 	if (rk_param_get_int("audio.0:enable", 0))
 		rkipc_audio_deinit();
 	RK_MPI_SYS_Exit();
