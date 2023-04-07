@@ -2209,7 +2209,7 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 	stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height = osd_data->height;
 	stCoverChnAttr.unChnAttr.stCoverChn.u32Color = 0xffffff;
 	// 1126 osd alpha not support multi layer, so use layer 6 and 7 to draw cover
-	stCoverChnAttr.unChnAttr.stCoverChn.u32Layer = id + 3; // 4 5 → 6 7
+	stCoverChnAttr.unChnAttr.stCoverChn.u32Layer = id + 2; // 4 5 → 6 7
 	LOG_INFO("cover region to chn success\n");
 	if (enable_venc_0) {
 		stCoverChn.s32ChnId = 0;
