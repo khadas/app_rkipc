@@ -1867,7 +1867,15 @@ int rk_video_set_output_data_type(int stream_id, const char *value) {
 	const char *rc_mode;
 	int ret;
 	rc_mode = rk_param_get_string("video.0:rc_mode", NULL);
+	snprintf(entry, 127, "video.%d:output_data_type", stream_id);
+	rk_param_set_string(entry, value);
+
 	if (stream_id == 0) {
+		rk_storage_deinit();
+		rk_video_deinit();
+		if (rk_param_get_int("video.source:enable_aiq", 1))
+			rk_isp_fastboot_deinit(0);
+
 		vi_chn.enModId = RK_ID_VI;
 		vi_chn.s32DevId = 0;
 		vi_chn.s32ChnId = stream_id;
@@ -1907,10 +1915,14 @@ int rk_video_set_output_data_type(int stream_id, const char *value) {
 		ret = RK_MPI_SYS_Bind(&vi_chn, &venc_chn);
 		if (ret)
 			LOG_ERROR("bind VI and VENC error! ret=%#x\n", ret);
+
+		if (rk_param_get_int("video.source:enable_aiq", 1))
+			rk_isp_fastboot_init(0);
+		rk_video_init();
+		rk_storage_init();
+	} else {
+		rk_video_restart();
 	}
-	snprintf(entry, 127, "video.%d:output_data_type", stream_id);
-	rk_param_set_string(entry, value);
-	rk_video_restart();
 
 	return 0;
 }
