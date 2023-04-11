@@ -151,7 +151,7 @@ graph LR
 	VENC_0--combo-->VENC_JPEG
 	VI_1--bind-->VENC_1_and_OSD_draw_NN_result-->RTSP_RTMP_1
 	VI_2--get and sned-->NPU
-	VI_2--bind-->IVS_for_OD_MD
+	VI_3--bind-->IVS_for_OD_MD
 ```
 
 ### RV1106 Battery IPC Tuya

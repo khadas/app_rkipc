@@ -1694,9 +1694,9 @@ int rk_isp_fastboot_init(int cam_id) {
 	iq_mem =
 	    mmap(0, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fastboot_fd, addr_iq & ~(MAP_MASK));
 	if (iq_mem != MAP_FAILED) {
-		printf ( "mmap iq ok\n" );
+		printf("mmap iq ok\n");
 	} else {
-		printf ( "mmap iq failed\n" );
+		printf("mmap iq failed\n");
 	}
 	vir_iqaddr = iq_mem + (addr_iq & MAP_MASK);
 
@@ -1731,8 +1731,7 @@ int rk_isp_fastboot_init(int cam_id) {
 	tb_info.magic = sizeof(rk_aiq_tb_info_t) - 2;
 	tb_info.is_pre_aiq = false;
 	tb_info.prd_type = RK_AIQ_PRD_TYPE_TB_BATIPC;
-	rk_aiq_uapi2_sysctl_preInit_tb_info(aiq_static_info.sensor_info.sensor_name,
-	                                    &tb_info);
+	rk_aiq_uapi2_sysctl_preInit_tb_info(aiq_static_info.sensor_info.sensor_name, &tb_info);
 	g_aiq_ctx[cam_id] = rk_aiq_uapi2_sysctl_init(aiq_static_info.sensor_info.sensor_name,
 	                                             "/etc/iqfiles/", NULL, NULL);
 	if (g_aiq_ctx[cam_id] == NULL) {

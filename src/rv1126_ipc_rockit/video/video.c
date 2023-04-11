@@ -41,6 +41,8 @@
 #define RTMP_URL_1 "rtmp://127.0.0.1:1935/live/substream"
 #define RTMP_URL_2 "rtmp://127.0.0.1:1935/live/thirdstream"
 
+#define DRAW_NN_USE_VENC 0
+
 static int take_photo_one = 0;
 static int enable_jpeg, enable_venc_0, enable_venc_1, enable_venc_2, enable_npu;
 static int g_enable_vo, g_vo_dev_id;
@@ -55,7 +57,7 @@ static const char *tmp_smart;
 static const char *tmp_gop_mode;
 static const char *tmp_rc_quality;
 static pthread_t venc_thread_0, venc_thread_1, venc_thread_2, jpeg_venc_thread_id,
-    get_vi_2_send_thread, get_nn_update_osd_thread_id;
+    get_vi_0_send_thread, get_vi_2_send_thread, get_nn_update_osd_thread_id;
 
 static MPP_CHN_S vi_chn[3], vpss_chn[3], vo_chn, vpss_out_chn[4], venc_chn[4];
 static VO_DEV VoLayer = RV1126_VOP_LAYER_CLUSTER0;
@@ -361,6 +363,125 @@ int rkipc_vi_dev_deinit() {
 	return 0;
 }
 
+RK_S32 draw_rect_nv12(int fd, RK_U32 width, RK_U32 height, int rgn_x, int rgn_y, int rgn_w,
+                      int rgn_h, int line_pixel, COLOR_INDEX_E color_index) {
+	RK_U32 color = 0;
+	if (color_index == RGN_COLOR_LUT_INDEX_0)
+		color = 0xff0000ff;
+	if (color_index == RGN_COLOR_LUT_INDEX_1)
+		color = 0xffff0000;
+	// LOG_INFO("YUV %dx%d, rgn (%d,%d,%d,%d), line pixel %d\n", width, height, rgn_x, rgn_y, rgn_w,
+	//          rgn_h, line_pixel);
+	rga_buffer_t rga_buffer =
+	    wrapbuffer_fd_t(fd, width, height, width, height, RK_FORMAT_YCbCr_420_SP);
+	im_rect rect_up = {rgn_x, rgn_y, rgn_w, line_pixel};
+	im_rect rect_buttom = {rgn_x, rgn_y + rgn_h - line_pixel, rgn_w, line_pixel};
+	im_rect rect_left = {rgn_x, rgn_y, line_pixel, rgn_h};
+	im_rect rect_right = {rgn_x + rgn_w - line_pixel, rgn_y, line_pixel, rgn_h};
+	IM_STATUS STATUS = imfill(rga_buffer, rect_up, color);
+	STATUS |= imfill(rga_buffer, rect_buttom, color);
+	STATUS |= imfill(rga_buffer, rect_left, color);
+	STATUS |= imfill(rga_buffer, rect_right, color);
+	if (STATUS != IM_STATUS_SUCCESS)
+		LOG_ERROR("STATUS is %d\n", STATUS);
+	return 0;
+}
+
+static void *rkipc_get_vi_0_send(void *arg) {
+	LOG_DEBUG("#Start %s thread, arg:%p\n", __func__, arg);
+	prctl(PR_SET_NAME, "RkipcGetVi0", 0, 0, 0);
+	int ret;
+	int line_pixel = 6;
+	int video_width = rk_param_get_int("video.0:width", -1);
+	int video_height = rk_param_get_int("video.0:height", -1);
+	int32_t loopCount = 0;
+	long long last_ba_result_time, before_time, cost_time;
+	RockIvaBaResult ba_result;
+	RockIvaBaObjectInfo *object;
+	VIDEO_FRAME_INFO_S stViFrame;
+
+	memset(&ba_result, 0, sizeof(ba_result));
+	while (g_video_run_) {
+		ret = RK_MPI_VI_GetChnFrame(pipe_id_, VIDEO_PIPE_0, &stViFrame, 1000);
+		if (ret == RK_SUCCESS) {
+			void *data = RK_MPI_MB_Handle2VirAddr(stViFrame.stVFrame.pMbBlk);
+			int32_t fd = RK_MPI_MB_Handle2Fd(stViFrame.stVFrame.pMbBlk);
+			// draw
+			// before_time = rkipc_get_curren_time_ms();
+
+			ret = rkipc_rknn_object_get(&ba_result);
+			// LOG_DEBUG("ret is %d, ba_result.objNum is %d\n", ret, ba_result.objNum);
+			if ((ret == -1) && (rkipc_get_curren_time_ms() - last_ba_result_time > 300))
+				ba_result.objNum = 0;
+			if (ret == 0)
+				last_ba_result_time = rkipc_get_curren_time_ms();
+			for (int i = 0; i < ba_result.objNum; i++) {
+				int x, y, w, h;
+				object = &ba_result.triggerObjects[i];
+				// LOG_INFO("topLeft:[%d,%d], bottomRight:[%d,%d],"
+				// 			"objId is %d, frameId is %d, score is %d, type is %d\n",
+				// 			object->objInfo.rect.topLeft.x, object->objInfo.rect.topLeft.y,
+				// 			object->objInfo.rect.bottomRight.x,
+				// 			object->objInfo.rect.bottomRight.y, object->objInfo.objId,
+				// 			object->objInfo.frameId, object->objInfo.score, object->objInfo.type);
+				x = video_width * object->objInfo.rect.topLeft.x / 10000;
+				y = video_height * object->objInfo.rect.topLeft.y / 10000;
+				w = video_width *
+				    (object->objInfo.rect.bottomRight.x - object->objInfo.rect.topLeft.x) / 10000;
+				h = video_height *
+				    (object->objInfo.rect.bottomRight.y - object->objInfo.rect.topLeft.y) / 10000;
+				x = x / 16 * 16;
+				y = y / 16 * 16;
+				w = (w + 3) / 16 * 16;
+				h = (h + 3) / 16 * 16;
+
+				while (x + w + line_pixel >= video_width) {
+					w -= 8;
+				}
+				while (y + h + line_pixel >= video_height) {
+					h -= 8;
+				}
+				if (x < 0 || y < 0 || w < 0 || h < 0) {
+					continue;
+				}
+				// LOG_DEBUG("i is %d, x,y,w,h is %d,%d,%d,%d\n", i, x, y, w, h);
+				if (object->objInfo.type == ROCKIVA_OBJECT_TYPE_PERSON) {
+					draw_rect_nv12(fd, video_width, video_height, x, y, w, h, line_pixel,
+					               RGN_COLOR_LUT_INDEX_0);
+				} else if (object->objInfo.type == ROCKIVA_OBJECT_TYPE_FACE) {
+					draw_rect_nv12(fd, video_width, video_height, x, y, w, h, line_pixel,
+					               RGN_COLOR_LUT_INDEX_1);
+				} else if (object->objInfo.type == ROCKIVA_OBJECT_TYPE_VEHICLE) {
+					draw_rect_nv12(fd, video_width, video_height, x, y, w, h, line_pixel,
+					               RGN_COLOR_LUT_INDEX_1);
+				} else if (object->objInfo.type == ROCKIVA_OBJECT_TYPE_NON_VEHICLE) {
+					draw_rect_nv12(fd, video_width, video_height, x, y, w, h, line_pixel,
+					               RGN_COLOR_LUT_INDEX_1);
+				}
+				// LOG_INFO("draw rect time-consuming is %lld\n",(rkipc_get_curren_time_ms() -
+				// 	last_ba_result_time));
+				// LOG_INFO("triggerRules is %d, ruleID is %d, triggerType is %d\n",
+				// 			object->triggerRules,
+				// 			object->firstTrigger.ruleID,
+				// 			object->firstTrigger.triggerType);
+			}
+
+			// cost_time = rkipc_get_curren_time_ms() - before_time;
+			// LOG_INFO("cost time is %lld\n", cost_time);
+
+			RK_MPI_VENC_SendFrame(VIDEO_PIPE_0, &stViFrame, 1000);
+			ret = RK_MPI_VI_ReleaseChnFrame(pipe_id_, VIDEO_PIPE_0, &stViFrame);
+			if (ret != RK_SUCCESS)
+				LOG_ERROR("RK_MPI_VI_ReleaseChnFrame fail %x", ret);
+			loopCount++;
+		} else {
+			LOG_ERROR("RK_MPI_VI_GetChnFrame timeout %x", ret);
+		}
+	}
+
+	return NULL;
+}
+
 int rkipc_pipe_0_init() {
 	int ret = 0;
 	int video_width = rk_param_get_int("video.0:width", -1);
@@ -549,6 +670,7 @@ int rkipc_pipe_0_init() {
 	vi_chn[0].enModId = RK_ID_VI;
 	vi_chn[0].s32DevId = 0;
 	vi_chn[0].s32ChnId = VIDEO_PIPE_0;
+#if DRAW_NN_USE_VENC
 	venc_chn[0].enModId = RK_ID_VENC;
 	venc_chn[0].s32DevId = 0;
 	venc_chn[0].s32ChnId = VIDEO_PIPE_0;
@@ -558,6 +680,10 @@ int rkipc_pipe_0_init() {
 		LOG_ERROR("Bind VI[0] and VENC[0] error! ret=%#x\n", ret);
 	else
 		LOG_INFO("Bind VI[0] and VENC[0] success\n");
+#else
+	// use rga draw nn result
+	pthread_create(&get_vi_0_send_thread, NULL, rkipc_get_vi_0_send, NULL);
+#endif
 
 	// JPEG
 	if (enable_jpeg) {
@@ -588,12 +714,18 @@ int rkipc_pipe_0_deinit() {
 		rkipc_venc_jpeg_deinit();
 	}
 	pthread_join(venc_thread_0, NULL);
+
+#if DRAW_NN_USE_VENC
 	// unbind
 	ret = RK_MPI_SYS_UnBind(&vi_chn[0], &venc_chn[0]);
 	if (ret)
 		LOG_ERROR("Unbind VI and VENC error! ret=%#x\n", ret);
 	else
 		LOG_DEBUG("Unbind VI and VENC success\n");
+#else
+	pthread_join(get_vi_0_send_thread, NULL);
+#endif
+
 	// VENC
 	ret = RK_MPI_VENC_StopRecvFrame(VIDEO_PIPE_0);
 	ret |= RK_MPI_VENC_DestroyChn(VIDEO_PIPE_0);
@@ -1391,7 +1523,9 @@ int rkipc_pipe_2_init() {
 
 	if (enable_npu) {
 		pthread_create(&get_vi_2_send_thread, NULL, rkipc_get_vi_2_send, NULL);
+#if DRAW_NN_USE_VENC
 		rkipc_osd_draw_nn_init();
+#endif
 	}
 
 	return 0;
@@ -1434,7 +1568,9 @@ int rkipc_pipe_2_deinit() {
 	}
 	if (enable_npu) {
 		pthread_join(get_vi_2_send_thread, NULL);
+#if DRAW_NN_USE_VENC
 		rkipc_osd_draw_nn_deinit();
+#endif
 	}
 	// disable VI
 	ret = RK_MPI_VI_DisableChn(0, VIDEO_PIPE_2);
@@ -1502,7 +1638,6 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 
 	int ret = 0;
 	int line_pixel = 6;
-	int change_to_nothing_flag = 0;
 	int video_width = 0;
 	int video_height = 0;
 	int rotation = 0;
