@@ -72,7 +72,7 @@ int sample_common_isp_init(int cam_id, rk_aiq_working_mode_t WDRMode, bool Multi
 
 	rk_aiq_sys_ctx_t *aiq_ctx;
 	rk_aiq_static_info_t aiq_static_info;
-	rk_aiq_uapi2_sysctl_enumStaticMetas(cam_id, &aiq_static_info);
+	rk_aiq_uapi2_sysctl_enumStaticMetasByPhyId(cam_id, &aiq_static_info);
 	if (aiq_static_info.sensor_info.phyId == -1) {
 		LOG_INFO("WARN: aiq_static_info.sensor_info.phyId is %d\n",
 		         aiq_static_info.sensor_info.phyId);
@@ -144,7 +144,7 @@ int isp_camera_group_init(int cam_group_id, rk_aiq_working_mode_t WDRMode, bool 
 	camgroup_cfg.sns_num = rk_param_get_int("avs:sensor_num", 6);
 	LOG_INFO("camgroup_cfg.sns_num is %d\n", camgroup_cfg.sns_num);
 	for (int i = 0; i < camgroup_cfg.sns_num; i++) {
-		rk_aiq_uapi2_sysctl_enumStaticMetas(i, &aiq_static_info);
+		rk_aiq_uapi2_sysctl_enumStaticMetasByPhyId(i, &aiq_static_info);
 		LOG_INFO("cam_group_id:%d, cam_id: %d, sensor_name is %s, iqfiles is %s\n", cam_group_id, i,
 		         aiq_static_info.sensor_info.sensor_name, iq_file_dir);
 		memcpy(sensor_name_array[i], aiq_static_info.sensor_info.sensor_name,
