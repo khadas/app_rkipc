@@ -2089,6 +2089,14 @@ int rk_video_set_resolution(int stream_id, const char *value) {
 	snprintf(entry, 127, "video.%d:height", stream_id);
 	rk_param_set_int(entry, height);
 
+	if (enable_jpeg) {
+		snprintf(entry, 127, "video.jpeg:width");
+		rk_param_set_int(entry, width);
+		snprintf(entry, 127, "video.jpeg:height");
+		rk_param_set_int(entry, height);
+	}
+	rk_param_save();
+
 	VENC_CHN_ATTR_S venc_chn_attr;
 	RK_MPI_VENC_GetChnAttr(stream_id, &venc_chn_attr);
 	venc_chn_attr.stVencAttr.u32PicWidth = width;
@@ -2125,7 +2133,7 @@ int rk_video_set_resolution(int stream_id, const char *value) {
 	if (ret)
 		LOG_ERROR("bind VI and VENC error! ret=%#x\n", ret);
 
-	if (stream_id == 0 && enable_npu) {
+	if (stream_id == 0) {
 		snprintf(entry, 127,
 		         "make_meta --update --rk_venc_w %d --rk_venc_h %d --meta_path "
 		         "/dev/block/by-name/meta",
