@@ -107,10 +107,13 @@ post_chk()
 	cd /sys/devices/system/cpu/cpufreq/policy0/
 	echo userspace > scaling_governor
 	cat scaling_available_frequencies
-	echo 1416000 > scaling_setspeed
+	echo 1512000 > scaling_setspeed
 	cat scaling_cur_freq
 
-	io -4 0xff110008 0x404
+	echo Y > /sys/module/video_rkisp/parameters/clk_dbg
+	echo 600000000 > /sys/kernel/debug/clk/clk_isp/clk_rate
+	echo Y > /sys/module/video_rkispp/parameters/clk_dbg
+	echo 500000000 > /sys/kernel/debug/clk/clk_ispp/clk_rate
 
 	if [ -d "/oem/usr/share/iqfiles" ];then
 		rkipc -a /oem/usr/share/iqfiles &
