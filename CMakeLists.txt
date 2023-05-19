@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.5)
 
 project(rkipc)
 
+# generate version info
+include(cmake/Version.cmake)
+
 option(COMPILE_FOR_RV1103_IPC "compile for rv1103 ipc" OFF)
 option(COMPILE_FOR_RV1106_IPC "compile for rv1106 ipc" OFF)
 option(COMPILE_FOR_RV1106_BATTERY_IPC_TUYA "compile for rv1106 battery ipc tuya" OFF)

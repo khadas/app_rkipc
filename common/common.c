@@ -2,6 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 #include "common.h"
+#include "version.h"
+
+#ifdef LOG_TAG
+#undef LOG_TAG
+#endif
+#define LOG_TAG "common.c"
 
 typedef struct rk_signal_t {
 	sem_t sem;
@@ -166,4 +172,10 @@ long get_cmd_val(const char *string, int len) {
 		printf("get %s value: 0x%0lx\n", string, value);
 	}
 	return value;
+}
+
+void rkipc_version_dump() {
+	LOG_INFO("rkipc version: %s\n", RKIPC_VERSION_INFO);
+	LOG_INFO("rkipc info: %s\n",RKIPC_BUILD_INFO);
+	LOG_INFO("rkipc type: %s\n", RKIPC_TYPE);
 }

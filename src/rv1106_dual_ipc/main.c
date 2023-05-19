@@ -145,6 +145,7 @@ static void *wait_key_event(void *arg) {
 int main(int argc, char **argv) {
 	pthread_t key_chk;
 	LOG_DEBUG("main begin\n");
+	rkipc_version_dump();
 	signal(SIGINT, sig_proc);
 	signal(SIGTERM, sig_proc);
 

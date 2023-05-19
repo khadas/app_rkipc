@@ -156,6 +156,7 @@ extern void ioctl_msg_func(int sig_num);
 
 int main(int argc, char **argv) {
 	LOG_INFO("%s: main begin\n", get_time_string());
+	rkipc_version_dump();
 	signal(SIGINT, sigterm_handler);
 	signal(SIGQUIT, sigterm_handler);
 	signal(SIGINT, sigterm_handler);

@@ -167,6 +167,7 @@ void rkipc_get_opt(int argc, char *argv[]) {
 
 int main(int argc, char **argv) {
 	LOG_INFO("main begin\n");
+	rkipc_version_dump();
 	signal(SIGINT, sigterm_handler);
 	signal(SIGQUIT, sigterm_handler);
 	signal(SIGINT, sigterm_handler);
