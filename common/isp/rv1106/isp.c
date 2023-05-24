@@ -112,13 +112,19 @@ int sample_common_isp_init(int cam_id, rk_aiq_working_mode_t WDRMode, bool Multi
 	LOG_INFO("%s: rk_aiq_uapi2_sysctl_preInit_scene begin\n", get_time_string());
 	ret = rk_aiq_uapi2_sysctl_preInit_scene(aiq_static_info.sensor_info.sensor_name, main_scene,
 	                                        sub_scene);
-	if (ret < 0)
+	if (ret < 0) {
 		LOG_ERROR("%s: failed to set scene\n", aiq_static_info.sensor_info.sensor_name);
+		return -1;
+	}
 	LOG_INFO("%s: rk_aiq_uapi2_sysctl_preInit_scene over\n", get_time_string());
 
 	aiq_ctx =
 	    rk_aiq_uapi2_sysctl_init(aiq_static_info.sensor_info.sensor_name, iq_file_dir, NULL, NULL);
 	LOG_INFO("%s: rk_aiq_uapi2_sysctl_init over\n", get_time_string());
+	if (!aiq_ctx) {
+		LOG_ERROR("%s: failed to rk_aiq_uapi2_sysctl_init \n", __func__);
+		return -1;
+	}
 	// if (MultiCam)
 	// 	rk_aiq_uapi2_sysctl_setMulCamConc(aiq_ctx, true);
 
