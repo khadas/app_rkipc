@@ -399,3 +399,35 @@ int rkipc_rockiva_write_nv12_frame_by_fd(uint16_t width, uint16_t height, uint32
 
 	return ret;
 }
+
+int rkipc_rockiva_write_nv12_frame_by_phy_addr(uint16_t width, uint16_t height, uint32_t frame_id,
+                                               uint8_t *phy_addr) {
+	int ret;
+	RockIvaImage *image = (RockIvaImage *)malloc(sizeof(RockIvaImage));
+	if (!rockit_run_flag)
+		return 0;
+	int rotation = rk_param_get_int("video.source:rotation", 0);
+	memset(image, 0, sizeof(RockIvaImage));
+	if (rotation == 0) {
+		image->info.transformMode = ROCKIVA_IMAGE_TRANSFORM_NONE;
+	} else if (rotation == 90) {
+		image->info.transformMode = ROCKIVA_IMAGE_TRANSFORM_ROTATE_90;
+	} else if (rotation == 180) {
+		image->info.transformMode = ROCKIVA_IMAGE_TRANSFORM_ROTATE_180;
+	} else if (rotation == 270) {
+		image->info.transformMode = ROCKIVA_IMAGE_TRANSFORM_ROTATE_270;
+	}
+	image->info.width = width;
+	image->info.height = height;
+	image->info.format = ROCKIVA_IMAGE_FORMAT_YUV420SP_NV12;
+	image->frameId = frame_id;
+	image->dataPhyAddr = phy_addr;
+	ret = ROCKIVA_PushFrame(rkba_handle, image, NULL);
+	if (ret == 0)
+		rk_signal_wait(rockiva_signal, 10000);
+	else
+		LOG_ERROR("ROCKIVA_PushFrame fail, ret is %d\n", ret);
+	free(image);
+
+	return ret;
+}

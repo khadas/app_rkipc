@@ -162,17 +162,10 @@ static void *rkipc_get_vpss_bgr(void *arg) {
 			//          frame.stVFrame.u32Width, frame.stVFrame.u32Height, frame.stVFrame.u64PTS);
 			// rkipc_rockiva_write_rgb888_frame(frame.stVFrame.u32Width, frame.stVFrame.u32Height,
 			//                                  data);
-			int32_t fd = RK_MPI_MB_Handle2Fd(frame.stVFrame.pMbBlk);
-#if 0
-			FILE *fp = fopen("/data/test.bgr", "wb");
-			fwrite(data, 1, frame.stVFrame.u32Width * frame.stVFrame.u32Height * 3, fp);
-			fflush(fp);
-			fclose(fp);
-			exit(1);
-#endif
+			uint8_t *phy_addr = (uint8_t *)RK_MPI_MB_Handle2PhysAddr(stViFrame.stVFrame.pMbBlk);
 			// long long last_nn_time = rkipc_get_curren_time_ms();
-			rkipc_rockiva_write_rgb888_frame_by_fd(frame.stVFrame.u32Width,
-			                                       frame.stVFrame.u32Height, loopCount, fd);
+			rkipc_rockiva_write_nv12_frame_by_phy_addr(
+			    stViFrame.stVFrame.u32Width, stViFrame.stVFrame.u32Height, loopCount, phy_addr);
 			// LOG_DEBUG("nn time-consuming is %lld\n",(rkipc_get_curren_time_ms() - last_nn_time));
 
 			ret = RK_MPI_VPSS_ReleaseChnFrame(VPSS_BGR, 0, &frame);
