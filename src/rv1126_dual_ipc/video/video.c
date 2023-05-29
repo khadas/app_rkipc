@@ -327,7 +327,7 @@ int rkipc_avs_init() {
 	if (rk_param_get_int("avs:param_source", 0)) {
 		stAvsGrpAttr.stInAttr.enParamSource = AVS_PARAM_SOURCE_CALIB;
 		const char *calib_file_path =
-		    rk_param_get_string("avs:calib_file_path", "/usr/share/avs_calib/calib_file_pos.pto");
+		    rk_param_get_string("avs:calib_file_path", "/usr/share/avs_calib/calib_file_pos.xml");
 		const char *mesh_alpha_path =
 		    rk_param_get_string("avs:mesh_alpha_path", "/usr/share/avs_calib/");
 		LOG_INFO("calib_file_path = %s, mesh_alpha_path = %s\n", calib_file_path, mesh_alpha_path);
