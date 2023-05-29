@@ -191,15 +191,33 @@ int rk_isp_get_frame_rate(int cam_id, int *value) {
 int rk_isp_set_frame_rate(int cam_id, int uFps) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret = 0;
-	LOG_INFO("start %d\n", uFps);
 
+	LOG_DEBUG("start %d\n", uFps);
 	frameRateInfo_t info;
 	info.mode = OP_MANUAL;
 	info.fps = uFps;
 	ret = rk_aiq_uapi_setFrameRate(rkipc_aiq_get_ctx(cam_id), info);
+	LOG_DEBUG("end, %d\n", uFps);
 
-	LOG_INFO("end, %d\n", uFps);
+	snprintf(entry, 127, "isp.%d.adjustment:fps", rkipc_get_scenario_id(cam_id));
+	rk_param_set_int(entry, value);
+
 	return ret;
+}
+
+int rk_isp_set_frame_rate_without_ini(int cam_id, int value) {
+	RK_ISP_CHECK_CAMERA_ID(cam_id);
+	int ret;
+	Uapi_ExpSwAttrV2_t expSwAttr;
+
+	LOG_DEBUG("start %d\n", uFps);
+	frameRateInfo_t info;
+	info.mode = OP_MANUAL;
+	info.fps = uFps;
+	ret = rk_aiq_uapi_setFrameRate(rkipc_aiq_get_ctx(cam_id), info);
+	LOG_DEBUG("end, %d\n", uFps);
+
+	return 0;
 }
 
 // isp scenario
