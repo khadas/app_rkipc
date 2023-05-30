@@ -188,16 +188,17 @@ int rk_isp_get_frame_rate(int cam_id, int *value) {
 	return 0;
 }
 
-int rk_isp_set_frame_rate(int cam_id, int uFps) {
+int rk_isp_set_frame_rate(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret = 0;
+	char entry[128] = {'\0'};
 
-	LOG_DEBUG("start %d\n", uFps);
+	LOG_DEBUG("start %d\n", value);
 	frameRateInfo_t info;
 	info.mode = OP_MANUAL;
-	info.fps = uFps;
+	info.fps = value;
 	ret = rk_aiq_uapi_setFrameRate(rkipc_aiq_get_ctx(cam_id), info);
-	LOG_DEBUG("end, %d\n", uFps);
+	LOG_DEBUG("end, %d\n", value);
 
 	snprintf(entry, 127, "isp.%d.adjustment:fps", rkipc_get_scenario_id(cam_id));
 	rk_param_set_int(entry, value);
@@ -208,14 +209,13 @@ int rk_isp_set_frame_rate(int cam_id, int uFps) {
 int rk_isp_set_frame_rate_without_ini(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
-	Uapi_ExpSwAttrV2_t expSwAttr;
 
-	LOG_DEBUG("start %d\n", uFps);
+	LOG_DEBUG("start %d\n", value);
 	frameRateInfo_t info;
 	info.mode = OP_MANUAL;
-	info.fps = uFps;
+	info.fps = value;
 	ret = rk_aiq_uapi_setFrameRate(rkipc_aiq_get_ctx(cam_id), info);
-	LOG_DEBUG("end, %d\n", uFps);
+	LOG_DEBUG("end, %d\n", value);
 
 	return 0;
 }
