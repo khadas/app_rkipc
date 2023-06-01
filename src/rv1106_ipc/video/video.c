@@ -2068,8 +2068,8 @@ int rk_video_set_RC_mode(int stream_id, const char *value) {
 		return -1;
 	}
 	RK_MPI_VENC_SetChnAttr(stream_id, &venc_chn_attr);
-	rk_video_reset_frame_rate(stream_id);
 	rk_param_set_string(entry_rc_mode, value);
+	rk_video_reset_frame_rate(stream_id);
 
 	return 0;
 }
