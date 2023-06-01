@@ -176,6 +176,6 @@ long get_cmd_val(const char *string, int len) {
 
 void rkipc_version_dump() {
 	LOG_INFO("rkipc version: %s\n", RKIPC_VERSION_INFO);
-	LOG_INFO("rkipc info: %s\n",RKIPC_BUILD_INFO);
+	LOG_INFO("rkipc info: %s\n", RKIPC_BUILD_INFO);
 	LOG_INFO("rkipc type: %s\n", RKIPC_TYPE);
 }

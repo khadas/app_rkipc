@@ -81,7 +81,7 @@ int sample_common_isp_init(int cam_id, rk_aiq_working_mode_t WDRMode, bool Multi
 	rk_aiq_uapi_sysctl_enumStaticMetas(cam_id, &aiq_static_info);
 
 	LOG_INFO("ID: %d, sensor_name is %s, iq_file_dir is %s\n", cam_id,
-	       aiq_static_info.sensor_info.sensor_name, iq_file_dir);
+	         aiq_static_info.sensor_info.sensor_name, iq_file_dir);
 
 	aiq_ctx =
 	    rk_aiq_uapi_sysctl_init(aiq_static_info.sensor_info.sensor_name, iq_file_dir, NULL, NULL);
