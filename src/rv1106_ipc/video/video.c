@@ -619,32 +619,14 @@ static void *rkipc_ivs_get_results(void *arg) {
 			// LOG_DEBUG("get chn %d results %d\n", 0, resultscount);
 			// LOG_DEBUG("get stResults.s32ResultNum %d\n", stResults.s32ResultNum);
 			if (md == 1) {
-				if (resultscount % 10 == 0 && stResults.s32ResultNum == 1) {
-					int x = width / 8 / 8;
-					int y = stResults.pstResults->stMdInfo.u32Size / 64;
-					if (stResults.pstResults->stMdInfo.pData) {
-						// for (int n = 0; n < x * 8; n++)
-						// 	printf("-");
-						// printf("\n");
-						count = 0;
-						for (int j = 0; j < y; j++) {
-							for (int i = 0; i < x; i++) {
-								for (int k = 0; k < 8; k++) {
-									if (stResults.pstResults->stMdInfo.pData[j * 64 + i] & (1 << k))
-										count++;
-									// 	printf("1");
-									// else
-									// 	printf("0");
-								}
-							}
-							// printf("\n");
-						}
-						// for (int n = 0; n < x * 8; n++)
-						// 	printf("-");
-						// printf("\n");
-					}
-					if (count > (x * y * 8 / 5)) {
-						LOG_INFO("Detect movement\n");
+				if (stResults.s32ResultNum == 1) {
+					printf("MD u32RectNum: %u\n", stResults.pstResults->stMdInfo.u32RectNum);
+					for (int i = 0; i < stResults.pstResults->stMdInfo.u32RectNum; i++) {
+						printf("%d: [%d, %d, %d, %d]\n", i,
+							stResults.pstResults->stMdInfo.stRect[i].s32X,
+							stResults.pstResults->stMdInfo.stRect[i].s32Y,
+							stResults.pstResults->stMdInfo.stRect[i].u32Width,
+							stResults.pstResults->stMdInfo.stRect[i].u32Height);
 					}
 				}
 			}
@@ -1590,13 +1572,33 @@ int rkipc_ivs_init() {
 	attr.bSmearEnable = smear;
 	attr.bWeightpEnable = weightp;
 	attr.bMDEnable = md;
-	attr.s32MDInterval = 1;
+	attr.s32MDInterval = 5;
 	attr.bMDNightMode = RK_TRUE;
 	attr.u32MDSensibility = rk_param_get_int("ivs:md_sensibility", 3);
 	attr.bODEnable = od;
 	attr.s32ODInterval = 1;
 	attr.s32ODPercent = 7;
-	RK_MPI_IVS_CreateChn(0, &attr);
+	ret = RK_MPI_IVS_CreateChn(0, &attr);
+	if (ret) {
+		LOG_ERROR("ERROR: RK_MPI_IVS_CreateChn error! ret=%#x\n", ret);
+		return -1;
+	}
+
+	IVS_MD_ATTR_S stMdAttr;
+	memset(&stMdAttr, 0, sizeof(stMdAttr));
+	ret = RK_MPI_IVS_GetMdAttr(0, &stMdAttr);
+	if (ret) {
+		LOG_ERROR("ERROR: RK_MPI_IVS_GetMdAttr error! ret=%#x\n", ret);
+		return -1;
+	}
+	stMdAttr.s32ThreshSad = 40;
+	stMdAttr.s32ThreshMove = 2;
+	stMdAttr.s32SwitchSad = 0;
+	ret = RK_MPI_IVS_SetMdAttr(0, &stMdAttr);
+	if (ret) {
+		LOG_ERROR("ERROR: RK_MPI_IVS_SetMdAttr error! ret=%#x\n", ret);
+		return -1;
+	}
 
 	if (md == 1 || od == 1)
 		pthread_create(&get_ivs_result_thread, NULL, rkipc_ivs_get_results, NULL);
