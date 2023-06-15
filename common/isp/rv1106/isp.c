@@ -1359,7 +1359,7 @@ int rk_isp_get_ldch_level(int cam_id, int *value) {
 }
 
 int rk_isp_set_ldch_level(int cam_id, int value) {
-	if (rk_param_get_int("isp:group_ldch", 1)) {
+	if (rk_param_get_int("isp:group_ldch", 0)) {
 		LOG_INFO("group ldch open for avs, not set ldch level\n");
 		return 0;
 	}
