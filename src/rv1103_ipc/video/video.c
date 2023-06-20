@@ -497,7 +497,6 @@ static void *rkipc_ivs_get_results(void *arg) {
 			// LOG_DEBUG("get stResults.s32ResultNum %d\n", stResults.s32ResultNum);
 			if (md == 1) {
 				if (stResults.s32ResultNum == 1) {
-					printf("MD u32RectNum: %u\n", stResults.pstResults->stMdInfo.u32RectNum);
 					for (int i = 0; i < stResults.pstResults->stMdInfo.u32RectNum; i++) {
 						printf("%d: [%d, %d, %d, %d]\n", i,
 							stResults.pstResults->stMdInfo.stRect[i].s32X,
