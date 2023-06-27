@@ -43,7 +43,7 @@
 
 #define DRAW_NN_USE_VENC 0
 
-static int take_photo_one = 0;
+static int get_jpeg_cnt = 0;
 static int enable_jpeg, enable_venc_0, enable_venc_1, enable_venc_2, enable_npu;
 static int g_enable_vo, g_vo_dev_id;
 static int g_video_run_ = 1;
@@ -249,19 +249,31 @@ static void *rkipc_get_venc_2(void *arg) {
 
 static void *rkipc_get_jpeg(void *arg) {
 	printf("#Start %s thread, arg:%p\n", __func__, arg);
+	prctl(PR_SET_NAME, "RkipcGetJpeg", 0, 0, 0);
 	VENC_STREAM_S stFrame;
-	VI_CHN_STATUS_S stChnStatus;
 	int loopCount = 0;
 	int ret = 0;
 	char file_name[128] = {0};
-	const char *file_path = rk_param_get_string("storage:file_path", "/userdata");
-	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
+	char record_path[256];
 
+	memset(&record_path, 0, sizeof(record_path));
+	strcat(record_path, rk_param_get_string("storage:mount_path", "/userdata"));
+	strcat(record_path, "/");
+	strcat(record_path, rk_param_get_string("storage.0:folder_name", "video0"));
+
+	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
+	// drop first frame
+	ret = RK_MPI_VENC_GetStream(JPEG_VENC_CHN, &stFrame, 1000);
+	if (ret == RK_SUCCESS)
+		RK_MPI_VENC_ReleaseStream(JPEG_VENC_CHN, &stFrame);
+	else
+		LOG_ERROR("RK_MPI_VENC_GetStream timeout %x\n", ret);
 	while (g_video_run_) {
-		usleep(300 * 1000);
-		if (!take_photo_one)
+		if (!get_jpeg_cnt) {
+			usleep(300 * 1000);
 			continue;
-		// 5.get the frame
+		}
+		// get the frame
 		ret = RK_MPI_VENC_GetStream(JPEG_VENC_CHN, &stFrame, 1000);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
@@ -271,24 +283,30 @@ static void *rkipc_get_jpeg(void *arg) {
 			// save jpeg file
 			time_t t = time(NULL);
 			struct tm tm = *localtime(&t);
-			snprintf(file_name, 128, "%s/%d%02d%02d%02d%02d%02d.jpeg", file_path, tm.tm_year + 1900,
+			snprintf(file_name, 128, "%s/%d%02d%02d%02d%02d%02d.jpeg", record_path, tm.tm_year + 1900,
 			         tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 			LOG_INFO("file_name is %s\n", file_name);
 			FILE *fp = fopen(file_name, "wb");
-			fwrite(data, 1, stFrame.pstPack->u32Len, fp);
-			fflush(fp);
-			fclose(fp);
-			// 7.release the frame
+			if (fp == NULL) {
+				LOG_ERROR("fp is NULL\n");
+			} else {
+				fwrite(data, 1, stFrame.pstPack->u32Len, fp);
+			}
+			// release the frame
 			ret = RK_MPI_VENC_ReleaseStream(JPEG_VENC_CHN, &stFrame);
 			if (ret != RK_SUCCESS) {
 				LOG_ERROR("RK_MPI_VENC_ReleaseStream fail %x\n", ret);
+			}
+			if (fp) {
+				fflush(fp);
+				fclose(fp);
 			}
 			loopCount++;
 		} else {
 			LOG_ERROR("RK_MPI_VENC_GetStream timeout %x\n", ret);
 		}
-		// usleep(33 * 1000);
-		take_photo_one = 0;
+		get_jpeg_cnt--;
+		RK_MPI_VENC_StopRecvFrame(JPEG_VENC_CHN);
 	}
 	if (stFrame.pstPack)
 		free(stFrame.pstPack);
@@ -1234,7 +1252,7 @@ int rkipc_venc_jpeg_init() {
 	stRecvParam.s32RecvPicNum = 1;
 	RK_MPI_VENC_StartRecvFrame(JPEG_VENC_CHN,
 	                           &stRecvParam); // must, for no streams callback running failed
-	RK_MPI_VENC_StopRecvFrame(JPEG_VENC_CHN);
+
 	pthread_create(&jpeg_venc_thread_id, NULL, rkipc_get_jpeg, NULL);
 
 	return ret;
@@ -2686,11 +2704,15 @@ int rk_video_set_jpeg_resolution(const char *value) {
 
 int rk_take_photo() {
 	LOG_INFO("start\n");
+	if (get_jpeg_cnt) {
+		LOG_WARN("the last photo was not completed\n");
+		return -1;
+	}
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
 	stRecvParam.s32RecvPicNum = 1;
 	RK_MPI_VENC_StartRecvFrame(JPEG_VENC_CHN, &stRecvParam);
-	take_photo_one = 1;
+	get_jpeg_cnt++;
 
 	return 0;
 }
