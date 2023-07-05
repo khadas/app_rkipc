@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include "video.h"
+#include "rk_algo_avs_tool_api.h"
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -62,7 +63,7 @@ MPP_CHN_S vi_chn[MAX_RKIPC_SENSOR_NUM], avs_in_chn[MAX_RKIPC_SENSOR_NUM],
 static VO_DEV VoLayer = RK3588_VOP_LAYER_CLUSTER0;
 
 // static void *test_get_vi(void *arg) {
-// 	printf("#Start %s thread, arg:%p\n", __func__, arg);
+// 	LOG_INFO("#Start %s thread, arg:%p\n", __func__, arg);
 // 	VI_FRAME_S stViFrame;
 // 	VI_CHN_STATUS_S stChnStatus;
 // 	int loopCount = 0;
@@ -99,7 +100,7 @@ static VO_DEV VoLayer = RK3588_VOP_LAYER_CLUSTER0;
 
 #define MAX_PACKET_NUM 16
 static void *rkipc_get_venc_0(void *arg) {
-	printf("#Start %s thread, arg:%p\n", __func__, arg);
+	LOG_INFO("#Start %s thread, arg:%p\n", __func__, arg);
 	VENC_STREAM_S stFrame;
 	int ret = 0;
 
@@ -161,7 +162,7 @@ static void *rkipc_get_venc_0(void *arg) {
 }
 
 static void *rkipc_get_venc_1(void *arg) {
-	printf("#Start %s thread, arg:%p\n", __func__, arg);
+	LOG_INFO("#Start %s thread, arg:%p\n", __func__, arg);
 	VENC_STREAM_S stFrame;
 	int loopCount = 0;
 	int ret = 0;
@@ -206,7 +207,7 @@ static void *rkipc_get_venc_1(void *arg) {
 }
 
 static void *rkipc_get_venc_2(void *arg) {
-	printf("#Start %s thread, arg:%p\n", __func__, arg);
+	LOG_INFO("#Start %s thread, arg:%p\n", __func__, arg);
 	VENC_STREAM_S stFrame;
 	int loopCount = 0;
 	int ret = 0;
@@ -251,7 +252,7 @@ static void *rkipc_get_venc_2(void *arg) {
 }
 
 static void *rkipc_get_vpss_bgr(void *arg) {
-	printf("#Start %s thread, arg:%p\n", __func__, arg);
+	LOG_INFO("#Start %s thread, arg:%p\n", __func__, arg);
 	VIDEO_FRAME_INFO_S frame;
 	int32_t loopCount = 0;
 	int ret = 0;
@@ -377,7 +378,7 @@ static void *rkipc_get_vi_send_jpeg(void *arg) {
 }
 
 static void *rkipc_get_jpeg(void *arg) {
-	printf("#Start %s thread, arg:%p\n", __func__, arg);
+	LOG_INFO("#Start %s thread, arg:%p\n", __func__, arg);
 	prctl(PR_SET_NAME, "RkipcGetJpeg", 0, 0, 0);
 	VENC_STREAM_S stFrame;
 	int loopCount = 0;
@@ -889,6 +890,137 @@ int rkipc_vpss_4_deinit() {
 	return ret;
 }
 
+/* 功能接口1：calib file ---> middle LUT(RK 6目数据,pto文件) */
+int rkipc_get_middle_lut_by_xml() {
+	int32_t ret = RKALGO_AVS_STATUS_OK;
+	const char *calib_file_path = rk_param_get_string(
+	    "avs:calib_file_path",
+	    "/oem/usr/share/avs_calib/calib_file.xml"); /* 输入的标定文件路径及名称 */
+	uint32_t cameraNum = g_sensor_num;              /* 指定相机个数 */
+	uint32_t srcW = rk_param_get_int("avs:source_width", 2560);
+	uint32_t srcH = rk_param_get_int("avs:source_height", 1520); /* 输入图像宽高 */
+	RKALGO_AVS_MIDDLE_LUT_TYPE_E middleLutType =
+	    RKALGO_AVS_MIDDLE_LUT_TYPE_A; /* middle LUT的类型 */
+
+	const char *stitch_distance = rk_param_get_string("avs:stitch_distance", "0.5");
+	float stitchDistance = atof(stitch_distance); /* 最佳拼接距离，输入为pto文件时该值不起作用 */
+	LOG_INFO("stitchDistance: %f\n", stitchDistance);
+
+	RKALGO_AVS_MASK_CONFIG_S inputMaskConfig; /* mask的相关参数 */
+	RKALGO_AVS_FINE_TUNING_PARAMS_S
+	    fineTuningParams; /* 精调参数(对每个相机单独生效，用于拼接效果调优)，输入为pto文件时该值不起作用
+	                       */
+	RKALGO_AVS_MIDDLE_LUT_PARAMS_S stMidLutParams; /* 生成middle LUT所需的输入参数 */
+	RKALGO_AVS_MIDDLE_LUT_BUFFER_S stMidLutBuf; /* 生成middle LUT所需的输出buffer结构体 */
+	memset(&inputMaskConfig, 0, sizeof(inputMaskConfig));
+	memset(&fineTuningParams, 0, sizeof(fineTuningParams));
+	memset(&stMidLutParams, 0, sizeof(stMidLutParams));
+
+	char avsToolVersion[128]; /* 存放AVS的版本号 */
+
+	uint8_t pCalibParamsBuf[RKALGO_AVS_CALIB_FILE_LENGTH]; /* 存放标定文件参数的buffer */
+	RKALGO_AVS_CALIB_PARAMS_S stCalibParams; /* 从标定文件读取参数时所需的输入参数 */
+	RKALGO_AVS_CALIB_BUFFER_S stCalibBuffer; /* 从标定文件读取参数时所需的输出buffer */
+
+	/* 配置从标定文件读取参数时所需的输入参数 */
+	stCalibParams.calibFilePath = calib_file_path;
+	stCalibParams.cameraNum = cameraNum;
+	/* 配置从标定文件读取参数时所需的输出buffer */
+	stCalibBuffer.pCalibParamsBuf = pCalibParamsBuf;
+
+	uint32_t middleLutSize; /* middle LUT的buffer大小 */
+
+	/* 配置mask相关参数 */
+	inputMaskConfig.bSameMask =
+	    RKALGO_AVS_TRUE; /* 配置mask是否所有相机使用同一个mask。RKALGO_AVS_TRUE:
+	                        所有相机都使用maskAddr[0]地址或maskDefine[0]参数；RKALGO_AVS_FALSE:
+	                        各个相机使用不同的maskAddr地址或maskDefine参数 */
+	inputMaskConfig.bInputYuvMask =
+	    RKALGO_AVS_FALSE; /* 配置mask是使用maskAddr还是使用maskDefine。RKALGO_AVS_TRUE:
+	                         使用maskAddr，即外部提供的yuv400格式mask数据的内存地址;
+	                         RKALGO_AVS_FALSE: 使用maskDefine参数，在算法内部生成mask数据 */
+	inputMaskConfig.mask_width = srcW; /* 配置mask图像的宽高，必须和输入图像的宽高相同 */
+	inputMaskConfig.mask_height = srcH;
+	for (uint32_t i = 0; i < cameraNum; i++) {
+		inputMaskConfig.maskDefine[i].mask_shape =
+		    RKALGO_AVS_MASK_SHAPE_RECT; /* mask有效区域的形状 */
+		inputMaskConfig.maskDefine[i].offset_x =
+		    0; /* mask有效区域中心相对图像中心的偏移量(单位：像素) */
+		inputMaskConfig.maskDefine[i].offset_y = 0;
+		inputMaskConfig.maskDefine[i].half_major_axis =
+		    srcW / 2; /* mask有效区域的半长轴和半短轴(单位：像素) */
+		inputMaskConfig.maskDefine[i].half_minor_axis = srcH / 2;
+	}
+
+	/* 配置fine tuning参数 */
+	fineTuningParams.camera_num = cameraNum;
+	fineTuningParams.fine_tuning_en =
+	    RKALGO_AVS_FALSE; /* 设置fine tuning参数是否生效。RKALGO_AVS_TRUE: 表示fine
+	                         tuning参数生效；RKALGO_AVS_FALSE: 表示fine tuning参数不生效 */
+	for (uint32_t cam = 0; cam < fineTuningParams.camera_num; cam++) {
+		fineTuningParams.fine_tuning_params[cam].fine_tuning_en = RKALGO_AVS_FALSE;
+		fineTuningParams.fine_tuning_params[cam].rotation.yaw100 = 0;
+		fineTuningParams.fine_tuning_params[cam].rotation.pitch100 = 0;
+		fineTuningParams.fine_tuning_params[cam].rotation.roll100 = 0;
+		fineTuningParams.fine_tuning_params[cam].offset_h = 0;
+		fineTuningParams.fine_tuning_params[cam].offset_w = 0;
+	}
+
+	/* 步骤一：获取AVS的版本号 */
+	ret = RKALGO_AVS_GetVersion(avsToolVersion);
+	if (RKALGO_AVS_STATUS_OK != ret) {
+		LOG_ERROR("AVS_Tool_LOG: error: failed to RKALGO_AVS_GetVersion!\n");
+		return -1;
+	}
+	LOG_INFO("AVS_Tool_LOG: %s\n", avsToolVersion);
+
+	/* 步骤二：从标定文件读取标定参数内容，存放到pCalibParamsBuf中 */
+	ret = RKALGO_AVS_GetCalibParamsFromCalibFile(&stCalibParams, &stCalibBuffer);
+	if (RKALGO_AVS_STATUS_OK != ret) {
+		LOG_ERROR("AVS_Tool_LOG: error: failed to RKALGO_AVS_GetCalibParamsFromCalibFile!\n");
+		return -1;
+	}
+
+	/* 步骤三：计算middle LUT的buffer大小 */
+	ret = RKALGO_AVS_GetMiddleLutBufSize(middleLutType, &middleLutSize);
+	if (RKALGO_AVS_STATUS_OK != ret) {
+		LOG_ERROR("AVS_Tool_LOG: error: failed to RKALGO_AVS_GetMiddleLutBufSize!\n");
+		return -1;
+	}
+
+	/* 申请middle LUT所需的buffer */
+	for (uint32_t cam = 0; cam < cameraNum; cam++) {
+		ret = RK_MPI_SYS_MmzAllocEx(&g_lut_blk[cam], NULL, NULL, sizeof(float) * middleLutSize,
+		                            MB_REMAP_MODE_CACHED);
+		if (RK_SUCCESS != ret) {
+			LOG_ERROR("alloc LUT buf failed with %#x!", ret);
+			return -1;
+		}
+	}
+
+	/* 配置生成middle LUT的参数 */
+	stMidLutParams.cameraNum = cameraNum;
+	stMidLutParams.calibBuf.pCalibParamsBuf = pCalibParamsBuf; /* 存放标定文件内容的buffer */
+	stMidLutParams.stitchDistance = stitchDistance;
+	stMidLutParams.inputMaskConfig = inputMaskConfig;
+	stMidLutParams.fineTuningParams = fineTuningParams;
+	stMidLutBuf.middleLutType = middleLutType;
+	stMidLutBuf.middleLutSize = middleLutSize;
+	for (uint32_t cam = 0; cam < cameraNum; cam++) {
+		stMidLutBuf.pMiddleLutBuf[cam] = RK_MPI_MMZ_Handle2VirAddr(g_lut_blk[cam]);
+	}
+
+	/* 步骤四：通过标定参数buffer生成middle LUT */
+	ret = RKALGO_AVS_GetMiddleLutFromCalibParams(&stMidLutParams, &stMidLutBuf);
+	if (RKALGO_AVS_STATUS_OK != ret) {
+		LOG_ERROR("AVS_Tool_LOG: error: failed to RKALGO_AVS_GetMiddleLutFromCalibParams!\n");
+		return -1;
+	}
+	LOG_INFO("finished\n");
+
+	return 0;
+}
+
 int rkipc_avs_init() {
 	LOG_INFO("start\n");
 	int ret;
@@ -906,8 +1038,9 @@ int rkipc_avs_init() {
 	stAvsModParam.u32WorkingSetSize = 67 * 1024;
 	stAvsModParam.enMBSource = MB_SOURCE_PRIVATE;
 	stAvsGrpAttr.enMode = rk_param_get_int("avs:avs_mode", 0);
+	int param_source = rk_param_get_int("avs:param_source", 2);
 
-	if (rk_param_get_int("avs:param_source", 0)) {
+	if (param_source == 0) {
 		stAvsGrpAttr.stInAttr.enParamSource = AVS_PARAM_SOURCE_CALIB;
 		const char *calib_file_path =
 		    rk_param_get_string("avs:calib_file_path", "/usr/share/avs_calib/calib_file_pos.pto");
@@ -916,7 +1049,7 @@ int rkipc_avs_init() {
 		LOG_INFO("calib_file_path = %s, mesh_alpha_path = %s\n", calib_file_path, mesh_alpha_path);
 		stAvsGrpAttr.stInAttr.stCalib.pCalibFilePath = calib_file_path;
 		stAvsGrpAttr.stInAttr.stCalib.pMeshAlphaPath = mesh_alpha_path;
-	} else {
+	} else if (param_source == 1) {
 		stAvsGrpAttr.stInAttr.enParamSource = AVS_PARAM_SOURCE_LUT;
 		stAvsGrpAttr.stInAttr.stLUT.enAccuracy = AVS_LUT_ACCURACY_HIGH;
 		stAvsGrpAttr.stInAttr.stLUT.enFuseWidth = AVS_FUSE_WIDTH_LOW;
@@ -952,6 +1085,21 @@ int rkipc_avs_init() {
 				return -1;
 			}
 			stAvsGrpAttr.stInAttr.stLUT.pVirAddr[i] = lut_vir_addr[i];
+		}
+	} else if (param_source == 2) {
+		// use xml to middle lut
+		stAvsGrpAttr.stInAttr.enParamSource = AVS_PARAM_SOURCE_LUT;
+		stAvsGrpAttr.stInAttr.stLUT.enAccuracy = AVS_LUT_ACCURACY_HIGH;
+		stAvsGrpAttr.stInAttr.stLUT.enFuseWidth = AVS_FUSE_WIDTH_LOW;
+		stAvsGrpAttr.stInAttr.stLUT.stLutStep.enStepX = AVS_LUT_STEP_LOW;
+		stAvsGrpAttr.stInAttr.stLUT.stLutStep.enStepY = AVS_LUT_STEP_LOW;
+		ret = rkipc_get_middle_lut_by_xml();
+		if (ret) {
+			LOG_ERROR("rkipc_get_middle_lut_by_xml fail\n");
+			return -1;
+		}
+		for (int i = 0; i < g_sensor_num; i++) {
+			stAvsGrpAttr.stInAttr.stLUT.pVirAddr[i] = RK_MPI_MMZ_Handle2VirAddr(g_lut_blk[i]);
 		}
 	}
 

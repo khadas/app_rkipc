@@ -521,12 +521,12 @@ static void *rkipc_storage_file_monitor_thread(void *arg) {
 	return NULL;
 }
 
-static void cb(void *userdata, char *filename, int dir, struct stat *statbuf) {
-	if (dir == 0) {
-		rkipc_str_folder *folder = (rkipc_str_folder *)userdata;
-		rkipc_storage_file_list_add(folder, filename, statbuf);
-	}
-}
+// static void cb(void *userdata, char *filename, int dir, struct stat *statbuf) {
+// 	if (dir == 0) {
+// 		rkipc_str_folder *folder = (rkipc_str_folder *)userdata;
+// 		rkipc_storage_file_list_add(folder, filename, statbuf);
+// 	}
+// }
 
 int rkipc_storage_read_file_list(rkipc_str_folder *folder, rkipc_str_folder_attr *folder_attr) {
 	DIR *dir;
@@ -702,7 +702,7 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 		}
 		LOG_INFO("pHandle->dev_sta.free_size is %d, min is %d, max is %d\n",
 		         pHandle->dev_sta.free_size, devAttr.free_size_del_min, devAttr.free_size_del_max);
-		LOG_INFO("total_space is %lld\n", total_space);
+		LOG_INFO("total_space is %ld\n", total_space);
 		for (i = 0; i < devAttr.folder_num; i++) {
 			if (devAttr.folder_attr[i].num_limit == true)
 				continue;
