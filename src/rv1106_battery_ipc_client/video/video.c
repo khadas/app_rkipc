@@ -489,29 +489,25 @@ static void *rkipc_get_vpss_bgr(void *arg) {
 
 static void *rkipc_ivs_get_results(void *arg) {
 	LOG_DEBUG("#Start %s thread, arg:%p\n", __func__, arg);
+	prctl(PR_SET_NAME, "RkipcGetIVS", 0, 0, 0);
 	int ret, i;
 	IVS_RESULT_INFO_S stResults;
 	int resultscount = 0;
 	int count = 0;
-	int md = rk_param_get_int("video.3:md", 0);
-	int od = rk_param_get_int("video.3:od", 0);
-	int width = rk_param_get_int("video.3:width", 640);
+	int md = rk_param_get_int("ivs:md", 0);
+	int od = rk_param_get_int("ivs:od", 0);
+	int width = rk_param_get_int("video.2:width", 960);
+	int height = rk_param_get_int("video.2:height", 540);
+	int md_area_threshold = width * height * 0.3;
 
 	while (g_video_run_) {
 		ret = RK_MPI_IVS_GetResults(0, &stResults, 1000);
 		if (ret >= 0) {
 			resultscount++;
-			// LOG_DEBUG("get chn %d results %d\n", 0, resultscount);
-			// LOG_DEBUG("get stResults.s32ResultNum %d\n", stResults.s32ResultNum);
 			if (md == 1) {
-				if (stResults.s32ResultNum == 1) {
-					for (int i = 0; i < stResults.pstResults->stMdInfo.u32RectNum; i++) {
-						printf("%d: [%d, %d, %d, %d]\n", i,
-						       stResults.pstResults->stMdInfo.stRect[i].s32X,
-						       stResults.pstResults->stMdInfo.stRect[i].s32Y,
-						       stResults.pstResults->stMdInfo.stRect[i].u32Width,
-						       stResults.pstResults->stMdInfo.stRect[i].u32Height);
-					}
+				if (stResults.pstResults->stMdInfo.u32Square > md_area_threshold) {
+					LOG_INFO("MD: md_area is %d, md_area_threshold is %d\n",
+					         stResults.pstResults->stMdInfo.u32Square, md_area_threshold);
 				}
 			}
 			if (od == 1) {
@@ -1274,7 +1270,7 @@ int rkipc_pipe_3_init() {
 	attr.u32PicWidth = video_width;
 	attr.u32PicHeight = video_height;
 	attr.enPixelFormat = RK_FMT_YUV420SP;
-	attr.s32Gop = 30;
+	attr.s32Gop = rk_param_get_int("video.0:gop", 30);
 	attr.bSmearEnable = smear;
 	attr.bWeightpEnable = weightp;
 	attr.bMDEnable = md;
