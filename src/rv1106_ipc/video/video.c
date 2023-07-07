@@ -622,10 +622,10 @@ static void *rkipc_ivs_get_results(void *arg) {
 				if (stResults.s32ResultNum == 1) {
 					for (int i = 0; i < stResults.pstResults->stMdInfo.u32RectNum; i++) {
 						printf("%d: [%d, %d, %d, %d]\n", i,
-							stResults.pstResults->stMdInfo.stRect[i].s32X,
-							stResults.pstResults->stMdInfo.stRect[i].s32Y,
-							stResults.pstResults->stMdInfo.stRect[i].u32Width,
-							stResults.pstResults->stMdInfo.stRect[i].u32Height);
+						       stResults.pstResults->stMdInfo.stRect[i].s32X,
+						       stResults.pstResults->stMdInfo.stRect[i].s32Y,
+						       stResults.pstResults->stMdInfo.stRect[i].u32Width,
+						       stResults.pstResults->stMdInfo.stRect[i].u32Height);
 					}
 				}
 			}
@@ -1742,7 +1742,7 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 			while (y + h + line_pixel >= video_height) {
 				h -= 8;
 			}
-			if (x < 0 || y < 0 || w < 0 || h < 0) {
+			if (x < 0 || y < 0 || w <= 0 || h <= 0) {
 				continue;
 			}
 			// LOG_DEBUG("i is %d, x,y,w,h is %d,%d,%d,%d\n", i, x, y, w, h);

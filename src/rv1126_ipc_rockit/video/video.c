@@ -283,8 +283,9 @@ static void *rkipc_get_jpeg(void *arg) {
 			// save jpeg file
 			time_t t = time(NULL);
 			struct tm tm = *localtime(&t);
-			snprintf(file_name, 128, "%s/%d%02d%02d%02d%02d%02d.jpeg", record_path, tm.tm_year + 1900,
-			         tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+			snprintf(file_name, 128, "%s/%d%02d%02d%02d%02d%02d.jpeg", record_path,
+			         tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min,
+			         tm.tm_sec);
 			LOG_INFO("file_name is %s\n", file_name);
 			FILE *fp = fopen(file_name, "wb");
 			if (fp == NULL) {

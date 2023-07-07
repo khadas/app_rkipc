@@ -1182,7 +1182,7 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 			while (y + h + line_pixel >= video_height) {
 				h -= 8;
 			}
-			if (x < 0 || y < 0 || w < 0 || h < 0) {
+			if (x < 0 || y < 0 || w <= 0 || h <= 0) {
 				continue;
 			}
 			// LOG_DEBUG("i is %d, x,y,w,h is %d,%d,%d,%d\n", i, x, y, w, h);
