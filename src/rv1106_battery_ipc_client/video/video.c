@@ -494,10 +494,10 @@ static void *rkipc_ivs_get_results(void *arg) {
 	IVS_RESULT_INFO_S stResults;
 	int resultscount = 0;
 	int count = 0;
-	int md = rk_param_get_int("ivs:md", 0);
-	int od = rk_param_get_int("ivs:od", 0);
-	int width = rk_param_get_int("video.2:width", 960);
-	int height = rk_param_get_int("video.2:height", 540);
+	int md = rk_param_get_int("video.3:md", 0);
+	int od = rk_param_get_int("video.3:od", 0);
+	int width = rk_param_get_int("video.3:width", 640);
+	int height = rk_param_get_int("video.3:height", 360);
 	int md_area_threshold = width * height * 0.3;
 
 	while (g_video_run_) {
