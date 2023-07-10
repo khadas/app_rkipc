@@ -8,7 +8,9 @@
 #include <rk_aiq_user_api_camgroup.h>
 #include <rk_aiq_user_api_imgproc.h>
 #include <rk_aiq_user_api_sysctl.h>
+#ifndef COMPILE_FOR_RV1126_RKMEDIA
 #include <rk_mpi_vi.h>
+#endif
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -1032,17 +1034,21 @@ int rk_isp_set_distortion_correction(int cam_id, const char *value) {
 	int enable_vo = rk_param_get_int("video.source:enable_vo", 1);
 
 	if (rkipc_aiq_use_group) {
+#ifndef COMPILE_FOR_RV1126_RKMEDIA
 		RK_MPI_VI_PauseChn(0, 1);
 		RK_MPI_VI_PauseChn(1, 1);
+#endif
 		LOG_INFO("rk_aiq_uapi_camgroup_stop\n");
 		rk_aiq_uapi_camgroup_stop((rk_aiq_camgroup_ctx_t *)rkipc_aiq_get_ctx(cam_id));
 	} else {
+#ifndef COMPILE_FOR_RV1126_RKMEDIA
 		if (enable_venc_0 || enable_jpeg)
 			RK_MPI_VI_PauseChn(0, 0);
 		if (enable_venc_1 || enable_venc_2)
 			RK_MPI_VI_PauseChn(0, 1);
 		if (enable_vo) // TODO: md od npu
 			RK_MPI_VI_PauseChn(0, 2);
+#endif
 		LOG_INFO("rk_aiq_uapi_sysctl_stop\n");
 		rk_aiq_uapi_sysctl_stop(rkipc_aiq_get_ctx(cam_id), false);
 	}
@@ -1064,9 +1070,11 @@ int rk_isp_set_distortion_correction(int cam_id, const char *value) {
 		LOG_INFO("rk_aiq_uapi_camgroup_prepare over\n");
 		ret |= rk_aiq_uapi_camgroup_start((rk_aiq_camgroup_ctx_t *)rkipc_aiq_get_ctx(cam_id));
 		LOG_INFO("rk_aiq_uapi_camgroup_start over\n");
+#ifndef COMPILE_FOR_RV1126_RKMEDIA
 		LOG_INFO("RK_MPI_VI_ResumeChn\n");
 		RK_MPI_VI_ResumeChn(0, 1);
 		RK_MPI_VI_ResumeChn(1, 1);
+#endif
 	} else {
 		if (rk_aiq_uapi_sysctl_prepare(rkipc_aiq_get_ctx(cam_id), 0, 0, g_WDRMode[cam_id])) {
 			printf("rkaiq engine prepare failed !\n");
@@ -1078,6 +1086,7 @@ int rk_isp_set_distortion_correction(int cam_id, const char *value) {
 			return -1;
 		}
 		LOG_INFO("rk_aiq_uapi_sysctl_start succeed\n");
+#ifndef COMPILE_FOR_RV1126_RKMEDIA
 		LOG_INFO("RK_MPI_VI_ResumeChn\n");
 		if (enable_venc_0 || enable_jpeg)
 			RK_MPI_VI_ResumeChn(0, 0);
@@ -1085,6 +1094,7 @@ int rk_isp_set_distortion_correction(int cam_id, const char *value) {
 			RK_MPI_VI_ResumeChn(0, 1);
 		if (enable_vo) // TODO: md od npu
 			RK_MPI_VI_ResumeChn(0, 2);
+#endif
 	}
 
 	char entry[128] = {'\0'};

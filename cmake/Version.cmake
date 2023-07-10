@@ -122,4 +122,9 @@ if(EXISTS "${PROJECT_SOURCE_DIR}/.git")
             "${PROJECT_SOURCE_DIR}/common/version.h"
         )
     endif()
+else()
+    configure_file(
+        "${PROJECT_SOURCE_DIR}/cmake/version.in"
+        "${PROJECT_SOURCE_DIR}/common/version.h"
+    )
 endif(EXISTS "${PROJECT_SOURCE_DIR}/.git")

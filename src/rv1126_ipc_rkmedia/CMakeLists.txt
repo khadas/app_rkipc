@@ -56,6 +56,7 @@ include_directories(audio
 link_directories(${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-gnueabihf)
 
 add_definitions(-DISP_HW_V20)
+add_definitions(-DCOMPILE_FOR_RV1126_RKMEDIA)
 add_definitions(-g -ggdb)
 
 add_executable(${PROJECT_NAME} ${SRCS})
