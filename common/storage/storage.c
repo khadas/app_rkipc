@@ -15,6 +15,7 @@ static void *g_sd_phandle = NULL;
 static void *g_file_scan_signal = NULL;
 static rkipc_str_dev_attr g_sd_dev_attr;
 static pthread_mutex_t g_rkmuxer_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t g_mkdir_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int g_storage_record_flag[3]; // only for recording thread
 static int rk_storage_muxer_init_by_id(int id);
 static int rk_storage_muxer_deinit_by_id(int id);
@@ -157,6 +158,7 @@ static int rkipc_storage_create_folder(char *folder) {
 		LOG_ERROR("Invalid path.\n");
 		return -1;
 	}
+	pthread_mutex_lock(&g_mkdir_mutex);
 	for (i = 1; i < len; i++) {
 		if (folder[i] != '/')
 			continue;
@@ -164,6 +166,7 @@ static int rkipc_storage_create_folder(char *folder) {
 		if (access(folder, R_OK)) {
 			if (mkdir(folder, 0755)) {
 				LOG_ERROR("mkdir error\n");
+				pthread_mutex_unlock(&g_mkdir_mutex);
 				return -1;
 			}
 		}
@@ -172,9 +175,11 @@ static int rkipc_storage_create_folder(char *folder) {
 	if (access(folder, R_OK)) {
 		if (mkdir(folder, 0755)) {
 			LOG_ERROR("mkdir error\n");
+			pthread_mutex_unlock(&g_mkdir_mutex);
 			return -1;
 		}
 	}
+	pthread_mutex_unlock(&g_mkdir_mutex);
 	LOG_DEBUG("Create %s finished\n", folder);
 
 	return 0;
@@ -1706,16 +1711,19 @@ static int rk_storage_muxer_init_by_id(int id) {
 	strcat(rk_storage_muxer_group[id].record_path, "/");
 	strcat(rk_storage_muxer_group[id].record_path, folder_name);
 	LOG_DEBUG("%d: record_path is %s\n", id, rk_storage_muxer_group[id].record_path);
+	pthread_mutex_lock(&g_mkdir_mutex);
 	// create record_path if no exit
 	DIR *d = opendir(rk_storage_muxer_group[id].record_path);
 	if (d == NULL) {
 		if (mkdir(rk_storage_muxer_group[id].record_path, 0777) == -1) {
 			LOG_ERROR("Create %s fail\n", rk_storage_muxer_group[id].record_path);
+			pthread_mutex_unlock(&g_mkdir_mutex);
 			return -1;
 		}
 	} else {
 		closedir(d);
 	}
+	pthread_mutex_unlock(&g_mkdir_mutex);
 
 	snprintf(entry, 127, "storage.%d:file_format", id);
 	rk_storage_muxer_group[id].file_format = rk_param_get_string(entry, "mp4");
