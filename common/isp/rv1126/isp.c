@@ -160,6 +160,23 @@ int isp_camera_group_init(int cam_group_id, rk_aiq_working_mode_t WDRMode, bool 
 	}
 	LOG_INFO("rk_aiq_uapi_camgroup_create over\n");
 	LOG_INFO("g_camera_group_ctx[cam_group_id] is %p\n", g_camera_group_ctx[cam_group_id]);
+
+	// rv1126 must enable Ldch if you want to dymamic open and close.
+	rk_aiq_ldch_attrib_t ldchAttr;
+	memset(&ldchAttr, 0, sizeof(rk_aiq_ldch_attrib_t));
+	ret = rk_aiq_user_api_aldch_GetAttrib((rk_aiq_sys_ctx_t *)g_camera_group_ctx[cam_group_id],
+	                                      &ldchAttr);
+	if (ret != RK_SUCCESS) {
+		LOG_ERROR("rk_aiq_user_api_aldch_GetAttrib fail:%d", ret);
+	}
+	ldchAttr.en = true;
+	ldchAttr.correct_level = 1;
+	ret = rk_aiq_user_api_aldch_SetAttrib((rk_aiq_sys_ctx_t *)g_camera_group_ctx[cam_group_id],
+	                                      ldchAttr);
+	if (ret != RK_SUCCESS) {
+		LOG_ERROR("rk_aiq_user_api_aldch_SetAttrib fail:%d", ret);
+	}
+
 	ret = rk_aiq_uapi_camgroup_prepare((rk_aiq_camgroup_ctx_t *)g_camera_group_ctx[cam_group_id],
 	                                   WDRMode);
 	LOG_INFO("rk_aiq_uapi_camgroup_prepare over\n");
