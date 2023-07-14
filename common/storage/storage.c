@@ -243,7 +243,8 @@ static int rkipc_storage_get_mount_path(char *dev, char *path, int path_len) {
 		LOG_ERROR("Open file error!\n");
 		return -1;
 	}
-
+	// avoid mount not yet completed at this time
+	usleep(100 * 1000);
 	memset(path, 0, path_len);
 	while (!feof(fp)) {
 		fgets(strLine, MAX_STRLINE_LEN, fp);
