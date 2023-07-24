@@ -177,6 +177,7 @@ int main(int argc, char **argv) {
 	rkipc_server_init();
 	rk_storage_init();
 	// pthread_create(&key_chk, NULL, wait_key_event, NULL);
+	LOG_INFO("rkipc init finished.\n");
 
 	while (g_main_run_) {
 		usleep(1000 * 1000);
@@ -200,6 +201,7 @@ int main(int argc, char **argv) {
 		rkipc_rockiva_deinit();
 	rk_network_deinit();
 	rk_param_deinit();
+	LOG_INFO("rkipc deinit finished.\n");
 
 	return 0;
 }
