@@ -9,6 +9,7 @@
 #include <rk_debug.h>
 #include <rk_mpi_aenc.h>
 #include <rk_mpi_ai.h>
+#include <rk_mpi_amix.h>
 #include <rk_mpi_mb.h>
 #include <rk_mpi_sys.h>
 
@@ -138,6 +139,13 @@ int rkipc_ai_init() {
 		aiAttr.enSoundmode = AUDIO_SOUND_MODE_STEREO;
 	else
 		aiAttr.enSoundmode = AUDIO_SOUND_MODE_MONO;
+
+	// rv1126 设置MIC Path为Main Mic，用于rtsp预览有声音
+	ret = RK_MPI_AMIX_SetControl(ai_dev_id, "Capture MIC Path", (char *)"Main Mic");
+	if (ret != 0) {
+		LOG_ERROR("amix set control failed, reason = %d\n", ret);
+		return RK_FAILURE;
+	}
 
 	ret = RK_MPI_AI_SetPubAttr(ai_dev_id, &aiAttr);
 	if (ret != 0) {
