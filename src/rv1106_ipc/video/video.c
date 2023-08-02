@@ -192,10 +192,12 @@ static void *rkipc_get_vi_send_jpeg(void *arg) {
 	ret = RK_MPI_CAL_TDE_GetPicBufferSize(&Dst_stPicBufAttr, &Dst_stMbPicCalResult);
 	if (ret != RK_SUCCESS) {
 		LOG_ERROR("get picture buffer size failed. err 0x%x\n", ret);
+		return;
 	}
 	ret = RK_MPI_SYS_MmzAlloc(&dstBlk, RK_NULL, RK_NULL, Dst_stMbPicCalResult.u32MBSize);
 	if (ret != RK_SUCCESS) {
 		LOG_ERROR("RK_MPI_SYS_MmzAlloc err 0x%x\n", ret);
+		return;
 	}
 
 	pstSrc.enColorFmt = RK_FMT_YUV420SP;
@@ -213,8 +215,11 @@ static void *rkipc_get_vi_send_jpeg(void *arg) {
 	DstFrame.stVFrame.enCompressMode = COMPRESS_MODE_NONE;
 
 	ret = RK_TDE_Open();
-	if (ret != RK_SUCCESS)
+	if (ret != RK_SUCCESS) {
 		LOG_ERROR("RK_TDE_Open fail %x\n", ret);
+		RK_MPI_SYS_Free(dstBlk);
+		return;
+	}
 	while (g_video_run_) {
 		if (!send_jpeg_cnt) {
 			usleep(300 * 1000);
