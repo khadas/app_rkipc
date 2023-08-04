@@ -936,7 +936,7 @@ int rk_video_init() {
 	// ret |= rkipc_vi_dev_init();
 	// ret |= rkipc_pipe_0_init();
 	ret |= rkipc_pipe_1_init();
-	ret |= (RTSP_URL_0, RTSP_URL_1, NULL);
+	ret |= rkipc_rtsp_init(RTSP_URL_0, RTSP_URL_1, NULL);
 // 	if (enable_npu)
 // 		ret |= rkipc_vpss_bgr_init();
 #if 1
