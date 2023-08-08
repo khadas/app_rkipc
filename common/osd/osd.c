@@ -356,10 +356,10 @@ int rk_osd_init() {
 				osd_data.text.wch[ret] = '\0';
 #else
 				int ret;
-				int src_len = strlen(display_text);
+				size_t src_len = strlen(display_text);
 				// the bytes that Chinese and English in UTF-8 are different,
 				// and cannot be based on src_len calculates out_len
-				int out_len = MAX_WCH_BYTE;
+				size_t out_len = MAX_WCH_BYTE;
 				// To have this temporary variable,
 				// otherwise iconv will directly overwrite the original pointer
 				char *tmp_out_buffer = (char *)osd_data.text.wch;
