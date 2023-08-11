@@ -104,6 +104,7 @@ typedef enum rkCOLOR_INDEX_E {
 
 static void *rkipc_get_venc_0(void *arg) {
 	printf("#Start %s thread, arg:%p\n", __func__, arg);
+	prctl(PR_SET_NAME, "RkipcVenc0", 0, 0, 0);
 	VENC_STREAM_S stFrame;
 	VI_CHN_STATUS_S stChnStatus;
 	int loopCount = 0;
@@ -157,6 +158,7 @@ static void *rkipc_get_venc_0(void *arg) {
 
 static void *rkipc_get_venc_1(void *arg) {
 	printf("#Start %s thread, arg:%p\n", __func__, arg);
+	prctl(PR_SET_NAME, "RkipcVenc1", 0, 0, 0);
 	VENC_STREAM_S stFrame;
 	VI_CHN_STATUS_S stChnStatus;
 	int loopCount = 0;
@@ -203,6 +205,7 @@ static void *rkipc_get_venc_1(void *arg) {
 
 static void *rkipc_get_venc_2(void *arg) {
 	printf("#Start %s thread, arg:%p\n", __func__, arg);
+	prctl(PR_SET_NAME, "RkipcVenc2", 0, 0, 0);
 	VENC_STREAM_S stFrame;
 	VI_CHN_STATUS_S stChnStatus;
 	int loopCount = 0;
