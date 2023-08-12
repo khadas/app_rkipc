@@ -1279,7 +1279,7 @@ int rkipc_pipe_3_init() {
 	attr.u32MDSensibility = rk_param_get_int("video.3:md_sensibility", 3);
 	attr.bODEnable = od;
 	attr.s32ODInterval = 1;
-	attr.s32ODPercent = 7;
+	attr.s32ODPercent = 6;
 	ret = RK_MPI_IVS_CreateChn(0, &attr);
 	if (ret) {
 		LOG_ERROR("ERROR: RK_MPI_IVS_CreateChn error! ret=%#x\n", ret);
