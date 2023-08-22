@@ -4,6 +4,7 @@
 #include <inttypes.h> // PRId64
 #include <rga/im2d.h>
 #include <rga/rga.h>
+#include <rk_comm_ivs.h>
 #include <rk_debug.h>
 #include <rk_mpi_mb.h>
 #include <rk_mpi_mmz.h>

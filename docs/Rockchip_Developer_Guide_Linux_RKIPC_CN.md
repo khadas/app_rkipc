@@ -241,8 +241,7 @@ graph LR
 	VI_scale1-->VENC_1-->RTSP_RTMP_1
 	VI_scale1-->VPSS_1-->VENC_2-->RTSP_RTMP_2
 	VI_scale2-->VPSS_2-->VO
-	VPSS_2-->MD
-	VPSS_2-->OD
+	VI_scale2-->IVS_for_MD_OD
 	VI_scale2-->NPU
 ```
 
