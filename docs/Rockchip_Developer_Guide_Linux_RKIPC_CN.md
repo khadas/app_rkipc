@@ -1,10 +1,10 @@
-# Rockchip rkipc应用开发说明
+# Rockchip RKIPC应用开发说明
 
 文件标识：RK-KF-YF-937
 
-发布版本：V1.6.2
+发布版本：V1.6.3
 
-日期：2023-03-08
+日期：2023-08-22
 
 文件密级：□绝密   □秘密   □内部资料   ■公开
 
@@ -20,7 +20,7 @@
 
 本文档可能提及的其他所有注册商标或商标，由其各自拥有者所有。
 
-**版权所有 © 2022瑞芯微电子股份有限公司**
+**版权所有 © 2023瑞芯微电子股份有限公司**
 
 超越合理使用范畴，非经本公司书面许可，任何单位和个人不得擅自摘抄、复制本文档内容的部分或全部，并不得以任何形式传播。
 
@@ -64,27 +64,28 @@ Rockchip Electronics Co., Ltd.
 
 **修订记录**
 
-| **版本号** | **作者** | **修改日期** | **修改说明**                                                 |
-| ---------- | -------- | :----------- | ------------------------------------------------------------ |
-| V0.1.0     | 林刘迪铭 | 2021-09-23   | 初始版本                                                     |
-| V0.2.0     | 林刘迪铭 | 2021-10-23   | 增加模块API介绍                                              |
-| V0.3.0     | 林刘迪铭 | 2021-11-12   | 增加媒体流框图说明                                           |
-| V0.4.0     | 林刘迪铭 | 2022-01-14   | 增加isp模块API介绍                                           |
-| V0.5.0     | 林刘迪铭 | 2022-01-26   | 更新代码结构和产品类型                                       |
-| V0.6.0     | 林刘迪铭 | 2022-02-21   | 更新RV1106信息                                               |
-| V0.7.0     | 林刘迪铭 | 2022-05-05   | 更新RV1106电池类IPC框图                                      |
-| V0.8.0     | 林刘迪铭 | 2022-05-11   | 添加ini参数说明                                              |
-| V0.9.0     | 林刘迪铭 | 2022-05-16   | 修改RV1106 IPC框图                                           |
-| V1.0.0     | 林刘迪铭 | 2022-05-19   | 调试ini中的isp相关参数                                       |
-| V1.0.1     | 陈委问   | 2022-05-20   | 更新产品版本信息                                             |
-| V1.1.0     | 林刘迪铭 | 2022-07-15   | 新增ini中的avs相关参数                                       |
-| V1.2.0     | 林刘迪铭 | 2022-08-18   | 修改RV1106 IPC框图，去除卷绕部分。</br>新增RV1103 IPC框图。  |
-| V1.3.0     | 林刘迪铭 | 2022-08-31   | 修改RK3588 Multi-IPC框图，JPEG改用VGS预处理，</br>AVS后增加VPSS用于cover。 |
-| V1.4.0     | 林刘迪铭 | 2022-10-10   | 修改RV1106 IPC和RV1103 IPC的IVS模块流程框图，</br>rv1106_battery_ipc细分为rv1106_battery_ipc_client和rv1106_battery_ipc_tuya。 |
-| V1.5.0     | 林刘迪铭 | 2022-10-25   | 修改ini模块参数说明，新增音视频模块API介绍。                 |
-| V1.6.0     | 林刘迪铭 | 2022-12-02   | 新增RV1106 Dual-IPC框图。                                    |
-| V1.6.1     | 林刘迪铭 | 2323-02-18   | 修改RV1126 IPC Rockit流程框图。                              |
-| V1.6.2     | 林刘迪铭 | 2323-03-08   | 修改RV1106 Dual-IPC流程框图。                                |
+| **版本号** | **作者**   | **修改日期** | **修改说明**                                                 |
+| ---------- | ---------- | :----------- | ------------------------------------------------------------ |
+| V0.1.0     | Fenrir Lin | 2021-09-23   | 初始版本                                                     |
+| V0.2.0     | Fenrir Lin | 2021-10-23   | 增加模块API介绍                                              |
+| V0.3.0     | Fenrir Lin | 2021-11-12   | 增加媒体流框图说明                                           |
+| V0.4.0     | Fenrir Lin | 2022-01-14   | 增加isp模块API介绍                                           |
+| V0.5.0     | Fenrir Lin | 2022-01-26   | 更新代码结构和产品类型                                       |
+| V0.6.0     | Fenrir Lin | 2022-02-21   | 更新RV1106信息                                               |
+| V0.7.0     | Fenrir Lin | 2022-05-05   | 更新RV1106电池类IPC框图                                      |
+| V0.8.0     | Fenrir Lin | 2022-05-11   | 添加ini参数说明                                              |
+| V0.9.0     | Fenrir Lin | 2022-05-16   | 修改RV1106 IPC框图                                           |
+| V1.0.0     | Fenrir Lin | 2022-05-19   | 调试ini中的isp相关参数                                       |
+| V1.0.1     | CWW        | 2022-05-20   | 更新产品版本信息                                             |
+| V1.1.0     | Fenrir Lin | 2022-07-15   | 新增ini中的avs相关参数                                       |
+| V1.2.0     | Fenrir Lin | 2022-08-18   | 修改RV1106 IPC框图，去除卷绕部分。<br/>新增RV1103 IPC框图。  |
+| V1.3.0     | Fenrir Lin | 2022-08-31   | 修改RK3588 Multi-IPC框图，<br/>JPEG改用VGS预处理，<br/>AVS后增加VPSS用于cover。 |
+| V1.4.0     | Fenrir Lin | 2022-10-10   | 修改RV1106 IPC和RV1103 IPC的IVS模块流程框图，<br/>rv1106_battery_ipc细分为rv1106_battery_ipc_client<br/>和rv1106_battery_ipc_tuya。 |
+| V1.5.0     | Fenrir Lin | 2022-10-25   | 修改ini模块参数说明，新增音视频模块API介绍。                 |
+| V1.6.0     | Fenrir Lin | 2022-12-02   | 新增RV1106 Dual-IPC框图。                                    |
+| V1.6.1     | Fenrir Lin | 2023-02-18   | 修改RV1126 IPC Rockit流程框图                                |
+| V1.6.2     | Fenrir Lin | 2023-03-08   | 修改RV1106 Dual-IPC流程框图                                  |
+| V1.6.3     | Ruby Zhang | 2023-08-22   | 格式更新                                                     |
 
 ---
 
@@ -102,17 +103,17 @@ Rockchip Electronics Co., Ltd.
 
 | 源码目录                  | 依赖外部库       | 功能                                                         |
 | ------------------------- | ---------------- | ------------------------------------------------------------ |
-| rv1103_ipc                | rockit、rkaiq    | 针对rv1103平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改，默认开启卷绕。 |
-| rv1106_ipc                | rockit、rkaiq    | 针对rv1106平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改，关闭卷绕。 |
-| rv1106_battery_ipc_client | rockit、rkaiq    | 针对rv1103/rv1106平台的电池类产品，支持网页和rtsp/rtmp预览，参数动态修改，做为快速启动双进程的client。 |
-| rv1106_battery_ipc_tuya   | rockit、rkaiq    | 针对rv1103/rv1106平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能。 |
-| rv1106_dual_ipc           | rockit、rkaiq    | 针对rv1103/rv1106平台的双目拼接类产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
-| rk3588_ipc                | rockit、rkaiq    | 针对rk3588平台的单目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
-| rk3588_muliti_ipc         | rockit、rkaiq    | 针对rk3588平台的多目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
-| rv1126_ipc_rkmedia        | rockit、rkaiq    | 针对rv1126/rv1109平台的IPC产品，使用rkmedia，支持网页和rtsp/rtmp预览，参数动态修改。 |
-| rv1126_ipc_rockit         | easymedia、rkaiq | 针对rv1126/rv1109平台的IPC产品，使用rockit，支持网页和rtsp/rtmp预览，参数动态修改。 |
-| rv1126_battery_ipc        | rockit、rkaiq    | 针对rv1126/rv1109平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能。 |
-| rv1126_snapshot           | easymedia、rkaiq | 针对rv1126/rv1109平台的抓拍类型产品，支持离线帧，本地拍照/录像，屏幕显示，插值放大(TODO)。 |
+| rv1103_ipc                | rockit、rkaiq    | 针对RV1103平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改，默认开启卷绕。 |
+| rv1106_ipc                | rockit、rkaiq    | 针对RV1106平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改，关闭卷绕。 |
+| rv1106_battery_ipc_client | rockit、rkaiq    | 针对RV1103/RV1106平台的电池类产品，支持网页和rtsp/rtmp预览，参数动态修改，做为快速启动双进程的client。 |
+| rv1106_battery_ipc_tuya   | rockit、rkaiq    | 针对RV1103/RV1106平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能。 |
+| rv1106_dual_ipc           | rockit、rkaiq    | 针对RV1103/RV1106平台的双目拼接类产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rk3588_ipc                | rockit、rkaiq    | 针对RK3588平台的单目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rk3588_muliti_ipc         | rockit、rkaiq    | 针对RK3588平台的多目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rv1126_ipc_rkmedia        | rockit、rkaiq    | 针对RV1126/RV1109平台的IPC产品，使用rkmedia，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rv1126_ipc_rockit         | easymedia、rkaiq | 针对RV1126/RV1109平台的IPC产品，使用rockit，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rv1126_battery_ipc        | rockit、rkaiq    | 针对RV1126/RV1109平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能。 |
+| rv1126_snapshot           | easymedia、rkaiq | 针对RV1126/RV1109平台的抓拍类型产品，支持离线帧，本地拍照/录像，屏幕显示。 |
 
 ### RV1103 IPC
 
@@ -276,7 +277,7 @@ graph LR
 ├── CMakeLists.txt
 ├── common # 通用模块
 │   ├── common.h # 一些通用函数功能
-│   ├── event # 事件处理模块：移动侦测，人脸人形识别
+│   ├── event # 事件处理模块
 │   ├── isp # 图像处理模块
 │   │   ├── rk3588
 │   │   ├── rv1106
@@ -288,7 +289,7 @@ graph LR
 │   │   └── simsun_en.ttf # 字体库
 │   ├── param # 参数管理模块
 │   ├── rkbar # 二维码识别模块
-│   ├── rockiva # 周界算法模块
+│   ├── rockiva # 周界算法模块，人脸人形识别
 │   ├── rtmp # rtmp推流模块
 │   ├── rtsp # rtsp推流模块
 │   ├── storage # 存储模块
@@ -335,7 +336,7 @@ graph LR
 
 **web前端→web后端→rkipc→底层模块→保存参数**
 
-以色调为例，前端基本已经实现不用改，web后端在app/ipcweb-backend/src/image_api.cpp里会收到"iHue":50，这样的json字符串。
+以色调为例，前端基本已经实现了，不需要修改；web后端在app/ipcweb-backend/src/image_api.cpp里会收到"iHue":50，这样的json字符串。
 
 然后调用app/ipcweb-backend/src/socket_client里封装好的函数，远程调用到rkipc中。
 
@@ -468,7 +469,7 @@ index 6613b90..52692c9 100644
 
 ### web后端新增相关判断
 
-ipcweb-backend主要判断web前端传入的数据，进而Get/Set数据，修改如下
+ipcweb-backend主要判断web前端传入的数据，进而Get/Set数据，修改如下：
 
 ```diff
 diff --git a/src/image_api.cpp b/src/image_api.cpp
@@ -667,12 +668,12 @@ submitOne(groupName: string, isReboot: boolean = false, isAppRestart = false) {
 | rk_network_nicspeed_support_get | 获取网卡支持速率          |
 | rk_ethernet_power_set           | 开关以太网                |
 | rk_nic_state_get                | 取得当前网卡状态          |
-| rk_wifi_power_get               | 获取当前wifi状态          |
-| rk_wifi_power_set               | 开关wifi                  |
-| rk_wifi_scan_wifi               | 立即扫描wifi              |
-| rk_wifi_get_list                | 获取wifi列表              |
-| rk_wifi_connect_with_ssid       | 连接wifi                  |
-| rk_wifi_forget_with_ssid        | 删除wifi                  |
+| rk_wifi_power_get               | 获取当前Wi-Fi状态         |
+| rk_wifi_power_set               | 开关Wi-Fi                 |
+| rk_wifi_scan_wifi               | 立即扫描Wi-Fi             |
+| rk_wifi_get_list                | 获取Wi-Fi列表             |
+| rk_wifi_connect_with_ssid       | 连接Wi-Fi                 |
+| rk_wifi_forget_with_ssid        | 删除Wi-Fi                 |
 
 ### 封装模块
 
