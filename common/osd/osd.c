@@ -468,6 +468,92 @@ int rk_osd_restart() {
 	return 0;
 }
 
+int rk_osd_bmp_change(int osd_id) {
+	pthread_mutex_lock(&g_osd_mutex);
+	const char *osd_type;
+	char entry[128] = {'\0'};
+	osd_data_s osd_data;
+	int video_width = rk_param_get_int("video.0:width", -1);
+	int video_height = rk_param_get_int("video.0:height", -1);
+	int normalized_screen_width = rk_param_get_int("osd.common:normalized_screen_width", -1);
+	int normalized_screen_height = rk_param_get_int("osd.common:normalized_screen_height", -1);
+	g_x_rate = (double)video_width / (double)normalized_screen_width;
+	g_y_rate = (double)video_height / (double)normalized_screen_height;
+	LOG_DEBUG("g_x_rate is %lf, g_y_rate is %lf\n", g_x_rate, g_y_rate);
+
+	snprintf(entry, 127, "osd.%d:type", osd_id);
+	osd_type = rk_param_get_string(entry, NULL);
+	if (osd_type == NULL)
+		return -1;
+	LOG_DEBUG("osd_id is %d, osd_type is %s\n", osd_id, osd_type);
+
+	snprintf(entry, 127, "osd.%d:enabled", osd_id);
+	osd_data.enable = rk_param_get_int(entry, 0);
+	if (osd_data.enable == 0)
+		return -1;
+	snprintf(entry, 127, "osd.%d:position_x", osd_id);
+	osd_data.origin_x = UPALIGNTO16((int)(rk_param_get_int(entry, -1) * g_x_rate));
+	snprintf(entry, 127, "osd.%d:position_y", osd_id);
+	osd_data.origin_y = UPALIGNTO16((int)(rk_param_get_int(entry, -1) * g_y_rate));
+
+	osd_data.text.font_size = rk_param_get_int("osd.common:font_size", -1);
+	// osd_data.text.font_color = 0xfff799;
+	sscanf(rk_param_get_string("osd.common:font_color", NULL), "%x",
+			&osd_data.text.font_color);
+	LOG_DEBUG("osd_data.text.font_color is %x\n", osd_data.text.font_color);
+	osd_data.text.color_inverse = 1;
+	osd_data.text.font_path = rk_param_get_string("osd.common:font_path", NULL);
+	if (!g_osd_font_already_set) {
+		create_font(osd_data.text.font_path, osd_data.text.font_size);
+		set_font_color(osd_data.text.font_color);
+		g_osd_font_already_set = 1;
+	}
+	if (!strcmp(osd_type, "channelName") || !strcmp(osd_type, "character")) {
+		snprintf(entry, 127, "osd.%d:display_text", osd_id);
+		const char *display_text = rk_param_get_string(entry, NULL);
+		LOG_DEBUG("display_text is %s\n", display_text);
+		LOG_DEBUG("strlen(display_text) is %ld\n", strlen(display_text));
+
+		int ret;
+		size_t src_len = strlen(display_text);
+		// the bytes that Chinese and English in UTF-8 are different,
+		// and cannot be based on src_len calculates out_len
+		size_t out_len = MAX_WCH_BYTE;
+		// To have this temporary variable,
+		// otherwise iconv will directly overwrite the original pointer
+		char *tmp_out_buffer = (char *)osd_data.text.wch;
+		iconv_t cd = iconv_open("WCHAR_T", "UTF-8");
+		if (cd == (iconv_t)-1) {
+			perror("iconv_open error");
+			return -1;
+		}
+		memset(entry, 0, 128);
+		memcpy(entry, display_text, src_len); // iconv maybe change the char *
+		memset(entry + src_len, 0, 1);
+		char *tmp_in_buffer = (char *)entry;
+		ret = iconv(cd, &tmp_in_buffer, (size_t *)&src_len, &tmp_out_buffer,
+					(size_t *)&out_len);
+		if (ret == -1)
+			perror("iconv error");
+		iconv_close(cd);
+		osd_data.text.wch[abs(MAX_WCH_BYTE - out_len) / 4] = '\0';
+		LOG_DEBUG("out_len is %d\n", out_len);
+		LOG_DEBUG("wcslen(osd_data.text.wch) is %ld\n", wcslen(osd_data.text.wch));
+
+		osd_data.width = UPALIGNTO16(wcslen(osd_data.text.wch) * osd_data.text.font_size);
+		osd_data.height = UPALIGNTO16(osd_data.text.font_size);
+		osd_data.size = osd_data.width * osd_data.height * 4; // BGRA8888 4byte
+		osd_data.buffer = malloc(osd_data.size);
+		memset(osd_data.buffer, 0, osd_data.size);
+		fill_text(&osd_data);
+		rk_osd_bmp_change_(osd_id, &osd_data);
+		free(osd_data.buffer);
+	}
+	pthread_mutex_unlock(&g_osd_mutex);
+
+	return 0;
+}
+
 int rk_osd_privacy_mask_restart() {
 	pthread_mutex_lock(&g_osd_mutex);
 	const char *osd_type;
