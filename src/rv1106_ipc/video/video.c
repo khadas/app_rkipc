@@ -734,7 +734,7 @@ int rkipc_pipe_0_init() {
 	vi_chn_attr.stSize.u32Width = video_width;
 	vi_chn_attr.stSize.u32Height = video_height;
 	vi_chn_attr.enPixelFormat = RK_FMT_YUV420SP;
-	vi_chn_attr.u32Depth = 0;
+	vi_chn_attr.u32Depth = 1;
 	vi_chn_attr.enCompressMode = COMPRESS_MODE_NONE;
 	ret = RK_MPI_VI_SetChnAttr(pipe_id_, VIDEO_PIPE_0, &vi_chn_attr);
 	if (ret) {
