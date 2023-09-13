@@ -2,9 +2,9 @@
 
 文件标识：RK-KF-YF-937
 
-发布版本：V1.6.3
+发布版本：V1.6.4
 
-日期：2023-08-22
+日期：2023-09-13
 
 文件密级：□绝密   □秘密   □内部资料   ■公开
 
@@ -86,6 +86,7 @@ Rockchip Electronics Co., Ltd.
 | V1.6.1     | Fenrir Lin | 2023-02-18   | 修改RV1126 IPC Rockit流程框图                                |
 | V1.6.2     | Fenrir Lin | 2023-03-08   | 修改RV1106 Dual-IPC流程框图                                  |
 | V1.6.3     | Ruby Zhang | 2023-08-22   | 格式更新                                                     |
+| V1.6.4     | Fenrir Lin | 2023-09-13   | 修改RV1126 IPC Rkmedia的流程框图，<br/>新增RV1126 Dual-IPC的流程框图。 |
 
 ---
 
@@ -113,6 +114,7 @@ Rockchip Electronics Co., Ltd.
 | rv1126_ipc_rkmedia        | rockit、rkaiq    | 针对RV1126/RV1109平台的IPC产品，使用rkmedia，支持网页和rtsp/rtmp预览，参数动态修改。 |
 | rv1126_ipc_rockit         | easymedia、rkaiq | 针对RV1126/RV1109平台的IPC产品，使用rockit，支持网页和rtsp/rtmp预览，参数动态修改。 |
 | rv1126_battery_ipc        | rockit、rkaiq    | 针对RV1126/RV1109平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能。 |
+| rv1126_dual_ipc           | rockit、rkaiq    | 针对RV1126/RV1109平台的双目拼接类产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
 | rv1126_snapshot           | easymedia、rkaiq | 针对RV1126/RV1109平台的抓拍类型产品，支持离线帧，本地拍照/录像，屏幕显示。 |
 
 ### RV1103 IPC
@@ -216,18 +218,10 @@ graph TB
 ```mermaid
 graph LR
 	AI-->AENC-->MUXER-->file
-	VI_0[VI_0_2688*1520]-->NN_draw-->VENC_0(VENC_0 H264)-->RTSP_0
+	VI_0[VI_0_2688*1520]-->VENC_0(VENC_0 H264)-->RTSP_RTMP_0
 	VENC_0(VENC_0 H264)-->MUXER
-	VI_0-->VENC_3(VENC_3 JPEG)-->save_jpeg
-
-	VI_1[VI_1_640*480]-->move_detect-->NN_result
-	VI_1-->face_recognize-->NN_result
-	VI_1-->body_detect-->NN_result
-	VI_1-->VENC_1(VENC_1 H264)-->RTSP_1
-	VENC_1(VENC_1 H264)-->RTMP
-
-	VI_2[VI_2_1920*1080]-->VENC_2(VENC_2 H264)-->RTSP_2
-
+	VI_0-->VENC_JPEG-->save_jpeg
+	VI_1[VI_1_640*480]-->VENC_1(VENC_1 H264)-->RTSP_RTMP_1
 	VI_3[VI_3_1280*720]-->RGA_720*1280-->VO
 ```
 
@@ -258,6 +252,15 @@ graph LR
 	phone_app-->|wake up from sleep| tuya_clound
 
 	VI_1-->face_recognize-->draw-->VO
+```
+
+### RV1126 Dual-IPC
+
+```mermaid
+graph LR
+       VI_0-->AVS
+       VI_1-->AVS-->VENC_0-->RTSP_0
+       AVS-->VENC_1-->RTSP_1
 ```
 
 ### RV1126 Snapshot
@@ -1058,7 +1061,7 @@ gop = 50 ; I帧间隔
 smartp_viridrlen = 25 ; smartP的虚拟I帧长度
 gop_mode = normalP ; gop模式
 stream_smooth = 50 ; 码流平滑度，目前未使用
-enable_motion_deblur = 1 ; 运动去模糊
+enable_motion_deblur = 1 ; 运动去模糊，目前只支持RV1103、RV1106
 enable_motion_static_switch = 0 ; 动静切换开关，用于完全静态场景节省码率，请注意完全静态场景下的质量
 frame_min_i_qp = 26 ; 帧级I帧最小QP
 frame_min_qp = 28 ; 帧级最小QP
@@ -1148,7 +1151,7 @@ blc_strength = 1 ; 背光补偿强度
 wdr = close ; 宽动态模式，暂未使用
 wdr_level = 0 ; 宽动态强度，暂未使用
 hdr = close ; 高动态模式
-hdr_level = 1 ; 高动态强度
+hdr_level = 50 ; 高动态强度
 hlc = close ; 强光抑制
 hlc_level = 0 ; 强光抑制强度
 dark_boost_level = 0 ; 暗区增强级别
@@ -1243,7 +1246,7 @@ user_num = 1
 0 = {"layout":{"image_adjustment":["iBrightness","iContrast","iSaturation","iSharpness","iHue"]},"static":{"iBrightness":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iContrast":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iHue":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iSaturation":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iSharpness":{"range":{"max":100,"min":0,"step":1},"type":"range"}}}
 
 [capability.image_blc]
-0 = {"disabled":[{"name":"sHLC","options":{"open":{"sBLCRegion":null}},"type":"disabled"},{"name":"sBLCRegion","options":{"open":{"iDarkBoostLevel":null,"iHLCLevel":null,"sHLC":null}},"type":"disabled"}],"dynamic":{"sBLCRegion":{"open":{"iBLCStrength":{"range":{"max":100,"min":0,"step":1},"type":"range"}}},"sHDR":{"HDR2":{"iHDRLevel":{"options":[1,2,3,4],"type":"options"}},"close":{"sBLCRegion":{"options":["close","open"],"type":"options"},"sHLC":{"options"
+0 = {"disabled":[{"name":"sHLC","options":{"open":{"sBLCRegion":null}},"type":"disabled"},{"name":"sBLCRegion","options":{"open":{"iDarkBoostLevel":null,"iHLCLevel":null,"sHLC":null}},"type":"disabled"}],"dynamic":{"sBLCRegion":{"open":{"iBLCStrength":{"range":{"max":100,"min":0,"step":1},"type":"range"}}},"sHDR":{"HDR2":{"iHDRLevel":{"range":{"max":100,"min":1,"step":1},"type":"range"}},"close":{"sBLCRegion":{"options":["close","open"],"type":"options"},"sHLC":{"options"
 1 = :["close","open"],"type":"options"}}},"sHLC":{"open":{"iDarkBoostLevel":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iHLCLevel":{"range":{"max":100,"min":0,"step":1},"type":"range"}}},"sWDR":{"open":{"iWDRLevel":{"range":{"max":100,"min":0,"step":1},"type":"range"}}}},"layout":{"image_blc":["sHDR","iHDRLevel","sBLCRegion","iBLCStrength","sHLC","iHLCLevel"]},"static":{"sHDR":{"options":["close","HDR2"],"type":"options"}}}
 
 [capability.image_enhancement]

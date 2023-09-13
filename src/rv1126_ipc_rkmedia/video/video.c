@@ -1103,7 +1103,7 @@ int rkipc_pipe_3_init() { // VI 3 1280*720 ->RGA 720*1280 ->VO
 	// strlen(video_device_name));
 	vi_chn_attr.pcVideoNode = video_device_name;
 	vi_chn_attr.u32BufCnt = buf_cnt;
-	// vi_chn_attr.stIspOpt.enMemoryType = VI_V4L2_MEMORY_TYPE_DMABUF; 这是啥
+	// vi_chn_attr.stIspOpt.enMemoryType = VI_V4L2_MEMORY_TYPE_DMABUF;
 	vi_chn_attr.u32Width = video_width;
 	vi_chn_attr.u32Height = video_height;
 	vi_chn_attr.enPixFmt = IMAGE_TYPE_NV12; // IMAGE_TYPE_YUV420P;RK_FMT_YUV420SP;

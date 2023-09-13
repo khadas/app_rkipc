@@ -2,9 +2,9 @@
 
 ID: RK-KF-YF-937
 
-Release Version: V1.6.3
+Release Version: V1.6.4
 
-Release Date: 2023-08-22
+Release Date: 2023-09-13
 
 Security Level: □Top-Secret   □Secret   □Internal   ■Public
 
@@ -79,7 +79,8 @@ Software development engineers
 | V1.6.0      | Fenrir Lin | 2022-12-02 | Added RV1106 Dual-IPC block diagram.                         |
 | V1.6.1      | Fenrir Lin | 2023-02-18 | Modify the RV1126 IPC block diagram.                         |
 | V1.6.2      | Fenrir Lin | 2023-03-08 | Modify the RV1106 Dual IPC block diagram.                    |
-| V1.6.3      | Ruby Zhang | 2023-08-22 | Update the format of the document                            |
+| V1.6.3      | Ruby Zhang | 2023-08-22 | Update the format of the document.                           |
+| V1.6.4      | Fenrir Lin | 2023-09-13 | Modify the RV1126 IPC Rkmedia block diagram.<br/>and add the RV1126 Dual-IPC block diagram. |
 
 ---
 
@@ -107,6 +108,7 @@ Software development engineers
 | rv1126_ipc_rkmedia        | rockit, rkaiq         | IPC product for RV1126/RV1109 platforms, based on rkmedia, supports web and rtsp/rtmp preview, dynamic parameter modification. |
 | rv1126_ipc_rockit         | easymedia, rkaiq      | IPC product for RV1126/RV1109 platforms,based on rockit, supports web and rtsp/rtmp preview, dynamic parameter modification. |
 | rv1126_battery_ipc        | rockit, rkaiq         | Battery-powered product for RV1126/RV1109 platforms, supports preview via Tuya mobile app, with sleep&wake functionality. |
+| rv1126_dual_ipc           | rockit, rkaiq         | Binocular camera stitching product for RV1126/RV1109 platforms, supports web and rtsp/rtmp preview, dynamic parameter modification. |
 | rv1126_snapshot           | easymedia, rkaiq      | Snapshot-type product for RV1126/RV1109 platforms, supports offline frames, local image/video capture, screen display. |
 
 ### RV1103 IPC
@@ -210,18 +212,10 @@ graph TB
 ```mermaid
 graph LR
 	AI-->AENC-->MUXER-->file
-	VI_0[VI_0_2688*1520]-->NN_draw-->VENC_0(VENC_0 H264)-->RTSP_0
+	VI_0[VI_0_2688*1520]-->VENC_0(VENC_0 H264)-->RTSP_RTMP_0
 	VENC_0(VENC_0 H264)-->MUXER
-	VI_0-->VENC_3(VENC_3 JPEG)-->save_jpeg
-
-	VI_1[VI_1_640*480]-->move_detect-->NN_result
-	VI_1-->face_recognize-->NN_result
-	VI_1-->body_detect-->NN_result
-	VI_1-->VENC_1(VENC_1 H264)-->RTSP_1
-	VENC_1(VENC_1 H264)-->RTMP
-
-	VI_2[VI_2_1920*1080]-->VENC_2(VENC_2 H264)-->RTSP_2
-
+	VI_0-->VENC_JPEG-->save_jpeg
+	VI_1[VI_1_640*480]-->VENC_1(VENC_1 H264)-->RTSP_RTMP_1
 	VI_3[VI_3_1280*720]-->RGA_720*1280-->VO
 ```
 
@@ -252,6 +246,15 @@ graph LR
 	phone_app-->|wake up from sleep| tuya_clound
 
 	VI_1-->face_recognize-->draw-->VO
+```
+
+### RV1126 Dual-IPC
+
+```mermaid
+graph LR
+       VI_0-->AVS
+       VI_1-->AVS-->VENC_0-->RTSP_0
+       AVS-->VENC_1-->RTSP_1
 ```
 
 ### RV1126 Snapshot
@@ -1052,7 +1055,7 @@ gop = 50 ; I-frame interval
 smartp_viridrlen = 25 ; SmartP virtual I-frame length
 gop_mode = normalP ; GOP mode
 stream_smooth = 50 ; Stream smoothness, currently not used
-enable_motion_deblur = 1 ; Enable motion deblurring
+enable_motion_deblur = 1 ; Enable motion deblurring，currently supported for RV1103 and RV1106 only
 enable_motion_static_switch = 0 ; Dynamic/static switch, used to save bitrate in static scenes
 frame_min_i_qp = 26 ; Frame-level minimum I-frame QP
 frame_min_qp = 28 ; Frame-level minimum QP
@@ -1141,7 +1144,7 @@ blc_strength = 1 ; Backlight compensation strength
 wdr = close ; Wide dynamic range mode, not currently used
 wdr_level = 0 ; Wide dynamic range strength, not currently used
 hdr = close ; High dynamic range mode
-hdr_level = 1 ; High dynamic range strength
+hdr_level = 50 ; High dynamic range strength
 hlc = close ; Highlight suppression
 hlc_level = 0 ; Highlight suppression strength
 dark_boost_level = 0 ; Dark area enhancement level
@@ -1236,7 +1239,7 @@ This capability set is provided for use by the web frontend. If you need to modi
 0 = {"layout":{"image_adjustment":["iBrightness","iContrast","iSaturation","iSharpness","iHue"]},"static":{"iBrightness":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iContrast":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iHue":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iSaturation":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iSharpness":{"range":{"max":100,"min":0,"step":1},"type":"range"}}}
 
 [capability.image_blc]
-0 = {"disabled":[{"name":"sHLC","options":{"open":{"sBLCRegion":null}},"type":"disabled"},{"name":"sBLCRegion","options":{"open":{"iDarkBoostLevel":null,"iHLCLevel":null,"sHLC":null}},"type":"disabled"}],"dynamic":{"sBLCRegion":{"open":{"iBLCStrength":{"range":{"max":100,"min":0,"step":1},"type":"range"}}},"sHDR":{"HDR2":{"iHDRLevel":{"options":[1,2,3,4],"type":"options"}},"close":{"sBLCRegion":{"options":["close","open"],"type":"options"},"sHLC":{"options"
+0 = {"disabled":[{"name":"sHLC","options":{"open":{"sBLCRegion":null}},"type":"disabled"},{"name":"sBLCRegion","options":{"open":{"iDarkBoostLevel":null,"iHLCLevel":null,"sHLC":null}},"type":"disabled"}],"dynamic":{"sBLCRegion":{"open":{"iBLCStrength":{"range":{"max":100,"min":0,"step":1},"type":"range"}}},"sHDR":{"HDR2":{"iHDRLevel":{"range":{"max":100,"min":1,"step":1},"type":"range"}},"close":{"sBLCRegion":{"options":["close","open"],"type":"options"},"sHLC":{"options"
 1 = :["close","open"],"type":"options"}}},"sHLC":{"open":{"iDarkBoostLevel":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iHLCLevel":{"range":{"max":100,"min":0,"step":1},"type":"range"}}},"sWDR":{"open":{"iWDRLevel":{"range":{"max":100,"min":0,"step":1},"type":"range"}}}},"layout":{"image_blc":["sHDR","iHDRLevel","sBLCRegion","iBLCStrength","sHLC","iHLCLevel"]},"static":{"sHDR":{"options":["close","HDR2"],"type":"options"}}}
 
 [capability.image_enhancement]
