@@ -17,6 +17,7 @@ option(COMPILE_FOR_RV1126_ROCKIT "compile for rv1126 ipc rockit" OFF)
 option(COMPILE_FOR_RV1126_BATTERY_IPC "compile for rv1126 battery ipc" OFF)
 option(COMPILE_FOR_RV1126_SNAPSHOT "compile for rv1126 snapshot" OFF)
 option(COMPILE_FOR_RV1126_DUAL_IPC "compile for rv1126 dual-ipc" OFF)
+option(COMPILE_FOR_RV1126_AIISP "compile for rv1126 aiisp" OFF)
 
 option(COMPILE_FOR_RK3588 "compile for rk3588 ipc" OFF)
 option(COMPILE_FOR_RK3588_MULTI_IPC "compile for rk3588 multi-ipc" OFF)
@@ -83,6 +84,10 @@ endif()
 
 if(COMPILE_FOR_RV1126_DUAL_IPC)
   add_subdirectory(src/rv1126_dual_ipc)
+endif()
+
+if(COMPILE_FOR_RV1126_AIISP)
+  add_subdirectory(src/rv1126_aiisp_ipc)
 endif()
 
 if(COMPILE_FOR_RK3588)
