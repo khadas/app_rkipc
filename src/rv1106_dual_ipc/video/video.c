@@ -259,7 +259,7 @@ int rkipc_multi_vi_init() {
 	vi_chn_attr.stSize.u32Height = video_height;
 	vi_chn_attr.enPixelFormat = RK_FMT_YUV420SP;
 	vi_chn_attr.enCompressMode = COMPRESS_MODE_NONE;
-	vi_chn_attr.u32Depth = 2;
+	vi_chn_attr.u32Depth = 0;
 	for (int i = 0; i < g_sensor_num; i++) {
 		ret = RK_MPI_VI_SetChnAttr(i, 0, &vi_chn_attr);
 		ret |= RK_MPI_VI_EnableChnExt(i, 0);
