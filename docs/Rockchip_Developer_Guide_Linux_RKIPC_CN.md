@@ -2,9 +2,9 @@
 
 文件标识：RK-KF-YF-937
 
-发布版本：V1.6.4
+发布版本：V1.6.5
 
-日期：2023-09-13
+日期：2023-09-26
 
 文件密级：□绝密   □秘密   □内部资料   ■公开
 
@@ -87,6 +87,7 @@ Rockchip Electronics Co., Ltd.
 | V1.6.2     | Fenrir Lin | 2023-03-08   | 修改RV1106 Dual-IPC流程框图                                  |
 | V1.6.3     | Ruby Zhang | 2023-08-22   | 格式更新                                                     |
 | V1.6.4     | Fenrir Lin | 2023-09-13   | 修改RV1126 IPC Rkmedia的流程框图，<br/>新增RV1126 Dual-IPC的流程框图。 |
+| V1.6.5     | Yu Zheng   | 2023-09-26   | 新增RV1126 IPC AIISP的流程框图                               |
 
 ---
 
@@ -116,6 +117,7 @@ Rockchip Electronics Co., Ltd.
 | rv1126_battery_ipc        | rockit、rkaiq    | 针对RV1126/RV1109平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能。 |
 | rv1126_dual_ipc           | rockit、rkaiq    | 针对RV1126/RV1109平台的双目拼接类产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
 | rv1126_snapshot           | easymedia、rkaiq | 针对RV1126/RV1109平台的抓拍类型产品，支持离线帧，本地拍照/录像，屏幕显示。 |
+| rv1126_aiisp              | rockit、rkaiq    | 针对RV1126/RV1109平台的IPC产品，使用aiisp，支持网页和rtsp/rtmp预览，参数动态修改。 |
 
 ### RV1103 IPC
 
@@ -272,6 +274,24 @@ graph LR
 	fake[offline frame]-->VI_1(VI_1)-->VENC_1(VENC_1)-->H264_stream(H264_stream)
 	VI_1(VI_1)-->RGA_1(RGA_1)-->VO_1(VO_1)-->display[display]
 	VI_1(VI_1)-->VENC_2(VENC_2 JPEG)-->Interpolation_magnification(Interpolation magnification)-->jpeg[jpeg picture]
+```
+
+### RV1126 AIISP
+
+```mermaid
+graph LR
+	VI_0[VI_0]-->VPSS_0(VPSS_0 AIISP)-->VPSS_1(VPSS_1 osd cover)
+	VPSS_0(VPSS_0 AIISP)-->IVS(IVS)
+	VPSS_0(VPSS_0 AIISP)-->IVA(IVA)
+
+	VPSS_1(VPSS_1 osd cover)-->VENC_0(VENC_0)-->RTMP_RTSP_0(RTMP_RTSP_0)
+	VPSS_1(VPSS_1 osd cover)-->VENC_1(VENC_1)-->RTMP_RTSP_1(RTMP_RTSP_1)
+	VPSS_1(VPSS_1 osd cover)-->VPSS_2(VPSS_2)
+	VPSS_1(VPSS_1 osd cover)-->TDE(TDE)
+
+	VPSS_2(VPSS_2)-->VENC_2(VENC_2)-->RTMP_RTSP_2(RTMP_RTSP_2)
+	VPSS_2(VPSS_2)-->VO(VO)
+	TDE(TDE)-->VENC_JPEG(VENC_JPEG)
 ```
 
 ## 代码结构

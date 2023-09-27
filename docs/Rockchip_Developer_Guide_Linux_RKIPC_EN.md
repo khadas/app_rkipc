@@ -2,9 +2,9 @@
 
 ID: RK-KF-YF-937
 
-Release Version: V1.6.4
+Release Version: V1.6.5
 
-Release Date: 2023-09-13
+Release Date: 2023-09-26
 
 Security Level: □Top-Secret   □Secret   □Internal   ■Public
 
@@ -81,6 +81,7 @@ Software development engineers
 | V1.6.2      | Fenrir Lin | 2023-03-08 | Modify the RV1106 Dual IPC block diagram.                    |
 | V1.6.3      | Ruby Zhang | 2023-08-22 | Update the format of the document.                           |
 | V1.6.4      | Fenrir Lin | 2023-09-13 | Modify the RV1126 IPC Rkmedia block diagram.<br/>and add the RV1126 Dual-IPC block diagram. |
+| V1.6.5      | Yu Zheng   | 2023-09-26 | Added RV1126 AIISP block diagram.                            |
 
 ---
 
@@ -110,6 +111,7 @@ Software development engineers
 | rv1126_battery_ipc        | rockit, rkaiq         | Battery-powered product for RV1126/RV1109 platforms, supports preview via Tuya mobile app, with sleep&wake functionality. |
 | rv1126_dual_ipc           | rockit, rkaiq         | Binocular camera stitching product for RV1126/RV1109 platforms, supports web and rtsp/rtmp preview, dynamic parameter modification. |
 | rv1126_snapshot           | easymedia, rkaiq      | Snapshot-type product for RV1126/RV1109 platforms, supports offline frames, local image/video capture, screen display. |
+| rv1126_aiisp              | rockit、rkaiq         | IPC product for RV1126/RV1109 platforms,based on aiisp, supports web and rtsp/rtmp preview, dynamic parameter modification. |
 
 ### RV1103 IPC
 
@@ -266,6 +268,24 @@ graph LR
 	fake[offline frame]-->VI_1(VI_1)-->VENC_1(VENC_1)-->H264_stream(H264_stream)
 	VI_1(VI_1)-->RGA_1(RGA_1)-->VO_1(VO_1)-->display[display]
 	VI_1(VI_1)-->VENC_2(VENC_2 JPEG)-->Interpolation_magnification(Interpolation magnification)-->jpeg[jpeg picture]
+```
+
+### RV1126 AIISP
+
+```mermaid
+graph LR
+	VI_0[VI_0]-->VPSS_0(VPSS_0 AIISP)-->VPSS_1(VPSS_1 osd cover)
+	VPSS_0(VPSS_0 AIISP)-->IVS(IVS)
+	VPSS_0(VPSS_0 AIISP)-->IVA(IVA)
+
+	VPSS_1(VPSS_1 osd cover)-->VENC_0(VENC_0)-->RTMP_RTSP_0(RTMP_RTSP_0)
+	VPSS_1(VPSS_1 osd cover)-->VENC_1(VENC_1)-->RTMP_RTSP_1(RTMP_RTSP_1)
+	VPSS_1(VPSS_1 osd cover)-->VPSS_2(VPSS_2)
+	VPSS_1(VPSS_1 osd cover)-->TDE(TDE)
+
+	VPSS_2(VPSS_2)-->VENC_2(VENC_2)-->RTMP_RTSP_2(RTMP_RTSP_2)
+	VPSS_2(VPSS_2)-->VO(VO)
+	TDE(TDE)-->VENC_JPEG(VENC_JPEG)
 ```
 
 ## Code Structure
