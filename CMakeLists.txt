@@ -11,6 +11,7 @@ option(COMPILE_FOR_RV1106_BATTERY_IPC_TUYA "compile for rv1106 battery ipc tuya"
 option(COMPILE_FOR_RV1106_BATTERY_IPC_CLIENT "compile for rv1106 battery ipc client" OFF)
 option(COMPILE_FOR_RV1106_DUAL_IPC "compile for rv1106 dual-ipc" OFF)
 option(COMPILE_FOR_RV1106_WAKEUP_IPC "compile for rv1106 wakeup-ipc" OFF)
+option(COMPILE_FOR_RV1106_AIISP_IPC "compile for rv1106 aiisp-ipc" OFF)
 
 option(COMPILE_FOR_RV1126_RKMEDIA "compile for rv1126 ipc rkmedia" OFF)
 option(COMPILE_FOR_RV1126_ROCKIT "compile for rv1126 ipc rockit" OFF)
@@ -64,6 +65,10 @@ endif()
 
 if(COMPILE_FOR_RV1106_WAKEUP_IPC)
   add_subdirectory(src/rv1106_wakeup_ipc)
+endif()
+
+if(COMPILE_FOR_RV1106_AIISP_IPC)
+  add_subdirectory(src/rv1106_aiisp_ipc)
 endif()
 
 if(COMPILE_FOR_RV1126_RKMEDIA)
