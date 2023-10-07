@@ -16,22 +16,23 @@
 #include <rk_mpi_mb.h>
 #include <rk_mpi_mmz.h>
 #include <pthread.h>
-
-// FIXME: Just for demo, this include path should be modified.
-#include "rkaiq/algos/anr/ainr/rkpostisp.h"
+#include <rk_mpi_ivs.h>
+#include <rk_mpi_cal.h>
+#include <rk_mpi_tde.h>
+#include <rk_aiq_user_api_sysctl.h>
 
 #ifdef LOG_TAG
 #undef LOG_TAG
 #endif
 #define LOG_TAG "video.c"
 
-#ifdef TRACE_BEGIN()
-#undef TRACE_BEGIN()
+#ifdef TRACE_BEGIN
+#undef TRACE_BEGIN
 #endif
 #define TRACE_BEGIN() LOG_DEBUG("Enter\n")
 
-#ifdef TRACE_END()
-#undef TRACE_END()
+#ifdef TRACE_END
+#undef TRACE_END
 #endif
 #define TRACE_END() LOG_DEBUG("Exit\n")
 
@@ -73,7 +74,7 @@ static pthread_t venc_thread_0, venc_thread_1, venc_thread_2
 	, jpeg_venc_thread_id, cycle_snapshot_thread_id = 0;
 
 static pthread_cond_t g_capture_cond;
-static pthread_cond_t g_capture_mutex;
+static pthread_mutex_t g_capture_mutex;
 
 /*
  *                              ----> VENC 0
@@ -94,6 +95,9 @@ typedef enum rkCOLOR_INDEX_E {
 	RGN_COLOR_LUT_INDEX_0 = 0,
 	RGN_COLOR_LUT_INDEX_1 = 1,
 } COLOR_INDEX_E;
+
+
+extern rk_aiq_sys_ctx_t *rkipc_aiq_get_ctx(int cam_id);
 
 /* after rkaiq init */
 static RK_S32 vpss_aiisp_callback(RK_VOID *pAinrParam, RK_VOID *pPrivateData) {
@@ -382,22 +386,6 @@ static int rkipc_vpss_1_init() {
 	if (ret != RK_SUCCESS)
 		LOG_ERROR("%d: RK_MPI_VPSS_EnableChn error! ret is %#x\n", VpssChn, ret);
 
-	VpssChn = 2;
-	stVpssChnAttr[VpssChn].enChnMode = VPSS_CHN_MODE_AUTO;
-	stVpssChnAttr[VpssChn].enDynamicRange = DYNAMIC_RANGE_SDR8;
-	stVpssChnAttr[VpssChn].enPixelFormat = RK_FMT_YUV420SP;
-	stVpssChnAttr[VpssChn].stFrameRate.s32SrcFrameRate = -1;
-	stVpssChnAttr[VpssChn].stFrameRate.s32DstFrameRate = -1;
-	stVpssChnAttr[VpssChn].u32Width = rk_param_get_int("video.1:width", -1);
-	stVpssChnAttr[VpssChn].u32Height = rk_param_get_int("video.1:height", -1);
-	stVpssChnAttr[VpssChn].enCompressMode = COMPRESS_MODE_NONE;
-	ret = RK_MPI_VPSS_SetChnAttr(VpssGrp, VpssChn, &stVpssChnAttr[VpssChn]);
-	if (ret != RK_SUCCESS)
-		LOG_ERROR("%d: RK_MPI_VPSS_SetChnAttr error! ret is %#x\n", VpssChn, ret);
-	ret = RK_MPI_VPSS_EnableChn(VpssGrp, VpssChn);
-	if (ret != RK_SUCCESS)
-		LOG_ERROR("%d: RK_MPI_VPSS_EnableChn error! ret is %#x\n", VpssChn, ret);
-
 	ret = RK_MPI_VPSS_EnableBackupFrame(VpssGrp);
 	if (ret != RK_SUCCESS) {
 		LOG_ERROR("RK_MPI_VPSS_EnableBackupFrame error! ret is %#x\n", ret);
@@ -421,7 +409,6 @@ static int rkipc_vpss_1_deinit() {
 	ret |= RK_MPI_VPSS_StopGrp(VpssGrp);
 	ret |= RK_MPI_VPSS_DisableChn(VpssGrp, 0);
 	ret |= RK_MPI_VPSS_DisableChn(VpssGrp, 1);
-	ret |= RK_MPI_VPSS_DisableChn(VpssGrp, 2);
 	ret |= RK_MPI_VPSS_DisableBackupFrame(VpssGrp);
 	ret |= RK_MPI_VPSS_DestroyGrp(VpssGrp);
 	TRACE_END();
@@ -1412,10 +1399,6 @@ static int rkipc_bind_init() {
 	vi_chn.s32DevId = 0;
 	vi_chn.s32ChnId = 0;
 	for (i = 0; i < 3; i++) {
-		// vpss 1
-		vpss_1_chns[i].enModId = RK_ID_VPSS;
-		vpss_1_chns[i].s32DevId = 1; // vpss group 1
-		vpss_1_chns[i].s32ChnId = i;
 		// venc
 		venc_chns[i].enModId = RK_ID_VENC;
 		venc_chns[i].s32DevId = 0;
@@ -1426,6 +1409,10 @@ static int rkipc_bind_init() {
 		vpss_0_chns[i].enModId = RK_ID_VPSS;
 		vpss_0_chns[i].s32DevId = 0; // vpss group 0
 		vpss_0_chns[i].s32ChnId = i;
+		// vpss 1
+		vpss_1_chns[i].enModId = RK_ID_VPSS;
+		vpss_1_chns[i].s32DevId = 1; // vpss group 1
+		vpss_1_chns[i].s32ChnId = i;
 		// vpss 2
 		vpss_2_chns[i].enModId = RK_ID_VPSS;
 		vpss_2_chns[i].s32DevId = 2; // vpss group 2
@@ -1450,7 +1437,7 @@ static int rkipc_bind_init() {
 		ret |= rkipc_bind_helper(&vpss_1_chns[0], &venc_chns[0]);
 	if (g_enable_venc_1)
 		ret |= rkipc_bind_helper(&vpss_1_chns[1], &venc_chns[1]);
-	ret |= rkipc_bind_helper(&vpss_1_chns[2], &vpss_2_chns[0]);
+	ret |= rkipc_bind_helper(&vpss_1_chns[1], &vpss_2_chns[0]);
 
 	if (g_enable_venc_2)
 		ret |= rkipc_bind_helper(&vpss_2_chns[0], &venc_chns[2]);
@@ -1474,7 +1461,7 @@ static int rkipc_bind_deinit() {
 		ret |= RK_MPI_SYS_UnBind(&vpss_1_chns[1], &venc_chns[1]);
 	if (g_enable_venc_0)
 		ret |= RK_MPI_SYS_UnBind(&vpss_1_chns[0], &venc_chns[0]);
-	ret |= RK_MPI_SYS_UnBind(&vpss_1_chns[2], &vpss_2_chns[0]);
+	ret |= RK_MPI_SYS_UnBind(&vpss_1_chns[1], &vpss_2_chns[0]);
 
 	ret |= RK_MPI_SYS_UnBind(&vpss_0_chns[0], &vpss_1_chns[0]);
 	if (g_enable_ivs)
@@ -2193,84 +2180,6 @@ static void stop_all_threads() {
 	thread_stack_top = -1;
 	memset(thread_id_stack, 0, sizeof(thread_id_stack));
 	TRACE_END();
-}
-
-RK_S32 draw_rect_nv12(int fd, RK_U32 width, RK_U32 height, int rgn_x, int rgn_y, int rgn_w,
-                      int rgn_h, int line_pixel, COLOR_INDEX_E color_index) {
-	RK_U32 color = 0;
-	if (color_index == RGN_COLOR_LUT_INDEX_0)
-		color = 0xff0000ff;
-	if (color_index == RGN_COLOR_LUT_INDEX_1)
-		color = 0xffff0000;
-	rga_buffer_t rga_buffer =
-	    wrapbuffer_fd_t(fd, width, height, width, height, RK_FORMAT_YCbCr_420_SP);
-	im_rect rect_up = {rgn_x, rgn_y, rgn_w, line_pixel};
-	im_rect rect_buttom = {rgn_x, rgn_y + rgn_h - line_pixel, rgn_w, line_pixel};
-	im_rect rect_left = {rgn_x, rgn_y, line_pixel, rgn_h};
-	im_rect rect_right = {rgn_x + rgn_w - line_pixel, rgn_y, line_pixel, rgn_h};
-	IM_STATUS STATUS = imfill(rga_buffer, rect_up, color);
-	STATUS |= imfill(rga_buffer, rect_buttom, color);
-	STATUS |= imfill(rga_buffer, rect_left, color);
-	STATUS |= imfill(rga_buffer, rect_right, color);
-	if (STATUS != IM_STATUS_SUCCESS)
-		LOG_ERROR("STATUS is %d\n", STATUS);
-	return 0;
-}
-
-RK_S32 draw_rect_argb8888(RK_U64 buffer
-		, RK_U32 width, RK_U32 height
-		, int rgn_x, int rgn_y, int rgn_w, int rgn_h
-		, int line_pixel, COLOR_INDEX_E color_index) {
-	RK_U32 color = 0;
-	if (color_index == RGN_COLOR_LUT_INDEX_0)
-		color = 0xff0000ff;
-	if (color_index == RGN_COLOR_LUT_INDEX_1)
-		color = 0xffff0000;
-#if 1
-	rga_buffer_t rga_buffer =
-	    wrapbuffer_virtualaddr_t((void *)buffer
-				, width, height, width, height, RK_FORMAT_ARGB_8888);
-	im_rect rect_up = {rgn_x, rgn_y, rgn_w, line_pixel};
-	im_rect rect_buttom = {rgn_x, rgn_y + rgn_h - line_pixel, rgn_w, line_pixel};
-	im_rect rect_left = {rgn_x, rgn_y, line_pixel, rgn_h};
-	im_rect rect_right = {rgn_x + rgn_w - line_pixel, rgn_y, line_pixel, rgn_h};
-	IM_STATUS STATUS = imfill(rga_buffer, rect_up, color);
-	STATUS |= imfill(rga_buffer, rect_buttom, color);
-	STATUS |= imfill(rga_buffer, rect_left, color);
-	STATUS |= imfill(rga_buffer, rect_right, color);
-	if (STATUS != IM_STATUS_SUCCESS)
-		LOG_ERROR("STATUS is %d\n", STATUS);
-#else
-	int i, j;
-	RK_U32 *ptr = buffer;
-	int pixel_format_byte = 4;
-
-	LOG_INFO("YUV %dx%d, rgn (%d,%d,%d,%d), line pixel %d\n", width, height
-			, rgn_x, rgn_y, rgn_w, rgn_h, line_pixel);
-	//  draw top line
-	ptr += (width * rgn_y + rgn_x);
-	for (i = 0; i < line_pixel; i++) {
-		memset(ptr, value,
-		       (rgn_w + 3) * pixel_format_byte); // memset is byte, not 32bits,so is white
-		ptr += width;
-	}
-	// draw letft/right line
-	for (i = 0; i < (rgn_h - line_pixel * 2); i++) {
-		for (j = 0; j < line_pixel; j++) {
-			*(ptr + j) = value;
-			*((ptr + (rgn_w + 3)) + j) = value;
-		}
-		ptr += width;
-	}
-	// draw bottom line
-	for (i = 0; i < line_pixel; i++) {
-		// memset is byte, not 32bits,so is white
-		memset(ptr, value,
-		       (rgn_w + 3) * pixel_format_byte);
-		ptr += width;
-	}
-#endif
-	return 0;
 }
 
 // export API
