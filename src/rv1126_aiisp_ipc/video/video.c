@@ -2167,8 +2167,9 @@ static void start_all_threads() {
 		} else {
 			LOG_ERROR("create jpeg thread failed: %d\n", ret);
 		}
-		if (rk_param_get_int("video.jpeg:enable_cycle_snapshot", 0))
-			rk_video_set_enable_cycle_snapshot(1);
+		if (rk_param_get_int("video.jpeg:enable_cycle_snapshot", 0)) {
+			pthread_create(&cycle_snapshot_thread_id, NULL, rkipc_do_cycle_snapshot, NULL);
+		}
 	}
 	TRACE_END();
 }
@@ -2179,7 +2180,10 @@ static void stop_all_threads() {
 	// INFO: cycle snapshot thread may not be destroy by user, so we need to destroy
 	// it manually.
 	if (g_enable_jpeg) {
-		rk_video_set_enable_cycle_snapshot(0);
+		if (cycle_snapshot_thread_id) {
+			pthread_join(cycle_snapshot_thread_id, NULL);
+			cycle_snapshot_thread_id = 0;
+		}
 		pthread_cond_signal(&g_capture_cond);
 	}
 	for (int i = thread_stack_top; i >= 0 && i < 16; --i) {
