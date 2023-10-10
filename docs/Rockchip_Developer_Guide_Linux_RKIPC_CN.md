@@ -1375,6 +1375,8 @@ image_path = /usr/share/image.bmp ; 图片路径
 
 ### 事件模块
 
+目前仅支持rv1126_ipc_rkmedia
+
 ```ini
 [event.regional_invasion]
 enabled = 1 ; 是否使能区域入侵

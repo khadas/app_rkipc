@@ -1368,6 +1368,8 @@ image_path = /usr/share/image.bmp ; Image path
 
 ### Event Module
 
+Currently only supported for rv1126_ipc_rkmedia.
+
 ```ini
 [event.regional_invasion]
 enabled = 1 ; Enable regional invasion event
