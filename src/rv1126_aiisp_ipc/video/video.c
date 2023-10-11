@@ -12,14 +12,14 @@
 #include "rtmp.h"
 #include "rtsp.h"
 #include "storage.h"
+#include <pthread.h>
+#include <rk_aiq_user_api_sysctl.h>
 #include <rk_comm_tde.h>
+#include <rk_mpi_cal.h>
+#include <rk_mpi_ivs.h>
 #include <rk_mpi_mb.h>
 #include <rk_mpi_mmz.h>
-#include <pthread.h>
-#include <rk_mpi_ivs.h>
-#include <rk_mpi_cal.h>
 #include <rk_mpi_tde.h>
-#include <rk_aiq_user_api_sysctl.h>
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -53,8 +53,8 @@
 #define RTMP_URL_2 "rtmp://127.0.0.1:1935/live/thirdstream"
 
 static int g_do_capture = 0;
-static int g_enable_ivs, g_enable_jpeg, g_enable_venc_0
-	, g_enable_venc_1, g_enable_venc_2, g_enable_npu;
+static int g_enable_ivs, g_enable_jpeg, g_enable_venc_0, g_enable_venc_1, g_enable_venc_2,
+    g_enable_npu;
 static int g_enable_vo, g_vo_dev_id;
 static int g_video_run_ = 1;
 static int g_pipe_id = 0;
@@ -69,9 +69,8 @@ static const char *tmp_rc_quality;
 
 static int thread_stack_top = -1;
 static pthread_t thread_id_stack[16];
-static pthread_t venc_thread_0, venc_thread_1, venc_thread_2
-	, iva_get_frame_thread_id, ivs_get_result_thread_id
-	, jpeg_venc_thread_id, cycle_snapshot_thread_id = 0;
+static pthread_t venc_thread_0, venc_thread_1, venc_thread_2, iva_get_frame_thread_id,
+    ivs_get_result_thread_id, jpeg_venc_thread_id, cycle_snapshot_thread_id = 0;
 
 static pthread_cond_t g_capture_cond;
 static pthread_mutex_t g_capture_mutex;
@@ -87,8 +86,8 @@ static pthread_mutex_t g_capture_mutex;
  *                 |
  *                 ----> IVA
  */
-static MPP_CHN_S vi_chn, vo_chn, venc_chns[3], ivs_chn
-	, vpss_0_chns[3], vpss_1_chns[3], vpss_2_chns[2];
+static MPP_CHN_S vi_chn, vo_chn, venc_chns[3], ivs_chn, vpss_0_chns[3], vpss_1_chns[3],
+    vpss_2_chns[2];
 
 static VO_DEV VoLayer = RV1126_VOP_LAYER_CLUSTER0;
 typedef enum rkCOLOR_INDEX_E {
@@ -96,15 +95,14 @@ typedef enum rkCOLOR_INDEX_E {
 	RGN_COLOR_LUT_INDEX_1 = 1,
 } COLOR_INDEX_E;
 
-
 extern rk_aiq_sys_ctx_t *rkipc_aiq_get_ctx(int cam_id);
 
 /* after rkaiq init */
 static RK_S32 vpss_aiisp_callback(RK_VOID *pAinrParam, RK_VOID *pPrivateData) {
-    if (pAinrParam == RK_NULL) {
-        return RK_FAILURE;
-    }
-    memset(pAinrParam, 0, sizeof(rk_ainr_param));
+	if (pAinrParam == RK_NULL) {
+		return RK_FAILURE;
+	}
+	memset(pAinrParam, 0, sizeof(rk_ainr_param));
 	int ret = 0;
 	int camera_id = rk_param_get_int("video.0:camera_id", 0);
 	ret = rk_aiq_uapi_sysctl_getAinrParams(rkipc_aiq_get_ctx(camera_id), pAinrParam);
@@ -114,7 +112,7 @@ static RK_S32 vpss_aiisp_callback(RK_VOID *pAinrParam, RK_VOID *pPrivateData) {
 	}
 	// LOG_INFO("param:%p, gain:%f\n", pAinrParam, ((rk_ainr_param* )pAinrParam)->gain);
 
-    return RK_SUCCESS;
+	return RK_SUCCESS;
 }
 
 static int rkipc_rtmp_init() {
@@ -589,7 +587,6 @@ static int rkipc_ivs_init() {
 		return -1;
 	}
 
-
 	return 0;
 }
 
@@ -813,8 +810,7 @@ static int rkipc_venc_1_init() {
 		if (!strcmp(tmp_rc_mode, "CBR")) {
 			venc_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_H264CBR;
 			venc_chn_attr.stRcAttr.stH264Cbr.u32Gop = rk_param_get_int("video.1:gop", -1);
-			venc_chn_attr.stRcAttr.stH264Cbr.u32BitRate =
-			    rk_param_get_int("video.1:max_rate", -1);
+			venc_chn_attr.stRcAttr.stH264Cbr.u32BitRate = rk_param_get_int("video.1:max_rate", -1);
 			venc_chn_attr.stRcAttr.stH264Cbr.fr32DstFrameRateDen =
 			    rk_param_get_int("video.1:dst_frame_rate_den", -1);
 			venc_chn_attr.stRcAttr.stH264Cbr.fr32DstFrameRateNum =
@@ -826,8 +822,7 @@ static int rkipc_venc_1_init() {
 		} else {
 			venc_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_H264VBR;
 			venc_chn_attr.stRcAttr.stH264Vbr.u32Gop = rk_param_get_int("video.1:gop", -1);
-			venc_chn_attr.stRcAttr.stH264Vbr.u32BitRate =
-			    rk_param_get_int("video.1:max_rate", -1);
+			venc_chn_attr.stRcAttr.stH264Vbr.u32BitRate = rk_param_get_int("video.1:max_rate", -1);
 			venc_chn_attr.stRcAttr.stH264Vbr.fr32DstFrameRateDen =
 			    rk_param_get_int("video.1:dst_frame_rate_den", -1);
 			venc_chn_attr.stRcAttr.stH264Vbr.fr32DstFrameRateNum =
@@ -842,8 +837,7 @@ static int rkipc_venc_1_init() {
 		if (!strcmp(tmp_rc_mode, "CBR")) {
 			venc_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_H265CBR;
 			venc_chn_attr.stRcAttr.stH265Cbr.u32Gop = rk_param_get_int("video.1:gop", -1);
-			venc_chn_attr.stRcAttr.stH265Cbr.u32BitRate =
-			    rk_param_get_int("video.1:max_rate", -1);
+			venc_chn_attr.stRcAttr.stH265Cbr.u32BitRate = rk_param_get_int("video.1:max_rate", -1);
 			venc_chn_attr.stRcAttr.stH265Cbr.fr32DstFrameRateDen =
 			    rk_param_get_int("video.1:dst_frame_rate_den", -1);
 			venc_chn_attr.stRcAttr.stH265Cbr.fr32DstFrameRateNum =
@@ -855,8 +849,7 @@ static int rkipc_venc_1_init() {
 		} else {
 			venc_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_H265VBR;
 			venc_chn_attr.stRcAttr.stH265Vbr.u32Gop = rk_param_get_int("video.1:gop", -1);
-			venc_chn_attr.stRcAttr.stH265Vbr.u32BitRate =
-			    rk_param_get_int("video.1:max_rate", -1);
+			venc_chn_attr.stRcAttr.stH265Vbr.u32BitRate = rk_param_get_int("video.1:max_rate", -1);
 			venc_chn_attr.stRcAttr.stH265Vbr.fr32DstFrameRateDen =
 			    rk_param_get_int("video.1:dst_frame_rate_den", -1);
 			venc_chn_attr.stRcAttr.stH265Vbr.fr32DstFrameRateNum =
@@ -994,8 +987,7 @@ static int rkipc_venc_2_init() {
 		if (!strcmp(tmp_rc_mode, "CBR")) {
 			venc_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_H264CBR;
 			venc_chn_attr.stRcAttr.stH264Cbr.u32Gop = rk_param_get_int("video.2:gop", -1);
-			venc_chn_attr.stRcAttr.stH264Cbr.u32BitRate =
-			    rk_param_get_int("video.2:max_rate", -1);
+			venc_chn_attr.stRcAttr.stH264Cbr.u32BitRate = rk_param_get_int("video.2:max_rate", -1);
 			venc_chn_attr.stRcAttr.stH264Cbr.fr32DstFrameRateDen =
 			    rk_param_get_int("video.2:dst_frame_rate_den", -1);
 			venc_chn_attr.stRcAttr.stH264Cbr.fr32DstFrameRateNum =
@@ -1007,8 +999,7 @@ static int rkipc_venc_2_init() {
 		} else {
 			venc_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_H264VBR;
 			venc_chn_attr.stRcAttr.stH264Vbr.u32Gop = rk_param_get_int("video.2:gop", -1);
-			venc_chn_attr.stRcAttr.stH264Vbr.u32BitRate =
-			    rk_param_get_int("video.2:max_rate", -1);
+			venc_chn_attr.stRcAttr.stH264Vbr.u32BitRate = rk_param_get_int("video.2:max_rate", -1);
 			venc_chn_attr.stRcAttr.stH264Vbr.fr32DstFrameRateDen =
 			    rk_param_get_int("video.2:dst_frame_rate_den", -1);
 			venc_chn_attr.stRcAttr.stH264Vbr.fr32DstFrameRateNum =
@@ -1023,8 +1014,7 @@ static int rkipc_venc_2_init() {
 		if (!strcmp(tmp_rc_mode, "CBR")) {
 			venc_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_H265CBR;
 			venc_chn_attr.stRcAttr.stH265Cbr.u32Gop = rk_param_get_int("video.2:gop", -1);
-			venc_chn_attr.stRcAttr.stH265Cbr.u32BitRate =
-			    rk_param_get_int("video.2:max_rate", -1);
+			venc_chn_attr.stRcAttr.stH265Cbr.u32BitRate = rk_param_get_int("video.2:max_rate", -1);
 			venc_chn_attr.stRcAttr.stH265Cbr.fr32DstFrameRateDen =
 			    rk_param_get_int("video.2:dst_frame_rate_den", -1);
 			venc_chn_attr.stRcAttr.stH265Cbr.fr32DstFrameRateNum =
@@ -1036,8 +1026,7 @@ static int rkipc_venc_2_init() {
 		} else {
 			venc_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_H265VBR;
 			venc_chn_attr.stRcAttr.stH265Vbr.u32Gop = rk_param_get_int("video.2:gop", -1);
-			venc_chn_attr.stRcAttr.stH265Vbr.u32BitRate =
-			    rk_param_get_int("video.2:max_rate", -1);
+			venc_chn_attr.stRcAttr.stH265Vbr.u32BitRate = rk_param_get_int("video.2:max_rate", -1);
 			venc_chn_attr.stRcAttr.stH265Vbr.fr32DstFrameRateDen =
 			    rk_param_get_int("video.2:dst_frame_rate_den", -1);
 			venc_chn_attr.stRcAttr.stH265Vbr.fr32DstFrameRateNum =
@@ -1158,8 +1147,7 @@ static int rkipc_jpeg_init() {
 	jpeg_chn_attr.stVencAttr.u32VirWidth = width;
 	jpeg_chn_attr.stVencAttr.u32VirHeight = height;
 	jpeg_chn_attr.stVencAttr.u32StreamBufCnt = 2;
-	jpeg_chn_attr.stVencAttr.u32BufSize =
-		rk_param_get_int("video.jpeg:jpeg_buffer_size", 2097152);
+	jpeg_chn_attr.stVencAttr.u32BufSize = rk_param_get_int("video.jpeg:jpeg_buffer_size", 2097152);
 	// jpeg_chn_attr.stVencAttr.u32Depth = 1;
 	ret = RK_MPI_VENC_CreateChn(JPEG_VENC_CHN, &jpeg_chn_attr);
 	if (ret) {
@@ -1174,7 +1162,7 @@ static int rkipc_jpeg_init() {
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
 	stRecvParam.s32RecvPicNum = 1;
 	RK_MPI_VENC_StartRecvFrame(JPEG_VENC_CHN,
-	                &stRecvParam); // must, for no streams callback running failed
+	                           &stRecvParam); // must, for no streams callback running failed
 	RK_MPI_VENC_StopRecvFrame(JPEG_VENC_CHN);
 
 	ret = pthread_mutex_init(&g_capture_mutex, NULL);
@@ -1367,25 +1355,22 @@ static int rkipc_vo_deinit() {
 	return ret;
 }
 
-static const char* g_rk_mod_name[RK_ID_BUTT] = {
-	[RK_ID_VENC] = RK_MOD_VENC,
-	[RK_ID_VPSS] = RK_MOD_VPSS,
-	[RK_ID_VI] = RK_MOD_VI,
-	[RK_ID_VO] = RK_MOD_VO,
-	[RK_ID_IVS] = RK_MOD_IVS,
+static const char *g_rk_mod_name[RK_ID_BUTT] = {
+    [RK_ID_VENC] = RK_MOD_VENC, [RK_ID_VPSS] = RK_MOD_VPSS, [RK_ID_VI] = RK_MOD_VI,
+    [RK_ID_VO] = RK_MOD_VO,     [RK_ID_IVS] = RK_MOD_IVS,
 };
 
-static int rkipc_bind_helper(MPP_CHN_S* src, MPP_CHN_S* dst) {
+static int rkipc_bind_helper(MPP_CHN_S *src, MPP_CHN_S *dst) {
 	int ret = RK_SUCCESS;
 	if (NULL == src || NULL == dst)
 		return RK_FAILURE;
 	ret = RK_MPI_SYS_Bind(src, dst);
 	if (ret) {
 		LOG_ERROR("Bind error! ret=%#x\n", ret);
-		LOG_ERROR("Src Mod:%s, Dev:%d, Chn:%d\n"
-				, g_rk_mod_name[src->enModId], src->s32DevId, src->s32ChnId);
-		LOG_ERROR("Dst Mod:%s, Dev:%d, Chn:%d\n"
-				, g_rk_mod_name[dst->enModId], dst->s32DevId, dst->s32ChnId);
+		LOG_ERROR("Src Mod:%s, Dev:%d, Chn:%d\n", g_rk_mod_name[src->enModId], src->s32DevId,
+		          src->s32ChnId);
+		LOG_ERROR("Dst Mod:%s, Dev:%d, Chn:%d\n", g_rk_mod_name[dst->enModId], dst->s32DevId,
+		          dst->s32ChnId);
 	}
 	return ret;
 }
@@ -1526,8 +1511,7 @@ static int rkipc_osd_cover_destroy(int id) {
 	stMppChn.s32ChnId = VPSS_MAX_CHN_NUM;
 	ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 	if (RK_SUCCESS != ret) {
-		LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to vpss1 failed with %#x\n"
-				, RgnHandle, ret);
+		LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to vpss1 failed with %#x\n", RgnHandle, ret);
 		return RK_FAILURE;
 	}
 	// destory region
@@ -1582,8 +1566,7 @@ static int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 		stRgnChnAttr.unChnAttr.stOverlayChn.u32Layer = 5;
 	ret = RK_MPI_RGN_AttachToChn(RgnHandle, &stMppChn, &stRgnChnAttr);
 	if (RK_SUCCESS != ret) {
-		LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to vpss1 failed with %#x\n"
-				, RgnHandle, ret);
+		LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to vpss1 failed with %#x\n", RgnHandle, ret);
 		return RK_FAILURE;
 	} else {
 		LOG_INFO("RK_MPI_RGN_AttachToChn to vpss1 success\n");
@@ -1614,8 +1597,7 @@ static int rkipc_osd_bmp_destroy(int id) {
 	stMppChn.s32ChnId = VPSS_MAX_CHN_NUM;
 	ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 	if (RK_SUCCESS != ret) {
-		LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to vpss1 failed with %#x\n"
-				, RgnHandle, ret);
+		LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to vpss1 failed with %#x\n", RgnHandle, ret);
 		return RK_FAILURE;
 	}
 
@@ -1818,7 +1800,7 @@ static void *rkipc_ivs_get_results(void *arg) {
 			if (md == 1) {
 				if (stResults.pstResults->stMdInfo.u32Square > md_area_threshold) {
 					LOG_INFO("MD: md_area is %d, md_area_threshold is %d\n",
-						stResults.pstResults->stMdInfo.u32Square, md_area_threshold);
+					         stResults.pstResults->stMdInfo.u32Square, md_area_threshold);
 				}
 			}
 			if (od == 1) {
@@ -1851,8 +1833,8 @@ static void *rkipc_iva_get_frame(void *arg) {
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stViFrame.stVFrame.pMbBlk);
 			int32_t fd = RK_MPI_MB_Handle2Fd(stViFrame.stVFrame.pMbBlk);
-			rkipc_rockiva_write_nv12_frame_by_fd(stViFrame.stVFrame.u32Width
-					, stViFrame.stVFrame.u32Height, loopCount, fd);
+			rkipc_rockiva_write_nv12_frame_by_fd(stViFrame.stVFrame.u32Width,
+			                                     stViFrame.stVFrame.u32Height, loopCount, fd);
 			ret = RK_MPI_VPSS_ReleaseChnFrame(0, 1, &stViFrame);
 			if (ret != RK_SUCCESS)
 				LOG_ERROR("%s: fail %x\n", __func__, ret);
@@ -2038,14 +2020,13 @@ static void *rkipc_get_jpeg(void *arg) {
 		ret = RK_MPI_VENC_GetStream(JPEG_VENC_CHN, &stFrame, 1000);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
-			LOG_DEBUG("Count:%d, Len:%d, PTS is %" PRId64 ", enH264EType is %d\n"
-					, loopCount, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS
-					, stFrame.pstPack->DataType.enH264EType);
+			LOG_DEBUG("Count:%d, Len:%d, PTS is %" PRId64 ", enH264EType is %d\n", loopCount,
+			          stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
+			          stFrame.pstPack->DataType.enH264EType);
 			time_t t = time(NULL);
 			struct tm tm = *localtime(&t);
-			snprintf(file_name, 128, "%s/%d%02d%02d%02d%02d%02d.jpeg"
-					, file_path, tm.tm_year + 1900, tm.tm_mon + 1
-					, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+			snprintf(file_name, 128, "%s/%d%02d%02d%02d%02d%02d.jpeg", file_path, tm.tm_year + 1900,
+			         tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 			LOG_DEBUG("file_name is %s\n", file_name);
 			FILE *fp = fopen(file_name, "wb");
 			if (fp) {
@@ -2125,8 +2106,7 @@ static void start_all_threads() {
 		int od = rk_param_get_int("ivs:od", 0);
 		if (md || od) {
 			ivs_get_result_thread_id = 0;
-			ret = pthread_create(&ivs_get_result_thread_id
-					, NULL, rkipc_ivs_get_results, NULL);
+			ret = pthread_create(&ivs_get_result_thread_id, NULL, rkipc_ivs_get_results, NULL);
 			if (ret == 0) {
 				thread_id_stack[++thread_stack_top] = ivs_get_result_thread_id;
 				LOG_INFO("create ivs thread tid: %#X\n", ivs_get_result_thread_id);
@@ -2293,8 +2273,7 @@ int rk_video_set_RC_mode(int stream_id, const char *value) {
 		if (!strcmp(value, "CBR")) {
 			venc_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_H264CBR;
 			venc_chn_attr.stRcAttr.stH264Cbr.u32Gop = rk_param_get_int(entry_gop, -1);
-			venc_chn_attr.stRcAttr.stH264Cbr.u32BitRate =
-				rk_param_get_int(entry_max_rate, -1);
+			venc_chn_attr.stRcAttr.stH264Cbr.u32BitRate = rk_param_get_int(entry_max_rate, -1);
 			venc_chn_attr.stRcAttr.stH264Cbr.fr32DstFrameRateDen =
 			    rk_param_get_int(entry_dst_frame_rate_den, -1);
 			venc_chn_attr.stRcAttr.stH264Cbr.fr32DstFrameRateNum =
@@ -2306,8 +2285,7 @@ int rk_video_set_RC_mode(int stream_id, const char *value) {
 		} else {
 			venc_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_H264VBR;
 			venc_chn_attr.stRcAttr.stH264Vbr.u32Gop = rk_param_get_int(entry_gop, -1);
-			venc_chn_attr.stRcAttr.stH264Vbr.u32BitRate =
-				rk_param_get_int(entry_max_rate, -1);
+			venc_chn_attr.stRcAttr.stH264Vbr.u32BitRate = rk_param_get_int(entry_max_rate, -1);
 			venc_chn_attr.stRcAttr.stH264Vbr.fr32DstFrameRateDen =
 			    rk_param_get_int(entry_dst_frame_rate_den, -1);
 			venc_chn_attr.stRcAttr.stH264Vbr.fr32DstFrameRateNum =
@@ -2321,8 +2299,7 @@ int rk_video_set_RC_mode(int stream_id, const char *value) {
 		if (!strcmp(value, "CBR")) {
 			venc_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_H265CBR;
 			venc_chn_attr.stRcAttr.stH265Cbr.u32Gop = rk_param_get_int(entry_gop, -1);
-			venc_chn_attr.stRcAttr.stH265Cbr.u32BitRate =
-				rk_param_get_int(entry_max_rate, -1);
+			venc_chn_attr.stRcAttr.stH265Cbr.u32BitRate = rk_param_get_int(entry_max_rate, -1);
 			venc_chn_attr.stRcAttr.stH265Cbr.fr32DstFrameRateDen =
 			    rk_param_get_int(entry_dst_frame_rate_den, -1);
 			venc_chn_attr.stRcAttr.stH265Cbr.fr32DstFrameRateNum =
@@ -2334,8 +2311,7 @@ int rk_video_set_RC_mode(int stream_id, const char *value) {
 		} else {
 			venc_chn_attr.stRcAttr.enRcMode = VENC_RC_MODE_H265VBR;
 			venc_chn_attr.stRcAttr.stH265Vbr.u32Gop = rk_param_get_int(entry_gop, -1);
-			venc_chn_attr.stRcAttr.stH265Vbr.u32BitRate =
-				rk_param_get_int(entry_max_rate, -1);
+			venc_chn_attr.stRcAttr.stH265Vbr.u32BitRate = rk_param_get_int(entry_max_rate, -1);
 			venc_chn_attr.stRcAttr.stH265Vbr.fr32DstFrameRateDen =
 			    rk_param_get_int(entry_dst_frame_rate_den, -1);
 			venc_chn_attr.stRcAttr.stH265Vbr.fr32DstFrameRateNum =
@@ -2811,8 +2787,7 @@ int rk_roi_set(roi_data_s *roi_data) {
 
 	ret = RK_MPI_VENC_SetRoiAttr(venc_chn_num, &pstRoiAttr);
 	if (RK_SUCCESS != ret) {
-		LOG_ERROR("RK_MPI_VENC_SetRoiAttr to venc %d failed with %#x\n"
-				, venc_chn_num, ret);
+		LOG_ERROR("RK_MPI_VENC_SetRoiAttr to venc %d failed with %#x\n", venc_chn_num, ret);
 		return RK_FAILURE;
 	}
 	LOG_DEBUG("RK_MPI_VENC_SetRoiAttr to venc %d success\n", venc_chn_num);
@@ -2880,7 +2855,7 @@ int rk_video_set_rotation(int value) {
 
 	// ret = RK_MPI_VPSS_SetGrpRotation(1, rotation);
 	// if (ret != RK_SUCCESS)
- 	// 	LOG_ERROR("vpss: set rotation failed because %#X\n", ret);
+	// 	LOG_ERROR("vpss: set rotation failed because %#X\n", ret);
 	// Do rotation just in venc channels.
 	if (g_enable_venc_0) {
 		ret = RK_MPI_VENC_GetChnRotation(0, &cur_rotation);

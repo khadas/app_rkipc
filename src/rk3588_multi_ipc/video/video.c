@@ -942,8 +942,8 @@ int rkipc_get_middle_lut_by_xml() {
 
 	RKALGO_AVS_MASK_CONFIG_S inputMaskConfig; /* mask的相关参数 */
 	RKALGO_AVS_FINE_TUNING_PARAMS_S
-	    fineTuningParams; /* 精调参数(对每个相机单独生效，用于拼接效果调优)，输入为pto文件时该值不起作用
-	                       */
+	fineTuningParams; /* 精调参数(对每个相机单独生效，用于拼接效果调优)，输入为pto文件时该值不起作用
+	                   */
 	RKALGO_AVS_MIDDLE_LUT_PARAMS_S stMidLutParams; /* 生成middle LUT所需的输入参数 */
 	RKALGO_AVS_MIDDLE_LUT_BUFFER_S stMidLutBuf; /* 生成middle LUT所需的输出buffer结构体 */
 	memset(&inputMaskConfig, 0, sizeof(inputMaskConfig));

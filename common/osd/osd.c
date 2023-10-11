@@ -498,8 +498,7 @@ int rk_osd_bmp_change(int osd_id) {
 
 	osd_data.text.font_size = rk_param_get_int("osd.common:font_size", -1);
 	// osd_data.text.font_color = 0xfff799;
-	sscanf(rk_param_get_string("osd.common:font_color", NULL), "%x",
-			&osd_data.text.font_color);
+	sscanf(rk_param_get_string("osd.common:font_color", NULL), "%x", &osd_data.text.font_color);
 	LOG_DEBUG("osd_data.text.font_color is %x\n", osd_data.text.font_color);
 	osd_data.text.color_inverse = 1;
 	osd_data.text.font_path = rk_param_get_string("osd.common:font_path", NULL);
@@ -531,8 +530,7 @@ int rk_osd_bmp_change(int osd_id) {
 		memcpy(entry, display_text, src_len); // iconv maybe change the char *
 		memset(entry + src_len, 0, 1);
 		char *tmp_in_buffer = (char *)entry;
-		ret = iconv(cd, &tmp_in_buffer, (size_t *)&src_len, &tmp_out_buffer,
-					(size_t *)&out_len);
+		ret = iconv(cd, &tmp_in_buffer, (size_t *)&src_len, &tmp_out_buffer, (size_t *)&out_len);
 		if (ret == -1)
 			perror("iconv error");
 		iconv_close(cd);
