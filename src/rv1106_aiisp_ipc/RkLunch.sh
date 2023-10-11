@@ -78,9 +78,25 @@ post_chk()
 	default_rkipc_ini=/tmp/rkipc-factory-config.ini
 
 	if [ ! -f "/oem/usr/share/rkipc.ini" ]; then
+		lsmod | grep os04a10
+		if [ $? -eq 0 ] ;then
+			ln -s -f /oem/usr/share/rkipc-2688x1520.ini $default_rkipc_ini
+		fi
+		lsmod | grep sc450ai
+		if [ $? -eq 0 ] ;then
+			ln -s -f /oem/usr/share/rkipc-2688x1520.ini $default_rkipc_ini
+		fi
 		lsmod | grep sc4336
 		if [ $? -eq 0 ] ;then
-			ln -s -f /oem/usr/share/rkipc-400w.ini $default_rkipc_ini
+			ln -s -f /oem/usr/share/rkipc-2560x1440.ini $default_rkipc_ini
+		fi
+		lsmod | grep sc401ai
+		if [ $? -eq 0 ] ;then
+			ln -s -f /oem/usr/share/rkipc-2560x1440.ini $default_rkipc_ini
+		fi
+		lsmod | grep sc200ai
+		if [ $? -eq 0 ] ;then
+			ln -s -f /oem/usr/share/rkipc-1920x1080.ini $default_rkipc_ini
 		fi
 	fi
 	tmp_md5=/tmp/.rkipc-ini.md5sum

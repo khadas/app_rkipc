@@ -176,7 +176,7 @@ static int rkipc_vi_chn_init() {
 	// VI CHN -> VPSS AIISP CHN
 	TRACE_BEGIN();
 	memset(&vi_chn_attr, 0, sizeof(vi_chn_attr));
-	vi_chn_attr.stIspOpt.u32BufCount = 2;
+	vi_chn_attr.stIspOpt.u32BufCount = rk_param_get_int("video.0:vi_buffer_count", 2);
 	vi_chn_attr.stIspOpt.enMemoryType = VI_V4L2_MEMORY_TYPE_DMABUF;
 	vi_chn_attr.stSize.u32Width = video_width;
 	vi_chn_attr.stSize.u32Height = video_height;
@@ -206,7 +206,6 @@ static int rkipc_vi_chn_deinit() {
 
 static int rkipc_vpss_0_init() {
 	int ret, i, VpssChn;
-	int fps = 15;
 	VPSS_GRP VpssGrp;
 	VPSS_GRP_ATTR_S stVpssGrpAttr;
 	VPSS_CHN_ATTR_S stVpssChnAttr[VPSS_MAX_CHN_NUM];
@@ -221,8 +220,8 @@ static int rkipc_vpss_0_init() {
 	stVpssGrpAttr.u32MaxW = rk_param_get_int("video.0:max_width", 2560);
 	stVpssGrpAttr.u32MaxH = rk_param_get_int("video.0:max_height", 1440);
 	stVpssGrpAttr.enPixelFormat = RK_FMT_YUV420SP;
-	stVpssGrpAttr.stFrameRate.s32SrcFrameRate = fps;
-	stVpssGrpAttr.stFrameRate.s32DstFrameRate = fps;
+	stVpssGrpAttr.stFrameRate.s32SrcFrameRate = -1;
+	stVpssGrpAttr.stFrameRate.s32DstFrameRate = -1;
 	stVpssGrpAttr.enCompressMode = COMPRESS_MODE_NONE;
 	ret = RK_MPI_VPSS_CreateGrp(VpssGrp, &stVpssGrpAttr);
 	if (ret != RK_SUCCESS) {
@@ -236,6 +235,7 @@ static int rkipc_vpss_0_init() {
 		stAIISPAttr.bEnable = RK_TRUE;
 		stAIISPAttr.stAiIspCallback.pfUpdateCallback = vpss_aiisp_callback;
 		stAIISPAttr.stAiIspCallback.pPrivateData = RK_NULL;
+		stAIISPAttr.pModelFilePath = "/oem/usr/lib/";
 		ret = RK_MPI_VPSS_SetGrpAIISPAttr(VpssGrp, &stAIISPAttr);
 		if (RK_SUCCESS != ret) {
 			LOG_ERROR("ERROR: initialize AI ISP error! ret=%#x\n", ret);
@@ -244,11 +244,11 @@ static int rkipc_vpss_0_init() {
 
 	// VPSS_0_0, link to venc0
 	VpssChn = 0;
-	stVpssChnAttr[VpssChn].enChnMode = VPSS_CHN_MODE_PASSTHROUGH;
+	stVpssChnAttr[VpssChn].enChnMode = VPSS_CHN_MODE_AUTO;
 	stVpssChnAttr[VpssChn].enDynamicRange = DYNAMIC_RANGE_SDR8;
 	stVpssChnAttr[VpssChn].enPixelFormat = RK_FMT_YUV420SP;
-	stVpssChnAttr[VpssChn].stFrameRate.s32SrcFrameRate = fps;
-	stVpssChnAttr[VpssChn].stFrameRate.s32DstFrameRate = fps;
+	stVpssChnAttr[VpssChn].stFrameRate.s32SrcFrameRate = -1;
+	stVpssChnAttr[VpssChn].stFrameRate.s32DstFrameRate = -1;
 	stVpssChnAttr[VpssChn].u32Width = rk_param_get_int("video.0:width", -1);
 	stVpssChnAttr[VpssChn].u32Height = rk_param_get_int("video.0:height", -1);
 	stVpssChnAttr[VpssChn].enCompressMode = COMPRESS_MODE_NONE;
@@ -266,8 +266,8 @@ static int rkipc_vpss_0_init() {
 	stVpssChnAttr[VpssChn].enChnMode = VPSS_CHN_MODE_AUTO;
 	stVpssChnAttr[VpssChn].enDynamicRange = DYNAMIC_RANGE_SDR8;
 	stVpssChnAttr[VpssChn].enPixelFormat = RK_FMT_YUV420SP;
-	stVpssChnAttr[VpssChn].stFrameRate.s32SrcFrameRate = fps;
-	stVpssChnAttr[VpssChn].stFrameRate.s32DstFrameRate = fps;
+	stVpssChnAttr[VpssChn].stFrameRate.s32SrcFrameRate = -1;
+	stVpssChnAttr[VpssChn].stFrameRate.s32DstFrameRate = -1;
 	stVpssChnAttr[VpssChn].u32Width = rk_param_get_int("video.1:width", -1);
 	stVpssChnAttr[VpssChn].u32Height = rk_param_get_int("video.1:height", -1);
 	stVpssChnAttr[VpssChn].enCompressMode = COMPRESS_MODE_NONE;
@@ -279,22 +279,24 @@ static int rkipc_vpss_0_init() {
 		LOG_ERROR("%d: RK_MPI_VPSS_EnableChn error! ret is %#x\n", VpssChn, ret);
 
 	// VPSS_0_2, link to IVS
-	VpssChn = 2;
-	stVpssChnAttr[VpssChn].enChnMode = VPSS_CHN_MODE_AUTO;
-	stVpssChnAttr[VpssChn].enDynamicRange = DYNAMIC_RANGE_SDR8;
-	stVpssChnAttr[VpssChn].enPixelFormat = RK_FMT_YUV420SP;
-	stVpssChnAttr[VpssChn].stFrameRate.s32SrcFrameRate = fps;
-	stVpssChnAttr[VpssChn].stFrameRate.s32DstFrameRate = fps;
-	stVpssChnAttr[VpssChn].u32Width = rk_param_get_int("ivs:width", 704);
-	stVpssChnAttr[VpssChn].u32Height = rk_param_get_int("ivs:height", 576);
-	stVpssChnAttr[VpssChn].enCompressMode = COMPRESS_MODE_NONE;
-	stVpssChnAttr[VpssChn].u32Depth = 1; // use for iva
-	ret = RK_MPI_VPSS_SetChnAttr(VpssGrp, VpssChn, &stVpssChnAttr[VpssChn]);
-	if (ret != RK_SUCCESS)
-		LOG_ERROR("%d: RK_MPI_VPSS_SetChnAttr error! ret is %#x\n", VpssChn, ret);
-	ret = RK_MPI_VPSS_EnableChn(VpssGrp, VpssChn);
-	if (ret != RK_SUCCESS)
-		LOG_ERROR("%d: RK_MPI_VPSS_EnableChn error! ret is %#x\n", VpssChn, ret);
+	if (g_enable_ivs || g_enable_npu) {
+		VpssChn = 2;
+		stVpssChnAttr[VpssChn].enChnMode = VPSS_CHN_MODE_AUTO;
+		stVpssChnAttr[VpssChn].enDynamicRange = DYNAMIC_RANGE_SDR8;
+		stVpssChnAttr[VpssChn].enPixelFormat = RK_FMT_YUV420SP;
+		stVpssChnAttr[VpssChn].stFrameRate.s32SrcFrameRate = -1;
+		stVpssChnAttr[VpssChn].stFrameRate.s32DstFrameRate = -1;
+		stVpssChnAttr[VpssChn].u32Width = rk_param_get_int("ivs:width", 704);
+		stVpssChnAttr[VpssChn].u32Height = rk_param_get_int("ivs:height", 576);
+		stVpssChnAttr[VpssChn].enCompressMode = COMPRESS_MODE_NONE;
+		stVpssChnAttr[VpssChn].u32Depth = 1; // use for iva
+		ret = RK_MPI_VPSS_SetChnAttr(VpssGrp, VpssChn, &stVpssChnAttr[VpssChn]);
+		if (ret != RK_SUCCESS)
+			LOG_ERROR("%d: RK_MPI_VPSS_SetChnAttr error! ret is %#x\n", VpssChn, ret);
+		ret = RK_MPI_VPSS_EnableChn(VpssGrp, VpssChn);
+		if (ret != RK_SUCCESS)
+			LOG_ERROR("%d: RK_MPI_VPSS_EnableChn error! ret is %#x\n", VpssChn, ret);
+	}
 
 	ret = RK_MPI_VPSS_EnableBackupFrame(VpssGrp);
 	if (ret != RK_SUCCESS) {
