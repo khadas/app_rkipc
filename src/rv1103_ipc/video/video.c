@@ -736,6 +736,88 @@ int rkipc_pipe_0_init() {
 			LOG_ERROR("RK_MPI_VENC_EnableMotionStaticSwitch error! ret=%#x\n", ret);
 	}
 
+	VENC_RC_PARAM2_S rc_param2;
+	ret = RK_MPI_VENC_GetRcParam2(VIDEO_PIPE_0, &rc_param2);
+	if (ret)
+		LOG_ERROR("RK_MPI_VENC_GetRcParam2 error! ret=%#x\n", ret);
+	const char *strings = rk_param_get_string("video.0:thrd_i", NULL);
+	if (strings) {
+		char *str = strdup(strings);
+		if (str) {
+			char *tmp = str;
+			char *token = strsep(&tmp, ",");
+			int i = 0;
+			while (token != NULL) {
+				rc_param2.u32ThrdI[i++] = atoi(token);
+				token = strsep(&tmp, ",");
+			}
+			free(str);
+		}
+	}
+	strings = rk_param_get_string("video.0:thrd_p", NULL);
+	if (strings) {
+		char *str = strdup(strings);
+		if (str) {
+			char *tmp = str;
+			char *token = strsep(&tmp, ",");
+			int i = 0;
+			while (token != NULL) {
+				rc_param2.u32ThrdP[i++] = atoi(token);
+				token = strsep(&tmp, ",");
+			}
+			free(str);
+		}
+	}
+	strings = rk_param_get_string("video.0:aq_step_i", NULL);
+	if (strings) {
+		char *str = strdup(strings);
+		if (str) {
+			char *tmp = str;
+			char *token = strsep(&tmp, ",");
+			int i = 0;
+			while (token != NULL) {
+				rc_param2.s32AqStepI[i++] = atoi(token);
+				token = strsep(&tmp, ",");
+			}
+			free(str);
+		}
+	}
+	strings = rk_param_get_string("video.0:aq_step_p", NULL);
+	if (strings) {
+		char *str = strdup(strings);
+		if (str) {
+			char *tmp = str;
+			char *token = strsep(&tmp, ",");
+			int i = 0;
+			while (token != NULL) {
+				rc_param2.s32AqStepP[i++] = atoi(token);
+				token = strsep(&tmp, ",");
+			}
+			free(str);
+		}
+	}
+	ret = RK_MPI_VENC_SetRcParam2(VIDEO_PIPE_0, &rc_param2);
+	if (ret)
+		LOG_ERROR("RK_MPI_VENC_SetRcParam2 error! ret=%#x\n", ret);
+
+	if (!strcmp(tmp_output_data_type, "H.264")) {
+		VENC_H264_QBIAS_S qbias;
+		qbias.bEnable = rk_param_get_int("video.0:qbias_enable", 0);
+		qbias.u32QbiasI = rk_param_get_int("video.0:qbias_i", 0);
+		qbias.u32QbiasP = rk_param_get_int("video.0:qbias_p", 0);
+		ret = RK_MPI_VENC_SetH264Qbias(VIDEO_PIPE_0, &qbias);
+		if (ret)
+			LOG_ERROR("RK_MPI_VENC_SetH264Qbias error! ret=%#x\n", ret);
+	} else {
+		VENC_H265_QBIAS_S qbias;
+		qbias.bEnable = rk_param_get_int("video.0:qbias_enable", 0);
+		qbias.u32QbiasI = rk_param_get_int("video.0:qbias_i", 0);
+		qbias.u32QbiasP = rk_param_get_int("video.0:qbias_p", 0);
+		ret = RK_MPI_VENC_SetH265Qbias(VIDEO_PIPE_0, &qbias);
+		if (ret)
+			LOG_ERROR("RK_MPI_VENC_SetH265Qbias error! ret=%#x\n", ret);
+	}
+
 	// VENC_RC_PARAM_S h265_RcParam;
 	// RK_MPI_VENC_GetRcParam(VIDEO_PIPE_0, &h265_RcParam);
 	// h265_RcParam.s32FirstFrameStartQp = 26;
