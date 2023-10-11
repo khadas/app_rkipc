@@ -67,7 +67,7 @@ if(COMPILE_FOR_RV1106_WAKEUP_IPC)
   add_subdirectory(src/rv1106_wakeup_ipc)
 endif()
 
-if(COMPILE_FOR_RV1106_AIISP_IPC)
+if(COMPILE_FOR_RV1106_AIISP)
   add_subdirectory(src/rv1106_aiisp_ipc)
 endif()
 
