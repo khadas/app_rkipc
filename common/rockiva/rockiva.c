@@ -212,6 +212,8 @@ int rkipc_rockiva_init() {
 	globalParams.imageInfo.format = ROCKIVA_IMAGE_FORMAT_YUV420SP_NV12;
 	// temporary solution
 	// which will be changed to reinitialize when the resolution is dynamically switched
+	if (rk_param_get_int("video.source:rotate_in_venc", 0))
+		rotation = 0;
 	if (rotation == 0 || rotation == 180) {
 		globalParams.imageInfo.transformMode = ROCKIVA_IMAGE_TRANSFORM_ROTATE_180;
 	} else if (rotation == 90) {
@@ -373,6 +375,8 @@ int rkipc_rockiva_write_nv12_frame_by_fd(uint16_t width, uint16_t height, uint32
 	if (!rockit_run_flag)
 		return 0;
 	int rotation = rk_param_get_int("video.source:rotation", 0);
+	if (rk_param_get_int("video.source:rotate_in_venc", 0))
+		rotation = 0;
 	memset(image, 0, sizeof(RockIvaImage));
 	if (rotation == 0) {
 		image->info.transformMode = ROCKIVA_IMAGE_TRANSFORM_NONE;
@@ -407,6 +411,8 @@ int rkipc_rockiva_write_nv12_frame_by_phy_addr(uint16_t width, uint16_t height, 
 	if (!rockit_run_flag)
 		return 0;
 	int rotation = rk_param_get_int("video.source:rotation", 0);
+	if (rk_param_get_int("video.source:rotate_in_venc", 0))
+		rotation = 0;
 	memset(image, 0, sizeof(RockIvaImage));
 	if (rotation == 0) {
 		image->info.transformMode = ROCKIVA_IMAGE_TRANSFORM_NONE;

@@ -54,7 +54,7 @@
 
 static int g_do_capture = 0;
 static int g_enable_ivs, g_enable_jpeg, g_enable_venc_0, g_enable_venc_1, g_enable_venc_2,
-    g_enable_npu;
+    g_enable_npu, g_rotation;
 static int g_enable_vo, g_vo_dev_id;
 static int g_video_run_ = 1;
 static int g_pipe_id = 0;
@@ -278,22 +278,24 @@ static int rkipc_vpss_0_init() {
 	if (ret != RK_SUCCESS)
 		LOG_ERROR("%d: RK_MPI_VPSS_EnableChn error! ret is %#x\n", VpssChn, ret);
 
-	VpssChn = 1;
-	stVpssChnAttr[VpssChn].enChnMode = VPSS_CHN_MODE_AUTO;
-	stVpssChnAttr[VpssChn].enDynamicRange = DYNAMIC_RANGE_SDR8;
-	stVpssChnAttr[VpssChn].enPixelFormat = RK_FMT_YUV420SP;
-	stVpssChnAttr[VpssChn].stFrameRate.s32SrcFrameRate = -1;
-	stVpssChnAttr[VpssChn].stFrameRate.s32DstFrameRate = -1;
-	stVpssChnAttr[VpssChn].u32Width = 704;
-	stVpssChnAttr[VpssChn].u32Height = 576;
-	stVpssChnAttr[VpssChn].enCompressMode = COMPRESS_MODE_NONE;
-	stVpssChnAttr[VpssChn].u32Depth = 1;
-	ret = RK_MPI_VPSS_SetChnAttr(VpssGrp, VpssChn, &stVpssChnAttr[VpssChn]);
-	if (ret != RK_SUCCESS)
-		LOG_ERROR("%d: RK_MPI_VPSS_SetChnAttr error! ret is %#x\n", VpssChn, ret);
-	ret = RK_MPI_VPSS_EnableChn(VpssGrp, VpssChn);
-	if (ret != RK_SUCCESS)
-		LOG_ERROR("%d: RK_MPI_VPSS_EnableChn error! ret is %#x\n", VpssChn, ret);
+	if (g_enable_ivs || g_enable_npu) {
+		VpssChn = 1;
+		stVpssChnAttr[VpssChn].enChnMode = VPSS_CHN_MODE_AUTO;
+		stVpssChnAttr[VpssChn].enDynamicRange = DYNAMIC_RANGE_SDR8;
+		stVpssChnAttr[VpssChn].enPixelFormat = RK_FMT_YUV420SP;
+		stVpssChnAttr[VpssChn].stFrameRate.s32SrcFrameRate = -1;
+		stVpssChnAttr[VpssChn].stFrameRate.s32DstFrameRate = -1;
+		stVpssChnAttr[VpssChn].u32Width = 704;
+		stVpssChnAttr[VpssChn].u32Height = 576;
+		stVpssChnAttr[VpssChn].enCompressMode = COMPRESS_MODE_NONE;
+		stVpssChnAttr[VpssChn].u32Depth = 1;
+		ret = RK_MPI_VPSS_SetChnAttr(VpssGrp, VpssChn, &stVpssChnAttr[VpssChn]);
+		if (ret != RK_SUCCESS)
+			LOG_ERROR("%d: RK_MPI_VPSS_SetChnAttr error! ret is %#x\n", VpssChn, ret);
+		ret = RK_MPI_VPSS_EnableChn(VpssGrp, VpssChn);
+		if (ret != RK_SUCCESS)
+			LOG_ERROR("%d: RK_MPI_VPSS_EnableChn error! ret is %#x\n", VpssChn, ret);
+	}
 
 	// enable vpss group
 	ret = RK_MPI_VPSS_EnableBackupFrame(VpssGrp);
@@ -754,6 +756,16 @@ static int rkipc_venc_0_init() {
 	}
 	RK_MPI_VENC_SetRcParam(VIDEO_PIPE_0, &venc_rc_param);
 
+	if (g_rotation == 0) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0, ROTATION_0);
+	} else if (g_rotation == 90) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0, ROTATION_90);
+	} else if (g_rotation == 180) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0, ROTATION_180);
+	} else if (g_rotation == 270) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0, ROTATION_270);
+	}
+
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
 	stRecvParam.s32RecvPicNum = -1;
@@ -929,6 +941,16 @@ static int rkipc_venc_1_init() {
 		return -1;
 	}
 	RK_MPI_VENC_SetRcParam(VIDEO_PIPE_1, &venc_rc_param);
+
+	if (g_rotation == 0) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1, ROTATION_0);
+	} else if (g_rotation == 90) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1, ROTATION_90);
+	} else if (g_rotation == 180) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1, ROTATION_180);
+	} else if (g_rotation == 270) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1, ROTATION_270);
+	}
 
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
@@ -1107,6 +1129,16 @@ static int rkipc_venc_2_init() {
 	}
 	RK_MPI_VENC_SetRcParam(VIDEO_PIPE_2, &venc_rc_param);
 
+	if (g_rotation == 0) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_2, ROTATION_0);
+	} else if (g_rotation == 90) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_2, ROTATION_90);
+	} else if (g_rotation == 180) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_2, ROTATION_180);
+	} else if (g_rotation == 270) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_2, ROTATION_270);
+	}
+
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
 	stRecvParam.s32RecvPicNum = -1;
@@ -1158,6 +1190,17 @@ static int rkipc_jpeg_init() {
 	memset(&stJpegParam, 0, sizeof(stJpegParam));
 	stJpegParam.u32Qfactor = rk_param_get_int("video.jpeg:jpeg_qfactor", 70);
 	RK_MPI_VENC_SetJpegParam(JPEG_VENC_CHN, &stJpegParam);
+
+	if (g_rotation == 0) {
+		RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN, ROTATION_0);
+	} else if (g_rotation == 90) {
+		RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN, ROTATION_90);
+	} else if (g_rotation == 180) {
+		RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN, ROTATION_180);
+	} else if (g_rotation == 270) {
+		RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN, ROTATION_270);
+	}
+
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
 	stRecvParam.s32RecvPicNum = 1;
@@ -2829,7 +2872,7 @@ int rk_region_clip_set(int venc_chn_num, region_clip_data_s *region_clip_data) {
 
 int rk_video_get_rotation(int *value) {
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "video.source:rotaion");
+	snprintf(entry, 127, "video.source:rotation");
 	*value = rk_param_get_int(entry, 0);
 
 	return 0;
@@ -2840,7 +2883,7 @@ int rk_video_set_rotation(int value) {
 	ROTATION_E rotation = ROTATION_0, cur_rotation = ROTATION_0;
 	int ret = 0;
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "video.source:rotaion");
+	snprintf(entry, 127, "video.source:rotation");
 	rk_param_set_int(entry, value);
 
 	if (value == 0) {
@@ -2858,9 +2901,9 @@ int rk_video_set_rotation(int value) {
 	// 	LOG_ERROR("vpss: set rotation failed because %#X\n", ret);
 	// Do rotation just in venc channels.
 	if (g_enable_venc_0) {
-		ret = RK_MPI_VENC_GetChnRotation(0, &cur_rotation);
+		ret = RK_MPI_VENC_GetChnRotation(VIDEO_PIPE_0, &cur_rotation);
 		if (ret == RK_SUCCESS && cur_rotation != rotation) {
-			ret = RK_MPI_VENC_SetChnRotation(0, rotation);
+			ret = RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0, rotation);
 			if (ret != RK_SUCCESS)
 				LOG_ERROR("venc0: set rotation failed because %#X\n", ret);
 		} else {
@@ -2868,9 +2911,9 @@ int rk_video_set_rotation(int value) {
 		}
 	}
 	if (g_enable_venc_1) {
-		ret = RK_MPI_VENC_GetChnRotation(1, &cur_rotation);
+		ret = RK_MPI_VENC_GetChnRotation(VIDEO_PIPE_1, &cur_rotation);
 		if (ret == RK_SUCCESS && cur_rotation != rotation) {
-			ret = RK_MPI_VENC_SetChnRotation(1, rotation);
+			ret = RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1, rotation);
 			if (ret != RK_SUCCESS)
 				LOG_ERROR("venc1: set rotation failed because %#X\n", ret);
 		} else {
@@ -2878,9 +2921,9 @@ int rk_video_set_rotation(int value) {
 		}
 	}
 	if (g_enable_venc_2) {
-		ret = RK_MPI_VENC_GetChnRotation(2, &cur_rotation);
+		ret = RK_MPI_VENC_GetChnRotation(VIDEO_PIPE_2, &cur_rotation);
 		if (ret == RK_SUCCESS && cur_rotation != rotation) {
-			ret = RK_MPI_VENC_SetChnRotation(2, rotation);
+			ret = RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_2, rotation);
 			if (ret != RK_SUCCESS)
 				LOG_ERROR("venc2: set rotation failed because %#X\n", ret);
 		} else {
@@ -2915,6 +2958,7 @@ int rk_video_init() {
 	g_enable_vo = rk_param_get_int("video.source:enable_vo", 1);
 	g_vo_dev_id = rk_param_get_int("video.source:vo_dev_id", 3);
 	g_enable_npu = rk_param_get_int("video.source:enable_npu", 1);
+	g_rotation = rk_param_get_int("video.source:rotation", 0);
 
 	ret |= rkipc_vi_dev_init();
 	ret |= rkipc_vi_chn_init();
