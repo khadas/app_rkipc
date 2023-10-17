@@ -73,7 +73,6 @@ int fill_text(osd_data_s *data) {
 		LOG_ERROR("font_path is NULL\n");
 		return -1;
 	}
-
 	// int ret = create_font(data->text.font_path, data->text.font_size);
 	// if (ret)
 	// 	return -1;
@@ -233,7 +232,8 @@ static void *osd_time_server(void *arg) {
 	LOG_INFO("osd_data.text.format is %s\n", osd_data.text.format);
 
 	wchar_cnt = generate_date_time(osd_data.text.format, osd_data.text.wch, 128);
-	osd_data.width = UPALIGNTO16(wchar_cnt * osd_data.text.font_size);
+	osd_data.width =
+	    UPALIGNTO16(wstr_get_actual_advance_x(osd_data.text.wch) / osd_data.text.font_size);
 	osd_data.height = UPALIGNTO16(osd_data.text.font_size);
 	osd_data.size = osd_data.width * osd_data.height * 4; // BGRA8888 4byte
 	osd_data.buffer = malloc(osd_data.size);
@@ -256,7 +256,8 @@ static void *osd_time_server(void *arg) {
 		else
 			last_time_sec = cur_time_info->tm_sec;
 		wchar_cnt = generate_date_time(osd_data.text.format, osd_data.text.wch, 128);
-		osd_data.width = UPALIGNTO16(wchar_cnt * osd_data.text.font_size);
+		osd_data.width =
+		    UPALIGNTO16(wstr_get_actual_advance_x(osd_data.text.wch) / osd_data.text.font_size);
 		osd_data.height = UPALIGNTO16(osd_data.text.font_size);
 		osd_data.size = osd_data.width * osd_data.height * 4; // BGRA8888 4byte
 		osd_data.buffer = malloc(osd_data.size);
@@ -323,7 +324,6 @@ int rk_osd_init() {
 			    osd_data.height < 0) {
 				continue;
 			}
-
 			snprintf(entry, 127, "osd.%d:style", i);
 			const char *style = rk_param_get_string(entry, "cover");
 			if (!strcmp(style, "cover") && rk_osd_cover_create_)
@@ -387,12 +387,25 @@ int rk_osd_init() {
 				// 	LOG_INFO("222 osd_data.text.wch [%04x]\n", osd_data.text.wch[i]);
 				// }
 #endif
-				osd_data.width = UPALIGNTO16(wcslen(osd_data.text.wch) * osd_data.text.font_size);
+				osd_data.width = UPALIGNTO16(wstr_get_actual_advance_x(osd_data.text.wch) /
+				                             osd_data.text.font_size);
 				osd_data.height = UPALIGNTO16(osd_data.text.font_size);
 				osd_data.size = osd_data.width * osd_data.height * 4; // BGRA8888 4byte
 				osd_data.buffer = malloc(osd_data.size);
 				memset(osd_data.buffer, 0, osd_data.size);
 				fill_text(&osd_data);
+				while (osd_data.origin_x + osd_data.width > video_width) {
+					osd_data.origin_x -= 16;
+				}
+				while (osd_data.origin_y + osd_data.height > video_height) {
+					osd_data.origin_y -= 16;
+				}
+				if (osd_data.origin_x < 0 || osd_data.origin_y < 0 || osd_data.width < 0 ||
+				    osd_data.height < 0) {
+					LOG_ERROR("osd[%d] fail, x,y,w,h is %d,%d,%d,%d\n", i, osd_data.origin_x,
+					          osd_data.origin_y, osd_data.width, osd_data.height);
+					continue;
+				}
 				rk_osd_bmp_create_(i, &osd_data);
 				free(osd_data.buffer);
 			} else if (!strcmp(osd_type, "dateTime")) {
@@ -537,13 +550,24 @@ int rk_osd_bmp_change(int osd_id) {
 		osd_data.text.wch[abs(MAX_WCH_BYTE - out_len) / 4] = '\0';
 		LOG_DEBUG("out_len is %d\n", out_len);
 		LOG_DEBUG("wcslen(osd_data.text.wch) is %ld\n", wcslen(osd_data.text.wch));
-
 		osd_data.width = UPALIGNTO16(wcslen(osd_data.text.wch) * osd_data.text.font_size);
 		osd_data.height = UPALIGNTO16(osd_data.text.font_size);
 		osd_data.size = osd_data.width * osd_data.height * 4; // BGRA8888 4byte
 		osd_data.buffer = malloc(osd_data.size);
 		memset(osd_data.buffer, 0, osd_data.size);
 		fill_text(&osd_data);
+		while (osd_data.origin_x + osd_data.width > video_width) {
+			osd_data.origin_x -= 16;
+		}
+		while (osd_data.origin_y + osd_data.height > video_height) {
+			osd_data.origin_y -= 16;
+		}
+		if (osd_data.origin_x < 0 || osd_data.origin_y < 0 || osd_data.width < 0 ||
+		    osd_data.height < 0) {
+			LOG_ERROR("osd[%d] fail, x,y,w,h is %d,%d,%d,%d\n", osd_id, osd_data.origin_x,
+			          osd_data.origin_y, osd_data.width, osd_data.height);
+			return -1;
+		}
 		rk_osd_bmp_change_(osd_id, &osd_data);
 		free(osd_data.buffer);
 	}
