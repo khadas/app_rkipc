@@ -818,6 +818,12 @@ int rkipc_pipe_0_init() {
 			LOG_ERROR("RK_MPI_VENC_SetH265Qbias error! ret=%#x\n", ret);
 	}
 
+	VENC_FILTER_S pstFilter;
+	RK_MPI_VENC_GetFilter(VIDEO_PIPE_0, &pstFilter);
+	pstFilter.u32StrengthI = rk_param_get_int("video.0:flt_str_i", 0);
+	pstFilter.u32StrengthP = rk_param_get_int("video.0:flt_str_p", 0);
+	RK_MPI_VENC_SetFilter(VIDEO_PIPE_0, &pstFilter);
+
 	// VENC_RC_PARAM_S h265_RcParam;
 	// RK_MPI_VENC_GetRcParam(VIDEO_PIPE_0, &h265_RcParam);
 	// h265_RcParam.s32FirstFrameStartQp = 26;
