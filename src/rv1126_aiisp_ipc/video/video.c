@@ -2034,6 +2034,7 @@ __failed:
 
 static void *rkipc_get_jpeg(void *arg) {
 	LOG_INFO("#Start thread, arg:%p\n", arg);
+	prctl(PR_SET_NAME, "RkipcGetJpeg", 0, 0, 0);
 	VENC_STREAM_S stFrame;
 	VI_CHN_STATUS_S stChnStatus;
 	int ret = 0, loopCount = 0;
@@ -2098,6 +2099,7 @@ static void *rkipc_get_jpeg(void *arg) {
 
 static void *rkipc_do_cycle_snapshot(void *arg) {
 	int enable = 0;
+	prctl(PR_SET_NAME, "RkipcCycleSnap", 0, 0, 0);
 	while (g_video_run_) {
 		enable = rk_param_get_int("video.jpeg:enable_cycle_snapshot", 0);
 		if (!enable)
