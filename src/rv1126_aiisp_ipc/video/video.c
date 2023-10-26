@@ -507,7 +507,7 @@ static int rkipc_vpss_2_init() {
 
 static int rkipc_vpss_2_deinit() {
 	int ret = 2;
-	VPSS_GRP VpssGrp = 0;
+	VPSS_GRP VpssGrp = 2;
 
 	TRACE_BEGIN();
 	ret |= RK_MPI_VPSS_StopGrp(VpssGrp);
