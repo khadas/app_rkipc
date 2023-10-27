@@ -188,8 +188,12 @@ int main(int argc, char **argv) {
 	rkipc_server_deinit();
 	rk_system_deinit();
 	rk_video_deinit();
-	if (rk_param_get_int("video.source:enable_aiq", 1))
+	if (rk_param_get_int("isp:group_mode", 1)) {
+		rk_isp_group_deinit(0);
+	} else {
+		rk_isp_deinit(1);
 		rk_isp_deinit(0);
+	}
 	if (rk_param_get_int("audio.0:enable", 0))
 		rkipc_audio_deinit();
 	RK_MPI_SYS_Exit();
