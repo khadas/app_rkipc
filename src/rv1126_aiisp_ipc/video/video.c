@@ -256,6 +256,8 @@ static int rkipc_vpss_0_init() {
 	stAIISPAttr.bEnable = RK_TRUE;
 	stAIISPAttr.stAiIspCallback.pfUpdateCallback = vpss_aiisp_callback;
 	stAIISPAttr.stAiIspCallback.pPrivateData = RK_NULL;
+	stAIISPAttr.pModelFilePath = "/oem/usr/lib/";
+	stAIISPAttr.u32FrameBufCnt = 2;
 	ret = RK_MPI_VPSS_SetGrpAIISPAttr(VpssGrp, &stAIISPAttr);
 	if (RK_SUCCESS != ret) {
 		LOG_ERROR("ERROR: initialize AI ISP error! ret=%#x\n", ret);

@@ -236,6 +236,7 @@ static int rkipc_vpss_0_init() {
 		stAIISPAttr.stAiIspCallback.pfUpdateCallback = vpss_aiisp_callback;
 		stAIISPAttr.stAiIspCallback.pPrivateData = RK_NULL;
 		stAIISPAttr.pModelFilePath = "/oem/usr/lib/";
+		stAIISPAttr.u32FrameBufCnt = rk_param_get_int("video.source:aiisp_dst_buf_cnt", 1);
 		ret = RK_MPI_VPSS_SetGrpAIISPAttr(VpssGrp, &stAIISPAttr);
 		if (RK_SUCCESS != ret) {
 			LOG_ERROR("ERROR: initialize AI ISP error! ret=%#x\n", ret);
