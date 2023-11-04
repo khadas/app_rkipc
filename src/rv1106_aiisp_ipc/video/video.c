@@ -245,7 +245,11 @@ static int rkipc_vpss_0_init() {
 
 	// VPSS_0_0, link to venc0
 	VpssChn = 0;
-	stVpssChnAttr[VpssChn].enChnMode = VPSS_CHN_MODE_AUTO;
+	if ((rk_param_get_int("video.0:width", -1) == rk_param_get_int("video.0:max_width", -1)) &&
+	    (rk_param_get_int("video.0:height", -1) == rk_param_get_int("video.0:max_height", -1)))
+		stVpssChnAttr[VpssChn].enChnMode = VPSS_CHN_MODE_PASSTHROUGH;
+	else
+		stVpssChnAttr[VpssChn].enChnMode = VPSS_CHN_MODE_AUTO;
 	stVpssChnAttr[VpssChn].enDynamicRange = DYNAMIC_RANGE_SDR8;
 	stVpssChnAttr[VpssChn].enPixelFormat = RK_FMT_YUV420SP;
 	stVpssChnAttr[VpssChn].stFrameRate.s32SrcFrameRate = -1;
