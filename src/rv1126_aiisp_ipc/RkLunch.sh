@@ -50,6 +50,10 @@ post_chk()
 		if [ $? -eq 0 ] ;then
 			ln -s -f /oem/usr/share/rkipc-os04a10.ini $default_rkipc_ini
 		fi
+		media-ctl -p | grep imx415
+		if [ $? -eq 0 ] ;then
+			ln -s -f /oem/usr/share/rkipc-imx415.ini $default_rkipc_ini
+		fi
 	fi
 	tmp_md5=/tmp/.rkipc-ini.md5sum
 	data_md5=/userdata/.rkipc-default.md5sum

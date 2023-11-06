@@ -1467,8 +1467,9 @@ static int rkipc_bind_init() {
 		ret |= rkipc_bind_helper(&vpss_1_chns[0], &venc_chns[0]);
 	if (g_enable_venc_1)
 		ret |= rkipc_bind_helper(&vpss_1_chns[1], &venc_chns[1]);
-	ret |= rkipc_bind_helper(&vpss_1_chns[1], &vpss_2_chns[0]);
 
+	if (g_enable_venc_2 || g_enable_vo)
+		ret |= rkipc_bind_helper(&vpss_1_chns[1], &vpss_2_chns[0]);
 	if (g_enable_venc_2)
 		ret |= rkipc_bind_helper(&vpss_2_chns[0], &venc_chns[2]);
 	if (g_enable_vo)
@@ -1486,13 +1487,13 @@ static int rkipc_bind_deinit() {
 		ret |= RK_MPI_SYS_UnBind(&vpss_2_chns[0], &venc_chns[2]);
 	if (g_enable_vo)
 		ret |= RK_MPI_SYS_UnBind(&vpss_2_chns[1], &vo_chn);
+	if (g_enable_venc_2 || g_enable_vo)
+		ret |= RK_MPI_SYS_UnBind(&vpss_1_chns[1], &vpss_2_chns[0]);
 
 	if (g_enable_venc_1)
 		ret |= RK_MPI_SYS_UnBind(&vpss_1_chns[1], &venc_chns[1]);
 	if (g_enable_venc_0)
 		ret |= RK_MPI_SYS_UnBind(&vpss_1_chns[0], &venc_chns[0]);
-	ret |= RK_MPI_SYS_UnBind(&vpss_1_chns[1], &vpss_2_chns[0]);
-
 	ret |= RK_MPI_SYS_UnBind(&vpss_0_chns[0], &vpss_1_chns[0]);
 	if (g_enable_ivs)
 		ret |= RK_MPI_SYS_UnBind(&vpss_0_chns[1], &ivs_chn);
