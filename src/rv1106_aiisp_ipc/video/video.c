@@ -267,21 +267,23 @@ static int rkipc_vpss_0_init() {
 		LOG_ERROR("%d: RK_MPI_VPSS_EnableChn error! ret is %#x\n", VpssChn, ret);
 
 	// VPSS_0_1, link to VPSS_1
-	VpssChn = 1;
-	stVpssChnAttr[VpssChn].enChnMode = VPSS_CHN_MODE_AUTO;
-	stVpssChnAttr[VpssChn].enDynamicRange = DYNAMIC_RANGE_SDR8;
-	stVpssChnAttr[VpssChn].enPixelFormat = RK_FMT_YUV420SP;
-	stVpssChnAttr[VpssChn].stFrameRate.s32SrcFrameRate = -1;
-	stVpssChnAttr[VpssChn].stFrameRate.s32DstFrameRate = -1;
-	stVpssChnAttr[VpssChn].u32Width = rk_param_get_int("video.1:width", -1);
-	stVpssChnAttr[VpssChn].u32Height = rk_param_get_int("video.1:height", -1);
-	stVpssChnAttr[VpssChn].enCompressMode = COMPRESS_MODE_NONE;
-	ret = RK_MPI_VPSS_SetChnAttr(VpssGrp, VpssChn, &stVpssChnAttr[VpssChn]);
-	if (ret != RK_SUCCESS)
-		LOG_ERROR("%d: RK_MPI_VPSS_SetChnAttr error! ret is %#x\n", VpssChn, ret);
-	ret = RK_MPI_VPSS_EnableChn(VpssGrp, VpssChn);
-	if (ret != RK_SUCCESS)
-		LOG_ERROR("%d: RK_MPI_VPSS_EnableChn error! ret is %#x\n", VpssChn, ret);
+	if (g_enable_venc_1 || g_enable_venc_2) {
+		VpssChn = 1;
+		stVpssChnAttr[VpssChn].enChnMode = VPSS_CHN_MODE_AUTO;
+		stVpssChnAttr[VpssChn].enDynamicRange = DYNAMIC_RANGE_SDR8;
+		stVpssChnAttr[VpssChn].enPixelFormat = RK_FMT_YUV420SP;
+		stVpssChnAttr[VpssChn].stFrameRate.s32SrcFrameRate = -1;
+		stVpssChnAttr[VpssChn].stFrameRate.s32DstFrameRate = -1;
+		stVpssChnAttr[VpssChn].u32Width = rk_param_get_int("video.1:width", -1);
+		stVpssChnAttr[VpssChn].u32Height = rk_param_get_int("video.1:height", -1);
+		stVpssChnAttr[VpssChn].enCompressMode = COMPRESS_MODE_NONE;
+		ret = RK_MPI_VPSS_SetChnAttr(VpssGrp, VpssChn, &stVpssChnAttr[VpssChn]);
+		if (ret != RK_SUCCESS)
+			LOG_ERROR("%d: RK_MPI_VPSS_SetChnAttr error! ret is %#x\n", VpssChn, ret);
+		ret = RK_MPI_VPSS_EnableChn(VpssGrp, VpssChn);
+		if (ret != RK_SUCCESS)
+			LOG_ERROR("%d: RK_MPI_VPSS_EnableChn error! ret is %#x\n", VpssChn, ret);
+	}
 
 	// VPSS_0_2, link to IVS
 	if (g_enable_ivs || g_enable_npu) {
@@ -324,8 +326,10 @@ static int rkipc_vpss_0_deinit() {
 
 	TRACE_BEGIN();
 	ret |= RK_MPI_VPSS_StopGrp(VpssGrp);
-	ret |= RK_MPI_VPSS_DisableChn(VpssGrp, 2);
-	ret |= RK_MPI_VPSS_DisableChn(VpssGrp, 1);
+	if (g_enable_ivs || g_enable_npu)
+		ret |= RK_MPI_VPSS_DisableChn(VpssGrp, 2);
+	if (g_enable_venc_1 || g_enable_venc_2)
+		ret |= RK_MPI_VPSS_DisableChn(VpssGrp, 1);
 	ret |= RK_MPI_VPSS_DisableChn(VpssGrp, 0);
 	ret |= RK_MPI_VPSS_DisableBackupFrame(VpssGrp);
 	ret |= RK_MPI_VPSS_DestroyGrp(VpssGrp);
@@ -407,14 +411,18 @@ static int rkipc_vpss_1_deinit() {
 static int rkipc_vpss_init() {
 	int ret = 0;
 	ret |= rkipc_vpss_0_init();
-	ret |= rkipc_vpss_1_init();
+	if (g_enable_venc_2)
+		ret |= rkipc_vpss_1_init();
+
 	return ret;
 }
 
 static int rkipc_vpss_deinit() {
 	int ret = 0;
-	ret |= rkipc_vpss_1_deinit();
+	if (g_enable_venc_2)
+		ret |= rkipc_vpss_1_deinit();
 	ret |= rkipc_vpss_0_deinit();
+
 	return ret;
 }
 
