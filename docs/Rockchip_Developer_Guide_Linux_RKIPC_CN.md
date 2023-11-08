@@ -2,9 +2,9 @@
 
 文件标识：RK-KF-YF-937
 
-发布版本：V1.6.5
+发布版本：V1.6.6
 
-日期：2023-09-26
+日期：2023-11-08
 
 文件密级：□绝密   □秘密   □内部资料   ■公开
 
@@ -88,6 +88,7 @@ Rockchip Electronics Co., Ltd.
 | V1.6.3     | Ruby Zhang | 2023-08-22   | 格式更新                                                     |
 | V1.6.4     | Fenrir Lin | 2023-09-13   | 修改RV1126 IPC Rkmedia的流程框图，<br/>新增RV1126 Dual-IPC的流程框图。 |
 | V1.6.5     | Yu Zheng   | 2023-09-26   | 新增RV1126 IPC AIISP的流程框图                               |
+| V1.6.6     | Fenrir Lin | 2023-11-08   | 新增RV1106 IPC AIISP的流程框图                               |
 
 ---
 
@@ -181,6 +182,26 @@ graph LR
 	VI_0-->AVS
 	VI_1-->AVS-->VENC_0-->RTSP_0
 	AVS-->VENC_1-->RTSP_1
+```
+
+### RV1106 AIISP
+
+```mermaid
+graph TB
+	VI--2688*1520-->VPSS_0(VPSS_GRP_0 AIISP)
+	VPSS_0--2688*1520-->VPSS_0_0(VPSS GRP 0 CHN 0)
+	VPSS_0--1280*720-->VPSS_0_1(VPSS GRP 0 CHN 1)
+	VPSS_0--704*576-->VPSS_0_2(VPSS GRP 0 CHN 2)
+
+	VPSS_0_1-->VPSS_1(VPSS_GRP_1)
+	VPSS_0_0-->VENC_0
+	VPSS_0_0-->TDE-->VENC_JPEG
+	VPSS_0_1-->VENC_1
+	VPSS_0_2-->IVS
+	VPSS_0_2-->IVA
+
+	VPSS_1-->VPSS_1_0(VPSS GRP 1 CHN 0)
+	VPSS_1_0--640*480-->VENC_2(VENC_2)
 ```
 
 ### RK3588 IPC
@@ -280,7 +301,7 @@ graph LR
 
 ```mermaid
 graph TB
-	VI_0--2688*1520-->VPSS_0(VPSS_GRP_0 AIISP)
+	VI--2688*1520-->VPSS_0(VPSS_GRP_0 AIISP)
 	VPSS_0--2688*1520-->VPSS_0_0(VPSS GRP 0 CHN 0)
 	VPSS_0--704*576-->VPSS_0_1(VPSS GRP 0 CHN 1)
 
