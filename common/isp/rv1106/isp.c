@@ -1739,6 +1739,7 @@ int rk_isp_fastboot_init(int cam_id) {
 	}
 
 	rk_aiq_tb_info_t tb_info;
+	memset(&tb_info, 0, sizeof(rk_aiq_tb_info_t));
 	tb_info.magic = sizeof(rk_aiq_tb_info_t) - 2;
 	tb_info.is_pre_aiq = false;
 	tb_info.prd_type = RK_AIQ_PRD_TYPE_TB_BATIPC;
