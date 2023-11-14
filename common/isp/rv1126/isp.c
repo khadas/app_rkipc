@@ -870,7 +870,9 @@ int rk_isp_set_white_blance_red(int cam_id, int value) {
 		LOG_WARN("white blance is auto, not support set gain\n");
 		return 0;
 	}
-	rk_aiq_uapi_getMWBGain(rkipc_aiq_get_ctx(cam_id), &gain);
+	rk_aiq_wb_attrib_t attr;
+	rk_aiq_user_api_awb_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
+	gain = attr.stManual.para.gain;
 	value = (value == 0) ? 1 : value;
 	gain.rgain = value / 50.0f * gs_wb_gain.rgain; // [0, 100]->[1.0, 4.0]
 	int ret = rk_aiq_uapi_setMWBGain(rkipc_aiq_get_ctx(cam_id), &gain);
@@ -901,7 +903,9 @@ int rk_isp_set_white_blance_green(int cam_id, int value) {
 		LOG_WARN("white blance is auto, not support set gain\n");
 		return 0;
 	}
-	rk_aiq_uapi_getMWBGain(rkipc_aiq_get_ctx(cam_id), &gain);
+	rk_aiq_wb_attrib_t attr;
+	rk_aiq_user_api_awb_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
+	gain = attr.stManual.para.gain;
 	value = (value == 0) ? 1 : value;
 	gain.grgain = value / 50.0f * gs_wb_gain.grgain; // [0, 100]->[1.0, 4.0]
 	gain.gbgain = value / 50.0f * gs_wb_gain.gbgain; // [0, 100]->[1.0, 4.0]
@@ -933,7 +937,9 @@ int rk_isp_set_white_blance_blue(int cam_id, int value) {
 		LOG_WARN("white blance is auto, not support set gain\n");
 		return 0;
 	}
-	rk_aiq_uapi_getMWBGain(rkipc_aiq_get_ctx(cam_id), &gain);
+	rk_aiq_wb_attrib_t attr;
+	rk_aiq_user_api_awb_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
+	gain = attr.stManual.para.gain;
 	value = (value == 0) ? 1 : value;
 	gain.bgain = value / 50.0f * gs_wb_gain.bgain; // [0, 100]->[1.0, 4.0]
 	int ret = rk_aiq_uapi_setMWBGain(rkipc_aiq_get_ctx(cam_id), &gain);
