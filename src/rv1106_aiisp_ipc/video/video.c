@@ -581,7 +581,6 @@ static int rkipc_venc_0_init() {
 		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
 		return -1;
 	}
-	tmp_smart = rk_param_get_string("video.0:smart", NULL);
 	tmp_gop_mode = rk_param_get_string("video.0:gop_mode", NULL);
 	if (!strcmp(tmp_gop_mode, "normalP")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
@@ -605,6 +604,13 @@ static int rkipc_venc_0_init() {
 	if (ret) {
 		LOG_ERROR("ERROR: create VENC error! ret=%#x\n", ret);
 		return -1;
+	}
+
+	tmp_smart = rk_param_get_string("video.0:smart", NULL);
+	if (!strcmp(tmp_smart, "open")) {
+		ret = RK_MPI_VENC_EnableSvc(VIDEO_PIPE_0, 1);
+		if (ret != RK_SUCCESS)
+			RK_LOGE("RK_MPI_VENC_EnableSvc failed %#X\n", ret);
 	}
 
 	tmp_rc_quality = rk_param_get_string("video.0:rc_quality", NULL);
@@ -767,7 +773,6 @@ static int rkipc_venc_1_init() {
 		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
 		return -1;
 	}
-	tmp_smart = rk_param_get_string("video.1:smart", NULL);
 	tmp_gop_mode = rk_param_get_string("video.1:gop_mode", NULL);
 	if (!strcmp(tmp_gop_mode, "normalP")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
@@ -793,6 +798,12 @@ static int rkipc_venc_1_init() {
 		return -1;
 	}
 
+	tmp_smart = rk_param_get_string("video.1:smart", NULL);
+	if (!strcmp(tmp_smart, "open")) {
+		ret = RK_MPI_VENC_EnableSvc(VIDEO_PIPE_1, 1);
+		if (ret != RK_SUCCESS)
+			RK_LOGE("RK_MPI_VENC_EnableSvc failed %#X\n", ret);
+	}
 	tmp_rc_quality = rk_param_get_string("video.1:rc_quality", NULL);
 	VENC_RC_PARAM_S venc_rc_param;
 	RK_MPI_VENC_GetRcParam(VIDEO_PIPE_1, &venc_rc_param);
@@ -954,7 +965,6 @@ static int rkipc_venc_2_init() {
 		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
 		return -1;
 	}
-	tmp_smart = rk_param_get_string("video.2:smart", NULL);
 	tmp_gop_mode = rk_param_get_string("video.2:gop_mode", NULL);
 	if (!strcmp(tmp_gop_mode, "normalP")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
@@ -980,6 +990,12 @@ static int rkipc_venc_2_init() {
 		return -1;
 	}
 
+	tmp_smart = rk_param_get_string("video.2:smart", NULL);
+	if (!strcmp(tmp_smart, "open")) {
+		ret = RK_MPI_VENC_EnableSvc(VIDEO_PIPE_2, 1);
+		if (ret != RK_SUCCESS)
+			RK_LOGE("RK_MPI_VENC_EnableSvc failed %#X\n", ret);
+	}
 	tmp_rc_quality = rk_param_get_string("video.2:rc_quality", NULL);
 	VENC_RC_PARAM_S venc_rc_param;
 	RK_MPI_VENC_GetRcParam(VIDEO_PIPE_2, &venc_rc_param);

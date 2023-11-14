@@ -691,7 +691,6 @@ static int rkipc_venc_0_init() {
 		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
 		return -1;
 	}
-	tmp_smart = rk_param_get_string("video.0:smart", NULL);
 	tmp_gop_mode = rk_param_get_string("video.0:gop_mode", NULL);
 	if (!strcmp(tmp_gop_mode, "normalP")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
@@ -877,7 +876,6 @@ static int rkipc_venc_1_init() {
 		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
 		return -1;
 	}
-	tmp_smart = rk_param_get_string("video.1:smart", NULL);
 	tmp_gop_mode = rk_param_get_string("video.1:gop_mode", NULL);
 	if (!strcmp(tmp_gop_mode, "normalP")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
@@ -1064,7 +1062,6 @@ static int rkipc_venc_2_init() {
 		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
 		return -1;
 	}
-	tmp_smart = rk_param_get_string("video.2:smart", NULL);
 	tmp_gop_mode = rk_param_get_string("video.2:gop_mode", NULL);
 	if (!strcmp(tmp_gop_mode, "normalP")) {
 		venc_chn_attr.stGopAttr.enGopMode = VENC_GOPMODE_NORMALP;
