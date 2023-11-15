@@ -14,6 +14,7 @@
 #include "storage.h"
 #include <pthread.h>
 #include <rk_aiq_user_api2_sysctl.h>
+#include <rk_aiq_user_api2_imgproc.h>
 #include <rk_comm_tde.h>
 #include <rk_mpi_cal.h>
 #include <rk_mpi_ivs.h>
@@ -75,7 +76,8 @@ static MPP_CHN_S vi_chn, venc_chns[3], ivs_chn, vpss_0_chns[3], vpss_1_chns[1];
 extern rk_aiq_sys_ctx_t *rkipc_aiq_get_ctx(int cam_id);
 
 /* after rkaiq init */
-static RK_S32 vpss_aiisp_callback(RK_VOID *pAinrParam, RK_VOID *pPrivateData) {
+static RK_S32 vpss_aiisp_callback(rk_ainr_param *pAinrParam, RK_VOID *pPrivateData) {
+	static int last_enable = 0; // default disable
 	if (pAinrParam == RK_NULL) {
 		return RK_FAILURE;
 	}
@@ -88,7 +90,89 @@ static RK_S32 vpss_aiisp_callback(RK_VOID *pAinrParam, RK_VOID *pPrivateData) {
 		LOG_ERROR("failed to get ainr parameters, ret = %#x\n", ret);
 		return ret;
 	}
-	// LOG_INFO("param:%p, gain:%f\n", pAinrParam, ((rk_ainr_param* )pAinrParam)->gain);
+	if (pAinrParam->enable != last_enable) {
+		Uapi_ExpSwAttrV2_t stExpSwAttr;
+		int src_den, src_num, dst_den, dst_num, fps, stream_id;
+		char entry[128] = {'\0'};
+		// Adjust ISP framerate first.
+		ret = rk_aiq_user_api2_ae_getExpSwAttr(ctx, &stExpSwAttr);
+		if (ret != RK_SUCCESS) {
+			LOG_ERROR("rk_aiq_user_api2_ae_getExpSwAttr failed %#X\n", ret);
+			return ret;
+		}
+		if (pAinrParam->enable)
+			fps = rk_param_get_int("video.source:aiisp_fps", 10);
+		else
+			fps = rk_param_get_int("isp.0.adjustment:fps", 25);
+		stExpSwAttr.stAuto.stFrmRate.isFpsFix = true;
+		stExpSwAttr.stAuto.stFrmRate.FpsValue = fps;
+		ret = rk_aiq_user_api2_ae_setExpSwAttr(ctx, stExpSwAttr);
+		if (ret != RK_SUCCESS) {
+			LOG_ERROR("rk_aiq_user_api2_ae_setExpSwAttr failed %#X\n", ret);
+			return ret;
+		}
+
+		// Then adjust framerate of all venc channels.
+		VENC_CHN_ATTR_S venc_chn_attr;
+		for (stream_id = 0; stream_id != 3; ++stream_id) {
+			if (pAinrParam->enable) {
+				dst_num = src_num = fps;
+				dst_den = src_den = 1;
+			} else {
+				snprintf(entry, 127, "video.%d:dst_frame_rate_den", stream_id);
+				dst_den = rk_param_get_int(entry, 1);
+				snprintf(entry, 127, "video.%d:dst_frame_rate_num", stream_id);
+				dst_num = rk_param_get_int(entry, 25);
+				snprintf(entry, 127, "video.%d:src_frame_rate_den", stream_id);
+				src_den = rk_param_get_int(entry, 1);
+				snprintf(entry, 127, "video.%d:src_frame_rate_num", stream_id);
+				src_num = rk_param_get_int(entry, 25);
+				if (src_num != fps
+						|| !src_den || !dst_den
+						|| (src_num / src_den) < (dst_num / dst_den)
+				)
+					LOG_ERROR("Bad framerate settings! src %d/%d, dst %d/%d\n"
+						,src_num, src_den, dst_num, dst_den);
+			}
+
+			memset(&venc_chn_attr, 0, sizeof(venc_chn_attr));
+			RK_MPI_VENC_GetChnAttr(stream_id, &venc_chn_attr);
+			if (venc_chn_attr.stVencAttr.enType == RK_VIDEO_ID_AVC) {
+				if (venc_chn_attr.stRcAttr.enRcMode == VENC_RC_MODE_H264CBR) {
+					venc_chn_attr.stRcAttr.stH264Cbr.u32SrcFrameRateDen = src_den;
+					venc_chn_attr.stRcAttr.stH264Cbr.u32SrcFrameRateNum = src_num;
+					venc_chn_attr.stRcAttr.stH264Cbr.fr32DstFrameRateDen = dst_den;
+					venc_chn_attr.stRcAttr.stH264Cbr.fr32DstFrameRateNum = dst_num;
+				} else {
+					venc_chn_attr.stRcAttr.stH264Vbr.u32SrcFrameRateDen = src_den;
+					venc_chn_attr.stRcAttr.stH264Vbr.u32SrcFrameRateNum = src_num;
+					venc_chn_attr.stRcAttr.stH264Vbr.fr32DstFrameRateDen = dst_den;
+					venc_chn_attr.stRcAttr.stH264Vbr.fr32DstFrameRateNum = dst_num;
+				}
+			} else if (venc_chn_attr.stVencAttr.enType == RK_VIDEO_ID_HEVC) {
+				if (venc_chn_attr.stRcAttr.enRcMode == VENC_RC_MODE_H265CBR) {
+					venc_chn_attr.stRcAttr.stH265Cbr.u32SrcFrameRateDen = src_den;
+					venc_chn_attr.stRcAttr.stH265Cbr.u32SrcFrameRateNum = src_num;
+					venc_chn_attr.stRcAttr.stH265Cbr.fr32DstFrameRateDen = dst_den;
+					venc_chn_attr.stRcAttr.stH265Cbr.fr32DstFrameRateNum = dst_num;
+				} else {
+					venc_chn_attr.stRcAttr.stH265Vbr.u32SrcFrameRateDen = src_den;
+					venc_chn_attr.stRcAttr.stH265Vbr.u32SrcFrameRateNum = src_num;
+					venc_chn_attr.stRcAttr.stH265Vbr.fr32DstFrameRateDen = dst_den;
+					venc_chn_attr.stRcAttr.stH265Vbr.fr32DstFrameRateNum = dst_num;
+				}
+			}
+			ret = RK_MPI_VENC_SetChnAttr(stream_id, &venc_chn_attr);
+			if (ret != RK_SUCCESS)
+				LOG_ERROR("stream %d set frame rate %d/%d failed!\n"
+						, stream_id, dst_num, dst_den);
+			else
+				LOG_DEBUG("stream %d set frame rate %d/%d success!\n"
+						, stream_id, dst_num, dst_den);
+		}
+		last_enable = pAinrParam->enable;
+	}
+	// LOG_INFO("enable:%d, gain:%f\n", pAinrParam->enable, pAinrParam->gain);
 
 	return RK_SUCCESS;
 }
@@ -1542,7 +1626,7 @@ static void *rkipc_get_venc_0(void *arg) {
 	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
 
 	while (g_video_run_) {
-		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_0, &stFrame, 1000);
+		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_0, &stFrame, 2500);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
 
@@ -1590,7 +1674,7 @@ static void *rkipc_get_venc_1(void *arg) {
 	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
 
 	while (g_video_run_) {
-		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_1, &stFrame, 1000);
+		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_1, &stFrame, 2500);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
 			rkipc_rtsp_write_video_frame(1, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS);
@@ -1631,7 +1715,7 @@ static void *rkipc_get_venc_2(void *arg) {
 	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
 
 	while (g_video_run_) {
-		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_2, &stFrame, 1000);
+		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_2, &stFrame, 2500);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
 			rkipc_rtsp_write_video_frame(2, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS);
@@ -2414,7 +2498,7 @@ int rk_video_set_frame_rate(int stream_id, const char *value) {
 	} else {
 		sscanf(value, "%d/%d", &num, &den);
 	}
-	LOG_INFO("num is %d, den is %d\n", num, den);
+	LOG_DEBUG("num is %d, den is %d\n", num, den);
 
 	VENC_CHN_ATTR_S venc_chn_attr;
 	memset(&venc_chn_attr, 0, sizeof(venc_chn_attr));
@@ -2447,9 +2531,9 @@ int rk_video_set_frame_rate(int stream_id, const char *value) {
 	}
 	int ret = RK_MPI_VENC_SetChnAttr(stream_id, &venc_chn_attr);
 	if (ret != RK_SUCCESS)
-		LOG_ERROR("set frame rate %d/%d failed!", num, den);
+		LOG_ERROR("set frame rate %d/%d failed!\n", num, den);
 	else
-		LOG_DEBUG("set frame rate %d/%d success!", num, den);
+		LOG_DEBUG("set frame rate %d/%d success!\n", num, den);
 
 	snprintf(entry, 127, "video.%d:dst_frame_rate_den", stream_id);
 	rk_param_set_int(entry, den);
@@ -2883,9 +2967,13 @@ int rk_video_restart() {
 	int ret;
 	ret = rk_storage_deinit();
 	ret = rk_video_deinit();
-	rk_isp_deinit(0);
-	usleep(100 * 1000);
-	rk_isp_init(0, rkipc_iq_file_path_);
+	if (rk_param_get_int("video.source:enable_aiq", 1))
+		ret |= rk_isp_deinit(0);
+	if (rk_param_get_int("video.source:enable_aiq", 1)) {
+		ret |= rk_isp_init(0, rkipc_iq_file_path_);
+		if (rk_param_get_int("isp:init_form_ini", 1))
+			ret |= rk_isp_set_from_ini(0);
+	}
 	ret |= rk_video_init();
 	ret |= rk_storage_init();
 
