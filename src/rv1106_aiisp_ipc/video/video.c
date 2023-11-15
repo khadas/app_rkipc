@@ -610,7 +610,7 @@ static int rkipc_venc_0_init() {
 	if (!strcmp(tmp_smart, "open")) {
 		ret = RK_MPI_VENC_EnableSvc(VIDEO_PIPE_0, 1);
 		if (ret != RK_SUCCESS)
-			RK_LOGE("RK_MPI_VENC_EnableSvc failed %#X\n", ret);
+			LOG_ERROR("RK_MPI_VENC_EnableSvc failed %#X\n", ret);
 	}
 
 	tmp_rc_quality = rk_param_get_string("video.0:rc_quality", NULL);
@@ -802,7 +802,7 @@ static int rkipc_venc_1_init() {
 	if (!strcmp(tmp_smart, "open")) {
 		ret = RK_MPI_VENC_EnableSvc(VIDEO_PIPE_1, 1);
 		if (ret != RK_SUCCESS)
-			RK_LOGE("RK_MPI_VENC_EnableSvc failed %#X\n", ret);
+			LOG_ERROR("RK_MPI_VENC_EnableSvc failed %#X\n", ret);
 	}
 	tmp_rc_quality = rk_param_get_string("video.1:rc_quality", NULL);
 	VENC_RC_PARAM_S venc_rc_param;
@@ -994,7 +994,7 @@ static int rkipc_venc_2_init() {
 	if (!strcmp(tmp_smart, "open")) {
 		ret = RK_MPI_VENC_EnableSvc(VIDEO_PIPE_2, 1);
 		if (ret != RK_SUCCESS)
-			RK_LOGE("RK_MPI_VENC_EnableSvc failed %#X\n", ret);
+			LOG_ERROR("RK_MPI_VENC_EnableSvc failed %#X\n", ret);
 	}
 	tmp_rc_quality = rk_param_get_string("video.2:rc_quality", NULL);
 	VENC_RC_PARAM_S venc_rc_param;
@@ -1367,8 +1367,8 @@ static int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 	memset(&stRgnChnAttr, 0, sizeof(stRgnChnAttr));
 	stRgnChnAttr.bShow = osd_data->enable;
 	stRgnChnAttr.enType = OVERLAY_RGN;
-	stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32X = 0;
-	stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32Y = 0;
+	stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32X = osd_data->origin_x;
+	stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32Y = osd_data->origin_y;
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32BgAlpha = 64;
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32FgAlpha = 64;
 	// 1126 osd alpha not support multi layer, so use layer 0 to draw nn
@@ -1376,35 +1376,56 @@ static int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 	// make sure cover layer is higher
 	if (id == 6)
 		stRgnChnAttr.unChnAttr.stOverlayChn.u32Layer = 5;
+
 	if (g_enable_venc_0) {
 		stMppChn.s32ChnId = 0;
 		ret = RK_MPI_RGN_AttachToChn(RgnHandle, &stMppChn, &stRgnChnAttr);
 		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc0 failed with %#x\n", RgnHandle, ret);
+			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc0 failed with %#x\n"
+					, RgnHandle, ret);
 		else
 			LOG_INFO("RK_MPI_RGN_AttachToChn to venc0 success\n");
 	}
 	if (g_enable_venc_1) {
+		stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32X =
+		    UPALIGNTO16(osd_data->origin_x * rk_param_get_int("video.1:width", 1) /
+		                rk_param_get_int("video.0:width", 1));
+		stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32Y =
+		    UPALIGNTO16(osd_data->origin_y * rk_param_get_int("video.1:height", 1) /
+		                rk_param_get_int("video.0:height", 1));
 		stMppChn.s32ChnId = 1;
 		ret = RK_MPI_RGN_AttachToChn(RgnHandle, &stMppChn, &stRgnChnAttr);
 		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc1 failed with %#x\n", RgnHandle, ret);
+			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc1 failed with %#x\n"
+					, RgnHandle, ret);
 		else
 			LOG_INFO("RK_MPI_RGN_AttachToChn to venc1 success\n");
 	}
 	if (g_enable_venc_2) {
+		stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32X =
+		    UPALIGNTO16(osd_data->origin_x * rk_param_get_int("video.2:width", 1) /
+		                rk_param_get_int("video.0:width", 1));
+		stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32Y =
+		    UPALIGNTO16(osd_data->origin_y * rk_param_get_int("video.2:height", 1) /
+		                rk_param_get_int("video.0:height", 1));
 		stMppChn.s32ChnId = 2;
 		ret = RK_MPI_RGN_AttachToChn(RgnHandle, &stMppChn, &stRgnChnAttr);
 		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc2 failed with %#x\n", RgnHandle, ret);
+			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc2 failed with %#x\n"
+					, RgnHandle, ret);
 		else
 			LOG_INFO("RK_MPI_RGN_AttachToChn to venc2 success\n");
 	}
 	if (g_enable_jpeg) {
+		stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32X =
+			UPALIGNTO16(osd_data->origin_x);
+		stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32Y =
+			UPALIGNTO16(osd_data->origin_y);
 		stMppChn.s32ChnId = JPEG_VENC_CHN;
 		ret = RK_MPI_RGN_AttachToChn(RgnHandle, &stMppChn, &stRgnChnAttr);
 		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to jpeg failed with %#x\n", RgnHandle, ret);
+			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to jpeg failed with %#x\n"
+					, RgnHandle, ret);
 		else
 			LOG_INFO("RK_MPI_RGN_AttachToChn to jpeg success\n");
 	}
@@ -2424,7 +2445,11 @@ int rk_video_set_frame_rate(int stream_id, const char *value) {
 		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
 		return -1;
 	}
-	RK_MPI_VENC_SetChnAttr(stream_id, &venc_chn_attr);
+	int ret = RK_MPI_VENC_SetChnAttr(stream_id, &venc_chn_attr);
+	if (ret != RK_SUCCESS)
+		LOG_ERROR("set frame rate %d/%d failed!", num, den);
+	else
+		LOG_DEBUG("set frame rate %d/%d success!", num, den);
 
 	snprintf(entry, 127, "video.%d:dst_frame_rate_den", stream_id);
 	rk_param_set_int(entry, den);
