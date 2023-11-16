@@ -1707,7 +1707,7 @@ static void *rkipc_get_venc_0(void *arg) {
 	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
 
 	while (g_video_run_) {
-		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_0, &stFrame, 1000);
+		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_0, &stFrame, 2500);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
 
@@ -1750,7 +1750,7 @@ static void *rkipc_get_venc_1(void *arg) {
 	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
 
 	while (g_video_run_) {
-		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_1, &stFrame, 1000);
+		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_1, &stFrame, 2500);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
 			rkipc_rtsp_write_video_frame(1, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS);
@@ -1791,7 +1791,7 @@ static void *rkipc_get_venc_2(void *arg) {
 	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
 
 	while (g_video_run_) {
-		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_2, &stFrame, 1000);
+		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_2, &stFrame, 2500);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
 			rkipc_rtsp_write_video_frame(2, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS);

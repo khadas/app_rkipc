@@ -100,7 +100,7 @@ static void *rkipc_get_venc_0(void *arg) {
 
 	while (g_video_run_) {
 		// 5.get the frame
-		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_0, &stFrame, 1000);
+		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_0, &stFrame, 2500);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
 			// fwrite(data, 1, stFrame.pstPack->u32Len, fp);
@@ -152,7 +152,7 @@ static void *rkipc_get_venc_1(void *arg) {
 
 	while (g_video_run_) {
 		// 5.get the frame
-		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_1, &stFrame, 1000);
+		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_1, &stFrame, 2500);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
 			// LOG_INFO("Count:%d, Len:%d, PTS is %" PRId64", enH264EType is %d\n", loopCount,
@@ -198,7 +198,7 @@ static void *rkipc_get_venc_2(void *arg) {
 
 	while (g_video_run_) {
 		// 5.get the frame
-		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_2, &stFrame, 1000);
+		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_2, &stFrame, 2500);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
 			// LOG_INFO("Count:%d, Len:%d, PTS is %" PRId64", enH264EType is %d\n", loopCount,

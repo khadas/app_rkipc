@@ -115,7 +115,7 @@ static void *rkipc_get_venc_0(void *arg) {
 		if (!rk_param_get_int("video.0:one_stream_buffer", 0))
 			stFrame.u32PackCount = MAX_PACKET_NUM;
 		// get the frame
-		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_0, &stFrame, 1000);
+		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_0, &stFrame, 2500);
 		if (ret != RK_SUCCESS) {
 			LOG_ERROR("RK_MPI_VENC_GetStream timeout %#x\n", ret);
 			continue;
@@ -177,7 +177,7 @@ static void *rkipc_get_venc_1(void *arg) {
 		if (!rk_param_get_int("video.0:one_stream_buffer", 0))
 			stFrame.u32PackCount = MAX_PACKET_NUM;
 		// get the frame
-		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_1, &stFrame, 1000);
+		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_1, &stFrame, 2500);
 		if (ret != RK_SUCCESS) {
 			LOG_ERROR("RK_MPI_VENC_GetStream timeout %#x\n", ret);
 			continue;
@@ -239,7 +239,7 @@ static void *rkipc_get_venc_2(void *arg) {
 		if (!rk_param_get_int("video.0:one_stream_buffer", 0))
 			stFrame.u32PackCount = MAX_PACKET_NUM;
 		// get the frame
-		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_2, &stFrame, 1000);
+		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_2, &stFrame, 2500);
 		if (ret != RK_SUCCESS) {
 			LOG_ERROR("RK_MPI_VENC_GetStream timeout %#x\n", ret);
 			continue;

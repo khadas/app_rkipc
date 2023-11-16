@@ -139,7 +139,7 @@ static void *rkipc_get_venc_0(void *arg) {
 	while (g_video_run_) {
 		// 5.get the frame
 		// ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_0, &stFrame, -1);
-		mb = RK_MPI_SYS_GetMediaBuffer(RK_ID_VENC, 0, -1);
+		mb = RK_MPI_SYS_GetMediaBuffer(RK_ID_VENC, 0, 2500);
 		if (!mb) {
 			LOG_ERROR("RK_MPI_SYS_GetMediaBuffer get null buffer!\n");
 			continue;
