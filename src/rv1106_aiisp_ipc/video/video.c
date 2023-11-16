@@ -13,8 +13,8 @@
 #include "rtsp.h"
 #include "storage.h"
 #include <pthread.h>
-#include <rk_aiq_user_api2_sysctl.h>
 #include <rk_aiq_user_api2_imgproc.h>
+#include <rk_aiq_user_api2_sysctl.h>
 #include <rk_comm_tde.h>
 #include <rk_mpi_cal.h>
 #include <rk_mpi_ivs.h>
@@ -127,12 +127,10 @@ static RK_S32 vpss_aiisp_callback(rk_ainr_param *pAinrParam, RK_VOID *pPrivateDa
 				src_den = rk_param_get_int(entry, 1);
 				snprintf(entry, 127, "video.%d:src_frame_rate_num", stream_id);
 				src_num = rk_param_get_int(entry, 25);
-				if (src_num != fps
-						|| !src_den || !dst_den
-						|| (src_num / src_den) < (dst_num / dst_den)
-				)
-					LOG_ERROR("Bad framerate settings! src %d/%d, dst %d/%d\n"
-						,src_num, src_den, dst_num, dst_den);
+				if (src_num != fps || !src_den || !dst_den ||
+				    (src_num / src_den) < (dst_num / dst_den))
+					LOG_ERROR("Bad framerate settings! src %d/%d, dst %d/%d\n", src_num, src_den,
+					          dst_num, dst_den);
 			}
 
 			memset(&venc_chn_attr, 0, sizeof(venc_chn_attr));
@@ -164,11 +162,9 @@ static RK_S32 vpss_aiisp_callback(rk_ainr_param *pAinrParam, RK_VOID *pPrivateDa
 			}
 			ret = RK_MPI_VENC_SetChnAttr(stream_id, &venc_chn_attr);
 			if (ret != RK_SUCCESS)
-				LOG_ERROR("stream %d set frame rate %d/%d failed!\n"
-						, stream_id, dst_num, dst_den);
+				LOG_ERROR("stream %d set frame rate %d/%d failed!\n", stream_id, dst_num, dst_den);
 			else
-				LOG_DEBUG("stream %d set frame rate %d/%d success!\n"
-						, stream_id, dst_num, dst_den);
+				LOG_DEBUG("stream %d set frame rate %d/%d success!\n", stream_id, dst_num, dst_den);
 		}
 		last_enable = pAinrParam->enable;
 	}
@@ -317,7 +313,7 @@ static int rkipc_vpss_0_init() {
 	if (g_enable_aiisp) {
 		memset(&stAIISPAttr, 0, sizeof(AIISP_ATTR_S));
 		stAIISPAttr.bEnable = RK_TRUE;
-		stAIISPAttr.stAiIspCallback.pfUpdateCallback = vpss_aiisp_callback;
+		stAIISPAttr.stAiIspCallback.pfUpdateCallback = (AIISP_CALLBACK)vpss_aiisp_callback;
 		stAIISPAttr.stAiIspCallback.pPrivateData = RK_NULL;
 		stAIISPAttr.pModelFilePath = "/oem/usr/lib/";
 		stAIISPAttr.u32FrameBufCnt = rk_param_get_int("video.source:aiisp_dst_buf_cnt", 1);
@@ -1321,8 +1317,20 @@ static int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 	RGN_ATTR_S stCoverAttr;
 	MPP_CHN_S stCoverChn;
 	RGN_CHN_ATTR_S stCoverChnAttr;
+	int rotation = rk_param_get_int("video.source:rotation", 0);
+	int video_0_width = rk_param_get_int("video.0:width", -1);
+	int video_0_height = rk_param_get_int("video.0:height", -1);
+	int video_0_max_width = rk_param_get_int("video.0:max_width", -1);
+	int video_0_max_height = rk_param_get_int("video.0:max_height", -1);
+	double video_0_w_h_rate = 1.0;
 
-	LOG_INFO("handle %d\n", coverHandle);
+	// since the coordinates stored in the OSD module are of actual resolution,
+	// 1106 needs to be converted back to the maximum resolution
+	osd_data->origin_x = osd_data->origin_x * video_0_max_width / video_0_width;
+	osd_data->origin_y = osd_data->origin_y * video_0_max_height / video_0_height;
+	osd_data->width = osd_data->width * video_0_max_width / video_0_width;
+	osd_data->height = osd_data->height * video_0_max_height / video_0_height;
+
 	memset(&stCoverAttr, 0, sizeof(stCoverAttr));
 	memset(&stCoverChnAttr, 0, sizeof(stCoverChnAttr));
 	// create cover regions
@@ -1333,54 +1341,86 @@ static int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 		RK_MPI_RGN_Destroy(coverHandle);
 		return RK_FAILURE;
 	}
+	LOG_DEBUG("The handle: %d, create success\n", coverHandle);
 
-	// display cover regions to venc
-	stCoverChn.enModId = RK_ID_VENC;
+	// when cover is attached to VI,
+	// coordinate conversion of three angles shall be considered when rotating VENC
+	video_0_w_h_rate = (double)video_0_max_width / (double)video_0_max_height;
+	if (rotation == 90) {
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X =
+		    (double)osd_data->origin_y * video_0_w_h_rate;
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y =
+		    (video_0_max_height -
+		     ((double)(osd_data->width + osd_data->origin_x) / video_0_w_h_rate));
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width =
+		    (double)osd_data->height * video_0_w_h_rate;
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height =
+		    (double)osd_data->width / video_0_w_h_rate;
+	} else if (rotation == 270) {
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X =
+		    (video_0_max_width -
+		     ((double)(osd_data->height + osd_data->origin_y) * video_0_w_h_rate));
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y =
+		    (double)osd_data->origin_x / video_0_w_h_rate;
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width =
+		    (double)osd_data->height * video_0_w_h_rate;
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height =
+		    (double)osd_data->width / video_0_w_h_rate;
+	} else if (rotation == 180) {
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X =
+		    video_0_max_width - osd_data->width - osd_data->origin_x;
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y =
+		    video_0_max_height - osd_data->height - osd_data->origin_y;
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width = osd_data->width;
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height = osd_data->height;
+	} else {
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X = osd_data->origin_x;
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y = osd_data->origin_y;
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width = osd_data->width;
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height = osd_data->height;
+	}
+	stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X =
+	    UPALIGNTO16(stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X);
+	stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y =
+	    UPALIGNTO16(stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y);
+	stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width =
+	    UPALIGNTO16(stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width);
+	stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height =
+	    UPALIGNTO16(stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height);
+	// because the rotation is done in the VENC,
+	// and the cover and VI resolution are both before the rotation,
+	// there is no need to judge the rotation here
+	while (stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X +
+	           stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width >
+	       video_0_max_width) {
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width -= 16;
+	}
+	while (stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y +
+	           stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height >
+	       video_0_max_height) {
+		stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height -= 16;
+	}
+
+	// display cover regions to vi
+	stCoverChn.enModId = RK_ID_VI;
 	stCoverChn.s32DevId = 0;
-	stCoverChn.s32ChnId = 0;
-	memset(&stCoverChnAttr, 0, sizeof(stCoverChnAttr));
+	stCoverChn.s32ChnId = VI_MAX_CHN_NUM;
 	stCoverChnAttr.bShow = osd_data->enable;
 	stCoverChnAttr.enType = COVER_RGN;
-	stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32X = osd_data->origin_x;
-	stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y = osd_data->origin_y;
-	stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width = osd_data->width;
-	stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height = osd_data->height;
-	stCoverChnAttr.unChnAttr.stCoverChn.u32Color = 0xffffff;
-	// 1126 osd alpha not support multi layer, so use layer 6 and 7 to draw cover
-	stCoverChnAttr.unChnAttr.stCoverChn.u32Layer = id + 2; // 4 5 → 6 7
-	if (g_enable_venc_0) {
-		stCoverChn.s32ChnId = 0;
-		ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
-		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc0 failed with %#x\n", coverHandle, ret);
-		else
-			LOG_INFO("RK_MPI_RGN_AttachToChn to venc0 success\n");
+	stCoverChnAttr.unChnAttr.stCoverChn.u32Color = 0xffffffff;
+	stCoverChnAttr.unChnAttr.stCoverChn.u32Layer = id;
+	LOG_DEBUG("cover region to chn success\n");
+	ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("vi pipe RK_MPI_RGN_AttachToChn (%d) failed with %#x\n", coverHandle, ret);
+		return RK_FAILURE;
 	}
-	if (g_enable_venc_1) {
-		stCoverChn.s32ChnId = 1;
-		ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
-		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc1 failed with %#x\n", coverHandle, ret);
-		else
-			LOG_INFO("RK_MPI_RGN_AttachToChn to venc1 success\n");
+	ret = RK_MPI_RGN_SetDisplayAttr(coverHandle, &stCoverChn, &stCoverChnAttr);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("vi pipe RK_MPI_RGN_SetDisplayAttr failed with %#x\n", ret);
+		return RK_FAILURE;
 	}
-	if (g_enable_venc_2) {
-		stCoverChn.s32ChnId = 2;
-		ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
-		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc2 failed with %#x\n", coverHandle, ret);
-		else
-			LOG_INFO("RK_MPI_RGN_AttachToChn to venc2 success\n");
-	}
-	if (g_enable_jpeg) {
-		stCoverChn.s32ChnId = JPEG_VENC_CHN;
-		ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
-		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to jpeg failed with %#x\n", coverHandle, ret);
-		else
-			LOG_INFO("RK_MPI_RGN_AttachToChn to jpeg success\n");
-	}
-	LOG_INFO("RK_MPI_RGN_AttachToChn to vpss1 success\n");
+	LOG_DEBUG("RK_MPI_RGN_AttachToChn to vi 0 success\n");
 	return ret;
 }
 
@@ -1474,8 +1514,7 @@ static int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 		stMppChn.s32ChnId = 0;
 		ret = RK_MPI_RGN_AttachToChn(RgnHandle, &stMppChn, &stRgnChnAttr);
 		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc0 failed with %#x\n"
-					, RgnHandle, ret);
+			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc0 failed with %#x\n", RgnHandle, ret);
 		else
 			LOG_INFO("RK_MPI_RGN_AttachToChn to venc0 success\n");
 	}
@@ -1489,8 +1528,7 @@ static int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 		stMppChn.s32ChnId = 1;
 		ret = RK_MPI_RGN_AttachToChn(RgnHandle, &stMppChn, &stRgnChnAttr);
 		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc1 failed with %#x\n"
-					, RgnHandle, ret);
+			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc1 failed with %#x\n", RgnHandle, ret);
 		else
 			LOG_INFO("RK_MPI_RGN_AttachToChn to venc1 success\n");
 	}
@@ -1504,21 +1542,17 @@ static int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 		stMppChn.s32ChnId = 2;
 		ret = RK_MPI_RGN_AttachToChn(RgnHandle, &stMppChn, &stRgnChnAttr);
 		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc2 failed with %#x\n"
-					, RgnHandle, ret);
+			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc2 failed with %#x\n", RgnHandle, ret);
 		else
 			LOG_INFO("RK_MPI_RGN_AttachToChn to venc2 success\n");
 	}
 	if (g_enable_jpeg) {
-		stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32X =
-			UPALIGNTO16(osd_data->origin_x);
-		stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32Y =
-			UPALIGNTO16(osd_data->origin_y);
+		stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32X = UPALIGNTO16(osd_data->origin_x);
+		stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32Y = UPALIGNTO16(osd_data->origin_y);
 		stMppChn.s32ChnId = JPEG_VENC_CHN;
 		ret = RK_MPI_RGN_AttachToChn(RgnHandle, &stMppChn, &stRgnChnAttr);
 		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to jpeg failed with %#x\n"
-					, RgnHandle, ret);
+			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to jpeg failed with %#x\n", RgnHandle, ret);
 		else
 			LOG_INFO("RK_MPI_RGN_AttachToChn to jpeg success\n");
 	}
@@ -2714,7 +2748,8 @@ int rk_video_set_jpeg_resolution(const char *value) {
 		LOG_ERROR("Failed to get attribute of jpeg channel because %#X\n", ret);
 	}
 #else
-	LOG_INFO("1106 aiisp combo, jpeg resolution must be consistent with the main stream resolution\n");
+	LOG_INFO(
+	    "1106 aiisp combo, jpeg resolution must be consistent with the main stream resolution\n");
 #endif
 	TRACE_END();
 
@@ -2741,10 +2776,13 @@ int rk_take_photo() {
 }
 
 int rk_roi_set(roi_data_s *roi_data) {
-	// LOG_INFO("id is %d\n", id);
 	int ret = 0;
 	int venc_chn_num = 0;
+	int rotation, video_width, video_height;
+	int origin_x, origin_y;
 	VENC_ROI_ATTR_S pstRoiAttr;
+	char entry[128] = {'\0'};
+
 	pstRoiAttr.u32Index = roi_data->id;
 	pstRoiAttr.bEnable = roi_data->enabled;
 	pstRoiAttr.bAbsQp = RK_FALSE;
@@ -2788,12 +2826,50 @@ int rk_roi_set(roi_data_s *roi_data) {
 		return -1;
 	}
 
+	if (pstRoiAttr.stRect.u32Height != 0 && pstRoiAttr.stRect.u32Width != 0 && roi_data->enabled) {
+		snprintf(entry, 127, "video.%d:width", venc_chn_num);
+		video_width = rk_param_get_int(entry, 0);
+		snprintf(entry, 127, "video.%d:height", venc_chn_num);
+		video_height = rk_param_get_int(entry, 0);
+		rotation = rk_param_get_int("video.source:rotaion", 0);
+		origin_x = pstRoiAttr.stRect.s32X;
+		origin_y = pstRoiAttr.stRect.s32Y;
+		if (video_height < (origin_y + pstRoiAttr.stRect.u32Height))
+			LOG_ERROR("illegal params! video height(%d) < y(%d) + h(%d)", video_height, origin_y,
+			          pstRoiAttr.stRect.u32Height);
+		if (video_width < (origin_x + pstRoiAttr.stRect.u32Width))
+			LOG_ERROR("illegal params! video width(%d) < x(%d) + w(%d)", video_width, origin_x,
+			          pstRoiAttr.stRect.u32Width);
+		switch (rotation) {
+		case 90:
+			pstRoiAttr.stRect.s32X = video_height - origin_y - pstRoiAttr.stRect.u32Height;
+			pstRoiAttr.stRect.s32Y = origin_x;
+			RKIPC_SWAP(pstRoiAttr.stRect.u32Width, pstRoiAttr.stRect.u32Height);
+			break;
+		case 270:
+			pstRoiAttr.stRect.s32X = origin_y;
+			pstRoiAttr.stRect.s32Y = video_width - origin_x - pstRoiAttr.stRect.u32Width;
+			RKIPC_SWAP(pstRoiAttr.stRect.u32Width, pstRoiAttr.stRect.u32Height);
+			break;
+		case 180:
+			pstRoiAttr.stRect.s32X = video_width - origin_x - pstRoiAttr.stRect.u32Width;
+			pstRoiAttr.stRect.s32Y = video_height - origin_y - pstRoiAttr.stRect.u32Height;
+			break;
+		default:
+			break;
+		}
+		LOG_INFO("id %d, rotation %d, from [x(%d),y(%d),w(%d),h(%d)] "
+		         "to [x(%d),y(%d),w(%d),h(%d)]\n",
+		         roi_data->id, rotation, roi_data->position_x, roi_data->position_y,
+		         roi_data->width, roi_data->height, pstRoiAttr.stRect.s32X, pstRoiAttr.stRect.s32Y,
+		         pstRoiAttr.stRect.u32Width, pstRoiAttr.stRect.u32Height);
+	}
+
 	ret = RK_MPI_VENC_SetRoiAttr(venc_chn_num, &pstRoiAttr);
 	if (RK_SUCCESS != ret) {
 		LOG_ERROR("RK_MPI_VENC_SetRoiAttr to venc %d failed with %#x\n", venc_chn_num, ret);
 		return RK_FAILURE;
 	}
-	LOG_DEBUG("RK_MPI_VENC_SetRoiAttr to venc %d success\n", venc_chn_num);
 
 	return ret;
 }
