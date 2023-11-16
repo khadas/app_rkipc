@@ -341,8 +341,8 @@ static int rkipc_vpss_0_init() {
 	stVpssChnAttr[VpssChn].u32Width = rk_param_get_int("video.0:width", -1);
 	stVpssChnAttr[VpssChn].u32Height = rk_param_get_int("video.0:height", -1);
 	stVpssChnAttr[VpssChn].enCompressMode = COMPRESS_MODE_NONE;
-	stVpssChnAttr[VpssChn].u32Depth = 1; // use for capture.
-	stVpssChnAttr[VpssChn].u32FrameBufCnt = 2;
+	stVpssChnAttr[VpssChn].u32Depth = 0;
+	stVpssChnAttr[VpssChn].u32FrameBufCnt = rk_param_get_int("video.source:aiisp_dst_buf_cnt", 1);
 	ret = RK_MPI_VPSS_SetChnAttr(VpssGrp, VpssChn, &stVpssChnAttr[VpssChn]);
 	if (ret != RK_SUCCESS)
 		LOG_ERROR("%d: RK_MPI_VPSS_SetChnAttr error! ret is %#x\n", VpssChn, ret);
@@ -1166,6 +1166,8 @@ static int rkipc_jpeg_init() {
 	memset(&jpeg_chn_attr, 0, sizeof(jpeg_chn_attr));
 	jpeg_chn_attr.stVencAttr.enType = RK_VIDEO_ID_JPEG;
 	jpeg_chn_attr.stVencAttr.enPixelFormat = RK_FMT_YUV420SP;
+	jpeg_chn_attr.stVencAttr.u32MaxPicWidth = rk_param_get_int("video.0:max_width", 2560);
+	jpeg_chn_attr.stVencAttr.u32MaxPicHeight = rk_param_get_int("video.0:max_height", 1440);
 	jpeg_chn_attr.stVencAttr.u32PicWidth = width;
 	jpeg_chn_attr.stVencAttr.u32PicHeight = height;
 	jpeg_chn_attr.stVencAttr.u32VirWidth = width;
@@ -1178,6 +1180,13 @@ static int rkipc_jpeg_init() {
 		LOG_ERROR("ERROR: create VENC error! ret=%d\n", ret);
 		return ret;
 	}
+
+	VENC_COMBO_ATTR_S stComboAttr;
+	memset(&stComboAttr, 0, sizeof(VENC_COMBO_ATTR_S));
+	stComboAttr.bEnable = RK_TRUE;
+	stComboAttr.s32ChnId = VIDEO_PIPE_0;
+	RK_MPI_VENC_SetComboAttr(JPEG_VENC_CHN, &stComboAttr);
+
 	VENC_JPEG_PARAM_S stJpegParam;
 	memset(&stJpegParam, 0, sizeof(stJpegParam));
 	stJpegParam.u32Qfactor = rk_param_get_int("video.jpeg:jpeg_qfactor", 70);
@@ -1964,7 +1973,8 @@ __failed:
 }
 
 static void *rkipc_get_jpeg(void *arg) {
-	LOG_INFO("#Start thread, arg:%p\n", arg);
+	LOG_DEBUG("#Start thread, arg:%p\n", arg);
+	prctl(PR_SET_NAME, "RkipcGetJpeg", 0, 0, 0);
 	VENC_STREAM_S stFrame;
 	VI_CHN_STATUS_S stChnStatus;
 	int ret = 0, loopCount = 0;
@@ -1987,10 +1997,12 @@ static void *rkipc_get_jpeg(void *arg) {
 			continue;
 		if (!g_video_run_)
 			break;
+#if 0 // combo
 		ret = rkipc_resize_jpeg_by_tde();
 		if (ret != RK_SUCCESS) {
 			LOG_ERROR("tde failed %x\n", ret);
 		}
+#endif
 		ret = RK_MPI_VENC_GetStream(JPEG_VENC_CHN, &stFrame, 1000);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
@@ -2001,7 +2013,7 @@ static void *rkipc_get_jpeg(void *arg) {
 			struct tm tm = *localtime(&t);
 			snprintf(file_name, 128, "%s/%d%02d%02d%02d%02d%02d.jpeg", file_path, tm.tm_year + 1900,
 			         tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-			LOG_DEBUG("file_name is %s\n", file_name);
+			LOG_INFO("file_name is %s\n", file_name);
 			FILE *fp = fopen(file_name, "wb");
 			if (fp) {
 				fwrite(data, 1, stFrame.pstPack->u32Len, fp);
@@ -2020,6 +2032,7 @@ static void *rkipc_get_jpeg(void *arg) {
 		} else {
 			LOG_ERROR("RK_MPI_VENC_GetStream timeout %x\n", ret);
 		}
+		RK_MPI_VENC_StopRecvFrame(JPEG_VENC_CHN);
 	}
 	if (stFrame.pstPack)
 		free(stFrame.pstPack);
@@ -2681,6 +2694,7 @@ int rk_video_set_jpeg_resolution(const char *value) {
 	VENC_CHN_ATTR_S jpeg_chn_attr;
 
 	TRACE_BEGIN();
+#if 0
 	sscanf(value, "%d*%d", &width, &height);
 	snprintf(entry, 127, "video.jpeg:width");
 	rk_param_set_int(entry, width);
@@ -2699,13 +2713,15 @@ int rk_video_set_jpeg_resolution(const char *value) {
 	} else {
 		LOG_ERROR("Failed to get attribute of jpeg channel because %#X\n", ret);
 	}
+#else
+	LOG_INFO("1106 aiisp combo, jpeg resolution must be consistent with the main stream resolution\n");
+#endif
 	TRACE_END();
 
 	return 0;
 }
 
 int rk_take_photo() {
-	TRACE_BEGIN();
 	if (g_do_capture) {
 		LOG_WARN("the last photo was not completed\n");
 		return RK_FAILURE;
@@ -2720,7 +2736,6 @@ int rk_take_photo() {
 	RK_MPI_VENC_StartRecvFrame(JPEG_VENC_CHN, &stRecvParam);
 	g_do_capture = 1;
 	pthread_cond_signal(&g_capture_cond);
-	TRACE_END();
 
 	return RK_SUCCESS;
 }
