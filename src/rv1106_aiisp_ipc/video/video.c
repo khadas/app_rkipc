@@ -2493,6 +2493,14 @@ int rk_video_set_resolution(int stream_id, const char *value) {
 	rk_param_set_int(entry, width);
 	snprintf(entry, 127, "video.%d:height", stream_id);
 	rk_param_set_int(entry, height);
+	// combo
+	if (g_enable_jpeg && (stream_id == 0)) {
+		snprintf(entry, 127, "video.jpeg:width");
+		rk_param_set_int(entry, width);
+		snprintf(entry, 127, "video.jpeg:height");
+		rk_param_set_int(entry, height);
+	}
+
 	rk_video_restart();
 
 	return 0;
