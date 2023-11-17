@@ -1425,45 +1425,21 @@ static int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 }
 
 static int rkipc_osd_cover_destroy(int id) {
-	LOG_INFO("%s\n", __func__);
 	int ret = 0;
-	// Detach osd from chn
 	MPP_CHN_S stMppChn;
 	RGN_HANDLE RgnHandle = id;
-	stMppChn.enModId = RK_ID_VENC;
+	// Detach osd from chn
+	stMppChn.enModId = RK_ID_VI;
 	stMppChn.s32DevId = 0;
-	stMppChn.s32ChnId = 0;
-
-	if (g_enable_venc_0) {
-		stMppChn.s32ChnId = 0;
-		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
-		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc0 failed with %#x\n", RgnHandle, ret);
-	}
-	if (g_enable_venc_1) {
-		stMppChn.s32ChnId = 1;
-		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
-		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc1 failed with %#x\n", RgnHandle, ret);
-	}
-	if (g_enable_venc_2) {
-		stMppChn.s32ChnId = 2;
-		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
-		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc2 failed with %#x\n", RgnHandle, ret);
-	}
-	if (g_enable_jpeg) {
-		stMppChn.s32ChnId = JPEG_VENC_CHN;
-		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
-		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to jpeg failed with %#x\n", RgnHandle, ret);
-	}
+	stMppChn.s32ChnId = VI_MAX_CHN_NUM;
+	ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
+	if (RK_SUCCESS != ret)
+		LOG_DEBUG("RK_MPI_RGN_DetachFrmChn (%d) to vi pipe failed with %#x\n", RgnHandle, ret);
 
 	// destory region
 	ret = RK_MPI_RGN_Destroy(RgnHandle);
 	if (RK_SUCCESS != ret) {
 		LOG_ERROR("RK_MPI_RGN_Destroy [%d] failed with %#x\n", RgnHandle, ret);
-		return RK_FAILURE;
 	}
 
 	LOG_INFO("Destory handle:%d success\n", RgnHandle);
@@ -1471,7 +1447,7 @@ static int rkipc_osd_cover_destroy(int id) {
 }
 
 static int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
-	LOG_INFO("%s: id is %d\n", __func__, id);
+	LOG_DEBUG("%s: id is %d\n", __func__, id);
 	int ret = 0;
 	RGN_HANDLE RgnHandle = id;
 	RGN_ATTR_S stRgnAttr;
@@ -1491,7 +1467,7 @@ static int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 		RK_MPI_RGN_Destroy(RgnHandle);
 		return RK_FAILURE;
 	}
-	LOG_INFO("The handle: %d, create success\n", RgnHandle);
+	LOG_DEBUG("The handle: %d, create success\n", RgnHandle);
 
 	// display overlay regions to vpss 1
 	stMppChn.enModId = RK_ID_VENC;
@@ -1516,7 +1492,7 @@ static int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 		if (RK_SUCCESS != ret)
 			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc0 failed with %#x\n", RgnHandle, ret);
 		else
-			LOG_INFO("RK_MPI_RGN_AttachToChn to venc0 success\n");
+			LOG_DEBUG("RK_MPI_RGN_AttachToChn to venc0 success\n");
 	}
 	if (g_enable_venc_1) {
 		stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32X =
@@ -1530,7 +1506,7 @@ static int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 		if (RK_SUCCESS != ret)
 			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc1 failed with %#x\n", RgnHandle, ret);
 		else
-			LOG_INFO("RK_MPI_RGN_AttachToChn to venc1 success\n");
+			LOG_DEBUG("RK_MPI_RGN_AttachToChn to venc1 success\n");
 	}
 	if (g_enable_venc_2) {
 		stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32X =
@@ -1544,7 +1520,7 @@ static int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 		if (RK_SUCCESS != ret)
 			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc2 failed with %#x\n", RgnHandle, ret);
 		else
-			LOG_INFO("RK_MPI_RGN_AttachToChn to venc2 success\n");
+			LOG_DEBUG("RK_MPI_RGN_AttachToChn to venc2 success\n");
 	}
 	if (g_enable_jpeg) {
 		stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32X = UPALIGNTO16(osd_data->origin_x);
@@ -1554,7 +1530,7 @@ static int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 		if (RK_SUCCESS != ret)
 			LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to jpeg failed with %#x\n", RgnHandle, ret);
 		else
-			LOG_INFO("RK_MPI_RGN_AttachToChn to jpeg success\n");
+			LOG_DEBUG("RK_MPI_RGN_AttachToChn to jpeg success\n");
 	}
 
 	// set bitmap
@@ -1572,7 +1548,7 @@ static int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 }
 
 static int rkipc_osd_bmp_destroy(int id) {
-	LOG_INFO("%s\n", __func__);
+	LOG_DEBUG("%s\n", __func__);
 	int ret = 0;
 	// Detach osd from chn
 	MPP_CHN_S stMppChn;
@@ -1585,25 +1561,25 @@ static int rkipc_osd_bmp_destroy(int id) {
 		stMppChn.s32ChnId = 0;
 		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc0 failed with %#x\n", RgnHandle, ret);
+			LOG_DEBUG("RK_MPI_RGN_DetachFrmChn (%d) to venc0 failed with %#x\n", RgnHandle, ret);
 	}
 	if (g_enable_venc_1) {
 		stMppChn.s32ChnId = 1;
 		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc1 failed with %#x\n", RgnHandle, ret);
+			LOG_DEBUG("RK_MPI_RGN_DetachFrmChn (%d) to venc1 failed with %#x\n", RgnHandle, ret);
 	}
 	if (g_enable_venc_2) {
 		stMppChn.s32ChnId = 2;
 		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc2 failed with %#x\n", RgnHandle, ret);
+			LOG_DEBUG("RK_MPI_RGN_DetachFrmChn (%d) to venc2 failed with %#x\n", RgnHandle, ret);
 	}
 	if (g_enable_jpeg) {
 		stMppChn.s32ChnId = JPEG_VENC_CHN;
 		ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 		if (RK_SUCCESS != ret)
-			LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to jpeg failed with %#x\n", RgnHandle, ret);
+			LOG_DEBUG("RK_MPI_RGN_DetachFrmChn (%d) to jpeg failed with %#x\n", RgnHandle, ret);
 	}
 
 	// destory region
