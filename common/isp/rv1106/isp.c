@@ -1522,6 +1522,10 @@ int rk_isp_get_image_flip(int cam_id, const char **value) {
 
 int rk_isp_set_image_flip(int cam_id, const char *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
+	if (rkipc_aiq_use_group) {
+		LOG_INFO("group mode, not support set mirror/flip\n");
+		return 0;
+	}
 	int ret, mirror, flip;
 	char entry[128] = {'\0'};
 	if (!strcmp(value, "close")) {

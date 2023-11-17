@@ -1667,66 +1667,7 @@ int rk_video_get_resolution(int stream_id, char **value) {
 }
 
 int rk_video_set_resolution(int stream_id, const char *value) {
-	char entry[128] = {'\0'};
-	int width, height, ret;
-
-	// sscanf(value, "%d*%d", &width, &height);
-	// LOG_INFO("value is %s, width is %d, height is %d\n", value, width, height);
-	// if (stream_id == 0) {
-	// 	g_osd_run_ = 0;
-	// 	rkipc_osd_draw_nn_deinit();
-	// }
-
-	// // unbind
-	// vi_chn.enModId = RK_ID_VI;
-	// vi_chn.s32DevId = 0;
-	// vi_chn.s32ChnId = stream_id;
-	// venc_chn.enModId = RK_ID_VENC;
-	// venc_chn.s32DevId = 0;
-	// venc_chn.s32ChnId = stream_id;
-	// ret = RK_MPI_SYS_UnBind(&vi_chn, &venc_chn);
-	// if (ret)
-	// 	LOG_ERROR("Unbind VI and VENC error! ret=%#x\n", ret);
-	// else
-	// 	LOG_DEBUG("Unbind VI and VENC success\n");
-
-	// snprintf(entry, 127, "video.%d:width", stream_id);
-	// rk_param_set_int(entry, width);
-	// snprintf(entry, 127, "video.%d:height", stream_id);
-	// rk_param_set_int(entry, height);
-
-	// VENC_CHN_ATTR_S venc_chn_attr;
-	// RK_MPI_VENC_GetChnAttr(stream_id, &venc_chn_attr);
-	// venc_chn_attr.stVencAttr.u32PicWidth = width;
-	// venc_chn_attr.stVencAttr.u32PicHeight = height;
-	// venc_chn_attr.stVencAttr.u32VirWidth = width;
-	// venc_chn_attr.stVencAttr.u32VirHeight = height;
-	// ret = RK_MPI_VENC_SetChnAttr(stream_id, &venc_chn_attr);
-	// if (ret)
-	// 	LOG_ERROR("RK_MPI_VENC_SetChnAttr error! ret=%#x\n", ret);
-	// if (enable_osd) {
-	// 	ret |= rkipc_osd_deinit();
-	//  temporarily avoid the memory hole problem, and later change it to osd not to rebuild
-	//	usleep(1000 * 1000);
-	// 	ret |= rkipc_osd_init();
-	// }
-	// if (stream_id == 0) {
-	// 	g_osd_run_ = 1;
-	// 	rkipc_osd_draw_nn_init();
-	// }
-	// VI_CHN_ATTR_S vi_chn_attr;
-	// RK_MPI_VI_GetChnAttr(0, stream_id, &vi_chn_attr);
-	// vi_chn_attr.stSize.u32Width = width;
-	// vi_chn_attr.stSize.u32Height = height;
-	// ret = RK_MPI_VI_SetChnAttr(pipe_id_, stream_id, &vi_chn_attr);
-	// if (ret)
-	// 	LOG_ERROR("RK_MPI_VI_SetChnAttr error! ret=%#x\n", ret);
-
-	// rk_roi_set_all(); // update roi info, and osd cover attach vi, no update required
-	// ret = RK_MPI_SYS_Bind(&vi_chn, &venc_chn);
-	// if (ret)
-	// 	LOG_ERROR("Unbind VI and VENC error! ret=%#x\n", ret);
-
+	LOG_INFO("not support\n");
 	return 0;
 }
 
@@ -1836,44 +1777,7 @@ int rk_video_get_rotation(int *value) {
 }
 
 int rk_video_set_rotation(int value) {
-	int ret = 0;
-	int rotation = 0;
-	char entry[128] = {'\0'};
-	snprintf(entry, 127, "avs:rotation");
-	g_osd_run_ = 0;
-	rkipc_osd_draw_nn_deinit();
-
-	rk_param_set_int(entry, value);
-	if (value == 0) {
-		rotation = ROTATION_0;
-	} else if (value == 90) {
-		rotation = ROTATION_90;
-	} else if (value == 180) {
-		rotation = ROTATION_180;
-	} else if (value == 270) {
-		rotation = ROTATION_270;
-	}
-	ret = RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0, rotation);
-	if (ret)
-		LOG_ERROR("RK_MPI_VENC_SetChnRotation VIDEO_PIPE_0 error! ret=%#x\n", ret);
-	ret = RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1, rotation);
-	if (ret)
-		LOG_ERROR("RK_MPI_VENC_SetChnRotation VIDEO_PIPE_1 error! ret=%#x\n", ret);
-	ret = RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN, rotation);
-	if (ret)
-		LOG_ERROR("RK_MPI_VENC_SetChnRotation JPEG_VENC_CHN error! ret=%#x\n", ret);
-
-	rk_roi_set_all(); // update roi info
-	// update osd info, cover currently attaches to VI
-	if (enable_osd) {
-		ret |= rkipc_osd_deinit();
-		// temporarily avoid the memory hole problem, and later change it to osd not to rebuild
-		usleep(1000 * 1000);
-		ret |= rkipc_osd_init();
-	}
-
-	g_osd_run_ = 1;
-	rkipc_osd_draw_nn_init();
+	LOG_INFO("not support\n");
 	return 0;
 }
 
