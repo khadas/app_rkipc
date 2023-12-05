@@ -1357,10 +1357,19 @@ int rk_isp_set_power_line_frequency_mode(int cam_id, const char *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
 	char entry[128] = {'\0'};
-	if (!strcmp(value, "NTSC(60HZ)"))
-		ret = rk_aiq_uapi_setExpPwrLineFreqMode(rkipc_aiq_get_ctx(cam_id), EXP_PWR_LINE_FREQ_60HZ);
-	else
-		ret = rk_aiq_uapi_setExpPwrLineFreqMode(rkipc_aiq_get_ctx(cam_id), EXP_PWR_LINE_FREQ_50HZ);
+	Uapi_ExpSwAttr_t expSwAttr;
+
+	ret = rk_aiq_user_api_ae_getExpSwAttr(rkipc_aiq_get_ctx(cam_id), &expSwAttr);
+	if (!strcmp(value, "NTSC(60HZ)")) {
+		expSwAttr.stAntiFlicker.enable = true;
+		expSwAttr.stAntiFlicker.Frequency = AEC_FLICKER_FREQUENCY_60HZ;
+		expSwAttr.stAntiFlicker.Mode = AEC_ANTIFLICKER_NORMAL_MODE;
+	} else {
+		expSwAttr.stAntiFlicker.enable = true;
+		expSwAttr.stAntiFlicker.Frequency = AEC_FLICKER_FREQUENCY_50HZ;
+		expSwAttr.stAntiFlicker.Mode = AEC_ANTIFLICKER_NORMAL_MODE;
+	}
+	ret = rk_aiq_user_api_ae_setExpSwAttr(rkipc_aiq_get_ctx(cam_id), expSwAttr);
 	snprintf(entry, 127, "isp.%d.video_adjustment:power_line_frequency_mode", cam_id);
 	rk_param_set_string(entry, value);
 

@@ -1499,11 +1499,15 @@ int rk_isp_set_power_line_frequency_mode(int cam_id, const char *value) {
 	if (!strcmp(value, "NTSC(60HZ)")) {
 		expSwAttr.stAuto.stAntiFlicker.enable = true;
 		expSwAttr.stAuto.stAntiFlicker.Frequency = AECV2_FLICKER_FREQUENCY_60HZ;
+		expSwAttr.stAuto.stAntiFlicker.Mode = AECV2_ANTIFLICKER_NORMAL_MODE;
 	} else {
 		expSwAttr.stAuto.stAntiFlicker.enable = true;
 		expSwAttr.stAuto.stAntiFlicker.Frequency = AECV2_FLICKER_FREQUENCY_50HZ;
+		expSwAttr.stAuto.stAntiFlicker.Mode = AECV2_ANTIFLICKER_NORMAL_MODE;
 	}
 	ret = rk_aiq_user_api2_ae_setExpSwAttr(rkipc_aiq_get_ctx(cam_id), expSwAttr);
+	if (ret != RK_SUCCESS)
+		LOG_ERROR("rk_aiq_user_api2_ae_setExpSwAttr failed\n");
 	snprintf(entry, 127, "isp.%d.video_adjustment:power_line_frequency_mode",
 	         rkipc_get_scenario_id(cam_id));
 	rk_param_set_string(entry, value);
