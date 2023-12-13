@@ -39,22 +39,22 @@
 #ifdef RKIPC_SWAP
 #undef RKIPC_SWAP
 #endif
-#define RKIPC_SWAP(x, y)                                                                \
-	{                                                                                   \
-		(void)(&x == &y);                                                               \
-		typeof(x) __tmp = (x);                                                          \
-		(x) = (y);                                                                      \
-		(y) = __tmp;                                                                    \
+#define RKIPC_SWAP(x, y)                                                                           \
+	{                                                                                              \
+		(void)(&x == &y);                                                                          \
+		typeof(x) __tmp = (x);                                                                     \
+		(x) = (y);                                                                                 \
+		(y) = __tmp;                                                                               \
 	}
 
 #ifdef RKIPC_ASSERT
 #undef RKIPC_ASSERT
 #endif
-#define RKIPC_ASSERT(cond, err_msg, ...)                                                \
-	{                                                                                   \
-		if (!(cond))                                                                    \
-			LOG_ERROR("ASSERT FAILED %s\n", err_msg, ##__VA_ARGS__);                    \
-		assert(cond);                                                                   \
+#define RKIPC_ASSERT(cond, err_msg, ...)                                                           \
+	{                                                                                              \
+		if (!(cond))                                                                               \
+			LOG_ERROR("ASSERT FAILED %s\n", err_msg, ##__VA_ARGS__);                               \
+		assert(cond);                                                                              \
 	}
 
 void *rk_signal_create(int defval, int maxval);

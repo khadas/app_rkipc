@@ -39,7 +39,6 @@ const uint32_t rgb888_palette_table[PALETTE_TABLE_LEN] = {
     0x008000ff, 0x008080ff, 0x800000ff, 0x800080ff, 0x808000ff, 0xc0c0c0ff, 0x808080ff, 0xffffccff,
     0xccccccff, 0x99ccccff, 0x9999ccff, 0x3366ccff, 0x0033ccff, 0x3300ccff, 0x00ffccff, 0x08000000};
 
-
 /* yuva(lower address -> high address) */
 const uint32_t yuv444_palette_table[PALETTE_TABLE_LEN] = {
     0xff8080eb, 0xff826ee9, 0xff835de6, 0xff854be4, 0xff863ae1, 0xff8a10db, 0xff908ed2, 0xff927cd0,
