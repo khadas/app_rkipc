@@ -1049,7 +1049,6 @@ enable_aed = 0 ; Enable sound detection
 enable_bcd = 0 ; Enable cry detection
 enable_vqe = 1 ; Enable audio 3A algorithms
 vqe_cfg = /oem/usr/share/vqefiles/config_aivqe.json ; Path to audio 3A algorithm configuration file
-rt_audio_period_size = 1024 ; Audio period size
 ```
 
 ### Video Module

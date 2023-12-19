@@ -231,10 +231,6 @@ int rkipc_ai_init() {
 	int ret;
 	AUDIO_DEV aiDevId = ai_dev_id;
 	AIO_ATTR_S aiAttr;
-	char period_size_str[16];
-	int period_size = rk_param_get_int("audio.0:rt_audio_period_size", 1024);
-	snprintf(period_size_str, sizeof(period_size_str), "%d", period_size);
-	setenv("rt_audio_period_size", period_size_str, 1);
 
 	memset(&aiAttr, 0, sizeof(AIO_ATTR_S));
 	const char *card_name = rk_param_get_string("audio.0:card_name", "default");

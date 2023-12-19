@@ -1055,7 +1055,6 @@ enable_aed = 0 ; 是否使能声音检测
 enable_bcd = 0 ; 是否使能哭声检测
 enable_vqe = 1 ; 是否使能音频3A算法
 vqe_cfg = /oem/usr/share/vqefiles/config_aivqe.json ; 音频3A算法配置文件路径
-rt_audio_period_size = 1024 ; 音频period_size
 ```
 
 ### 视频模块
