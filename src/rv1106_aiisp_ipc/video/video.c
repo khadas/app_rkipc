@@ -580,6 +580,7 @@ static int rkipc_venc_0_init() {
 	int ret = 0;
 	int video_width = rk_param_get_int("video.0:width", -1);
 	int video_height = rk_param_get_int("video.0:height", -1);
+	int rotation = rk_param_get_int("video.source:rotation", 0);
 	VENC_CHN_ATTR_S venc_chn_attr;
 
 	TRACE_BEGIN();
@@ -743,6 +744,15 @@ static int rkipc_venc_0_init() {
 			printf("RK_MPI_VENC_SetChnRefBufShareAttr failed,ret=%#x\n", ret);
 		}
 	}
+	if (rotation == 0) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0, ROTATION_0);
+	} else if (rotation == 90) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0, ROTATION_90);
+	} else if (rotation == 180) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0, ROTATION_180);
+	} else if (rotation == 270) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0, ROTATION_270);
+	}
 
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
@@ -771,6 +781,7 @@ static int rkipc_venc_1_init() {
 	int ret = 0;
 	int video_width = rk_param_get_int("video.1:width", -1);
 	int video_height = rk_param_get_int("video.1:height", -1);
+	int rotation = rk_param_get_int("video.source:rotation", 0);
 
 	// VENC[1] init
 	TRACE_BEGIN();
@@ -934,6 +945,15 @@ static int rkipc_venc_1_init() {
 			printf("RK_MPI_VENC_SetChnRefBufShareAttr failed,ret=%#x\n", ret);
 		}
 	}
+	if (rotation == 0) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1, ROTATION_0);
+	} else if (rotation == 90) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1, ROTATION_90);
+	} else if (rotation == 180) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1, ROTATION_180);
+	} else if (rotation == 270) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1, ROTATION_270);
+	}
 
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
@@ -963,6 +983,7 @@ static int rkipc_venc_2_init() {
 	int ret = 0;
 	int video_width = rk_param_get_int("video.2:width", -1);
 	int video_height = rk_param_get_int("video.2:height", -1);
+	int rotation = rk_param_get_int("video.source:rotation", 0);
 	VENC_CHN_ATTR_S venc_chn_attr;
 
 	// VENC[2] init
@@ -1125,6 +1146,15 @@ static int rkipc_venc_2_init() {
 		if (ret != RK_SUCCESS) {
 			printf("RK_MPI_VENC_SetChnRefBufShareAttr failed,ret=%#x\n", ret);
 		}
+	}
+	if (rotation == 0) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_2, ROTATION_0);
+	} else if (rotation == 90) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_2, ROTATION_90);
+	} else if (rotation == 180) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_2, ROTATION_180);
+	} else if (rotation == 270) {
+		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_2, ROTATION_270);
 	}
 
 	VENC_RECV_PIC_PARAM_S stRecvParam;
@@ -2815,7 +2845,7 @@ int rk_roi_set(roi_data_s *roi_data) {
 		video_width = rk_param_get_int(entry, 0);
 		snprintf(entry, 127, "video.%d:height", venc_chn_num);
 		video_height = rk_param_get_int(entry, 0);
-		rotation = rk_param_get_int("video.source:rotaion", 0);
+		rotation = rk_param_get_int("video.source:rotation", 0);
 		origin_x = pstRoiAttr.stRect.s32X;
 		origin_y = pstRoiAttr.stRect.s32Y;
 		if (video_height < (origin_y + pstRoiAttr.stRect.u32Height))
@@ -2892,7 +2922,7 @@ int rk_region_clip_set(int venc_chn_num, region_clip_data_s *region_clip_data) {
 
 int rk_video_get_rotation(int *value) {
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "video.source:rotaion");
+	snprintf(entry, 127, "video.source:rotation");
 	*value = rk_param_get_int(entry, 0);
 
 	return 0;
@@ -2903,7 +2933,7 @@ int rk_video_set_rotation(int value) {
 	ROTATION_E rotation = ROTATION_0, cur_rotation = ROTATION_0;
 	int ret = 0;
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "video.source:rotaion");
+	snprintf(entry, 127, "video.source:rotation");
 	rk_param_set_int(entry, value);
 
 	if (value == 0) {

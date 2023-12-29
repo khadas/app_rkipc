@@ -3292,7 +3292,7 @@ int rk_region_clip_set(int venc_chn, region_clip_data_s *region_clip_data) {
 
 int rk_video_get_rotation(int *value) {
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "video.source:rotaion");
+	snprintf(entry, 127, "video.source:rotation");
 	*value = rk_param_get_int(entry, 0);
 
 	return 0;
@@ -3301,7 +3301,7 @@ int rk_video_get_rotation(int *value) {
 int rk_video_set_rotation(int value) {
 	LOG_INFO("value is %d\n", value);
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "video.source:rotaion");
+	snprintf(entry, 127, "video.source:rotation");
 	rk_param_set_int(entry, value);
 
 	return 0;
