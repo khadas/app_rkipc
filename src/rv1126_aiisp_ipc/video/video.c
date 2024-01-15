@@ -3031,6 +3031,7 @@ int rk_video_restart() {
 	ret = rk_storage_deinit();
 	ret = rk_video_deinit();
 	rk_isp_deinit(0);
+	malloc_trim(0);
 	usleep(100 * 1000);
 	rk_isp_init(0, rkipc_iq_file_path_);
 	ret |= rk_video_init();
