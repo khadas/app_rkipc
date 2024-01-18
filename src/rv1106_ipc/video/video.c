@@ -839,6 +839,10 @@ int rkipc_pipe_0_init() {
 		ret = RK_MPI_VENC_EnableMotionDeblur(VIDEO_PIPE_0, true);
 		if (ret)
 			LOG_ERROR("RK_MPI_VENC_EnableMotionDeblur error! ret=%#x\n", ret);
+		ret = RK_MPI_VENC_SetMotionDeblurStrength(
+		    VIDEO_PIPE_0, rk_param_get_int("video.0:motion_deblur_strength", 3));
+		if (ret)
+			LOG_ERROR("RK_MPI_VENC_SetMotionDeblurStrength error! ret=%#x\n", ret);
 	}
 	if (rk_param_get_int("video.0:enable_motion_static_switch", 0)) {
 		ret = RK_MPI_VENC_EnableMotionStaticSwitch(VIDEO_PIPE_0, true);
@@ -1015,6 +1019,25 @@ int rkipc_pipe_0_init() {
 		pstH265Trans.bScalingListEnabled = scalinglist;
 		RK_MPI_VENC_SetH265Trans(VIDEO_PIPE_0, &pstH265Trans);
 	}
+
+	if (!strcmp(tmp_output_data_type, "H.265")) {
+		VENC_H265_CU_DQP_S cu_dqp_s;
+		RK_MPI_VENC_SetH265CuDqp(VIDEO_PIPE_0, &cu_dqp_s);
+		cu_dqp_s.u32CuDqp = rk_param_get_int("video.0:cu_dqp", 1);
+		RK_MPI_VENC_SetH265CuDqp(VIDEO_PIPE_0, &cu_dqp_s);
+	}
+	VENC_ANTI_RING_S anti_ring_s;
+	RK_MPI_VENC_GetAntiRing(VIDEO_PIPE_0, &anti_ring_s);
+	anti_ring_s.u32AntiRing = rk_param_get_int("video.0:anti_ring", 2);
+	RK_MPI_VENC_SetAntiRing(VIDEO_PIPE_0, &anti_ring_s);
+	VENC_ANTI_LINE_S anti_line_s;
+	RK_MPI_VENC_GetAntiLine(VIDEO_PIPE_0, &anti_line_s);
+	anti_line_s.u32AntiLine = rk_param_get_int("video.0:anti_line", 2);
+	RK_MPI_VENC_SetAntiLine(VIDEO_PIPE_0, &anti_line_s);
+	VENC_LAMBDA_S lambds_s;
+	RK_MPI_VENC_GetLambda(VIDEO_PIPE_0, &lambds_s);
+	lambds_s.u32Lambda = rk_param_get_int("video.0:lambds", 4);
+	RK_MPI_VENC_SetLambda(VIDEO_PIPE_0, &lambds_s);
 
 	VENC_CHN_REF_BUF_SHARE_S stVencChnRefBufShare;
 	memset(&stVencChnRefBufShare, 0, sizeof(VENC_CHN_REF_BUF_SHARE_S));
@@ -1204,6 +1227,10 @@ int rkipc_pipe_1_init() {
 		ret = RK_MPI_VENC_EnableMotionDeblur(VIDEO_PIPE_1, true);
 		if (ret)
 			LOG_ERROR("RK_MPI_VENC_EnableMotionDeblur error! ret=%#x\n", ret);
+		ret = RK_MPI_VENC_SetMotionDeblurStrength(
+		    VIDEO_PIPE_1, rk_param_get_int("video.1:motion_deblur_strength", 3));
+		if (ret)
+			LOG_ERROR("RK_MPI_VENC_SetMotionDeblurStrength error! ret=%#x\n", ret);
 	}
 	if (rk_param_get_int("video.1:enable_motion_static_switch", 0)) {
 		ret = RK_MPI_VENC_EnableMotionStaticSwitch(VIDEO_PIPE_1, true);
@@ -1369,6 +1396,26 @@ int rkipc_pipe_1_init() {
 		pstH265Trans.bScalingListEnabled = scalinglist;
 		RK_MPI_VENC_SetH265Trans(VIDEO_PIPE_1, &pstH265Trans);
 	}
+
+	if (!strcmp(tmp_output_data_type, "H.265")) {
+		VENC_H265_CU_DQP_S cu_dqp_s;
+		RK_MPI_VENC_SetH265CuDqp(VIDEO_PIPE_1, &cu_dqp_s);
+		cu_dqp_s.u32CuDqp = rk_param_get_int("video.1:cu_dqp", 1);
+		RK_MPI_VENC_SetH265CuDqp(VIDEO_PIPE_1, &cu_dqp_s);
+	}
+	VENC_ANTI_RING_S anti_ring_s;
+	RK_MPI_VENC_GetAntiRing(VIDEO_PIPE_1, &anti_ring_s);
+	anti_ring_s.u32AntiRing = rk_param_get_int("video.1:anti_ring", 2);
+	RK_MPI_VENC_SetAntiRing(VIDEO_PIPE_1, &anti_ring_s);
+	VENC_ANTI_LINE_S anti_line_s;
+	RK_MPI_VENC_GetAntiLine(VIDEO_PIPE_1, &anti_line_s);
+	anti_line_s.u32AntiLine = rk_param_get_int("video.1:anti_line", 2);
+	RK_MPI_VENC_SetAntiLine(VIDEO_PIPE_1, &anti_line_s);
+	VENC_LAMBDA_S lambds_s;
+	RK_MPI_VENC_GetLambda(VIDEO_PIPE_1, &lambds_s);
+	lambds_s.u32Lambda = rk_param_get_int("video.1:lambds", 4);
+	RK_MPI_VENC_SetLambda(VIDEO_PIPE_1, &lambds_s);
+
 	VENC_CHN_REF_BUF_SHARE_S stVencChnRefBufShare;
 	memset(&stVencChnRefBufShare, 0, sizeof(VENC_CHN_REF_BUF_SHARE_S));
 	stVencChnRefBufShare.bEnable = rk_param_get_int("video.1:enable_refer_buffer_share", 0);
