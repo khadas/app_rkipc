@@ -55,6 +55,7 @@ void *save_aenc_thread(void *ptr) {
 	AUDIO_STREAM_S pstStream;
 	RK_S32 eos = 0;
 	RK_S32 count = 0;
+	const char *encode_type = rk_param_get_string("audio.0:encode_type", NULL);
 
 	// file = fopen("/tmp/aenc.mp2", "wb+");
 	// if (file == RK_NULL) {
@@ -69,14 +70,15 @@ void *save_aenc_thread(void *ptr) {
 			void *buffer = RK_MPI_MB_Handle2VirAddr(bBlk);
 			eos = (pstStream.u32Len <= 0) ? 1 : 0;
 			if (buffer) {
-				// LOG_INFO("get frame data = %p, size = %d, pts is %lld\n", buffer,
-				// pstStream.u32Len, pstStream.u64TimeStamp);
-				// fake 72ms
-				fake_time += 72000;
-				// LOG_INFO("fake pts is %lld\n", fake_time);
-				rk_storage_write_audio_frame(0, buffer, pstStream.u32Len, fake_time);
-				rk_storage_write_audio_frame(1, buffer, pstStream.u32Len, fake_time);
-				rk_storage_write_audio_frame(2, buffer, pstStream.u32Len, fake_time);
+				// LOG_INFO("get frame data = %p, size = %d, pts is %lld, seq is %d\n", buffer,
+				//          pstStream.u32Len, pstStream.u64TimeStamp, pstStream.u32Seq);
+				if (!strcmp(encode_type, "MP2") || !strcmp(encode_type, "MP3")) {
+					rk_storage_write_audio_frame(0, buffer, pstStream.u32Len, pstStream.u64TimeStamp);
+					rk_storage_write_audio_frame(1, buffer, pstStream.u32Len, pstStream.u64TimeStamp);
+					rk_storage_write_audio_frame(2, buffer, pstStream.u32Len, pstStream.u64TimeStamp);
+				} else if (!strcmp(encode_type, "G711A")) {
+					rkipc_rtsp_write_audio_frame(0, buffer, pstStream.u32Len, pstStream.u64TimeStamp);
+				}
 				// if (file) {
 				// 	fwrite(buffer, pstStream.u32Len, 1, file);
 				// 	fflush(file);
