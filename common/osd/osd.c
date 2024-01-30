@@ -232,8 +232,7 @@ static void *osd_time_server(void *arg) {
 	LOG_INFO("osd_data.text.format is %s\n", osd_data.text.format);
 
 	wchar_cnt = generate_date_time(osd_data.text.format, osd_data.text.wch, 128);
-	osd_data.width =
-	    UPALIGNTO16(wstr_get_actual_advance_x(osd_data.text.wch) / osd_data.text.font_size);
+	osd_data.width = UPALIGNTO16(wstr_get_actual_advance_x(osd_data.text.wch));
 	osd_data.height = UPALIGNTO16(osd_data.text.font_size);
 	osd_data.size = osd_data.width * osd_data.height * 4; // BGRA8888 4byte
 	osd_data.buffer = malloc(osd_data.size);
@@ -256,8 +255,7 @@ static void *osd_time_server(void *arg) {
 		else
 			last_time_sec = cur_time_info->tm_sec;
 		wchar_cnt = generate_date_time(osd_data.text.format, osd_data.text.wch, 128);
-		osd_data.width =
-		    UPALIGNTO16(wstr_get_actual_advance_x(osd_data.text.wch) / osd_data.text.font_size);
+		osd_data.width = UPALIGNTO16(wstr_get_actual_advance_x(osd_data.text.wch));
 		osd_data.height = UPALIGNTO16(osd_data.text.font_size);
 		osd_data.size = osd_data.width * osd_data.height * 4; // BGRA8888 4byte
 		osd_data.buffer = malloc(osd_data.size);
@@ -387,8 +385,7 @@ int rk_osd_init() {
 				// 	LOG_INFO("222 osd_data.text.wch [%04x]\n", osd_data.text.wch[i]);
 				// }
 #endif
-				osd_data.width = UPALIGNTO16(wstr_get_actual_advance_x(osd_data.text.wch) /
-				                             osd_data.text.font_size);
+				osd_data.width = UPALIGNTO16(wstr_get_actual_advance_x(osd_data.text.wch));
 				osd_data.height = UPALIGNTO16(osd_data.text.font_size);
 				osd_data.size = osd_data.width * osd_data.height * 4; // BGRA8888 4byte
 				osd_data.buffer = malloc(osd_data.size);
