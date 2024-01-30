@@ -82,11 +82,59 @@ int fill_text(osd_data_s *data) {
 	return 0;
 }
 
-int generate_date_time(const char *fmt, wchar_t *result, int r_size) {
+int iconv_utf8_to_wchar(const char *in, wchar_t *out) {
+	char entry[128] = {'\0'};
+	LOG_DEBUG("in is %s\n", in);
+	LOG_DEBUG("strlen(in) is %ld\n", strlen(in));
+#if 0
+	int ret = mbstowcs(out, in, strlen(in));
+	LOG_DEBUG("mbstowcs ret is %d\n", ret);
+	if (ret == -1)
+		return ret;
+	out[ret] = '\0';
+	return ret;
+#endif
+	int ret;
+	size_t src_len = strlen(in);
+	// the bytes that Chinese and English in UTF-8 are different,
+	// and cannot be based on src_len calculates out_len
+	size_t out_len = MAX_WCH_BYTE;
+	// To have this temporary variable,
+	// otherwise iconv will directly overwrite the original pointer
+	char *tmp_out_buffer = (char *)out;
+	iconv_t cd = iconv_open("WCHAR_T", "UTF-8");
+	if (cd == (iconv_t)-1) {
+		perror("iconv_open error");
+		return -1;
+	}
+	memset(entry, 0, 128);
+	memcpy(entry, in, src_len); // iconv maybe change the char *
+	memset(entry + src_len, 0, 1);
+	char *tmp_in_buffer = (char *)entry;
+	ret = iconv(cd, &tmp_in_buffer, (size_t *)&src_len, &tmp_out_buffer,
+				(size_t *)&out_len);
+	if (ret == -1)
+		perror("iconv error");
+	iconv_close(cd);
+	out[abs(MAX_WCH_BYTE - out_len) / 4] = '\0';
+	LOG_DEBUG("out_len is %d\n", out_len);
+	LOG_DEBUG("wcslen(out) is %ld\n", wcslen(out));
+	// for (int i = 0; i < strlen(display_text); i++) {
+	// 	LOG_INFO("111 display_text [%02x]\n", display_text[i]);
+	// }
+	// for (int i = 0; i < wcslen(osd_data.text.wch); i++) {
+	// 	LOG_INFO("222 osd_data.text.wch [%04x]\n", osd_data.text.wch[i]);
+	// }
+
+	return 0;
+}
+
+int generate_date_time(const char *fmt, wchar_t *result) {
 	char year[8] = {0}, month[4] = {0}, day[4] = {0};
 	char week[16] = {0}, hms[12] = {0};
-	wchar_t w_ymd[16] = {0};
-	wchar_t w_week[16] = {0};
+	char ymd_string[16] = {0};
+	char week_string[16] = {0};
+	char time_string[MAX_WCH_BYTE] = {0};
 	int wid = -1;
 	int wchar_cnt = 0;
 
@@ -102,67 +150,69 @@ int generate_date_time(const char *fmt, wchar_t *result, int r_size) {
 		strftime(hms, sizeof(hms), "%I:%M:%S %p", localtime(&curtime));
 	}
 
-	wchar_cnt = sizeof(w_week) / sizeof(wchar_t);
 	if (strstr(fmt, OSD_FMT_WEEK0)) {
 		strftime(week, sizeof(week), "%u", localtime(&curtime));
 		wid = week[0] - '0';
 		switch (wid) {
 		case 1:
-			swprintf(w_week, wchar_cnt, L" 星期一");
+			sprintf(week_string, " 星期一");
 			break;
 		case 2:
-			swprintf(w_week, wchar_cnt, L" 星期二");
+			sprintf(week_string, " 星期二");
 			break;
 		case 3:
-			swprintf(w_week, wchar_cnt, L" 星期三");
+			sprintf(week_string, " 星期三");
 			break;
 		case 4:
-			swprintf(w_week, wchar_cnt, L" 星期四");
+			sprintf(week_string, " 星期四");
 			break;
 		case 5:
-			swprintf(w_week, wchar_cnt, L" 星期五");
+			sprintf(week_string, " 星期五");
 			break;
 		case 6:
-			swprintf(w_week, wchar_cnt, L" 星期六");
+			sprintf(week_string, " 星期六");
 			break;
 		case 7:
-			swprintf(w_week, wchar_cnt, L" 星期日");
+			sprintf(week_string, " 星期日");
 			break;
 		default:
 			LOG_ERROR("osd strftime week error\n");
-			swprintf(w_week, wchar_cnt, L" 星期*");
+			sprintf(week_string, " 星期*");
 			break;
 		}
 	} else if (strstr(fmt, OSD_FMT_WEEK1)) {
 		strftime(week, sizeof(week), "%A", localtime(&curtime));
-		swprintf(w_week, wchar_cnt, L" %s", week);
+		sprintf(week_string, " %s", week);
 	}
 
-	wchar_cnt = sizeof(w_ymd) / sizeof(wchar_t);
+	wchar_cnt = sizeof(ymd_string) / sizeof(wchar_t);
 	if (strstr(fmt, OSD_FMT_CHR)) {
 		if (strstr(fmt, OSD_FMT_YMD0))
-			swprintf(w_ymd, wchar_cnt, L"%s-%s-%s", year, month, day);
+			sprintf(ymd_string, "%s-%s-%s", year, month, day);
 		else if (strstr(fmt, OSD_FMT_YMD1))
-			swprintf(w_ymd, wchar_cnt, L"%s-%s-%s", month, day, year);
+			sprintf(ymd_string, "%s-%s-%s", month, day, year);
 		else if (strstr(fmt, OSD_FMT_YMD2))
-			swprintf(w_ymd, wchar_cnt, L"%s-%s-%s", day, month, year);
+			sprintf(ymd_string, "%s-%s-%s", day, month, year);
 		else if (strstr(fmt, OSD_FMT_YMD3))
-			swprintf(w_ymd, wchar_cnt, L"%s/%s/%s", year, month, day);
+			sprintf(ymd_string, "%s/%s/%s", year, month, day);
 		else if (strstr(fmt, OSD_FMT_YMD4))
-			swprintf(w_ymd, wchar_cnt, L"%s/%s/%s", month, day, year);
+			sprintf(ymd_string, "%s/%s/%s", month, day, year);
 		else if (strstr(fmt, OSD_FMT_YMD5))
-			swprintf(w_ymd, wchar_cnt, L"%s/%s/%s", day, month, year);
+			sprintf(ymd_string, "%s/%s/%s", day, month, year);
 	} else {
 		if (strstr(fmt, OSD_FMT_YMD0))
-			swprintf(w_ymd, wchar_cnt, L"%s年%s月%s日", year, month, day);
+			sprintf(ymd_string, "%s年%s月%s日", year, month, day);
 		else if (strstr(fmt, OSD_FMT_YMD1))
-			swprintf(w_ymd, wchar_cnt, L"%s月%s日%s年", month, day, year);
+			sprintf(ymd_string, "%s月%s日%s年", month, day, year);
 		else if (strstr(fmt, OSD_FMT_YMD2))
-			swprintf(w_ymd, wchar_cnt, L"%s日%s月%s年", day, month, year);
+			sprintf(ymd_string, "%s日%s月%s年", day, month, year);
 	}
 
-	swprintf(result, r_size, L"%ls%ls %s", w_ymd, w_week, hms);
-	return wchar_cnt;
+	snprintf(time_string, MAX_WCH_BYTE, "%s%s %s", ymd_string, week_string, hms);
+	// LOG_INFO("time_string is %s\n", time_string);
+	iconv_utf8_to_wchar(time_string, result);
+
+	return 0;
 }
 
 static void *osd_time_server(void *arg) {
@@ -231,7 +281,7 @@ static void *osd_time_server(void *arg) {
 	}
 	LOG_INFO("osd_data.text.format is %s\n", osd_data.text.format);
 
-	wchar_cnt = generate_date_time(osd_data.text.format, osd_data.text.wch, 128);
+	generate_date_time(osd_data.text.format, osd_data.text.wch);
 	osd_data.width = UPALIGNTO16(wstr_get_actual_advance_x(osd_data.text.wch));
 	osd_data.height = UPALIGNTO16(osd_data.text.font_size);
 	osd_data.size = osd_data.width * osd_data.height * 4; // BGRA8888 4byte
@@ -254,7 +304,7 @@ static void *osd_time_server(void *arg) {
 			continue;
 		else
 			last_time_sec = cur_time_info->tm_sec;
-		wchar_cnt = generate_date_time(osd_data.text.format, osd_data.text.wch, 128);
+		generate_date_time(osd_data.text.format, osd_data.text.wch);
 		osd_data.width = UPALIGNTO16(wstr_get_actual_advance_x(osd_data.text.wch));
 		osd_data.height = UPALIGNTO16(osd_data.text.font_size);
 		osd_data.size = osd_data.width * osd_data.height * 4; // BGRA8888 4byte
@@ -344,47 +394,8 @@ int rk_osd_init() {
 			if (!strcmp(osd_type, "channelName") || !strcmp(osd_type, "character")) {
 				snprintf(entry, 127, "osd.%d:display_text", i);
 				const char *display_text = rk_param_get_string(entry, NULL);
-				LOG_DEBUG("display_text is %s\n", display_text);
-				LOG_DEBUG("strlen(display_text) is %ld\n", strlen(display_text));
-#if 0
-				int ret = mbstowcs(osd_data.text.wch, display_text, strlen(display_text));
-				LOG_DEBUG("mbstowcs ret is %d\n", ret);
-				if (ret == -1)
+				if (iconv_utf8_to_wchar(display_text, osd_data.text.wch))
 					continue;
-				osd_data.text.wch[ret] = '\0';
-#else
-				int ret;
-				size_t src_len = strlen(display_text);
-				// the bytes that Chinese and English in UTF-8 are different,
-				// and cannot be based on src_len calculates out_len
-				size_t out_len = MAX_WCH_BYTE;
-				// To have this temporary variable,
-				// otherwise iconv will directly overwrite the original pointer
-				char *tmp_out_buffer = (char *)osd_data.text.wch;
-				iconv_t cd = iconv_open("WCHAR_T", "UTF-8");
-				if (cd == (iconv_t)-1) {
-					perror("iconv_open error");
-					continue;
-				}
-				memset(entry, 0, 128);
-				memcpy(entry, display_text, src_len); // iconv maybe change the char *
-				memset(entry + src_len, 0, 1);
-				char *tmp_in_buffer = (char *)entry;
-				ret = iconv(cd, &tmp_in_buffer, (size_t *)&src_len, &tmp_out_buffer,
-				            (size_t *)&out_len);
-				if (ret == -1)
-					perror("iconv error");
-				iconv_close(cd);
-				osd_data.text.wch[abs(MAX_WCH_BYTE - out_len) / 4] = '\0';
-				LOG_DEBUG("out_len is %d\n", out_len);
-				LOG_DEBUG("wcslen(osd_data.text.wch) is %ld\n", wcslen(osd_data.text.wch));
-				// for (int i = 0; i < strlen(display_text); i++) {
-				// 	LOG_INFO("111 display_text [%02x]\n", display_text[i]);
-				// }
-				// for (int i = 0; i < wcslen(osd_data.text.wch); i++) {
-				// 	LOG_INFO("222 osd_data.text.wch [%04x]\n", osd_data.text.wch[i]);
-				// }
-#endif
 				osd_data.width = UPALIGNTO16(wstr_get_actual_advance_x(osd_data.text.wch));
 				osd_data.height = UPALIGNTO16(osd_data.text.font_size);
 				osd_data.size = osd_data.width * osd_data.height * 4; // BGRA8888 4byte
@@ -520,33 +531,7 @@ int rk_osd_bmp_change(int osd_id) {
 	if (!strcmp(osd_type, "channelName") || !strcmp(osd_type, "character")) {
 		snprintf(entry, 127, "osd.%d:display_text", osd_id);
 		const char *display_text = rk_param_get_string(entry, NULL);
-		LOG_DEBUG("display_text is %s\n", display_text);
-		LOG_DEBUG("strlen(display_text) is %ld\n", strlen(display_text));
-
-		int ret;
-		size_t src_len = strlen(display_text);
-		// the bytes that Chinese and English in UTF-8 are different,
-		// and cannot be based on src_len calculates out_len
-		size_t out_len = MAX_WCH_BYTE;
-		// To have this temporary variable,
-		// otherwise iconv will directly overwrite the original pointer
-		char *tmp_out_buffer = (char *)osd_data.text.wch;
-		iconv_t cd = iconv_open("WCHAR_T", "UTF-8");
-		if (cd == (iconv_t)-1) {
-			perror("iconv_open error");
-			return -1;
-		}
-		memset(entry, 0, 128);
-		memcpy(entry, display_text, src_len); // iconv maybe change the char *
-		memset(entry + src_len, 0, 1);
-		char *tmp_in_buffer = (char *)entry;
-		ret = iconv(cd, &tmp_in_buffer, (size_t *)&src_len, &tmp_out_buffer, (size_t *)&out_len);
-		if (ret == -1)
-			perror("iconv error");
-		iconv_close(cd);
-		osd_data.text.wch[abs(MAX_WCH_BYTE - out_len) / 4] = '\0';
-		LOG_DEBUG("out_len is %d\n", out_len);
-		LOG_DEBUG("wcslen(osd_data.text.wch) is %ld\n", wcslen(osd_data.text.wch));
+		iconv_utf8_to_wchar(display_text, osd_data.text.wch);
 		osd_data.width = UPALIGNTO16(wcslen(osd_data.text.wch) * osd_data.text.font_size);
 		osd_data.height = UPALIGNTO16(osd_data.text.font_size);
 		osd_data.size = osd_data.width * osd_data.height * 4; // BGRA8888 4byte
