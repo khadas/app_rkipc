@@ -121,6 +121,10 @@ post_chk()
 		cp -fa /oem/usr/share/image.bmp /userdata/
 	fi
 
+	if [ -f "/oem/usr/share/speaker_test.wav" ];then
+		rk_mpi_ao_test -i /oem/usr/share/speaker_test.wav --sound_card_name=hw:0,0 --device_ch=2 --device_rate=8000 --input_rate=8000 --input_ch=2 --set_volume 50
+	fi
+
 	if [ -d "/oem/usr/share/iqfiles" ];then
 		rkipc -a /oem/usr/share/iqfiles &
 	else
