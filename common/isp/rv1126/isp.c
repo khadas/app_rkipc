@@ -751,7 +751,7 @@ int rk_isp_set_hdr_level(int cam_id, int value) {
 	if (value)
 		ret = rk_aiq_uapi_setMHDRStrth(rkipc_aiq_get_ctx(cam_id), true, value);
 	else
-		ret = rk_aiq_uapi_setMHDRStrth(rkipc_aiq_get_ctx(cam_id), true, 1);
+		ret = rk_aiq_uapi_setMHDRStrth(rkipc_aiq_get_ctx(cam_id), true, 50);
 
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.blc:hdr_level", cam_id);
