@@ -1150,6 +1150,8 @@ int rkipc_avs_init() {
 	stAvsGrpAttr.stOutAttr.stRotation.s32Roll = rk_param_get_int("avs:rotation_roll", 0);
 	stAvsGrpAttr.stOutAttr.stRotation.s32Pitch = rk_param_get_int("avs:rotation_pitch", 0);
 	stAvsGrpAttr.stOutAttr.stRotation.s32Yaw = rk_param_get_int("avs:rotation_yaw", 0);
+	stAvsGrpAttr.stOutAttr.fDistance = rk_param_get_double("avs:stitch_distance", 2.35);
+
 	stAvsGrpAttr.bSyncPipe = rk_param_get_int("avs:sync", 1);
 	stAvsGrpAttr.stFrameRate.s32SrcFrameRate = -1;
 	stAvsGrpAttr.stFrameRate.s32DstFrameRate = -1;
