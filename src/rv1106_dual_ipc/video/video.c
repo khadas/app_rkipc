@@ -217,7 +217,8 @@ int rkipc_vi_dev_init() {
 				return -1;
 			}
 			stBindPipe.u32Num = 1;
-			stBindPipe.PipeId[i] = i;
+			stBindPipe.PipeId[0] = i;
+			stBindPipe.bUserStartPipe[0] = RK_TRUE;
 			ret = RK_MPI_VI_SetDevBindPipe(i, &stBindPipe);
 			if (ret != RK_SUCCESS) {
 				LOG_ERROR("%d: RK_MPI_VI_SetDevBindPipe %#x\n", i, ret);
