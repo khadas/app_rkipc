@@ -84,8 +84,8 @@ int fill_text(osd_data_s *data) {
 
 int iconv_utf8_to_wchar(const char *in, wchar_t *out) {
 	char entry[128] = {'\0'};
-	LOG_DEBUG("in is %s\n", in);
-	LOG_DEBUG("strlen(in) is %ld\n", strlen(in));
+	// LOG_DEBUG("in is %s\n", in);
+	// LOG_DEBUG("strlen(in) is %ld\n", strlen(in));
 #if 0
 	int ret = mbstowcs(out, in, strlen(in));
 	LOG_DEBUG("mbstowcs ret is %d\n", ret);
@@ -117,8 +117,8 @@ int iconv_utf8_to_wchar(const char *in, wchar_t *out) {
 		perror("iconv error");
 	iconv_close(cd);
 	out[abs(MAX_WCH_BYTE - out_len) / 4] = '\0';
-	LOG_DEBUG("out_len is %d\n", out_len);
-	LOG_DEBUG("wcslen(out) is %ld\n", wcslen(out));
+	// LOG_DEBUG("out_len is %d\n", out_len);
+	// LOG_DEBUG("wcslen(out) is %ld\n", wcslen(out));
 	// for (int i = 0; i < strlen(display_text); i++) {
 	// 	LOG_INFO("111 display_text [%02x]\n", display_text[i]);
 	// }
