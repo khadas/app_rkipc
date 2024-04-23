@@ -376,7 +376,11 @@ static int rkipc_vpss_0_init() {
 		stVpssChnAttr[VpssChn].u32Width = rk_param_get_int("ivs:width", 704);
 		stVpssChnAttr[VpssChn].u32Height = rk_param_get_int("ivs:height", 576);
 		stVpssChnAttr[VpssChn].enCompressMode = COMPRESS_MODE_NONE;
-		stVpssChnAttr[VpssChn].u32Depth = 1; // use for iva
+		stVpssChnAttr[VpssChn].u32FrameBufCnt = 1;
+		if (g_enable_npu) {
+			stVpssChnAttr[VpssChn].u32Depth = 1;
+			stVpssChnAttr[VpssChn].u32FrameBufCnt = 2;
+		}
 		ret = RK_MPI_VPSS_SetChnAttr(VpssGrp, VpssChn, &stVpssChnAttr[VpssChn]);
 		if (ret != RK_SUCCESS)
 			LOG_ERROR("%d: RK_MPI_VPSS_SetChnAttr error! ret is %#x\n", VpssChn, ret);
