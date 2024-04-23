@@ -3078,6 +3078,7 @@ int rk_video_restart() {
 	ret = rk_video_deinit();
 	if (rk_param_get_int("video.source:enable_aiq", 1))
 		ret |= rk_isp_deinit(0);
+	malloc_trim(0);
 	if (rk_param_get_int("video.source:enable_aiq", 1)) {
 		ret |= rk_isp_init(0, rkipc_iq_file_path_);
 		if (rk_param_get_int("isp:init_form_ini", 1))
