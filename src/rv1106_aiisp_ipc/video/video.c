@@ -2996,6 +2996,8 @@ int rk_video_set_rotation(int value) {
 	}
 
 	rk_roi_set_all();
+	// update osd info, cover currently attaches to VI
+	rk_osd_privacy_mask_restart();
 	rk_region_clip_set_all();
 
 	return 0;
