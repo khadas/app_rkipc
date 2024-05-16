@@ -36,6 +36,10 @@ elseif(${CMAKE_BUILD_TYPE} STREQUAL MinSizeRel)
 	add_definitions(-Os)
 endif()
 
+if(RK_APP_CHIP)
+  add_definitions(-DRK_APP_CHIP)
+endif()
+
 if(RKIPC_CROSS_COMPILE)
 message(STATUS "CROSS COMPILE TOOL: ${RKIPC_CROSS_COMPILE}")
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fdata-sections -ffunction-sections -Wl,-rpath-link,${PROJECT_SOURCE_DIR}/lib/${RKIPC_CROSS_COMPILE}")
