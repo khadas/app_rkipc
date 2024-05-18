@@ -120,6 +120,7 @@ int main(int argc, char **argv) {
 	rk_storage_init();
 	if (rk_param_get_int("avs:enable_npu", 0))
 		rkipc_rockiva_init();
+	LOG_INFO("rkipc init over\n");
 
 	while (g_main_run_) {
 		usleep(1000 * 1000);
@@ -138,6 +139,7 @@ int main(int argc, char **argv) {
 		rkipc_rockiva_deinit();
 	rk_network_deinit();
 	rk_param_deinit();
+	LOG_INFO("rkipc deinit over\n");
 
 	return 0;
 }

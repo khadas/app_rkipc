@@ -18,6 +18,7 @@
 #include <rk_mpi_mmz.h>
 #include <rk_mpi_rgn.h>
 #include <rk_mpi_sys.h>
+#include <rk_mpi_tde.h>
 #include <rk_mpi_venc.h>
 #include <rk_mpi_vi.h>
 #include <rk_mpi_vo.h>

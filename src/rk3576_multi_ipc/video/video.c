@@ -27,9 +27,9 @@
 #define RKISP_SELFPATH 1
 #define RKISP_FBCPATH 2
 
-#define RK3588_VO_DEV_HDMI 0
-#define RK3588_VO_DEV_MIPI 3
-#define RK3588_VOP_LAYER_CLUSTER0 0
+#define RK3576_VO_DEV_HDMI 0
+#define RK3576_VO_DEV_MIPI 1
+#define RK3576_VOP_LAYER_CLUSTER0 0
 
 #define RTSP_URL_0 "/live/0"
 #define RTSP_URL_1 "/live/1"
@@ -1856,7 +1856,7 @@ int rkipc_vo_init() {
 	memset(&stLayerAttr, 0, sizeof(VO_VIDEO_LAYER_ATTR_S));
 	memset(&VideoCSC, 0, sizeof(VO_CSC_S));
 	memset(&VoChnAttr, 0, sizeof(VoChnAttr));
-	if (g_vo_dev_id == RK3588_VO_DEV_HDMI) {
+	if (g_vo_dev_id == RK3576_VO_DEV_HDMI) {
 		VoPubAttr.enIntfType = VO_INTF_HDMI;
 		VoPubAttr.enIntfSync = VO_OUTPUT_DEFAULT;
 	} else {
@@ -1969,7 +1969,7 @@ int rkipc_vo_init() {
 	LOG_INFO("VO layer %d channel 0 attr <x,y,w,h> = <%d, %d, %d, %d>", VoLayer,
 	         VoChnAttr.stRect.s32X, VoChnAttr.stRect.s32Y, VoChnAttr.stRect.u32Width,
 	         VoChnAttr.stRect.u32Height);
-	if (g_vo_dev_id == RK3588_VO_DEV_MIPI)
+	if (g_vo_dev_id == RK3576_VO_DEV_MIPI)
 		VoChnAttr.enRotation = ROTATION_90;
 	ret = RK_MPI_VO_SetChnAttr(VoLayer, 0, &VoChnAttr);
 	if (ret != RK_SUCCESS) {
@@ -1978,9 +1978,9 @@ int rkipc_vo_init() {
 	}
 	LOG_INFO("RK_MPI_VO_SetChnAttr success\n");
 
-	ret = RK_MPI_VO_EnableChn(RK3588_VOP_LAYER_CLUSTER0, u32VoChn);
+	ret = RK_MPI_VO_EnableChn(RK3576_VOP_LAYER_CLUSTER0, u32VoChn);
 	if (ret != RK_SUCCESS) {
-		LOG_ERROR("create RK3588_VOP_LAYER_CLUSTER0 layer %d ch vo failed!\n", u32VoChn);
+		LOG_ERROR("create RK3576_VOP_LAYER_CLUSTER0 layer %d ch vo failed!\n", u32VoChn);
 		return ret;
 	}
 	LOG_INFO("RK_MPI_VO_EnableChn success\n");

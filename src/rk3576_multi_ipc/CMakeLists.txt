@@ -60,7 +60,7 @@ include_directories(video
 
 link_directories(${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1031-linux-gnu)
 
-add_definitions(-DISP_HW_V30)
+add_definitions(-DISP_HW_V39)
 add_definitions(-g -ggdb)
 add_definitions(-Wall)
 # add_definitions(-Werror)

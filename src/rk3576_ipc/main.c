@@ -103,6 +103,7 @@ int main(int argc, char **argv) {
 		rkipc_audio_init();
 	rkipc_server_init();
 	rk_storage_init();
+	LOG_INFO("rkipc init over\n");
 
 	while (g_main_run_) {
 		usleep(1000 * 1000);
@@ -118,6 +119,7 @@ int main(int argc, char **argv) {
 	RK_MPI_SYS_Exit();
 	rk_isp_deinit(rkipc_camera_id_);
 	rk_param_deinit();
+	LOG_INFO("rkipc deinit over\n");
 
 	return 0;
 }

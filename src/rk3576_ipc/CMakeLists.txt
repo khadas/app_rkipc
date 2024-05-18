@@ -3,7 +3,6 @@
 #pkg_check_modules (GLIB REQUIRED IMPORTED_TARGET glib-2.0)
 
 # link_directories(${PROJECT_SOURCE_DIR}/lib)
-add_compile_options(-DISP_HW_V39)
 include_directories(${PROJECT_SOURCE_DIR}/include
 					${CMAKE_SYSROOT}/usr/include/rkaiq/
 					${CMAKE_SYSROOT}/usr/include/rkaiq/isp
@@ -60,7 +59,7 @@ include_directories(video
 
 link_directories(${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1031-linux-gnu)
 
-add_definitions(-DISP_HW_V30)
+add_definitions(-DISP_HW_V39)
 add_definitions(-g -ggdb)
 
 add_executable(${PROJECT_NAME} ${SRCS})
