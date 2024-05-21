@@ -2,10 +2,10 @@
 #include "common.h"
 #include "video.h"
 
+#include "rk_aiq_user_api2_rk3576.h"
 #include <rk_aiq_user_api2_acsm.h>
 #include <rk_aiq_user_api2_camgroup.h>
 #include <rk_aiq_user_api2_sysctl.h>
-#include "rk_aiq_user_api2_rk3576.h"
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -530,7 +530,7 @@ int rk_isp_set_fill_light_mode(int cam_id, const char *value) {
 	} else if (!strcmp(value, "LED")) {
 		cpsl_cfg.lght_src = RK_AIQ_CPSLS_LED;
 	}
-	//ret = rk_aiq_uapi2_sysctl_setCpsLtCfg(rkipc_aiq_get_ctx(cam_id), &cpsl_cfg);
+	// ret = rk_aiq_uapi2_sysctl_setCpsLtCfg(rkipc_aiq_get_ctx(cam_id), &cpsl_cfg);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.night_to_day:fill_light_mode", cam_id);
 	rk_param_set_string(entry, value);
@@ -553,7 +553,7 @@ int rk_isp_set_light_brightness(int cam_id, int value) {
 	rk_aiq_cpsl_cfg_t cpsl_cfg;
 	cpsl_cfg.u.m.strength_led = value;
 	cpsl_cfg.u.m.strength_ir = value;
-	//ret = rk_aiq_uapi2_sysctl_setCpsLtCfg(rkipc_aiq_get_ctx(cam_id), &cpsl_cfg);
+	// ret = rk_aiq_uapi2_sysctl_setCpsLtCfg(rkipc_aiq_get_ctx(cam_id), &cpsl_cfg);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.night_to_day:light_brightness", cam_id);
 	rk_param_set_int(entry, value);
@@ -1123,7 +1123,8 @@ int rk_isp_set_spatial_denoise_level(int cam_id, int value) {
 	// bayer2dnrV2Strenght.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
 	// bayer2dnrV2Strenght.percent = value / 100.0;
 	// ret =
-	//     rk_aiq_user_api2_abayer2dnrV2_SetStrength(rkipc_aiq_get_ctx(cam_id), &bayer2dnrV2Strenght);
+	//     rk_aiq_user_api2_abayer2dnrV2_SetStrength(rkipc_aiq_get_ctx(cam_id),
+	//     &bayer2dnrV2Strenght);
 
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.enhancement:spatial_denoise_level", cam_id);
@@ -1238,7 +1239,8 @@ int rk_isp_set_ldch_level(int cam_id, int value) {
 	value = value < 0 ? 0 : value;
 	ret = rk_aiq_user_api2_ldch_GetAttrib(rkipc_aiq_get_ctx(cam_id), &ldchAttr);
 	// ldchAttr.correct_level = (int)(value * 2.53 + 2); // [0, 100] -> [2 , 255]
-	ldchAttr.stAuto.sta.baseCtrl.sw_ldchT_correct_strg = (int)(value * 2.53 + 2); // [0, 100] -> [2 , 255]
+	ldchAttr.stAuto.sta.baseCtrl.sw_ldchT_correct_strg =
+	    (int)(value * 2.53 + 2); // [0, 100] -> [2 , 255]
 	ret = rk_aiq_user_api2_ldch_SetAttrib(rkipc_aiq_get_ctx(cam_id), &ldchAttr);
 
 	char entry[128] = {'\0'};
