@@ -47,13 +47,10 @@ post_chk()
 	default_rkipc_ini=/tmp/rkipc-factory-config.ini
 
 	result=`ls -l /proc/rkisp* | wc -l`
-	if [ "$result"x == "8"x ] ;then
-		ln -s -f /usr/share/rkipc-8x.ini $default_rkipc_ini
-	fi
-	if [ "$result"x == "6"x ] ;then
-		ln -s -f /usr/share/rkipc-6x.ini $default_rkipc_ini
-	fi
 	if [ "$result"x == "3"x ] ;then
+		ln -s -f /usr/share/rkipc-3x.ini $default_rkipc_ini
+	fi
+	if [ "$result"x == "4"x ] ;then # 3576 4x， avs only use 3x
 		ln -s -f /usr/share/rkipc-3x.ini $default_rkipc_ini
 	fi
 

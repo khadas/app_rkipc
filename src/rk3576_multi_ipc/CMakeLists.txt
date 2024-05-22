@@ -73,9 +73,6 @@ target_link_libraries(${PROJECT_NAME} pthread rockit rkaiq rtsp freetype wpa_cli
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 install(FILES rkipc-3x.ini DESTINATION share)
-install(FILES rkipc-6x.ini DESTINATION share)
-install(FILES rkipc-6x-no-blend-hor.ini DESTINATION share)
-install(FILES rkipc-8x.ini DESTINATION share)
 install(PROGRAMS RkLunch.sh DESTINATION bin)
 install(PROGRAMS RkLunch-stop.sh DESTINATION bin)
 install(FILES ${PROJECT_SOURCE_DIR}/common/osd/image.bmp DESTINATION share)

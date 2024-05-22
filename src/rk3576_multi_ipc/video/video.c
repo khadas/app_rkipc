@@ -37,7 +37,7 @@
 #define RTMP_URL_0 "rtmp://127.0.0.1:1935/live/mainstream"
 #define RTMP_URL_1 "rtmp://127.0.0.1:1935/live/substream"
 #define RTMP_URL_2 "rtmp://127.0.0.1:1935/live/thirdstream"
-#define MAX_PACKET_NUM 16
+#define MAX_PACKET_NUM 32
 
 int g_sensor_num = 6;
 int g_format;
@@ -61,7 +61,7 @@ MPP_CHN_S vo_chn, avs_out_chn, vpss_to_npu_chn;
 MPP_CHN_S vi_chn[MAX_RKIPC_SENSOR_NUM], avs_in_chn[MAX_RKIPC_SENSOR_NUM],
     venc_chn[MAX_RKIPC_VENC_NUM], vpss_chn[MAX_RKIPC_VENC_NUM];
 
-static VO_DEV VoLayer = RK3588_VOP_LAYER_CLUSTER0;
+static VO_DEV VoLayer = RK3576_VOP_LAYER_CLUSTER0;
 
 // static void *test_get_vi(void *arg) {
 // 	LOG_INFO("#Start %s thread, arg:%p\n", __func__, arg);
