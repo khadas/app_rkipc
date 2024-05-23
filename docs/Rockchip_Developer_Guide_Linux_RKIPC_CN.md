@@ -2,9 +2,9 @@
 
 文件标识：RK-KF-YF-937
 
-发布版本：V1.6.6
+发布版本：V1.6.7
 
-日期：2023-11-08
+日期：2024-05-21
 
 文件密级：□绝密   □秘密   □内部资料   ■公开
 
@@ -48,11 +48,12 @@ Rockchip Electronics Co., Ltd.
 
 **产品版本**
 
-| **芯片名称**                       | **内核版本**    |
-| ---------------------------------- | --------------- |
-| RV1126/RV1109                      | Linux 4.19      |
-| RK3588                             | Linux 5.10      |
-| RV1103/RV1106                      | Linux 5.10      |
+| **芯片名称**  | **内核版本** |
+| ------------- | ------------ |
+| RV1126/RV1109 | Linux 4.19   |
+| RK3588        | Linux 5.10   |
+| RV1103/RV1106 | Linux 5.10   |
+| RK3576        | Linux 6.10   |
 
 **读者对象**
 
@@ -89,6 +90,7 @@ Rockchip Electronics Co., Ltd.
 | V1.6.4     | Fenrir Lin | 2023-09-13   | 修改RV1126 IPC Rkmedia的流程框图，<br/>新增RV1126 Dual-IPC的流程框图。 |
 | V1.6.5     | Yu Zheng   | 2023-09-26   | 新增RV1126 IPC AIISP的流程框图                               |
 | V1.6.6     | Fenrir Lin | 2023-11-08   | 新增RV1106 IPC AIISP的流程框图                               |
+| V1.6.7     | Fenrir Lin | 2024-05-21   | 新增RK3576 IPC和RK3576 Multi-IPC的流程框图                   |
 
 ---
 
@@ -119,6 +121,8 @@ Rockchip Electronics Co., Ltd.
 | rv1126_dual_ipc           | rockit、rkaiq    | 针对RV1126/RV1109平台的双目拼接类产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
 | rv1126_snapshot           | easymedia、rkaiq | 针对RV1126/RV1109平台的抓拍类型产品，支持离线帧，本地拍照/录像，屏幕显示。 |
 | rv1126_aiisp              | rockit、rkaiq    | 针对RV1126/RV1109平台的IPC产品，使用aiisp，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rk3576_ipc                | rockit、rkaiq    | 针对RK3576平台的单目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rk3576_muliti_ipc         | rockit、rkaiq    | 针对RK3576平台的多目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
 
 ### RV1103 IPC
 
@@ -319,6 +323,36 @@ graph TB
 
 	VPSS_2--640*480-->VENC_2(VENC_2)
 	VPSS_2--720*1280-->VO
+```
+
+### RK3576 IPC
+
+```mermaid
+graph LR
+	AI-->AENC-->MUXER-->MP4
+	VI-->VPSS-->VPSS_0_0-->VENC_0-->MUXER
+	VENC_0-->RTSP_RTMP_0
+	VPSS-->VPSS_0_1-->VENC_1-->RTSP_RTMP_1
+	VPSS_0_1-->NPU
+	VPSS-->VPSS_0_2-->VENC_2-->RTSP_RTMP_2
+	VPSS-->VPSS_0_3-->VENC_3-->JPEG
+	VI-->VPSS_ROTATE-->VO
+```
+
+### RK3576 Multi-IPC
+
+```mermaid
+graph TB
+	VI_0[VI_0_2688*1520]-->AVS[AVS_6000*1088]
+	VI_1[VI_1_2688*1520]-->AVS
+	VI_2[VI_2_2688*1520]-->AVS
+	AVS-->VPSS_GRP_0_BYPASS-->VENC_0_6000*1088-->RTSP/RTMP/MUXER_0
+	VPSS_GRP_0_BYPASS-->VPSS_GRP_1(VPSS_GRP_1_3840*1280)
+	VPSS_GRP_1-->VENC_1-->RTSP/RTMP_1
+	VPSS_GRP_1-->VPSS_GRP_2(VPSS_GRP_2_2048*680)-->VENC_2-->RTSP/RTMP_2
+	VPSS_GRP_2-->VO
+	VPSS_GRP_2-->VPSS_GRP_4(VPSS_GRP_4_896*512)-->NPU
+	VPSS_GRP_0_BYPASS-->VGS-->VENC_3_JPEG_6000*1088
 ```
 
 ## 代码结构

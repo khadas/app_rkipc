@@ -37,7 +37,7 @@
 #define RTMP_URL_0 "rtmp://127.0.0.1:1935/live/mainstream"
 #define RTMP_URL_1 "rtmp://127.0.0.1:1935/live/substream"
 #define RTMP_URL_2 "rtmp://127.0.0.1:1935/live/thirdstream"
-#define MAX_PACKET_NUM 32
+#define MAX_PACKET_NUM 16
 
 int g_sensor_num = 6;
 int g_format;

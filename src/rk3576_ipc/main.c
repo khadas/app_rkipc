@@ -95,6 +95,8 @@ int main(int argc, char **argv) {
 	// init
 	rk_param_init(rkipc_ini_path_);
 	rk_system_init();
+	if (rk_param_get_int("video.source:enable_npu", 0))
+		rkipc_rockiva_init();
 	rkipc_camera_id_ = rk_param_get_int("video.source:camera_id", 0); // need rk_param_init
 	rk_isp_init(rkipc_camera_id_, rkipc_iq_file_path_);
 	RK_MPI_SYS_Init();
@@ -118,6 +120,8 @@ int main(int argc, char **argv) {
 	rk_video_deinit();
 	RK_MPI_SYS_Exit();
 	rk_isp_deinit(rkipc_camera_id_);
+	if (rk_param_get_int("video.source:enable_npu", 0))
+		rkipc_rockiva_deinit();
 	rk_param_deinit();
 	LOG_INFO("rkipc deinit over\n");
 

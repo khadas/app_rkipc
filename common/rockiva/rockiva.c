@@ -105,7 +105,7 @@ int rkipc_rknn_object_get(RockIvaBaResult *ba_result) {
 	long long time_before;
 	if (rknn_list_size(rknn_list_)) {
 		rknn_list_pop(rknn_list_, &time_before, ba_result);
-		LOG_DEBUG("ba_result->objNum is %d\n", ba_result->objNum);
+		// LOG_DEBUG("ba_result->objNum is %d\n", ba_result->objNum);
 		ret = 0;
 	} else {
 		ret = -1; // no update
@@ -125,17 +125,18 @@ void rkba_callback(const RockIvaBaResult *result, const RockIvaExecuteStatus sta
 	int size = rknn_list_size(rknn_list_);
 	if (size >= MAX_RKNN_LIST_NUM)
 		rknn_list_drop(rknn_list_);
-	LOG_DEBUG("size is %d\n", size);
+	// LOG_DEBUG("size is %d\n", size);
 	for (int i = 0; i < result->objNum; i++) {
-		LOG_DEBUG("topLeft:[%d,%d], bottomRight:[%d,%d],"
-		          "objId is %d, frameId is %d, score is %d, type is %d\n",
-		          result->triggerObjects[i].objInfo.rect.topLeft.x,
-		          result->triggerObjects[i].objInfo.rect.topLeft.y,
-		          result->triggerObjects[i].objInfo.rect.bottomRight.x,
-		          result->triggerObjects[i].objInfo.rect.bottomRight.y,
-		          result->triggerObjects[i].objInfo.objId,
-		          result->triggerObjects[i].objInfo.frameId,
-		          result->triggerObjects[i].objInfo.score, result->triggerObjects[i].objInfo.type);
+		// LOG_DEBUG("topLeft:[%d,%d], bottomRight:[%d,%d],"
+		//           "objId is %d, frameId is %d, score is %d, type is %d\n",
+		//           result->triggerObjects[i].objInfo.rect.topLeft.x,
+		//           result->triggerObjects[i].objInfo.rect.topLeft.y,
+		//           result->triggerObjects[i].objInfo.rect.bottomRight.x,
+		//           result->triggerObjects[i].objInfo.rect.bottomRight.y,
+		//           result->triggerObjects[i].objInfo.objId,
+		//           result->triggerObjects[i].objInfo.frameId,
+		//           result->triggerObjects[i].objInfo.score, result->triggerObjects[i].objInfo.type);
+
 		// LOG_INFO("triggerRules is %d, ruleID is %d, triggerType is %d\n",
 		//          result->triggerObjects[i].triggerRules,
 		//          result->triggerObjects[i].firstTrigger.ruleID,
@@ -205,7 +206,7 @@ int rkipc_rockiva_init() {
 	if (!strcmp(model_type, "small") || !strcmp(model_type, "medium")) {
 		globalParams.detModel |= ROCKIVA_DET_MODEL_PFP;
 	} else if (!strcmp(model_type, "big")) {
-		globalParams.detModel |= ROCKIVA_DET_MODEL_CLS7;
+		globalParams.detModel |= ROCKIVA_DET_MODEL_CLS8;
 	}
 	globalParams.imageInfo.width = rk_param_get_int("video.2:width", 960);
 	globalParams.imageInfo.height = rk_param_get_int("video.2:height", 540);
@@ -234,7 +235,7 @@ int rkipc_rockiva_init() {
 	int ri_h = rk_param_get_int("event.regional_invasion:height", 256);
 
 	initParams.baRules.areaInBreakRule[0].ruleEnable =
-	    rk_param_get_int("event.regional_invasion:enabled", 0);
+	    rk_param_get_int("event.regional_invasion:enabled", 1);
 	initParams.baRules.areaInBreakRule[0].sense =
 	    rk_param_get_int("event.regional_invasion:sensitivity_level", 50); // [1, 100]
 	initParams.baRules.areaInBreakRule[0].alertTime =
@@ -378,15 +379,8 @@ int rkipc_rockiva_write_nv12_frame_by_fd(uint16_t width, uint16_t height, uint32
 	if (rk_param_get_int("video.source:rotate_in_venc", 0))
 		rotation = 0;
 	memset(image, 0, sizeof(RockIvaImage));
-	if (rotation == 0) {
-		image->info.transformMode = ROCKIVA_IMAGE_TRANSFORM_NONE;
-	} else if (rotation == 90) {
-		image->info.transformMode = ROCKIVA_IMAGE_TRANSFORM_ROTATE_90;
-	} else if (rotation == 180) {
-		image->info.transformMode = ROCKIVA_IMAGE_TRANSFORM_ROTATE_180;
-	} else if (rotation == 270) {
-		image->info.transformMode = ROCKIVA_IMAGE_TRANSFORM_ROTATE_270;
-	}
+	// Iva will rotate based on the transformMode before recognizing it
+	image->info.transformMode = ROCKIVA_IMAGE_TRANSFORM_NONE;
 	image->info.width = width;
 	image->info.height = height;
 	image->info.format = ROCKIVA_IMAGE_FORMAT_YUV420SP_NV12;
@@ -414,15 +408,8 @@ int rkipc_rockiva_write_nv12_frame_by_phy_addr(uint16_t width, uint16_t height, 
 	if (rk_param_get_int("video.source:rotate_in_venc", 0))
 		rotation = 0;
 	memset(image, 0, sizeof(RockIvaImage));
-	if (rotation == 0) {
-		image->info.transformMode = ROCKIVA_IMAGE_TRANSFORM_NONE;
-	} else if (rotation == 90) {
-		image->info.transformMode = ROCKIVA_IMAGE_TRANSFORM_ROTATE_90;
-	} else if (rotation == 180) {
-		image->info.transformMode = ROCKIVA_IMAGE_TRANSFORM_ROTATE_180;
-	} else if (rotation == 270) {
-		image->info.transformMode = ROCKIVA_IMAGE_TRANSFORM_ROTATE_270;
-	}
+	// Iva will rotate based on the transformMode before recognizing it
+	image->info.transformMode = ROCKIVA_IMAGE_TRANSFORM_NONE;
 	image->info.width = width;
 	image->info.height = height;
 	image->info.format = ROCKIVA_IMAGE_FORMAT_YUV420SP_NV12;

@@ -2,9 +2,9 @@
 
 ID: RK-KF-YF-937
 
-Release Version: V1.6.6
+Release Version: V1.6.7
 
-Release Date: 2023-11-08
+Release Date: 2024-05-21
 
 Security Level: □Top-Secret   □Secret   □Internal   ■Public
 
@@ -47,6 +47,7 @@ This document provides instructions for RKIPC application development.
 | RV1126/RV1109 | Linux 4.19         |
 | RK3588        | Linux 5.10         |
 | RV1103/RV1106 | Linux 5.10         |
+| RK3576        | Linux 6.10         |
 
 **Intended Audience**
 
@@ -83,6 +84,7 @@ Software development engineers
 | V1.6.4      | Fenrir Lin | 2023-09-13 | Modify the RV1126 IPC Rkmedia block diagram.<br/>and add the RV1126 Dual-IPC block diagram. |
 | V1.6.5      | Yu Zheng   | 2023-09-26 | Added RV1126 AIISP block diagram.                            |
 | V1.6.6      | Fenrir Lin | 2023-11-08 | Added RV1106 AIISP block diagram.                            |
+| V1.6.7      | Fenrir Lin | 2024-05-21 | Added RK3576 IPC and RK3576 Multi-IPC block diagram.         |
 
 ---
 
@@ -113,6 +115,8 @@ Software development engineers
 | rv1126_dual_ipc           | rockit, rkaiq         | Binocular camera stitching product for RV1126/RV1109 platforms, supports web and rtsp/rtmp preview, dynamic parameter modification. |
 | rv1126_snapshot           | easymedia, rkaiq      | Snapshot-type product for RV1126/RV1109 platforms, supports offline frames, local image/video capture, screen display. |
 | rv1126_aiisp              | rockit、rkaiq         | IPC product for RV1126/RV1109 platforms,based on aiisp, supports web and rtsp/rtmp preview, dynamic parameter modification. |
+| rk3576_ipc                | rockit, rkaiq         | Single camera IPC product for the RK3576 platform, supports web and rtsp/rtmp preview, dynamic parameter modification. |
+| rk3576_muliti_ipc         | rockit, rkaiq         | Multi cameras IPC product for RK3576 platform, supports web and rtsp/rtmp preview, dynamic parameter modification. |
 
 ### RV1103 IPC
 
@@ -313,6 +317,36 @@ graph TB
 
 	VPSS_2--640*480-->VENC_2(VENC_2)
 	VPSS_2--720*1280-->VO
+```
+
+### RK3576 IPC
+
+```mermaid
+graph LR
+	AI-->AENC-->MUXER-->MP4
+	VI-->VPSS-->VPSS_0_0-->VENC_0-->MUXER
+	VENC_0-->RTSP_RTMP_0
+	VPSS-->VPSS_0_1-->VENC_1-->RTSP_RTMP_1
+	VPSS_0_1-->NPU
+	VPSS-->VPSS_0_2-->VENC_2-->RTSP_RTMP_2
+	VPSS-->VPSS_0_3-->VENC_3-->JPEG
+	VI-->VPSS_ROTATE-->VO
+```
+
+### RK3576 Multi-IPC
+
+```mermaid
+graph TB
+	VI_0[VI_0_2688*1520]-->AVS[AVS_6000*1088]
+	VI_1[VI_1_2688*1520]-->AVS
+	VI_2[VI_2_2688*1520]-->AVS
+	AVS-->VPSS_GRP_0_BYPASS-->VENC_0_6000*1088-->RTSP/RTMP/MUXER_0
+	VPSS_GRP_0_BYPASS-->VPSS_GRP_1(VPSS_GRP_1_3840*1280)
+	VPSS_GRP_1-->VENC_1-->RTSP/RTMP_1
+	VPSS_GRP_1-->VPSS_GRP_2(VPSS_GRP_2_2048*680)-->VENC_2-->RTSP/RTMP_2
+	VPSS_GRP_2-->VO
+	VPSS_GRP_2-->VPSS_GRP_4(VPSS_GRP_4_896*512)-->NPU
+	VPSS_GRP_0_BYPASS-->VGS-->VENC_3_JPEG_6000*1088
 ```
 
 ## Code Structure
