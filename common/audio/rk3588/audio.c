@@ -185,9 +185,14 @@ int rkipc_ai_deinit() {
 int rkipc_aenc_init() {
 	AENC_CHN_ATTR_S stAencAttr;
 	const char *encode_type = rk_param_get_string("audio.0:encode_type", NULL);
+
+	memset(&stAencAttr, 0, sizeof(AENC_CHN_ATTR_S));
 	if (!strcmp(encode_type, "MP2")) {
 		stAencAttr.enType = RK_AUDIO_ID_MP2;
 		stAencAttr.stCodecAttr.enType = RK_AUDIO_ID_MP2;
+	} else if (!strcmp(encode_type, "G711A")) {
+		stAencAttr.enType = RK_AUDIO_ID_PCM_ALAW;
+		stAencAttr.stCodecAttr.enType = RK_AUDIO_ID_PCM_ALAW;
 	} else {
 		LOG_ERROR("not support %s\n", encode_type);
 	}
@@ -208,7 +213,7 @@ int rkipc_aenc_init() {
 		LOG_ERROR("create aenc chn %d err:0x%x\n", aenc_chn_id, ret);
 		return RK_FAILURE;
 	}
-	LOG_INFO("create aenc chn %d success\n", aenc_chn_id);
+	LOG_DEBUG("create aenc chn %d success\n", aenc_chn_id);
 
 	pthread_create(&save_aenc_tid, RK_NULL, save_aenc_thread, NULL);
 
