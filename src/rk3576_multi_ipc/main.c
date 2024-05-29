@@ -99,6 +99,8 @@ int main(int argc, char **argv) {
 	rk_param_init(rkipc_ini_path_);
 	rk_network_init(NULL);
 	rk_system_init();
+	if (rk_param_get_int("avs:enable_npu", 0))
+		rkipc_rockiva_init();
 	if (rk_param_get_int("isp:group_mode", 1)) {
 		rk_isp_group_init(0, rkipc_iq_file_path_);
 		// rk_isp_group_set_frame_rate(0, rk_param_get_int("isp.0.adjustment:fps", 30));
@@ -118,8 +120,6 @@ int main(int argc, char **argv) {
 		rkipc_audio_init();
 	rkipc_server_init();
 	rk_storage_init();
-	if (rk_param_get_int("avs:enable_npu", 0))
-		rkipc_rockiva_init();
 	LOG_INFO("rkipc init over\n");
 
 	while (g_main_run_) {
