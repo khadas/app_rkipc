@@ -132,7 +132,7 @@ int iconv_utf8_to_wchar(const char *in, wchar_t *out) {
 int generate_date_time(const char *fmt, wchar_t *result) {
 	char year[8] = {0}, month[4] = {0}, day[4] = {0};
 	char week[16] = {0}, hms[12] = {0};
-	char ymd_string[16] = {0};
+	char ymd_string[32] = {0};
 	char week_string[16] = {0};
 	char time_string[MAX_WCH_BYTE] = {0};
 	int wid = -1;

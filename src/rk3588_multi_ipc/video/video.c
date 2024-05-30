@@ -21,7 +21,7 @@
 // venc 3 8192*2700
 #define JPEG_VENC_CHN 3
 #define VPSS_AVS_TO_VENC_ID 0
-#define VPSS_GRP_ID 32
+#define VPSS_GRP_ID VPSS_MAX_CHN_NUM
 
 #define RKISP_MAINPATH 0
 #define RKISP_SELFPATH 1
