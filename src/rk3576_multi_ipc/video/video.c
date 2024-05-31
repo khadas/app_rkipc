@@ -2644,7 +2644,7 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 	stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y = osd_data->origin_y;
 	stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width = osd_data->width;
 	stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height = osd_data->height;
-	stCoverChnAttr.unChnAttr.stCoverChn.u32Color = 0xffffff;
+	stCoverChnAttr.unChnAttr.stCoverChn.u32Color = 0xffffffff;
 	stCoverChnAttr.unChnAttr.stCoverChn.u32Layer = coverHandle;
 	LOG_INFO("cover region to chn success\n");
 	ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);

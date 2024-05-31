@@ -41,6 +41,7 @@
 
 int pipe_id_ = 0;
 int g_vi_chn_id = 0;
+int g_vi_for_vo_chn_id = 1;
 
 static int take_photo_one = 0;
 static int enable_jpeg, enable_venc_0, enable_venc_1, enable_venc_2, enable_npu;
@@ -56,7 +57,7 @@ static const char *tmp_rc_quality;
 static pthread_t venc_thread_0, venc_thread_1, venc_thread_2, jpeg_venc_thread_id,
     super_resolution_thread_id, get_vpss_2_send_npu_thread, get_nn_update_osd_thread_id;
 
-static MPP_CHN_S vi_chn, vpss_in_chn, vpss_rotate_chn, vo_chn, vpss_out_chn[4], venc_chn[4];
+static MPP_CHN_S vi_chn, vpss_in_chn, vi_for_vo_chn, vo_chn, vpss_out_chn[4], venc_chn[4];
 static VO_DEV VoLayer = RK3576_VOP_LAYER_CLUSTER0;
 
 // static void *test_get_vi(void *arg) {
@@ -358,8 +359,8 @@ int rkipc_vi_dev_deinit() {
 
 int rkipc_vi_chn_init() {
 	int ret;
-	int video_width = rk_param_get_int("video.source:width", -1);
-	int video_height = rk_param_get_int("video.source:height", -1);
+	int video_width = rk_param_get_int("video.0:width", -1);
+	int video_height = rk_param_get_int("video.0:height", -1);
 	int buf_cnt = 6;
 	// VI init
 	VI_CHN_ATTR_S vi_chn_attr;
@@ -369,8 +370,6 @@ int rkipc_vi_chn_init() {
 	vi_chn_attr.stSize.u32Width = video_width;
 	vi_chn_attr.stSize.u32Height = video_height;
 	vi_chn_attr.enPixelFormat = RK_FMT_YUV420SP;
-	if (g_vi_chn_id == 2) // FBCPATH
-		vi_chn_attr.enCompressMode = COMPRESS_AFBC_16x16;
 	vi_chn_attr.u32Depth = 2;
 	ret = RK_MPI_VI_SetChnAttr(pipe_id_, g_vi_chn_id, &vi_chn_attr);
 	ret |= RK_MPI_VI_EnableChn(pipe_id_, g_vi_chn_id);
@@ -1241,64 +1240,25 @@ int rkipc_bind_deinit() {
 	return ret;
 }
 
-int rkipc_pipe_vi_vpss_vo_init() {
+int rkipc_pipe_vi_vo_init() {
 	int ret = 0;
 
-	// VPSS for rotate
-	VPSS_CHN VpssChn[VPSS_MAX_CHN_NUM] = {VPSS_CHN0, VPSS_CHN1, VPSS_CHN2, VPSS_CHN3};
-	VPSS_GRP VpssGrp = VPSS_ROTATE;
-	VPSS_GRP_ATTR_S stVpssGrpAttr;
-	VPSS_CHN_ATTR_S stVpssChnAttr[VPSS_MAX_CHN_NUM];
-	memset(&stVpssGrpAttr, 0, sizeof(stVpssGrpAttr));
-	memset(&stVpssChnAttr[0], 0, sizeof(stVpssChnAttr));
-	stVpssGrpAttr.u32MaxW = 4096;
-	stVpssGrpAttr.u32MaxH = 4096;
-	stVpssGrpAttr.enPixelFormat = RK_FMT_YUV420SP;
-	stVpssGrpAttr.stFrameRate.s32SrcFrameRate = -1;
-	stVpssGrpAttr.stFrameRate.s32DstFrameRate = -1;
-	stVpssGrpAttr.enCompressMode = COMPRESS_MODE_NONE;
-
-	stVpssChnAttr[0].enChnMode = VPSS_CHN_MODE_AUTO;
-	stVpssChnAttr[0].enDynamicRange = DYNAMIC_RANGE_SDR8;
-	stVpssChnAttr[0].enPixelFormat = RK_FMT_YUV420SP;
-	stVpssChnAttr[0].stFrameRate.s32SrcFrameRate = -1;
-	stVpssChnAttr[0].stFrameRate.s32DstFrameRate = -1;
-	stVpssChnAttr[0].u32Width = 2688;
-	stVpssChnAttr[0].u32Height = 1520;
-	stVpssChnAttr[0].enCompressMode = COMPRESS_MODE_NONE;
-	ret |= RK_MPI_VPSS_CreateGrp(VpssGrp, &stVpssGrpAttr);
-	if (ret != RK_SUCCESS) {
-		LOG_ERROR("RK_MPI_VPSS_CreateGrp error! ret is %#x\n", ret);
+	// VI init
+	VI_CHN_ATTR_S vi_chn_attr;
+	memset(&vi_chn_attr, 0, sizeof(vi_chn_attr));
+	vi_chn_attr.stIspOpt.u32BufCount = 2;
+	vi_chn_attr.stIspOpt.enMemoryType = VI_V4L2_MEMORY_TYPE_DMABUF;
+	vi_chn_attr.stSize.u32Width = 1920;
+	vi_chn_attr.stSize.u32Height = 1080;
+	vi_chn_attr.enPixelFormat = RK_FMT_YUV420SP;
+	vi_chn_attr.u32Depth = 0;
+	ret = RK_MPI_VI_SetChnAttr(pipe_id_, g_vi_for_vo_chn_id, &vi_chn_attr);
+	ret |= RK_MPI_VI_EnableChn(pipe_id_, g_vi_for_vo_chn_id);
+	if (ret) {
+		LOG_ERROR("ERROR: create VI error! ret=%d\n", ret);
 		return ret;
 	}
-	ret = RK_MPI_VPSS_SetChnAttr(VpssGrp, VpssChn[0], &stVpssChnAttr[0]);
-	if (ret != RK_SUCCESS) {
-		LOG_ERROR("RK_MPI_VPSS_SetChnAttr error! ret is %#x\n", ret);
-		return ret;
-	}
-	if (g_vo_dev_id == RK3576_VO_DEV_MIPI)
-		ret = RK_MPI_VPSS_SetChnRotation(VpssGrp, VpssChn[0], ROTATION_90);
-	if (ret != RK_SUCCESS) {
-		LOG_ERROR("RK_MPI_VPSS_SetChnRotation error! ret is %#x\n", ret);
-		return ret;
-	}
-	ret = RK_MPI_VPSS_EnableChn(VpssGrp, VpssChn[0]);
-	if (ret != RK_SUCCESS) {
-		LOG_ERROR("RK_MPI_VPSS_EnableChn error! ret is %#x\n", ret);
-		return ret;
-	}
-	ret = RK_MPI_VPSS_EnableBackupFrame(VpssGrp);
-	if (ret != RK_SUCCESS) {
-		LOG_ERROR("RK_MPI_VPSS_EnableBackupFrame error! ret is %#x\n", ret);
-		return ret;
-	}
-	// RK_MPI_VPSS_SetVProcDev(VpssGrp, VIDEO_PROC_DEV_RGA);
-	ret = RK_MPI_VPSS_StartGrp(VpssGrp);
-	if (ret != RK_SUCCESS) {
-		LOG_ERROR("RK_MPI_VPSS_StartGrp error! ret is %#x\n", ret);
-		return ret;
-	}
-
+	// VO init
 	VO_PUB_ATTR_S VoPubAttr;
 	VO_VIDEO_LAYER_ATTR_S stLayerAttr;
 	VO_CSC_S VideoCSC;
@@ -1413,6 +1373,8 @@ int rkipc_pipe_vi_vpss_vo_init() {
 	VoChnAttr.stRect.s32Y = 0;
 	VoChnAttr.stRect.u32Width = stLayerAttr.stDispRect.u32Width;
 	VoChnAttr.stRect.u32Height = stLayerAttr.stDispRect.u32Height;
+	if (g_vo_dev_id == RK3576_VO_DEV_MIPI)
+		VoChnAttr.enRotation = ROTATION_90;
 	ret = RK_MPI_VO_SetChnAttr(VoLayer, 0, &VoChnAttr);
 
 	ret = RK_MPI_VO_EnableChn(VoLayer, u32VoChn);
@@ -1422,20 +1384,15 @@ int rkipc_pipe_vi_vpss_vo_init() {
 	}
 	LOG_INFO("RK_MPI_VO_EnableChn success\n");
 
-	vpss_rotate_chn.enModId = RK_ID_VPSS;
-	vpss_rotate_chn.s32DevId = VPSS_ROTATE;
-	vpss_rotate_chn.s32ChnId = 0;
+	vi_for_vo_chn.enModId = RK_ID_VI;
+	vi_for_vo_chn.s32DevId = 0;
+	vi_for_vo_chn.s32ChnId = g_vi_for_vo_chn_id;
 
 	vo_chn.enModId = RK_ID_VO;
 	vo_chn.s32DevId = VoLayer;
 	vo_chn.s32ChnId = 0;
 
-	ret = RK_MPI_SYS_Bind(&vi_chn, &vpss_rotate_chn);
-	if (ret != RK_SUCCESS) {
-		LOG_ERROR("vi and vpss bind error! ret=%#x\n", ret);
-		return ret;
-	}
-	ret = RK_MPI_SYS_Bind(&vpss_rotate_chn, &vo_chn);
+	ret = RK_MPI_SYS_Bind(&vi_for_vo_chn, &vo_chn);
 	if (ret != RK_SUCCESS) {
 		LOG_ERROR("vpss and vo bind error! ret=%#x\n", ret);
 		return ret;
@@ -1444,17 +1401,12 @@ int rkipc_pipe_vi_vpss_vo_init() {
 	return 0;
 }
 
-int rkipc_pipe_vi_vpss_vo_deinit() {
+int rkipc_pipe_vi_vo_deinit() {
 	int ret;
-	ret = RK_MPI_SYS_UnBind(&vpss_rotate_chn, &vo_chn);
+	ret = RK_MPI_SYS_UnBind(&vi_for_vo_chn, &vo_chn);
 	if (ret != RK_SUCCESS) {
 		LOG_ERROR("vpss and vo unbind error! ret=%#x\n", ret);
 		return ret;
-	}
-	ret = RK_MPI_SYS_UnBind(&vi_chn, &vpss_rotate_chn);
-	if (ret) {
-		LOG_ERROR("vi and vpss unbind error! ret=%#x\n", ret);
-		return -1;
 	}
 
 	// disable vo layer
@@ -1475,15 +1427,9 @@ int rkipc_pipe_vi_vpss_vo_deinit() {
 		return -1;
 	}
 
-	// disable vpss
-	VPSS_CHN VpssChn[VPSS_MAX_CHN_NUM] = {VPSS_CHN0, VPSS_CHN1, VPSS_CHN2, VPSS_CHN3};
-	VPSS_GRP VpssGrp = VPSS_ROTATE;
-	ret = RK_MPI_VPSS_StopGrp(VpssGrp);
-	ret |= RK_MPI_VPSS_DisableChn(VpssGrp, VpssChn[0]);
-	ret |= RK_MPI_VPSS_DisableBackupFrame(VpssGrp);
-	ret |= RK_MPI_VPSS_DestroyGrp(VpssGrp);
+	ret = RK_MPI_VI_DisableChn(pipe_id_, g_vi_for_vo_chn_id);
 	if (ret) {
-		LOG_ERROR("vpss destory failed\n");
+		LOG_ERROR("ERROR: RK_MPI_VI_DisableChn VI error! ret=%x\n", ret);
 		return -1;
 	}
 
@@ -2367,7 +2313,7 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 	stCoverChnAttr.unChnAttr.stCoverChn.stRect.s32Y = osd_data->origin_y;
 	stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Width = osd_data->width;
 	stCoverChnAttr.unChnAttr.stCoverChn.stRect.u32Height = osd_data->height;
-	stCoverChnAttr.unChnAttr.stCoverChn.u32Color = 0xffffff;
+	stCoverChnAttr.unChnAttr.stCoverChn.u32Color = 0xffffffff;
 	stCoverChnAttr.unChnAttr.stCoverChn.u32Layer = id;
 	LOG_INFO("cover region to chn success\n");
 	ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
@@ -2394,6 +2340,74 @@ int rkipc_osd_cover_destroy(int id) {
 		LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to vpss failed with %#x\n", RgnHandle, ret);
 	}
 	LOG_INFO("RK_MPI_RGN_DetachFromChn to vpss success\n");
+
+	// destory region
+	ret = RK_MPI_RGN_Destroy(RgnHandle);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("RK_MPI_RGN_Destroy [%d] failed with %#x\n", RgnHandle, ret);
+	}
+	LOG_INFO("Destory handle:%d success\n", RgnHandle);
+
+	return ret;
+}
+
+int rkipc_osd_mosaic_create(int id, osd_data_s *osd_data) {
+	LOG_INFO("id is %d\n", id);
+	int ret = 0;
+	RGN_HANDLE mosaic_handle = id;
+	RGN_ATTR_S mosaic_attr;
+	MPP_CHN_S mosaic_chn;
+	RGN_CHN_ATTR_S mosaic_chn_attr;
+
+	memset(&mosaic_attr, 0, sizeof(mosaic_attr));
+	memset(&mosaic_chn_attr, 0, sizeof(mosaic_chn_attr));
+	// create mosaic regions
+	mosaic_attr.enType = MOSAIC_RGN;
+	ret = RK_MPI_RGN_Create(mosaic_handle, &mosaic_attr);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("RK_MPI_RGN_Create (%d) failed with %#x\n", mosaic_handle, ret);
+		RK_MPI_RGN_Destroy(mosaic_handle);
+		return RK_FAILURE;
+	}
+	LOG_INFO("The handle: %d, create success\n", mosaic_handle);
+
+	// display mosaic regions to venc groups
+	mosaic_chn.enModId = RK_ID_VPSS;
+	mosaic_chn.s32DevId = 0;
+	mosaic_chn.s32ChnId = VPSS_GRP_ID;
+	memset(&mosaic_chn_attr, 0, sizeof(mosaic_chn_attr));
+	mosaic_chn_attr.bShow = osd_data->enable;
+	mosaic_chn_attr.enType = MOSAIC_RGN;
+	mosaic_chn_attr.unChnAttr.stMosaicChn.enMosaicType = AREA_RECT;
+	mosaic_chn_attr.unChnAttr.stMosaicChn.enBlkSize = MOSAIC_BLK_SIZE_64;
+	mosaic_chn_attr.unChnAttr.stMosaicChn.u32Layer = mosaic_handle;
+	mosaic_chn_attr.unChnAttr.stMosaicChn.stRect.s32X = osd_data->origin_x;
+	mosaic_chn_attr.unChnAttr.stMosaicChn.stRect.s32Y = osd_data->origin_y;
+	mosaic_chn_attr.unChnAttr.stMosaicChn.stRect.u32Width = osd_data->width;
+	mosaic_chn_attr.unChnAttr.stMosaicChn.stRect.u32Height = osd_data->height;
+	LOG_INFO("mosaic region to chn success\n");
+	ret = RK_MPI_RGN_AttachToChn(mosaic_handle, &mosaic_chn, &mosaic_chn_attr);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) failed with %#x\n", mosaic_handle, ret);
+		return RK_FAILURE;
+	}
+	LOG_INFO("RK_MPI_RGN_AttachToChn to vpss 0 success\n");
+
+	return ret;
+}
+
+int rkipc_osd_mosaic_destroy(int id) {
+	LOG_INFO("%s\n", __func__);
+	int ret = 0;
+	// Detach osd from chn
+	MPP_CHN_S stMppChn;
+	RGN_HANDLE RgnHandle = id;
+	stMppChn.enModId = RK_ID_VPSS;
+	stMppChn.s32DevId = 0;
+	stMppChn.s32ChnId = VPSS_GRP_ID;
+	ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
+	if (!ret)
+		LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to vpss 0 failed with %#x\n", RgnHandle, ret);
 
 	// destory region
 	ret = RK_MPI_RGN_Destroy(RgnHandle);
@@ -2510,6 +2524,8 @@ int rkipc_osd_bmp_change(int id, osd_data_s *osd_data) {
 int rkipc_osd_init() {
 	rk_osd_cover_create_callback_register(rkipc_osd_cover_create);
 	rk_osd_cover_destroy_callback_register(rkipc_osd_cover_destroy);
+	rk_osd_mosaic_create_callback_register(rkipc_osd_mosaic_create);
+	rk_osd_mosaic_destroy_callback_register(rkipc_osd_mosaic_destroy);
 	rk_osd_bmp_create_callback_register(rkipc_osd_bmp_create);
 	rk_osd_bmp_destroy_callback_register(rkipc_osd_bmp_destroy);
 	rk_osd_bmp_change_callback_register(rkipc_osd_bmp_change);
@@ -2958,7 +2974,7 @@ int rk_video_init() {
 		ret |= rkipc_venc_3_init();
 	ret |= rkipc_bind_init();
 	if (g_enable_vo)
-		ret |= rkipc_pipe_vi_vpss_vo_init();
+		ret |= rkipc_pipe_vi_vo_init();
 	//	ret |= rkipc_pipe_super_resolution_init();
 	ret |= rkipc_osd_init();
 	rk_roi_set_callback_register(rk_roi_set);
@@ -2986,7 +3002,7 @@ int rk_video_deinit() {
 	rk_roi_set_callback_register(NULL);
 	ret |= rkipc_osd_deinit();
 	if (g_enable_vo)
-		ret |= rkipc_pipe_vi_vpss_vo_deinit();
+		ret |= rkipc_pipe_vi_vo_deinit();
 	ret |= rkipc_bind_deinit();
 	if (enable_venc_0) {
 		pthread_join(venc_thread_0, NULL);
