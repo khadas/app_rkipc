@@ -784,7 +784,7 @@ int rkipc_vpss_2_init() {
 	if (ret != RK_SUCCESS)
 		LOG_ERROR("RK_MPI_VPSS_EnableChn error! ret is %#x\n", ret);
 
-	ret = RK_MPI_VPSS_SetVProcDev(VpssGrp, VIDEO_PROC_DEV_RGA);
+	ret = RK_MPI_VPSS_SetVProcDev(VpssGrp, VIDEO_PROC_DEV_VPSS);
 	ret = RK_MPI_VPSS_StartGrp(VpssGrp);
 	if (ret != RK_SUCCESS) {
 		LOG_ERROR("RK_MPI_VPSS_StartGrp error! ret is %#x\n", ret);
@@ -821,7 +821,7 @@ int rkipc_vpss_4_init() {
 	stVpssGrpAttr.u32MaxH = 8192;
 	stVpssGrpAttr.stFrameRate.s32SrcFrameRate = -1;
 	stVpssGrpAttr.stFrameRate.s32DstFrameRate = -1;
-	stVpssGrpAttr.enPixelFormat = RK_FMT_BGR888; // ROCKIVA need BGR888
+	stVpssGrpAttr.enPixelFormat = RK_FMT_YUV420SP;
 	ret = RK_MPI_VPSS_CreateGrp(VpssGrp, &stVpssGrpAttr);
 	if (ret != RK_SUCCESS) {
 		LOG_ERROR("RK_MPI_VPSS_CreateGrp error! ret is %#x\n", ret);
@@ -830,7 +830,7 @@ int rkipc_vpss_4_init() {
 
 	stVpssChnAttr[0].enChnMode = VPSS_CHN_MODE_AUTO;
 	stVpssChnAttr[0].enDynamicRange = DYNAMIC_RANGE_SDR8;
-	stVpssChnAttr[0].enPixelFormat = RK_FMT_BGR888;
+	stVpssChnAttr[0].enPixelFormat = RK_FMT_BGR888; // ROCKIVA need BGR888
 	stVpssChnAttr[0].stFrameRate.s32SrcFrameRate = -1;
 	stVpssChnAttr[0].stFrameRate.s32DstFrameRate = -1;
 	stVpssChnAttr[0].u32Width = 896;
@@ -843,7 +843,7 @@ int rkipc_vpss_4_init() {
 	if (ret != RK_SUCCESS)
 		LOG_ERROR("RK_MPI_VPSS_EnableChn error! ret is %#x\n", ret);
 
-	ret = RK_MPI_VPSS_SetVProcDev(VpssGrp, VIDEO_PROC_DEV_RGA);
+	ret = RK_MPI_VPSS_SetVProcDev(VpssGrp, VIDEO_PROC_DEV_VPSS);
 	ret = RK_MPI_VPSS_StartGrp(VpssGrp);
 	if (ret != RK_SUCCESS) {
 		LOG_ERROR("RK_MPI_VPSS_StartGrp error! ret is %#x\n", ret);
