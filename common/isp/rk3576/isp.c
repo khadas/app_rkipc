@@ -245,11 +245,22 @@ int rk_isp_set_contrast(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
 	char entry[128] = {'\0'};
-	cp_api_attrib_t attrib;
-	ret = rk_aiq_user_api2_cp_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
-	attrib.opMode = RK_AIQ_OP_MODE_MANUAL;
-	attrib.stMan.sta.contrast = value * 2.55; // value[0,255]
-	ret |= rk_aiq_user_api2_cp_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
+	// cp_api_attrib_t attrib;
+	// ret = rk_aiq_user_api2_cp_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
+	// attrib.opMode = RK_AIQ_OP_MODE_MANUAL;
+	// attrib.stMan.sta.contrast = value * 2.55; // value[0,255]
+	// ret |= rk_aiq_user_api2_cp_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
+	
+	adehaze_strength_t attr;
+	rk_aiq_uapi2_getDehazeEnhanceStrth(rkipc_aiq_get_ctx(cam_id), &attr);
+	// attr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
+	// attr.sync.done = false;
+	// attr.stDehazeManu.update = true;
+	// attr.stDehazeManu.level = value;
+	attr.en = true;
+	attr.MEnhanceStrth = value;
+	ret = rk_aiq_uapi2_setDehazeEnhanceStrth(rkipc_aiq_get_ctx(cam_id), attr);
+
 	snprintf(entry, 127, "isp.%d.adjustment:contrast", cam_id);
 	rk_param_set_int(entry, value);
 
@@ -319,6 +330,7 @@ int rk_isp_set_sharpness(int cam_id, int value) {
 	float fPercent = 0.0f;
 	fPercent = value / 100.0f;
 	asharp_strength_t sharpV4Strenght;
+        sharpV4Strenght.en = true;
 	sharpV4Strenght.percent = fPercent;
 	ret = rk_aiq_user_api2_sharp_SetStrength(rkipc_aiq_get_ctx(cam_id), &sharpV4Strenght);
 	char entry[128] = {'\0'};
@@ -892,8 +904,8 @@ int rk_isp_set_white_blance_red(int cam_id, int value) {
 		LOG_WARN("white blance is auto, not support set gain\n");
 		return 0;
 	}
-	ret = rk_aiq_user_api2_awb_GetWpModeAttrib(rkipc_aiq_get_ctx(cam_id), &wb_mwb_attr);
-	wb_mwb_attr.para.gain.rgain = value / 50.0f * wb_mwb_attr.para.gain.rgain;
+	ret = rk_aiq_user_api2_awb_GetMwbAttrib(rkipc_aiq_get_ctx(cam_id), &wb_mwb_attr);
+	wb_mwb_attr.para.gain.rgain = value / 50.0f * gs_wb_gain.rgain;
 	wb_mwb_attr.mode = RK_AIQ_MWB_MODE_WBGAIN;
 	ret = rk_aiq_user_api2_awb_SetMwbAttrib(rkipc_aiq_get_ctx(cam_id), wb_mwb_attr);
 
@@ -926,9 +938,9 @@ int rk_isp_set_white_blance_green(int cam_id, int value) {
 		LOG_WARN("white blance is auto, not support set gain\n");
 		return 0;
 	}
-	ret = rk_aiq_user_api2_awb_GetWpModeAttrib(rkipc_aiq_get_ctx(cam_id), &wb_mwb_attr);
-	wb_mwb_attr.para.gain.grgain = value / 50.0f * wb_mwb_attr.para.gain.grgain;
-	wb_mwb_attr.para.gain.gbgain = value / 50.0f * wb_mwb_attr.para.gain.gbgain;
+	ret = rk_aiq_user_api2_awb_GetMwbAttrib(rkipc_aiq_get_ctx(cam_id), &wb_mwb_attr);
+	wb_mwb_attr.para.gain.grgain = value / 50.0f * gs_wb_gain.grgain;
+	wb_mwb_attr.para.gain.gbgain = value / 50.0f * gs_wb_gain.gbgain;
 	wb_mwb_attr.mode = RK_AIQ_MWB_MODE_WBGAIN;
 	ret = rk_aiq_user_api2_awb_SetMwbAttrib(rkipc_aiq_get_ctx(cam_id), wb_mwb_attr);
 
@@ -961,8 +973,8 @@ int rk_isp_set_white_blance_blue(int cam_id, int value) {
 		LOG_WARN("white blance is auto, not support set gain\n");
 		return 0;
 	}
-	ret = rk_aiq_user_api2_awb_GetWpModeAttrib(rkipc_aiq_get_ctx(cam_id), &wb_mwb_attr);
-	wb_mwb_attr.para.gain.bgain = value / 50.0f * wb_mwb_attr.para.gain.bgain;
+	ret = rk_aiq_user_api2_awb_GetMwbAttrib(rkipc_aiq_get_ctx(cam_id), &wb_mwb_attr);
+	wb_mwb_attr.para.gain.bgain = value / 50.0f * gs_wb_gain.bgain;
 	wb_mwb_attr.mode = RK_AIQ_MWB_MODE_WBGAIN;
 	ret = rk_aiq_user_api2_awb_SetMwbAttrib(rkipc_aiq_get_ctx(cam_id), wb_mwb_attr);
 
@@ -1013,19 +1025,20 @@ int rk_isp_set_dehaze(int cam_id, const char *value) {
 	memset(&attr, 0, sizeof(attr));
 	ret = rk_aiq_user_api2_dehaze_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	if (!strcmp(value, "close")) {
-		attr.en = false;
-		if (attr.opMode == RK_AIQ_OP_MODE_AUTO)
-			attr.stAuto.sta.sw_dhazT_work_mode = dhaz_enhance_mode;
-		else if (attr.opMode == RK_AIQ_OP_MODE_MANUAL)
-			attr.stMan.sta.sw_dhazT_work_mode = dhaz_enhance_mode;
+		attr.en = true;
+                attr.opMode = RK_AIQ_OP_MODE_AUTO;
+                for (int i; i < DEHAZE_ISO_STEP_MAX; i++)
+		    attr.stAuto.dyn[i].sw_dhazT_work_mode = dhaz_dehaze_mode;
 	} else if (!strcmp(value, "open")) {
 		attr.en = true;
 		attr.opMode = RK_AIQ_OP_MODE_AUTO;
-		attr.stAuto.sta.sw_dhazT_work_mode = dhaz_dehaze_mode;
+                for (int i; i < DEHAZE_ISO_STEP_MAX; i++)
+		    attr.stAuto.dyn[i].sw_dhazT_work_mode = dhaz_dehaze_mode;
 	} else if (!strcmp(value, "auto")) {
 		attr.en = true;
 		attr.opMode = RK_AIQ_OP_MODE_AUTO;
-		attr.stAuto.sta.sw_dhazT_work_mode = dhaz_dehaze_mode;
+                for (int i; i < DEHAZE_ISO_STEP_MAX; i++)
+		    attr.stAuto.dyn[i].sw_dhazT_work_mode = dhaz_dehaze_mode;
 		adehaze_strength_t dhaz_ctrl;
 		rk_aiq_uapi2_getDehazeEnhanceStrth(rkipc_aiq_get_ctx(cam_id), &dhaz_ctrl);
 		dhaz_ctrl.en = true;
@@ -1033,6 +1046,8 @@ int rk_isp_set_dehaze(int cam_id, const char *value) {
 		rk_aiq_uapi2_setDehazeEnhanceStrth(rkipc_aiq_get_ctx(cam_id), dhaz_ctrl);
 	}
 	ret = rk_aiq_user_api2_dehaze_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
+        dehaze_status_t dhaz_status;
+        rk_aiq_user_api2_dehaze_QueryStatus(rkipc_aiq_get_ctx(cam_id), &dhaz_status);
 	snprintf(entry, 127, "isp.%d.enhancement:dehaze", cam_id);
 	rk_param_set_string(entry, value);
 
@@ -1187,14 +1202,14 @@ int rk_isp_set_dehaze_level(int cam_id, int value) {
 	}
 
 	adehaze_strength_t attr;
-	rk_aiq_uapi2_getDehazeEnhanceStrth(rkipc_aiq_get_ctx(cam_id), &attr);
+	int ret = rk_aiq_uapi2_getDehazeEnhanceStrth(rkipc_aiq_get_ctx(cam_id), &attr);
 	// attr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
 	// attr.sync.done = false;
 	// attr.stDehazeManu.update = true;
 	// attr.stDehazeManu.level = value;
 	attr.en = true;
-	attr.MDehazeStrth = value;
-	int ret = rk_aiq_uapi2_setDehazeEnhanceStrth(rkipc_aiq_get_ctx(cam_id), attr);
+	attr.MDehazeStrth = value * 10;
+	ret = rk_aiq_uapi2_setDehazeEnhanceStrth(rkipc_aiq_get_ctx(cam_id), attr);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.enhancement:dehaze_level", cam_id);
 	rk_param_set_int(entry, value);
