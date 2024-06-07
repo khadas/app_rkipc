@@ -111,10 +111,6 @@ int sample_common_isp_init(int cam_id, rk_aiq_working_mode_t WDRMode, bool Multi
 #endif
 	// if (MultiCam)
 	// 	rk_aiq_uapi2_sysctl_setMulCamConc(aiq_ctx, true);
-	if (rk_param_get_int("video.source:enable_aiisp", 0)) {
-		rk_aiq_uapi2_sysctl_setMulCamConc(aiq_ctx, true); // aiisp need offline mode
-		rk_aiq_uapi2_sysctl_initAiisp(aiq_ctx, NULL, NULL);
-	}
 
 	g_aiq_ctx[cam_id] = aiq_ctx;
 
