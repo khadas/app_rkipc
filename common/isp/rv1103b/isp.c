@@ -1566,112 +1566,33 @@ int rk_isp_set_image_flip(int cam_id, const char *value) {
 // auto focus
 
 int rk_isp_get_af_mode(int cam_id, const char **value) {
-	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	char entry[128] = {'\0'};
-	snprintf(entry, 127, "isp.%d.auto_focus:af_mode", rkipc_get_scenario_id(cam_id));
-	*value = rk_param_get_string(entry, "auto");
-
+	LOG_INFO("1103b not support AF\n");
 	return 0;
 }
 
 int rk_isp_set_af_mode(int cam_id, const char *value) {
-	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	int ret = 0;
-	char entry[128] = {'\0'};
-	opMode_t af_mode = OP_AUTO;
-	if (value == NULL)
-		return -1;
-	if (!strcmp(value, "auto")) {
-		af_mode = OP_AUTO;
-	} else if (!strcmp(value, "semi-auto")) {
-		af_mode = OP_SEMI_AUTO;
-	} else if (!strcmp(value, "manual")) {
-		af_mode = OP_MANUAL;
-	} else {
-		return -1;
-	}
-	ret = rk_aiq_uapi2_setFocusMode(rkipc_aiq_get_ctx(cam_id), af_mode);
-	LOG_INFO("set af mode: %s, ret: %d\n", value, ret);
-	snprintf(entry, 127, "isp.%d.auto_focus:af_mode", rkipc_get_scenario_id(cam_id));
-	rk_param_set_string(entry, value);
-
+	LOG_INFO("1103b not support AF\n");
 	return 0;
 }
 
 int rk_isp_get_zoom_level(int cam_id, int *value) {
-	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	char entry[128] = {'\0'};
-	snprintf(entry, 127, "isp.%d.auto_focus:zoom_level", rkipc_get_scenario_id(cam_id));
-	*value = rk_param_get_int(entry, -1);
-
+	LOG_INFO("1103b not support AF\n");
 	return 0;
 }
 
 int rk_isp_get_focus_level(int cam_id, int *value) {
-	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	char entry[128] = {'\0'};
-	snprintf(entry, 127, "isp.%d.auto_focus:focus_level", rkipc_get_scenario_id(cam_id));
-	*value = rk_param_get_int(entry, -1);
-
+	LOG_INFO("1103b not support AF\n");
 	return 0;
 }
 
 int rk_isp_af_zoom_change(int cam_id, int change) {
-	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	int ret = 0;
-	int code = 0;
-	char entry[128] = {'\0'};
-
-	rk_aiq_af_zoomrange af_zoom_range = {0};
-	ret = rk_aiq_uapi2_getZoomRange(rkipc_aiq_get_ctx(cam_id), &af_zoom_range);
-	if (ret) {
-		LOG_ERROR("get zoom range fail: %d\n", ret);
-		return ret;
-	}
-	rk_aiq_uapi2_getOpZoomPosition(rkipc_aiq_get_ctx(cam_id), &code);
-	code += change;
-	if ((code < af_zoom_range.min_pos) || (code > af_zoom_range.max_pos)) {
-		LOG_ERROR("set zoom: %d over range [%d, %d]\n", code, af_zoom_range.min_pos,
-		          af_zoom_range.max_pos);
-		ret = -1;
-	}
-	ret = rk_aiq_uapi2_setOpZoomPosition(rkipc_aiq_get_ctx(cam_id), code);
-	LOG_INFO("set zoom: %d, ret: %d\n", code, ret);
-	snprintf(entry, 127, "isp.%d.auto_focus:zoom_level", rkipc_get_scenario_id(cam_id));
-	rk_param_set_int(entry, code);
-
-	return ret;
+	LOG_INFO("1103b not support AF\n");
+	return 0;
 }
 
 int rk_isp_af_focus_change(int cam_id, int change) {
-	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	int ret = 0;
-	short code = 0;
-	char entry[128] = {'\0'};
-	snprintf(entry, 127, "isp.%d.auto_focus:af_mode", rkipc_get_scenario_id(cam_id));
-	const char *af_mode = rk_param_get_string(entry, "auto");
-	if (!strcmp(af_mode, "auto"))
-		return 0;
-
-	rk_aiq_af_focusrange af_focus_range = {0};
-	ret = rk_aiq_uapi2_getFocusRange(rkipc_aiq_get_ctx(cam_id), &af_focus_range);
-	if (ret) {
-		LOG_ERROR("get focus range fail: %d\n", ret);
-		return ret;
-	}
-	rk_aiq_uapi2_getFocusPosition(rkipc_aiq_get_ctx(cam_id), &code);
-	code += change;
-	if ((code < af_focus_range.min_pos) || (code > af_focus_range.max_pos)) {
-		LOG_ERROR("before set getFocusPosition: %d over range (%d, %d)\n", code,
-		          af_focus_range.min_pos, af_focus_range.max_pos);
-		return -1;
-	}
-	ret = rk_aiq_uapi2_setFocusPosition(rkipc_aiq_get_ctx(cam_id), code);
-	LOG_INFO("set setFocusPosition: %d, ret: %d\n", code, ret);
-	snprintf(entry, 127, "isp.%d.auto_focus:focus_level", rkipc_get_scenario_id(cam_id));
-	rk_param_set_int(entry, code);
-
-	return ret;
+	LOG_INFO("1103b not support AF\n");
+	return 0;
 }
 
 int rk_isp_af_zoom_in(int cam_id) { return rk_isp_af_zoom_change(cam_id, 20); }
@@ -1683,8 +1604,8 @@ int rk_isp_af_focus_in(int cam_id) { return rk_isp_af_focus_change(cam_id, 1); }
 int rk_isp_af_focus_out(int cam_id) { return rk_isp_af_focus_change(cam_id, -1); }
 
 int rk_isp_af_focus_once(int cam_id) {
-	LOG_INFO("af_focus_once\n");
-	return rk_aiq_uapi2_endOpZoomChange(rkipc_aiq_get_ctx(cam_id));
+	LOG_INFO("1103b not support AF\n");
+	return 0;
 }
 
 int rk_isp_fastboot_init(int cam_id) {
