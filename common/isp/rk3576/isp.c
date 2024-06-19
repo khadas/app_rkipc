@@ -2,10 +2,10 @@
 #include "common.h"
 #include "video.h"
 
-#include "rk_aiq_user_api2_rk3576.h"
 #include <rk_aiq_user_api2_acsm.h>
 #include <rk_aiq_user_api2_camgroup.h>
 #include <rk_aiq_user_api2_sysctl.h>
+#include "rk_aiq_user_api2_rk3576.h"
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -867,14 +867,15 @@ int rk_isp_get_white_blance_style(int cam_id, const char **value) {
 int rk_isp_set_white_blance_style(int cam_id, const char *value) {
 	int ret;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	rk_aiq_uapiV2_wb_opMode_t attr;
+	awb_gainCtrl_t attr;
 
+	rk_aiq_user_api2_awb_GetWbGainCtrlAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	if (!strcmp(value, "manualWhiteBalance")) {
-		attr.mode = RK_AIQ_WB_MODE_MANUAL;
+		attr.opMode = RK_AIQ_OP_MODE_MANUAL;
 	} else {
-		attr.mode = RK_AIQ_WB_MODE_AUTO;
+		attr.opMode = RK_AIQ_OP_MODE_AUTO;
 	}
-	ret = rk_aiq_user_api2_awb_SetWpModeAttrib(rkipc_aiq_get_ctx(cam_id), attr);
+	ret = rk_aiq_user_api2_awb_SetWbGainCtrlAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.white_blance:white_blance_style", cam_id);
 	rk_param_set_string(entry, value);
@@ -894,20 +895,16 @@ int rk_isp_get_white_blance_red(int cam_id, int *value) {
 int rk_isp_set_white_blance_red(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
-	rk_aiq_uapiV2_wb_opMode_t mode_attr;
-	rk_aiq_wb_mwb_attrib_t wb_mwb_attr;
-	rk_aiq_wb_gain_t gain;
-	rk_aiq_wb_querry_info_t query_info;
+	awb_gainCtrl_t gain_ctrl;
 
-	rk_aiq_user_api2_awb_GetWpModeAttrib(rkipc_aiq_get_ctx(cam_id), &mode_attr);
-	if (mode_attr.mode == RK_AIQ_WB_MODE_AUTO) {
+	rk_aiq_user_api2_awb_GetWbGainCtrlAttrib(rkipc_aiq_get_ctx(cam_id), &gain_ctrl);
+	if (gain_ctrl.opMode == RK_AIQ_OP_MODE_AUTO) {
 		LOG_WARN("white blance is auto, not support set gain\n");
 		return 0;
 	}
-	ret = rk_aiq_user_api2_awb_GetMwbAttrib(rkipc_aiq_get_ctx(cam_id), &wb_mwb_attr);
-	wb_mwb_attr.para.gain.rgain = value / 50.0f * gs_wb_gain.rgain;
-	wb_mwb_attr.mode = RK_AIQ_MWB_MODE_WBGAIN;
-	ret = rk_aiq_user_api2_awb_SetMwbAttrib(rkipc_aiq_get_ctx(cam_id), wb_mwb_attr);
+	gain_ctrl.manualPara.cfg.manual_wbgain[0] = value / 50.0f * gs_wb_gain.rgain;
+	gain_ctrl.manualPara.mode = mwb_mode_wbgain;
+	ret = rk_aiq_user_api2_awb_SetWbGainCtrlAttrib(rkipc_aiq_get_ctx(cam_id), &gain_ctrl);
 
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.white_blance:white_blance_red", cam_id);
@@ -928,21 +925,17 @@ int rk_isp_get_white_blance_green(int cam_id, int *value) {
 int rk_isp_set_white_blance_green(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
-	rk_aiq_uapiV2_wb_opMode_t mode_attr;
-	rk_aiq_wb_mwb_attrib_t wb_mwb_attr;
-	rk_aiq_wb_gain_t gain;
-	rk_aiq_wb_querry_info_t query_info;
+	awb_gainCtrl_t gain_ctrl;
 
-	rk_aiq_user_api2_awb_GetWpModeAttrib(rkipc_aiq_get_ctx(cam_id), &mode_attr);
-	if (mode_attr.mode == RK_AIQ_WB_MODE_AUTO) {
+	rk_aiq_user_api2_awb_GetWbGainCtrlAttrib(rkipc_aiq_get_ctx(cam_id), &gain_ctrl);
+	if (gain_ctrl.opMode == RK_AIQ_OP_MODE_AUTO) {
 		LOG_WARN("white blance is auto, not support set gain\n");
 		return 0;
 	}
-	ret = rk_aiq_user_api2_awb_GetMwbAttrib(rkipc_aiq_get_ctx(cam_id), &wb_mwb_attr);
-	wb_mwb_attr.para.gain.grgain = value / 50.0f * gs_wb_gain.grgain;
-	wb_mwb_attr.para.gain.gbgain = value / 50.0f * gs_wb_gain.gbgain;
-	wb_mwb_attr.mode = RK_AIQ_MWB_MODE_WBGAIN;
-	ret = rk_aiq_user_api2_awb_SetMwbAttrib(rkipc_aiq_get_ctx(cam_id), wb_mwb_attr);
+	gain_ctrl.manualPara.cfg.manual_wbgain[1] = value / 50.0f * gs_wb_gain.grgain;
+	gain_ctrl.manualPara.cfg.manual_wbgain[2] = value / 50.0f * gs_wb_gain.gbgain;
+	gain_ctrl.manualPara.mode = mwb_mode_wbgain;
+	ret = rk_aiq_user_api2_awb_SetWbGainCtrlAttrib(rkipc_aiq_get_ctx(cam_id), &gain_ctrl);
 
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.white_blance:white_blance_green", cam_id);
@@ -963,20 +956,16 @@ int rk_isp_get_white_blance_blue(int cam_id, int *value) {
 int rk_isp_set_white_blance_blue(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
-	rk_aiq_uapiV2_wb_opMode_t mode_attr;
-	rk_aiq_wb_mwb_attrib_t wb_mwb_attr;
-	rk_aiq_wb_gain_t gain;
-	rk_aiq_wb_querry_info_t query_info;
+	awb_gainCtrl_t gain_ctrl;
 
-	rk_aiq_user_api2_awb_GetWpModeAttrib(rkipc_aiq_get_ctx(cam_id), &mode_attr);
-	if (mode_attr.mode == RK_AIQ_WB_MODE_AUTO) {
+	rk_aiq_user_api2_awb_GetWbGainCtrlAttrib(rkipc_aiq_get_ctx(cam_id), &gain_ctrl);
+	if (gain_ctrl.opMode == RK_AIQ_OP_MODE_AUTO) {
 		LOG_WARN("white blance is auto, not support set gain\n");
 		return 0;
 	}
-	ret = rk_aiq_user_api2_awb_GetMwbAttrib(rkipc_aiq_get_ctx(cam_id), &wb_mwb_attr);
-	wb_mwb_attr.para.gain.bgain = value / 50.0f * gs_wb_gain.bgain;
-	wb_mwb_attr.mode = RK_AIQ_MWB_MODE_WBGAIN;
-	ret = rk_aiq_user_api2_awb_SetMwbAttrib(rkipc_aiq_get_ctx(cam_id), wb_mwb_attr);
+	gain_ctrl.manualPara.cfg.manual_wbgain[3] = value / 50.0f * gs_wb_gain.bgain;
+	gain_ctrl.manualPara.mode = mwb_mode_wbgain;
+	ret = rk_aiq_user_api2_awb_SetWbGainCtrlAttrib(rkipc_aiq_get_ctx(cam_id), &gain_ctrl);
 
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.white_blance:white_blance_blue", cam_id);
@@ -1028,7 +1017,7 @@ int rk_isp_set_dehaze(int cam_id, const char *value) {
 		attr.en = true;
                 attr.opMode = RK_AIQ_OP_MODE_AUTO;
                 for (int i; i < DEHAZE_ISO_STEP_MAX; i++)
-		    attr.stAuto.dyn[i].sw_dhazT_work_mode = dhaz_dehaze_mode;
+		    attr.stAuto.dyn[i].sw_dhazT_work_mode = dhaz_enhance_mode;
 	} else if (!strcmp(value, "open")) {
 		attr.en = true;
 		attr.opMode = RK_AIQ_OP_MODE_AUTO;
