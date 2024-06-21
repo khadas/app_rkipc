@@ -37,6 +37,7 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/common/storage SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/event SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/rockiva SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/region_clip SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/sysutil SRCS)
 
 include_directories(video
 					${PROJECT_SOURCE_DIR}/common
@@ -55,6 +56,7 @@ include_directories(video
 					${PROJECT_SOURCE_DIR}/common/event
 					${PROJECT_SOURCE_DIR}/common/rockiva
 					${PROJECT_SOURCE_DIR}/common/region_clip
+					${PROJECT_SOURCE_DIR}/common/sysutil
 					)
 
 link_directories(${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1031-linux-gnu)

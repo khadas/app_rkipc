@@ -94,6 +94,7 @@ int main(int argc, char **argv) {
 
 	// init
 	rk_param_init(rkipc_ini_path_);
+	rk_network_init(NULL);
 	rk_system_init();
 	if (rk_param_get_int("video.source:enable_npu", 0))
 		rkipc_rockiva_init();
@@ -122,6 +123,7 @@ int main(int argc, char **argv) {
 	rk_isp_deinit(rkipc_camera_id_);
 	if (rk_param_get_int("video.source:enable_npu", 0))
 		rkipc_rockiva_deinit();
+	rk_network_deinit();
 	rk_param_deinit();
 	LOG_INFO("rkipc deinit over\n");
 

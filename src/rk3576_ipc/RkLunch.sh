@@ -55,6 +55,8 @@ post_chk()
 		cp $default_rkipc_ini $rkipc_ini -f
 	fi
 
+	# avoid MIPI screen not displaying when startup
+	export rt_vo_disable_vop=0
 	if [ -d "/usr/share/iqfiles" ];then
 		rkipc -a /usr/share/iqfiles &
 	else

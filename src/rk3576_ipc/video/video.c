@@ -31,6 +31,7 @@
 #define RK3576_VO_DEV_HDMI 0
 #define RK3576_VO_DEV_MIPI 1
 #define RK3576_VOP_LAYER_CLUSTER0 0
+#define RK3576_VOP_LAYER_ESMART1 5
 
 #define RTSP_URL_0 "/live/0"
 #define RTSP_URL_1 "/live/1"
@@ -58,7 +59,7 @@ static pthread_t venc_thread_0, venc_thread_1, venc_thread_2, jpeg_venc_thread_i
     super_resolution_thread_id, get_vpss_2_send_npu_thread, get_nn_update_osd_thread_id;
 
 static MPP_CHN_S vi_chn, vpss_in_chn, vi_for_vo_chn, vo_chn, vpss_out_chn[4], venc_chn[4];
-static VO_DEV VoLayer = RK3576_VOP_LAYER_CLUSTER0;
+static VO_DEV VoLayer = RK3576_VOP_LAYER_ESMART1;
 
 // static void *test_get_vi(void *arg) {
 // 	printf("#Start %s thread, arg:%p\n", __func__, arg);
