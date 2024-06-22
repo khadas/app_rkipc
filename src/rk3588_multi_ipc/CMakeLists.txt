@@ -13,6 +13,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include
 					${CMAKE_SYSROOT}/usr/include/rkaiq/xcore
 					${CMAKE_SYSROOT}/usr/include/rkaiq/iq_parser
 					${CMAKE_SYSROOT}/usr/include/rkaiq/iq_parser_v2
+					${CMAKE_SYSROOT}/usr/include/freetype2
 					${CMAKE_SYSROOT}/usr/include/libdrm
 					${WPA_SUPPLICANT_INCLUDE_DIRS}
 					)
@@ -58,6 +59,7 @@ include_directories(video
 
 link_directories(${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1031-linux-gnu)
 
+add_definitions(-DRKIPC_RK3588)
 add_definitions(-DISP_HW_V30)
 add_definitions(-g -ggdb)
 add_definitions(-Wall)
@@ -67,7 +69,7 @@ add_definitions(-Wall)
 # add_definitions(-fno-stack-protector -fno-omit-frame-pointer -fsanitize-recover=address)
 # link_libraries(asan)
 add_executable(${PROJECT_NAME} ${SRCS})
-target_link_libraries(${PROJECT_NAME} pthread rockit rkaiq rtsp freetype wpa_client rkmuxer rockiva m iconv panoStitchApp)
+target_link_libraries(${PROJECT_NAME} pthread rockit rkaiq rtsp freetype wpa_client rkmuxer rockiva m panoStitchApp)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 install(FILES rkipc-6x.ini DESTINATION share)

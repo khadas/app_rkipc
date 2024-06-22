@@ -206,7 +206,12 @@ int rkipc_rockiva_init() {
 	if (!strcmp(model_type, "small") || !strcmp(model_type, "medium")) {
 		globalParams.detModel |= ROCKIVA_DET_MODEL_PFP;
 	} else if (!strcmp(model_type, "big")) {
+#if defined(RKIPC_RK3588)
+#warning "FIXME: need add cls8 support for rk3588 platform"
+		globalParams.detModel |= ROCKIVA_DET_MODEL_CLS7;
+#else
 		globalParams.detModel |= ROCKIVA_DET_MODEL_CLS8;
+#endif
 	}
 	globalParams.imageInfo.width = rk_param_get_int("video.2:width", 960);
 	globalParams.imageInfo.height = rk_param_get_int("video.2:height", 540);
