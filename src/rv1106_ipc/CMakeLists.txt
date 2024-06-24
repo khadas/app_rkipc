@@ -54,14 +54,15 @@ message(STATUS "RK_APP_CHIP is ${RK_APP_CHIP}")
 if(RK_APP_CHIP STREQUAL "rv1103b")
 	aux_source_directory(${PROJECT_SOURCE_DIR}/common/isp/rv1103b SRCS)
 	include_directories(${PROJECT_SOURCE_DIR}/common/isp/rv1103b)
+	add_definitions(-DISP_HW_V33)
 else()
 	aux_source_directory(${PROJECT_SOURCE_DIR}/common/isp/rv1106 SRCS)
 	include_directories(${PROJECT_SOURCE_DIR}/common/isp/rv1106)
+	add_definitions(-DISP_HW_V32)
 endif()
 
 link_directories(${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-uclibcgnueabihf)
 
-add_definitions(-DISP_HW_V32)
 #add_definitions(-g -ggdb)
 # add_definitions(-Os)
 
