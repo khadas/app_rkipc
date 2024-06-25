@@ -61,15 +61,15 @@ post_chk()
 	done
 
 	network_init&
-	check_linker /userdata   /oem/usr/www/userdata
-	check_linker /media/usb0 /oem/usr/www/usb0
-	check_linker /mnt/sdcard /oem/usr/www/sdcard
+	check_linker /userdata   /usr/www/userdata
+	check_linker /media/usb0 /usr/www/usb0
+	check_linker /mnt/sdcard /usr/www/sdcard
 
 	# if /data/rkipc not exist, cp /usr/share
 	rkipc_ini=/userdata/rkipc.ini
 	default_rkipc_ini=/tmp/rkipc-factory-config.ini
 	if [ ! -f "$default_rkipc_ini" ];then
-		ln -s -f /oem/usr/share/rkipc.ini $default_rkipc_ini
+		ln -s -f /usr/share/rkipc.ini $default_rkipc_ini
 	fi
 	if [ ! -f "$default_rkipc_ini" ];then
 		echo "Error: not found rkipc.ini !!!"
@@ -79,8 +79,8 @@ post_chk()
 		cp $default_rkipc_ini $rkipc_ini -f
 	fi
 
-	if [ -d "/oem/usr/share/iqfiles" ];then
-		rkipc -a /oem/usr/share/iqfiles &
+	if [ -d "/etc/iqfiles" ];then
+		rkipc -a /etc/iqfiles &
 	else
 		rkipc &
 	fi
