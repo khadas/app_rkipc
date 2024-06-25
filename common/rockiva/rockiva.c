@@ -199,7 +199,7 @@ int rkipc_rockiva_init() {
 	//     }
 	// }
 
-	snprintf(globalParams.modelPath, ROCKIVA_PATH_LENGTH, "/usr/lib/");
+	snprintf(globalParams.modelPath, ROCKIVA_PATH_LENGTH, "/oem/usr/lib/");
 	globalParams.coreMask = 0x04;
 	globalParams.logLevel = ROCKIVA_LOG_ERROR;
 	model_type = rk_param_get_string("event.regional_invasion:rockiva_model_type", "small");
