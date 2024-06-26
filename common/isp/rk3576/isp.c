@@ -255,12 +255,11 @@ int rk_isp_set_frame_rate(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
 	char entry[128] = {'\0'};
-	ae_api_expSwAttr_t expSwAttr;
+	frameRateInfo_t info;
+    info.mode = OP_MANUAL;
+    info.fps  = value;
 	LOG_INFO("start %d\n", value);
-	ret = rk_aiq_user_api2_ae_getExpSwAttr(rkipc_aiq_get_ctx(cam_id), &expSwAttr);
-	expSwAttr.commCtrl.frmRate.sw_aeT_frmRate_mode = ae_frmRate_fix_mode;
-	expSwAttr.commCtrl.frmRate.sw_aeT_frmRate_val = value;
-	ret = rk_aiq_user_api2_ae_setExpSwAttr(rkipc_aiq_get_ctx(cam_id), expSwAttr);
+	ret = rk_aiq_uapi2_setFrameRate(rkipc_aiq_get_ctx(cam_id), info);
 	LOG_INFO("end, %d\n", value);
 
 	snprintf(entry, 127, "isp.%d.adjustment:fps", cam_id);
@@ -298,21 +297,10 @@ int rk_isp_set_contrast(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
 	char entry[128] = {'\0'};
-	// cp_api_attrib_t attrib;
-	// ret = rk_aiq_user_api2_cp_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
-	// attrib.opMode = RK_AIQ_OP_MODE_MANUAL;
-	// attrib.stMan.sta.contrast = value * 2.55; // value[0,255]
-	// ret |= rk_aiq_user_api2_cp_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
-	
-	adehaze_strength_t attr;
-	rk_aiq_uapi2_getDehazeEnhanceStrth(rkipc_aiq_get_ctx(cam_id), &attr);
-	// attr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
-	// attr.sync.done = false;
-	// attr.stDehazeManu.update = true;
-	// attr.stDehazeManu.level = value;
-	attr.en = true;
-	attr.MEnhanceStrth = value;
-	ret = rk_aiq_uapi2_setDehazeEnhanceStrth(rkipc_aiq_get_ctx(cam_id), attr);
+
+    unsigned int level = 0;
+    level = value * 2.55; // value[0,255]
+	ret = rk_aiq_uapi2_setContrast(rkipc_aiq_get_ctx(cam_id), value);
 
 	snprintf(entry, 127, "isp.%d.adjustment:contrast", cam_id);
 	rk_param_set_int(entry, value);
@@ -333,11 +321,9 @@ int rk_isp_set_brightness(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
 	char entry[128] = {'\0'};
-	cp_api_attrib_t attrib;
-	ret = rk_aiq_user_api2_cp_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
-	attrib.opMode = RK_AIQ_OP_MODE_MANUAL;
-	attrib.stMan.sta.brightness = value * 2.55; // value[0,255]
-	ret |= rk_aiq_user_api2_cp_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
+	unsigned int level = 0;
+	level = value * 2.55; // value[0,255]
+	ret = rk_aiq_uapi2_setBrightness(rkipc_aiq_get_ctx(cam_id), level);
 	snprintf(entry, 127, "isp.%d.adjustment:brightness", cam_id);
 	rk_param_set_int(entry, value);
 
@@ -357,11 +343,9 @@ int rk_isp_set_saturation(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
 	char entry[128] = {'\0'};
-	cp_api_attrib_t attrib;
-	ret = rk_aiq_user_api2_cp_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
-	attrib.opMode = RK_AIQ_OP_MODE_MANUAL;
-	attrib.stMan.sta.saturation = value * 2.55;
-	ret |= rk_aiq_user_api2_cp_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
+	unsigned int level = 0;
+	level = value * 2.55; // value[0,255]
+	ret = rk_aiq_uapi2_setSaturation(rkipc_aiq_get_ctx(cam_id), level);
 	snprintf(entry, 127, "isp.%d.adjustment:saturation", cam_id);
 	rk_param_set_int(entry, value);
 
@@ -380,12 +364,7 @@ int rk_isp_get_sharpness(int cam_id, int *value) {
 int rk_isp_set_sharpness(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret = 0;
-	float fPercent = 0.0f;
-	fPercent = value / 100.0f;
-	asharp_strength_t sharpV4Strenght;
-        sharpV4Strenght.en = true;
-	sharpV4Strenght.percent = fPercent;
-	ret = rk_aiq_user_api2_sharp_SetStrength(rkipc_aiq_get_ctx(cam_id), &sharpV4Strenght);
+	ret = rk_aiq_uapi2_setSharpness(rkipc_aiq_get_ctx(cam_id), value);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.adjustment:sharpness", cam_id);
 	rk_param_set_int(entry, value);
@@ -406,14 +385,9 @@ int rk_isp_set_hue(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
 	char entry[128] = {'\0'};
-	cp_api_attrib_t attrib;
-	ret = rk_aiq_user_api2_cp_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
-	attrib.opMode = RK_AIQ_OP_MODE_MANUAL;
-	if (attrib.opMode == RK_AIQ_OP_MODE_AUTO)
-		attrib.stAuto.sta.hue = value * 2.55; // value[0,255]
-	else
-		attrib.stMan.sta.hue = value * 2.55;
-	ret |= rk_aiq_user_api2_cp_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attrib);
+	unsigned int level = 0;
+	level = value * 2.55; // value[0,255]
+	ret = rk_aiq_uapi2_setHue(rkipc_aiq_get_ctx(cam_id), level);
 	snprintf(entry, 127, "isp.%d.adjustment:hue", cam_id);
 	rk_param_set_int(entry, value);
 
@@ -432,22 +406,13 @@ int rk_isp_get_exposure_mode(int cam_id, const char **value) {
 
 int rk_isp_set_exposure_mode(int cam_id, const char *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	ae_api_expSwAttr_t expSwAttr;
-	rk_aiq_user_api2_ae_getExpSwAttr(rkipc_aiq_get_ctx(cam_id), &expSwAttr);
+    opMode_t mode;
 	if (!strcmp(value, "auto")) {
-		expSwAttr.commCtrl.sw_aeT_opt_mode = RK_AIQ_OP_MODE_AUTO;
+		mode = OP_AUTO;
 	} else {
-		if (g_WDRMode[cam_id] != RK_AIQ_WORKING_MODE_NORMAL) {
-			expSwAttr.commCtrl.sw_aeT_opt_mode = RK_AIQ_OP_MODE_MANUAL;
-			expSwAttr.commCtrl.meCtrl.hdrMe.sw_aeT_manGain_en = true;
-			expSwAttr.commCtrl.meCtrl.hdrMe.sw_aeT_manTime_en = true;
-		} else {
-			expSwAttr.commCtrl.sw_aeT_opt_mode = RK_AIQ_OP_MODE_MANUAL;
-			expSwAttr.commCtrl.meCtrl.linMe.sw_aeT_manGain_en = true;
-			expSwAttr.commCtrl.meCtrl.linMe.sw_aeT_manTime_en = true;
-		}
+        mode = OP_MANUAL;
 	}
-	int ret = rk_aiq_user_api2_ae_setExpSwAttr(rkipc_aiq_get_ctx(cam_id), expSwAttr);
+    int ret = rk_aiq_uapi2_setExpMode(rkipc_aiq_get_ctx(cam_id), mode);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.exposure:exposure_mode", cam_id);
 	rk_param_set_string(entry, value);
@@ -466,19 +431,13 @@ int rk_isp_get_gain_mode(int cam_id, const char **value) {
 
 int rk_isp_set_gain_mode(int cam_id, const char *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	ae_api_expSwAttr_t stExpSwAttr;
-
-	rk_aiq_user_api2_ae_getExpSwAttr(rkipc_aiq_get_ctx(cam_id), &stExpSwAttr);
+    opMode_t mode;
 	if (!strcmp(value, "auto")) {
-		stExpSwAttr.commCtrl.meCtrl.linMe.sw_aeT_manGain_en = false;
-		stExpSwAttr.commCtrl.meCtrl.hdrMe.sw_aeT_manGain_en = false;
+		mode = OP_AUTO;
 	} else {
-		stExpSwAttr.commCtrl.meCtrl.linMe.sw_aeT_manGain_en = true;
-		stExpSwAttr.commCtrl.meCtrl.hdrMe.sw_aeT_manGain_en = true;
-		// stExpSwAttr.stManual.LinearAE.ManualGainEn = true;
-		// stExpSwAttr.stManual.HdrAE.ManualGainEn = true;
+        mode = OP_MANUAL;
 	}
-	int ret = rk_aiq_user_api2_ae_setExpSwAttr(rkipc_aiq_get_ctx(cam_id), stExpSwAttr);
+    int ret = rk_aiq_uapi2_setExpGainMode(rkipc_aiq_get_ctx(cam_id), mode);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.exposure:gain_mode", cam_id);
 	rk_param_set_string(entry, value);
@@ -497,7 +456,6 @@ int rk_isp_get_exposure_time(int cam_id, const char **value) {
 
 int rk_isp_set_exposure_time(int cam_id, const char *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	ae_api_expSwAttr_t stExpSwAttr;
 	float den, num, result;
 	if (strchr(value, '/') == NULL) {
 		den = 1;
@@ -506,12 +464,7 @@ int rk_isp_set_exposure_time(int cam_id, const char *value) {
 		sscanf(value, "%f/%f", &num, &den);
 		result = num / den;
 	}
-	rk_aiq_user_api2_ae_getExpSwAttr(rkipc_aiq_get_ctx(cam_id), &stExpSwAttr);
-	stExpSwAttr.commCtrl.meCtrl.linMe.sw_aeT_manTime_val = result;
-	stExpSwAttr.commCtrl.meCtrl.hdrMe.sw_aeT_manTime_val[0] = result;
-	stExpSwAttr.commCtrl.meCtrl.hdrMe.sw_aeT_manTime_val[1] = result;
-	stExpSwAttr.commCtrl.meCtrl.hdrMe.sw_aeT_manTime_val[2] = result;
-	int ret = rk_aiq_user_api2_ae_setExpSwAttr(rkipc_aiq_get_ctx(cam_id), stExpSwAttr);
+	int ret = rk_aiq_uapi2_setExpManualTime(rkipc_aiq_get_ctx(cam_id), result);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.exposure:exposure_time", cam_id);
 	rk_param_set_string(entry, value);
@@ -530,18 +483,8 @@ int rk_isp_get_exposure_gain(int cam_id, int *value) {
 
 int rk_isp_set_exposure_gain(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	ae_api_expSwAttr_t stExpSwAttr;
 	float gain_set = (value * 1.0f);
-	rk_aiq_user_api2_ae_getExpSwAttr(rkipc_aiq_get_ctx(cam_id), &stExpSwAttr);
-	stExpSwAttr.commCtrl.meCtrl.linMe.sw_aeT_manGain_val = gain_set;
-	stExpSwAttr.commCtrl.meCtrl.hdrMe.sw_aeT_manGain_val[0] = gain_set;
-	stExpSwAttr.commCtrl.meCtrl.hdrMe.sw_aeT_manGain_val[1] = gain_set;
-	stExpSwAttr.commCtrl.meCtrl.hdrMe.sw_aeT_manGain_val[2] = gain_set;
-	// stExpSwAttr.stManual.LinearAE.GainValue = gain_set;
-	// stExpSwAttr.stManual.HdrAE.GainValue[0] = gain_set;
-	// stExpSwAttr.stManual.HdrAE.GainValue[1] = gain_set;
-	// stExpSwAttr.stManual.HdrAE.GainValue[2] = gain_set;
-	int ret = rk_aiq_user_api2_ae_setExpSwAttr(rkipc_aiq_get_ctx(cam_id), stExpSwAttr);
+	int ret = rk_aiq_uapi2_setExpManualGain(rkipc_aiq_get_ctx(cam_id), gain_set);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.exposure:exposure_gain", cam_id);
 	rk_param_set_int(entry, value);
@@ -562,20 +505,16 @@ int rk_isp_get_night_to_day(int cam_id, const char **value) {
 int rk_isp_set_night_to_day(int cam_id, const char *value) {
 	int ret;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	ie_api_attrib_t attr;
-	rk_aiq_user_api2_ie_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
-	attr.opMode = RK_AIQ_OP_MODE_MANUAL;
+
 	if (!strcmp(value, "night")) {
-		attr.en = true;
-		rk_aiq_user_api2_ie_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
+		rk_aiq_uapi2_setColorMode(rkipc_aiq_get_ctx(cam_id), 1);
 		usleep(200*1000); // avoid flashing red
 		rk_isp_enable_ircut(false);
 	} else {
 		rk_isp_enable_ircut(true);
 		if (light_state == 1)
 			rk_isp_close_light(3);
-		attr.en = false;
-		rk_aiq_user_api2_ie_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
+		rk_aiq_uapi2_setColorMode(rkipc_aiq_get_ctx(cam_id), 0);
 	}
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.night_to_day:night_to_day", cam_id);
@@ -746,22 +685,17 @@ int rk_isp_set_blc_region(int cam_id, const char *value) {
 	int ret;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	RK_ISP_CHECK_NORMAL_MODE(cam_id);
-	ae_api_linExpAttr_t LineExpAttr;
+	aeMeasAreaType_t areaType;
+	bool on;
 
-	ret = rk_aiq_user_api2_ae_getLinExpAttr(rkipc_aiq_get_ctx(cam_id), &LineExpAttr);
-	if (!strcmp(value, "close"))
-		LineExpAttr.backLightCtrl.sw_aeT_backLit_en = 0;
-	else
-		LineExpAttr.backLightCtrl.sw_aeT_backLit_en = 1;
-	LineExpAttr.backLightCtrl.sw_aeT_measArea_mode = ae_measArea_auto_mode;
-	LineExpAttr.backLightCtrl.sw_aeT_backLitBias_strg = 0;
-	// if (!strcmp(value, "close"))
-	// 	LineExpAttr.Params.BackLightCtrl.Enable = 0;
-	// else
-	// 	LineExpAttr.Params.BackLightCtrl.Enable = 1;
-	// LineExpAttr.Params.BackLightCtrl.MeasArea = AECV2_MEASURE_AREA_AUTO;
-	// LineExpAttr.Params.BackLightCtrl.StrBias = 0;
-	ret = rk_aiq_user_api2_ae_setLinExpAttr(rkipc_aiq_get_ctx(cam_id), LineExpAttr);
+	if (!strcmp(value, "close")) {
+		on = false;
+	} else {
+		on = true;
+	}
+	areaType = AE_MEAS_AREA_AUTO;
+
+	ret = rk_aiq_uapi2_setBLCMode(rkipc_aiq_get_ctx(cam_id), on, areaType);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.blc:blc_region", cam_id);
 	rk_param_set_string(entry, value);
@@ -782,22 +716,17 @@ int rk_isp_set_hlc(int cam_id, const char *value) {
 	int ret;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	RK_ISP_CHECK_NORMAL_MODE(cam_id);
-	ae_api_linExpAttr_t LinExpAttr;
+	aeMeasAreaType_t areaType;
+	bool on;
 
-	ret = rk_aiq_user_api2_ae_getLinExpAttr(rkipc_aiq_get_ctx(cam_id), &LinExpAttr);
-	if (ret)
-		LOG_ERROR("get exp attr failed\n");
-	if (!strcmp(value, "close"))
-		LinExpAttr.overExpCtrl.sw_aeT_overExp_en = 0;
-	else
-		LinExpAttr.overExpCtrl.sw_aeT_overExp_en = 1;
-	LinExpAttr.overExpCtrl.sw_aeT_overExpBias_strg = 0;
-	// if (!strcmp(value, "close"))
-	// 	LinExpAttr.Params.OverExpCtrl.Enable = 0;
-	// else
-	// 	LinExpAttr.Params.OverExpCtrl.Enable = 1;
-	// LinExpAttr.Params.OverExpCtrl.StrBias = 0;
-	ret = rk_aiq_user_api2_ae_setLinExpAttr(rkipc_aiq_get_ctx(cam_id), LinExpAttr);
+	if (!strcmp(value, "close")) {
+		on = false;
+	} else {
+		on = true;
+	}
+	areaType = AE_MEAS_AREA_AUTO;
+
+	ret = rk_aiq_uapi2_setHLCMode(rkipc_aiq_get_ctx(cam_id), on);
 	if (ret)
 		LOG_ERROR("set exp attr failed\n");
 	char entry[128] = {'\0'};
@@ -840,22 +769,8 @@ int rk_isp_set_blc_strength(int cam_id, int value) {
 	int ret;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	RK_ISP_CHECK_NORMAL_MODE(cam_id);
-	ae_api_linExpAttr_t LineExpAttr;
 
-	ret = rk_aiq_user_api2_ae_getLinExpAttr(rkipc_aiq_get_ctx(cam_id), &LineExpAttr);
-	if (ret)
-		LOG_ERROR("getLinExpAttr error\n");
-	if (LineExpAttr.backLightCtrl.sw_aeT_backLit_en == 0) {
-		LOG_ERROR("blc mode is not enabled\n");
-		return 0;
-	}
-	LineExpAttr.backLightCtrl.sw_aeT_backLitBias_strg = value;
-	// if (LineExpAttr.Params.BackLightCtrl.Enable == 0) {
-	// 	LOG_ERROR("blc mode is not enabled\n");
-	// 	return 0;
-	// }
-	// LineExpAttr.Params.BackLightCtrl.StrBias = value;
-	ret = rk_aiq_user_api2_ae_setLinExpAttr(rkipc_aiq_get_ctx(cam_id), LineExpAttr);
+	ret = rk_aiq_uapi2_setBLCStrength(rkipc_aiq_get_ctx(cam_id), value);
 	if (ret)
 		LOG_ERROR("setLinExpAttr error\n");
 	char entry[128] = {'\0'};
@@ -878,19 +793,10 @@ int rk_isp_set_hlc_level(int cam_id, int value) {
 	int ret;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	RK_ISP_CHECK_NORMAL_MODE(cam_id);
-	ae_api_linExpAttr_t LineExpAttr;
 
 	if (value == 0)
 		value = 1;
-	ret = rk_aiq_user_api2_ae_getLinExpAttr(rkipc_aiq_get_ctx(cam_id), &LineExpAttr);
-	if (ret)
-		LOG_ERROR("getLinExpAttr error\n");
-	if (LineExpAttr.overExpCtrl.sw_aeT_overExp_en == 0) {
-		LOG_ERROR("hlc mode is not enabled\n");
-		return 0;
-	}
-	LineExpAttr.overExpCtrl.sw_aeT_overExpBias_strg = value;
-	ret = rk_aiq_user_api2_ae_setLinExpAttr(rkipc_aiq_get_ctx(cam_id), LineExpAttr);
+	ret = rk_aiq_uapi2_setHLCStrength(rkipc_aiq_get_ctx(cam_id), value);
 	if (ret)
 		LOG_ERROR("setLinExpAttr error\n");
 	char entry[128] = {'\0'};
@@ -933,15 +839,14 @@ int rk_isp_get_white_blance_style(int cam_id, const char **value) {
 int rk_isp_set_white_blance_style(int cam_id, const char *value) {
 	int ret;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	awb_gainCtrl_t attr;
+	opMode_t mode;
 
-	rk_aiq_user_api2_awb_GetWbGainCtrlAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	if (!strcmp(value, "manualWhiteBalance")) {
-		attr.opMode = RK_AIQ_OP_MODE_MANUAL;
+		mode = OP_MANUAL;
 	} else {
-		attr.opMode = RK_AIQ_OP_MODE_AUTO;
+		mode = OP_AUTO;
 	}
-	ret = rk_aiq_user_api2_awb_SetWbGainCtrlAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
+	ret = rk_aiq_uapi2_setWBMode(rkipc_aiq_get_ctx(cam_id), mode);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.white_blance:white_blance_style", cam_id);
 	rk_param_set_string(entry, value);
@@ -961,16 +866,17 @@ int rk_isp_get_white_blance_red(int cam_id, int *value) {
 int rk_isp_set_white_blance_red(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
-	awb_gainCtrl_t gain_ctrl;
 
-	rk_aiq_user_api2_awb_GetWbGainCtrlAttrib(rkipc_aiq_get_ctx(cam_id), &gain_ctrl);
-	if (gain_ctrl.opMode == RK_AIQ_OP_MODE_AUTO) {
-		LOG_WARN("white blance is auto, not support set gain\n");
-		return 0;
-	}
-	gain_ctrl.manualPara.cfg.manual_wbgain[0] = value / 50.0f * gs_wb_gain.rgain;
-	gain_ctrl.manualPara.mode = mwb_mode_wbgain;
-	ret = rk_aiq_user_api2_awb_SetWbGainCtrlAttrib(rkipc_aiq_get_ctx(cam_id), &gain_ctrl);
+    opMode_t mode;
+	rk_aiq_wb_gain_t gain;
+
+    rk_aiq_uapi2_getWBMode(rkipc_aiq_get_ctx(cam_id), &mode);
+    if (mode != OP_MANUAL) {
+        return 0;
+    }
+	rk_aiq_uapi2_getWBGain(rkipc_aiq_get_ctx(cam_id), &gain);
+	gain.rgain = value / 50.0f * gs_wb_gain.rgain;
+	ret = rk_aiq_uapi2_setMWBGain(rkipc_aiq_get_ctx(cam_id), &gain);
 
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.white_blance:white_blance_red", cam_id);
@@ -991,17 +897,18 @@ int rk_isp_get_white_blance_green(int cam_id, int *value) {
 int rk_isp_set_white_blance_green(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
-	awb_gainCtrl_t gain_ctrl;
+	rk_aiq_wb_gain_t gain;
+    opMode_t mode;
 
-	rk_aiq_user_api2_awb_GetWbGainCtrlAttrib(rkipc_aiq_get_ctx(cam_id), &gain_ctrl);
-	if (gain_ctrl.opMode == RK_AIQ_OP_MODE_AUTO) {
+    rk_aiq_uapi2_getWBMode(rkipc_aiq_get_ctx(cam_id), &mode);
+	if (mode == OP_AUTO) {
 		LOG_WARN("white blance is auto, not support set gain\n");
 		return 0;
 	}
-	gain_ctrl.manualPara.cfg.manual_wbgain[1] = value / 50.0f * gs_wb_gain.grgain;
-	gain_ctrl.manualPara.cfg.manual_wbgain[2] = value / 50.0f * gs_wb_gain.gbgain;
-	gain_ctrl.manualPara.mode = mwb_mode_wbgain;
-	ret = rk_aiq_user_api2_awb_SetWbGainCtrlAttrib(rkipc_aiq_get_ctx(cam_id), &gain_ctrl);
+	rk_aiq_uapi2_getWBGain(rkipc_aiq_get_ctx(cam_id), &gain);
+	gain.grgain = value / 50.0f * gs_wb_gain.grgain;
+	gain.gbgain = value / 50.0f * gs_wb_gain.gbgain;
+	ret = rk_aiq_uapi2_setMWBGain(rkipc_aiq_get_ctx(cam_id), &gain);
 
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.white_blance:white_blance_green", cam_id);
@@ -1022,16 +929,17 @@ int rk_isp_get_white_blance_blue(int cam_id, int *value) {
 int rk_isp_set_white_blance_blue(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
-	awb_gainCtrl_t gain_ctrl;
+	rk_aiq_wb_gain_t gain;
+    opMode_t mode;
 
-	rk_aiq_user_api2_awb_GetWbGainCtrlAttrib(rkipc_aiq_get_ctx(cam_id), &gain_ctrl);
-	if (gain_ctrl.opMode == RK_AIQ_OP_MODE_AUTO) {
+    rk_aiq_uapi2_getWBMode(rkipc_aiq_get_ctx(cam_id), &mode);
+	if (mode == OP_AUTO) {
 		LOG_WARN("white blance is auto, not support set gain\n");
 		return 0;
 	}
-	gain_ctrl.manualPara.cfg.manual_wbgain[3] = value / 50.0f * gs_wb_gain.bgain;
-	gain_ctrl.manualPara.mode = mwb_mode_wbgain;
-	ret = rk_aiq_user_api2_awb_SetWbGainCtrlAttrib(rkipc_aiq_get_ctx(cam_id), &gain_ctrl);
+	rk_aiq_uapi2_getWBGain(rkipc_aiq_get_ctx(cam_id), &gain);
+	gain.bgain = value / 50.0f * gs_wb_gain.bgain;
+	ret = rk_aiq_uapi2_setMWBGain(rkipc_aiq_get_ctx(cam_id), &gain);
 
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.white_blance:white_blance_blue", cam_id);
@@ -1076,33 +984,18 @@ int rk_isp_set_dehaze(int cam_id, const char *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
 	char entry[128] = {'\0'};
-	dehaze_api_attrib_t attr;
-	memset(&attr, 0, sizeof(attr));
-	ret = rk_aiq_user_api2_dehaze_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	if (!strcmp(value, "close")) {
-		attr.en = true;
-                attr.opMode = RK_AIQ_OP_MODE_AUTO;
-                for (int i; i < DEHAZE_ISO_STEP_MAX; i++)
-		    attr.stAuto.dyn[i].sw_dhazT_work_mode = dhaz_enhance_mode;
+		rk_aiq_uapi2_setDehazeModuleEnable(rkipc_aiq_get_ctx(cam_id), true);
+		rk_aiq_uapi2_setDehazeEnable(rkipc_aiq_get_ctx(cam_id), false);
 	} else if (!strcmp(value, "open")) {
-		attr.en = true;
-		attr.opMode = RK_AIQ_OP_MODE_AUTO;
-                for (int i; i < DEHAZE_ISO_STEP_MAX; i++)
-		    attr.stAuto.dyn[i].sw_dhazT_work_mode = dhaz_dehaze_mode;
+		rk_aiq_uapi2_setDehazeModuleEnable(rkipc_aiq_get_ctx(cam_id), true);
+		rk_aiq_uapi2_setDehazeEnable(rkipc_aiq_get_ctx(cam_id), true);
 	} else if (!strcmp(value, "auto")) {
-		attr.en = true;
-		attr.opMode = RK_AIQ_OP_MODE_AUTO;
-                for (int i; i < DEHAZE_ISO_STEP_MAX; i++)
-		    attr.stAuto.dyn[i].sw_dhazT_work_mode = dhaz_dehaze_mode;
-		adehaze_strength_t dhaz_ctrl;
-		rk_aiq_uapi2_getDehazeEnhanceStrth(rkipc_aiq_get_ctx(cam_id), &dhaz_ctrl);
-		dhaz_ctrl.en = true;
-		dhaz_ctrl.MDehazeStrth = 50;
-		rk_aiq_uapi2_setDehazeEnhanceStrth(rkipc_aiq_get_ctx(cam_id), dhaz_ctrl);
+		rk_aiq_uapi2_setDehazeModuleEnable(rkipc_aiq_get_ctx(cam_id), true);
+		rk_aiq_uapi2_setDehazeEnable(rkipc_aiq_get_ctx(cam_id), true);
+		rk_aiq_uapi2_setMDehazeStrth(rkipc_aiq_get_ctx(cam_id), 50);
 	}
-	ret = rk_aiq_user_api2_dehaze_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
-        dehaze_status_t dhaz_status;
-        rk_aiq_user_api2_dehaze_QueryStatus(rkipc_aiq_get_ctx(cam_id), &dhaz_status);
+
 	snprintf(entry, 127, "isp.%d.enhancement:dehaze", cam_id);
 	rk_param_set_string(entry, value);
 
@@ -1122,14 +1015,26 @@ int rk_isp_set_gray_scale_mode(int cam_id, const char *value) {
 	int ret;
 	char entry[128] = {'\0'};
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	csm_api_attrib_t attr;
-	rk_aiq_user_api2_csm_GetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
-	attr.opMode = RK_AIQ_OP_MODE_MANUAL;
-	if (!strcmp(value, "[16-235]"))
-		attr.stMan.sta.hw_csmT_full_range = false;
-	else
-		attr.stMan.sta.hw_csmT_full_range = true;
-	rk_aiq_user_api2_csm_SetAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
+    int Cspace = -1;
+    rk_aiq_uapi2_getColorSpace(rkipc_aiq_get_ctx(cam_id), &Cspace);
+    if (!strcmp(value, "[16-235]")) {
+        if (Cspace == 0 || Cspace == 1) {
+            Cspace = 1;
+        } else if (Cspace == 2 || Cspace == 3) {
+            Cspace = 3;
+        } else {
+            Cspace = 254;
+        }
+    } else {
+        if (Cspace == 0 || Cspace == 1) {
+            Cspace = 0;
+        } else if (Cspace == 2 || Cspace == 3) {
+            Cspace = 2;
+        } else {
+            Cspace = 253;
+        }
+    }
+    rk_aiq_uapi2_setColorSpace(rkipc_aiq_get_ctx(cam_id), Cspace);
 	snprintf(entry, 127, "isp.%d.enhancement:gray_scale_mode", cam_id);
 	rk_param_set_string(entry, value);
 
@@ -1148,13 +1053,12 @@ int rk_isp_get_distortion_correction(int cam_id, const char **value) {
 int rk_isp_set_distortion_correction(int cam_id, const char *value) {
 	int ret;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	ldch_api_attrib_t ldchAttr;
-	ret = rk_aiq_user_api2_ldch_GetAttrib(rkipc_aiq_get_ctx(cam_id), &ldchAttr);
+	bool ldch_en;
 	if (!strcmp(value, "close"))
-		ldchAttr.en = false;
+		ldch_en = false;
 	else
-		ldchAttr.en = true;
-	ret = rk_aiq_user_api2_ldch_SetAttrib(rkipc_aiq_get_ctx(cam_id), &ldchAttr);
+		ldch_en = true;
+	ret = rk_aiq_uapi2_setLdchEn(rkipc_aiq_get_ctx(cam_id), ldch_en);
 
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.enhancement:distortion_correction", cam_id);
@@ -1176,8 +1080,6 @@ int rk_isp_set_spatial_denoise_level(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret = 0;
 	const char *noise_reduce_mode;
-	aynr_strength_t ynrStrenght;
-	rk_aiq_bayer2dnr_strength_v2_t bayer2dnrV2Strenght;
 
 	rk_isp_get_noise_reduce_mode(cam_id, &noise_reduce_mode);
 	LOG_DEBUG("noise_reduce_mode is %s, value is %d\n", noise_reduce_mode, value);
@@ -1185,10 +1087,8 @@ int rk_isp_set_spatial_denoise_level(int cam_id, int value) {
 		value = 50;
 		LOG_DEBUG("noise_reduce_mode is %s, value is %d\n", noise_reduce_mode, value);
 	}
-	ynrStrenght.en = true;
-	// ynrStrenght.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
-	ynrStrenght.percent = value / 100.0;
-	ret = rk_aiq_user_api2_ynr_SetStrength(rkipc_aiq_get_ctx(cam_id), &ynrStrenght);
+
+	ret = rk_aiq_uapi2_setMSpaNRStrth(rkipc_aiq_get_ctx(cam_id), true, value);
 	// bayer2dnrV2Strenght.strength_enable = true;
 	// bayer2dnrV2Strenght.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
 	// bayer2dnrV2Strenght.percent = value / 100.0;
@@ -1216,7 +1116,6 @@ int rk_isp_set_temporal_denoise_level(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret = 0;
 	const char *noise_reduce_mode;
-	abtnr_strength_t bayertnrV2Strenght;
 
 	rk_isp_get_noise_reduce_mode(cam_id, &noise_reduce_mode);
 	LOG_DEBUG("noise_reduce_mode is %s, value is %d\n", noise_reduce_mode, value);
@@ -1224,11 +1123,8 @@ int rk_isp_set_temporal_denoise_level(int cam_id, int value) {
 		value = 50;
 		LOG_DEBUG("noise_reduce_mode is %s, value is %d\n", noise_reduce_mode, value);
 	}
-	// bayertnrV2Strenght.strength_enable = true;
-	// bayertnrV2Strenght.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
-	bayertnrV2Strenght.en = true;
-	bayertnrV2Strenght.percent = value / 100.0;
-	ret = rk_aiq_user_api2_btnr_SetStrength(rkipc_aiq_get_ctx(cam_id), &bayertnrV2Strenght);
+
+	ret = rk_aiq_uapi2_setMTNRStrth(rkipc_aiq_get_ctx(cam_id), true, value);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.enhancement:temporal_denoise_level", cam_id);
 	rk_param_set_int(entry, value);
@@ -1256,15 +1152,8 @@ int rk_isp_set_dehaze_level(int cam_id, int value) {
 		return 0;
 	}
 
-	adehaze_strength_t attr;
-	int ret = rk_aiq_uapi2_getDehazeEnhanceStrth(rkipc_aiq_get_ctx(cam_id), &attr);
-	// attr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
-	// attr.sync.done = false;
-	// attr.stDehazeManu.update = true;
-	// attr.stDehazeManu.level = value;
-	attr.en = true;
-	attr.MDehazeStrth = value * 10;
-	ret = rk_aiq_uapi2_setDehazeEnhanceStrth(rkipc_aiq_get_ctx(cam_id), attr);
+	int level = value * 10;
+	int ret = rk_aiq_uapi2_setMDehazeStrth(rkipc_aiq_get_ctx(cam_id), level);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.enhancement:dehaze_level", cam_id);
 	rk_param_set_int(entry, value);
@@ -1304,14 +1193,11 @@ int rk_isp_get_ldch_level(int cam_id, int *value) {
 int rk_isp_set_ldch_level(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret = 0;
-	ldch_api_attrib_t ldchAttr;
-
+	int sw_ldchT_correct_strg;
 	value = value < 0 ? 0 : value;
-	ret = rk_aiq_user_api2_ldch_GetAttrib(rkipc_aiq_get_ctx(cam_id), &ldchAttr);
-	// ldchAttr.correct_level = (int)(value * 2.53 + 2); // [0, 100] -> [2 , 255]
-	ldchAttr.stAuto.sta.baseCtrl.sw_ldchT_correct_strg =
+	sw_ldchT_correct_strg =
 	    (int)(value * 2.53 + 2); // [0, 100] -> [2 , 255]
-	ret = rk_aiq_user_api2_ldch_SetAttrib(rkipc_aiq_get_ctx(cam_id), &ldchAttr);
+	rk_aiq_uapi2_setLdchCorrectLevel(rkipc_aiq_get_ctx(cam_id), sw_ldchT_correct_strg);
 
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.enhancement:ldch_level", cam_id);
@@ -1334,25 +1220,14 @@ int rk_isp_set_power_line_frequency_mode(int cam_id, const char *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
 	char entry[128] = {'\0'};
-	ae_api_expSwAttr_t expSwAttr;
+	expPwrLineFreq_t freq;
 
-	ret = rk_aiq_user_api2_ae_getExpSwAttr(rkipc_aiq_get_ctx(cam_id), &expSwAttr);
 	if (!strcmp(value, "NTSC(60HZ)")) {
-		expSwAttr.commCtrl.antiFlicker.sw_aeT_antiFlicker_en = true;
-		expSwAttr.commCtrl.antiFlicker.sw_aeT_antiFlicker_freq = ae_antiFlicker_60hz_freq;
-		expSwAttr.commCtrl.antiFlicker.sw_aeT_antiFlicker_mode = ae_antiFlicker_normal_mode;
-		// expSwAttr.stAuto.stAntiFlicker.enable = true;
-		// expSwAttr.stAuto.stAntiFlicker.Frequency = AECV2_FLICKER_FREQUENCY_60HZ;
-		// expSwAttr.stAuto.stAntiFlicker.Mode = AECV2_ANTIFLICKER_NORMAL_MODE;
+		freq = EXP_PWR_LINE_FREQ_60HZ;
 	} else {
-		expSwAttr.commCtrl.antiFlicker.sw_aeT_antiFlicker_en = true;
-		expSwAttr.commCtrl.antiFlicker.sw_aeT_antiFlicker_freq = ae_antiFlicker_50hz_freq;
-		expSwAttr.commCtrl.antiFlicker.sw_aeT_antiFlicker_mode = ae_antiFlicker_normal_mode;
-		// expSwAttr.stAuto.stAntiFlicker.enable = true;
-		// expSwAttr.stAuto.stAntiFlicker.Frequency = AECV2_FLICKER_FREQUENCY_50HZ;
-		// expSwAttr.stAuto.stAntiFlicker.Mode = AECV2_ANTIFLICKER_NORMAL_MODE;
+		freq = EXP_PWR_LINE_FREQ_50HZ;
 	}
-	ret = rk_aiq_user_api2_ae_setExpSwAttr(rkipc_aiq_get_ctx(cam_id), expSwAttr);
+	ret = rk_aiq_uapi2_setExpPwrLineFreqMode(rkipc_aiq_get_ctx(cam_id), freq);
 	snprintf(entry, 127, "isp.%d.video_adjustment:power_line_frequency_mode", cam_id);
 	rk_param_set_string(entry, value);
 
