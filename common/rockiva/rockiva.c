@@ -182,7 +182,8 @@ void rockiva_frame_release_callback(const RockIvaReleaseFrames *releaseFrames, v
 int rkipc_rockiva_init() {
 	LOG_INFO("begin\n");
 	RockIvaRetCode ret;
-	const char *model_type;
+	const char *model_type = rk_param_get_string("event.regional_invasion:rockiva_model_type", "small");
+	const char *model_path = rk_param_get_string("event.regional_invasion:rockiva_model_path", "/oem/usr/lib/");
 	int rotation = rk_param_get_int("video.source:rotation", 0);
 	// char *license_path = NULL;
 	// char *license_key;
@@ -199,10 +200,9 @@ int rkipc_rockiva_init() {
 	//     }
 	// }
 
-	snprintf(globalParams.modelPath, ROCKIVA_PATH_LENGTH, "/oem/usr/lib/");
+	snprintf(globalParams.modelPath, ROCKIVA_PATH_LENGTH, model_path);
 	globalParams.coreMask = 0x04;
 	globalParams.logLevel = ROCKIVA_LOG_ERROR;
-	model_type = rk_param_get_string("event.regional_invasion:rockiva_model_type", "small");
 	if (!strcmp(model_type, "small") || !strcmp(model_type, "medium")) {
 		globalParams.detModel |= ROCKIVA_DET_MODEL_PFP;
 	} else if (!strcmp(model_type, "big")) {
