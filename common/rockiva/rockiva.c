@@ -179,6 +179,15 @@ void rockiva_frame_release_callback(const RockIvaReleaseFrames *releaseFrames, v
 	rk_signal_give(rockiva_signal);
 }
 
+// tmp for rockiva diff
+#ifndef ROCKIVA_DET_MODEL_PFP_V3
+#define ROCKIVA_DET_MODEL_PFP_V3 ROCKIVA_DET_MODEL_PFP
+#endif
+
+#ifndef ROCKIVA_DET_MODEL_CLS8
+#define ROCKIVA_DET_MODEL_CLS8 ROCKIVA_DET_MODEL_CLS7
+#endif
+
 int rkipc_rockiva_init() {
 	LOG_INFO("begin\n");
 	RockIvaRetCode ret;
@@ -204,14 +213,9 @@ int rkipc_rockiva_init() {
 	globalParams.coreMask = 0x04;
 	globalParams.logLevel = ROCKIVA_LOG_ERROR;
 	if (!strcmp(model_type, "small") || !strcmp(model_type, "medium")) {
-		globalParams.detModel |= ROCKIVA_DET_MODEL_PFP;
+		globalParams.detModel |= ROCKIVA_DET_MODEL_PFP_V3;
 	} else if (!strcmp(model_type, "big")) {
-#if defined(RKIPC_RK3588)
-#warning "FIXME: need add cls8 support for rk3588 platform"
-		globalParams.detModel |= ROCKIVA_DET_MODEL_CLS7;
-#else
 		globalParams.detModel |= ROCKIVA_DET_MODEL_CLS8;
-#endif
 	}
 	globalParams.imageInfo.width = rk_param_get_int("video.2:width", 960);
 	globalParams.imageInfo.height = rk_param_get_int("video.2:height", 540);
