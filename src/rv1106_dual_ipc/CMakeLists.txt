@@ -73,7 +73,12 @@ target_link_libraries(${PROJECT_NAME} pthread rockit_full rockchip_mpp rkaiq rts
 rkaudio_vqe wpa_client m rkmuxer freetype rockiva iconv rknnmrt rga stdc++ rksysutils rkaudio)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
-install(FILES rkipc.ini DESTINATION share)
+
+if(RK_APP_CHIP STREQUAL "rv1103b")
+	install(FILES rkipc-rv1103b.ini DESTINATION share RENAME "rkipc.ini")
+else()
+	install(FILES rkipc.ini DESTINATION share)
+endif()
 install(FILES ../../common/speaker_test.wav DESTINATION share)
 install(PROGRAMS RkLunch.sh DESTINATION bin)
 install(PROGRAMS RkLunch-stop.sh DESTINATION bin)
