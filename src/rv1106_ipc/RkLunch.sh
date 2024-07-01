@@ -98,6 +98,10 @@ post_chk()
 		if [ $? -eq 0 ] ;then
 			ln -s -f /oem/usr/share/rkipc-800w.ini $default_rkipc_ini
 		fi
+		lsmod | grep sc850sl
+		if [ $? -eq 0 ] ;then
+			ln -s -f /oem/usr/share/rkipc-800w.ini $default_rkipc_ini
+		fi
 	fi
 	tmp_md5=/tmp/.rkipc-ini.md5sum
 	data_md5=/userdata/.rkipc-default.md5sum
