@@ -204,7 +204,11 @@ int rkipc_rockiva_init() {
 	globalParams.coreMask = 0x04;
 	globalParams.logLevel = ROCKIVA_LOG_ERROR;
 	if (!strcmp(model_type, "small") || !strcmp(model_type, "medium")) {
+#if defined(RKIPC_RV1103B)
+		globalParams.detModel |= ROCKIVA_DET_MODEL_PFP_V3;
+#else
 		globalParams.detModel |= ROCKIVA_DET_MODEL_PFP;
+#endif
 	} else if (!strcmp(model_type, "big")) {
 #if defined(RKIPC_RK3588)
 #warning "FIXME: need add cls8 support for rk3588 platform"
@@ -213,6 +217,7 @@ int rkipc_rockiva_init() {
 		globalParams.detModel |= ROCKIVA_DET_MODEL_CLS8;
 #endif
 	}
+	LOG_INFO("globalParams.detModel is %d\n", globalParams.detModel);
 	globalParams.imageInfo.width = rk_param_get_int("video.2:width", 960);
 	globalParams.imageInfo.height = rk_param_get_int("video.2:height", 540);
 	globalParams.imageInfo.format = ROCKIVA_IMAGE_FORMAT_YUV420SP_NV12;

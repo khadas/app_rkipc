@@ -39,6 +39,7 @@ include_directories(audio
 
 message(STATUS "RK_APP_CHIP is ${RK_APP_CHIP}")
 if(RK_APP_CHIP STREQUAL "rv1103b")
+	add_definitions(-DRKIPC_RV1103B)
 	aux_source_directory(${PROJECT_SOURCE_DIR}/common/isp/rv1103b SRCS)
 	include_directories(${PROJECT_SOURCE_DIR}/common/isp/rv1103b)
 else()
