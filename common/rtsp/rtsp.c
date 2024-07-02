@@ -35,7 +35,7 @@ int rkipc_rtsp_init(const char *rtsp_url_0, const char *rtsp_url_1, const char *
 			rtsp_set_audio(g_rtsp_session_0, RTSP_CODEC_ID_AUDIO_G711A, NULL, 0);
 			rtsp_sync_audio_ts(g_rtsp_session_0, rtsp_get_reltime(), rtsp_get_ntptime());
 			rtsp_set_audio_sample_rate(g_rtsp_session_0,
-									rk_param_get_int("audio.0:sample_rate", 16000));
+			                           rk_param_get_int("audio.0:sample_rate", 16000));
 			rtsp_set_audio_channels(g_rtsp_session_0, rk_param_get_int("audio.0:channels", 2));
 		}
 	}
@@ -53,7 +53,7 @@ int rkipc_rtsp_init(const char *rtsp_url_0, const char *rtsp_url_1, const char *
 			rtsp_set_audio(g_rtsp_session_1, RTSP_CODEC_ID_AUDIO_G711A, NULL, 0);
 			rtsp_sync_audio_ts(g_rtsp_session_1, rtsp_get_reltime(), rtsp_get_ntptime());
 			rtsp_set_audio_sample_rate(g_rtsp_session_1,
-									rk_param_get_int("audio.0:sample_rate", 16000));
+			                           rk_param_get_int("audio.0:sample_rate", 16000));
 			rtsp_set_audio_channels(g_rtsp_session_1, rk_param_get_int("audio.0:channels", 2));
 		}
 	}
@@ -71,7 +71,7 @@ int rkipc_rtsp_init(const char *rtsp_url_0, const char *rtsp_url_1, const char *
 			rtsp_set_audio(g_rtsp_session_2, RTSP_CODEC_ID_AUDIO_G711A, NULL, 0);
 			rtsp_sync_audio_ts(g_rtsp_session_2, rtsp_get_reltime(), rtsp_get_ntptime());
 			rtsp_set_audio_sample_rate(g_rtsp_session_2,
-									rk_param_get_int("audio.0:sample_rate", 16000));
+			                           rk_param_get_int("audio.0:sample_rate", 16000));
 			rtsp_set_audio_channels(g_rtsp_session_2, rk_param_get_int("audio.0:channels", 2));
 		}
 	}

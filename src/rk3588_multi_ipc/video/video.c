@@ -1964,7 +1964,7 @@ int rkipc_vo_init() {
 	}
 	LOG_INFO("RK_MPI_VO_EnableChn success\n");
 
-	RK_U32 width  = rk_param_get_int("avs:avs_width", -1);
+	RK_U32 width = rk_param_get_int("avs:avs_width", -1);
 	RK_U32 height = rk_param_get_int("avs:avs_height", -1);
 	RK_FLOAT aspect_ratio = height * 1.0 / width;
 
@@ -1974,9 +1974,9 @@ int rkipc_vo_init() {
 	VoChnAttr.stRect.u32Height = aspect_ratio * stLayerAttr.stDispRect.u32Width;
 	VoChnAttr.stRect.s32X = 0;
 	VoChnAttr.stRect.s32Y = (stLayerAttr.stDispRect.u32Height - VoChnAttr.stRect.u32Height) / 2;
-	LOG_INFO("VO layer %d channel 0 attr <x,y,w,h> = <%d, %d, %d, %d>",
-		VoLayer, VoChnAttr.stRect.s32X, VoChnAttr.stRect.s32Y,
-		VoChnAttr.stRect.u32Width, VoChnAttr.stRect.u32Height);
+	LOG_INFO("VO layer %d channel 0 attr <x,y,w,h> = <%d, %d, %d, %d>", VoLayer,
+	         VoChnAttr.stRect.s32X, VoChnAttr.stRect.s32Y, VoChnAttr.stRect.u32Width,
+	         VoChnAttr.stRect.u32Height);
 	if (g_vo_dev_id == RK3588_VO_DEV_MIPI)
 		VoChnAttr.enRotation = ROTATION_90;
 	ret = RK_MPI_VO_SetChnAttr(VoLayer, 0, &VoChnAttr);

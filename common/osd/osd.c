@@ -111,8 +111,7 @@ int iconv_utf8_to_wchar(const char *in, wchar_t *out) {
 	memcpy(entry, in, src_len); // iconv maybe change the char *
 	memset(entry + src_len, 0, 1);
 	char *tmp_in_buffer = (char *)entry;
-	ret = iconv(cd, &tmp_in_buffer, (size_t *)&src_len, &tmp_out_buffer,
-				(size_t *)&out_len);
+	ret = iconv(cd, &tmp_in_buffer, (size_t *)&src_len, &tmp_out_buffer, (size_t *)&out_len);
 	if (ret == -1)
 		perror("iconv error");
 	iconv_close(cd);

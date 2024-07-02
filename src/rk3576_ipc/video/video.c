@@ -1555,17 +1555,17 @@ static void *rkipc_get_vi_super_resolution_vo(void *arg) {
 
 				object = &ba_result.triggerObjects[i];
 				LOG_INFO("topLeft:[%d,%d], bottomRight:[%d,%d],"
-							"objId is %d, frameId is %d, score is %d, type is %d\n",
-							object->objInfo.rect.topLeft.x, object->objInfo.rect.topLeft.y,
-							object->objInfo.rect.bottomRight.x,
-							object->objInfo.rect.bottomRight.y, object->objInfo.objId,
-							object->objInfo.frameId, object->objInfo.score, object->objInfo.type);
+				         "objId is %d, frameId is %d, score is %d, type is %d\n",
+				         object->objInfo.rect.topLeft.x, object->objInfo.rect.topLeft.y,
+				         object->objInfo.rect.bottomRight.x, object->objInfo.rect.bottomRight.y,
+				         object->objInfo.objId, object->objInfo.frameId, object->objInfo.score,
+				         object->objInfo.type);
 				x = video_width * object->objInfo.rect.topLeft.x / 10000;
 				y = video_height * object->objInfo.rect.topLeft.y / 10000;
 				w = video_width *
-					(object->objInfo.rect.bottomRight.x - object->objInfo.rect.topLeft.x) / 10000;
+				    (object->objInfo.rect.bottomRight.x - object->objInfo.rect.topLeft.x) / 10000;
 				h = video_height *
-					(object->objInfo.rect.bottomRight.y - object->objInfo.rect.topLeft.y) / 10000;
+				    (object->objInfo.rect.bottomRight.y - object->objInfo.rect.topLeft.y) / 10000;
 				x = x / 16 * 16;
 				y = y / 16 * 16;
 				w = w / 32 * 32;
@@ -1813,8 +1813,8 @@ static void *rkipc_get_vpss_2_send_npu(void *arg) {
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stViFrame.stVFrame.pMbBlk);
 			int fd = (uint8_t *)RK_MPI_MB_Handle2Fd(stViFrame.stVFrame.pMbBlk);
-			rkipc_rockiva_write_nv12_frame_by_fd(
-			    stViFrame.stVFrame.u32Width, stViFrame.stVFrame.u32Height, loopCount, fd);
+			rkipc_rockiva_write_nv12_frame_by_fd(stViFrame.stVFrame.u32Width,
+			                                     stViFrame.stVFrame.u32Height, loopCount, fd);
 			ret = RK_MPI_VPSS_ReleaseChnFrame(0, 2, &stViFrame);
 			if (ret != RK_SUCCESS)
 				LOG_ERROR("RK_MPI_VPSS_ReleaseChnFrame fail %x", ret);
@@ -2797,9 +2797,9 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 		param.height = stCanvasInfo.u32VirHeight;
 		param.format = RK_FORMAT_BGRA_8888;
 		handle = importbuffer_virtualaddr(stCanvasInfo.u64VirAddr, &param);
-		src = wrapbuffer_handle_t(handle, stCanvasInfo.u32VirWidth,
-									stCanvasInfo.u32VirHeight, stCanvasInfo.u32VirWidth,
-									stCanvasInfo.u32VirHeight, RK_FORMAT_BGRA_8888);
+		src = wrapbuffer_handle_t(handle, stCanvasInfo.u32VirWidth, stCanvasInfo.u32VirHeight,
+		                          stCanvasInfo.u32VirWidth, stCanvasInfo.u32VirHeight,
+		                          RK_FORMAT_BGRA_8888);
 		// draw
 		for (int i = 0; i < ba_result.objNum; i++) {
 			int x, y, w, h;
@@ -2813,9 +2813,9 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 			x = video_width * object->objInfo.rect.topLeft.x / 10000;
 			y = video_height * object->objInfo.rect.topLeft.y / 10000;
 			w = video_width *
-				(object->objInfo.rect.bottomRight.x - object->objInfo.rect.topLeft.x) / 10000;
+			    (object->objInfo.rect.bottomRight.x - object->objInfo.rect.topLeft.x) / 10000;
 			h = video_height *
-				(object->objInfo.rect.bottomRight.y - object->objInfo.rect.topLeft.y) / 10000;
+			    (object->objInfo.rect.bottomRight.y - object->objInfo.rect.topLeft.y) / 10000;
 			// venc ex overlay先叠加，后旋转
 			x = x / 16 * 16;
 			y = y / 16 * 16;

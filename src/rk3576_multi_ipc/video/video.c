@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 #include "video.h"
-#include "rockiva.h"
 #include "rk_algo_avs_tool_api.h"
+#include "rockiva.h"
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -3225,9 +3225,9 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 		param.height = stCanvasInfo.u32VirHeight;
 		param.format = RK_FORMAT_BGRA_8888;
 		handle = importbuffer_virtualaddr(stCanvasInfo.u64VirAddr, &param);
-		src = wrapbuffer_handle_t(handle, stCanvasInfo.u32VirWidth,
-									stCanvasInfo.u32VirHeight, stCanvasInfo.u32VirWidth,
-									stCanvasInfo.u32VirHeight, RK_FORMAT_BGRA_8888);
+		src = wrapbuffer_handle_t(handle, stCanvasInfo.u32VirWidth, stCanvasInfo.u32VirHeight,
+		                          stCanvasInfo.u32VirWidth, stCanvasInfo.u32VirHeight,
+		                          RK_FORMAT_BGRA_8888);
 		// draw
 		for (int i = 0; i < ba_result.objNum; i++) {
 			int x, y, w, h;
@@ -3241,9 +3241,9 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 			x = video_width * object->objInfo.rect.topLeft.x / 10000;
 			y = video_height * object->objInfo.rect.topLeft.y / 10000;
 			w = video_width *
-				(object->objInfo.rect.bottomRight.x - object->objInfo.rect.topLeft.x) / 10000;
+			    (object->objInfo.rect.bottomRight.x - object->objInfo.rect.topLeft.x) / 10000;
 			h = video_height *
-				(object->objInfo.rect.bottomRight.y - object->objInfo.rect.topLeft.y) / 10000;
+			    (object->objInfo.rect.bottomRight.y - object->objInfo.rect.topLeft.y) / 10000;
 			// venc ex overlay先叠加，后旋转
 			x = x / 16 * 16;
 			y = y / 16 * 16;

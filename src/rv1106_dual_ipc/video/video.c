@@ -35,7 +35,8 @@
 static int g_sensor_num = 2;
 static int send_jpeg_cnt = 0;
 static int get_jpeg_cnt = 0;
-static int enable_ivs, enable_jpeg, enable_venc_0, enable_venc_1, enable_rtsp, enable_rtmp, enable_avs;
+static int enable_ivs, enable_jpeg, enable_venc_0, enable_venc_1, enable_rtsp, enable_rtmp,
+    enable_avs;
 static int g_enable_vo, g_vo_dev_id, g_vi_chn_id, enable_npu, enable_wrap, enable_osd;
 static int g_video_run_ = 1;
 static int g_osd_run_ = 1;
@@ -514,7 +515,7 @@ int rkipc_bind_init() {
 			ret = RK_MPI_SYS_Bind(&vi_chn[i], &avs_in_chn[i]);
 			if (ret != RK_SUCCESS) {
 				LOG_ERROR("bind error %#x: vi [%d, %d] -> avs [%d, %d]\n", ret, vi_chn[i].s32DevId,
-						vi_chn[i].s32ChnId, avs_in_chn[i].s32DevId, avs_in_chn[i].s32ChnId);
+				          vi_chn[i].s32ChnId, avs_in_chn[i].s32DevId, avs_in_chn[i].s32ChnId);
 			}
 		}
 	}
@@ -525,8 +526,8 @@ int rkipc_bind_init() {
 			ret = RK_MPI_SYS_Bind(&vi_chn[0], &venc_chn[0]);
 			if (ret != RK_SUCCESS) {
 				LOG_ERROR("bind error %#x: vi_chn[0] [%d, %d] -> venc_chn[0] [%d, %d]", ret,
-						vi_chn[0].s32DevId, vi_chn[0].s32ChnId, venc_chn[0].s32DevId,
-						venc_chn[0].s32ChnId);
+				          vi_chn[0].s32DevId, vi_chn[0].s32ChnId, venc_chn[0].s32DevId,
+				          venc_chn[0].s32ChnId);
 				return ret;
 			}
 		}
@@ -534,8 +535,8 @@ int rkipc_bind_init() {
 			ret = RK_MPI_SYS_Bind(&vi_chn[1], &venc_chn[1]);
 			if (ret != RK_SUCCESS) {
 				LOG_ERROR("bind error %#x: vi_chn[1] [%d, %d] -> venc_chn[1] [%d, %d]", ret,
-						vi_chn[1].s32DevId, vi_chn[1].s32ChnId, venc_chn[1].s32DevId,
-						venc_chn[1].s32ChnId);
+				          vi_chn[1].s32DevId, vi_chn[1].s32ChnId, venc_chn[1].s32DevId,
+				          venc_chn[1].s32ChnId);
 				return ret;
 			}
 		}
@@ -545,8 +546,8 @@ int rkipc_bind_init() {
 			ret = RK_MPI_SYS_Bind(&vi_chn[0], &venc_chn[0]);
 			if (ret != RK_SUCCESS) {
 				LOG_ERROR("bind error %#x: vi_chn[0] [%d, %d] -> venc_chn[0] [%d, %d]", ret,
-						vi_chn[0].s32DevId, vi_chn[0].s32ChnId, venc_chn[0].s32DevId,
-						venc_chn[0].s32ChnId);
+				          vi_chn[0].s32DevId, vi_chn[0].s32ChnId, venc_chn[0].s32DevId,
+				          venc_chn[0].s32ChnId);
 				return ret;
 			}
 		}
@@ -554,8 +555,8 @@ int rkipc_bind_init() {
 			ret = RK_MPI_SYS_Bind(&vi_chn[1], &venc_chn[1]);
 			if (ret != RK_SUCCESS) {
 				LOG_ERROR("bind error %#x: vi_chn[1] [%d, %d] -> venc_chn[1] [%d, %d]", ret,
-						vi_chn[1].s32DevId, vi_chn[1].s32ChnId, venc_chn[1].s32DevId,
-						venc_chn[1].s32ChnId);
+				          vi_chn[1].s32DevId, vi_chn[1].s32ChnId, venc_chn[1].s32DevId,
+				          venc_chn[1].s32ChnId);
 				return ret;
 			}
 		}
@@ -2187,8 +2188,7 @@ int rk_roi_set(roi_data_s *roi_data) {
 		pstRoiAttr.s32Qp = -6;
 	}
 
-	if (!strcmp(roi_data->stream_type, "mainStream") &&
-	    rk_param_get_int("avs:enable_venc_0", 0)) {
+	if (!strcmp(roi_data->stream_type, "mainStream") && rk_param_get_int("avs:enable_venc_0", 0)) {
 		venc_chn_num = 0;
 	} else if (!strcmp(roi_data->stream_type, "subStream") &&
 	           rk_param_get_int("avs:enable_venc_1", 0)) {
@@ -2289,7 +2289,7 @@ int rk_video_init() {
 	enable_venc_1 = rk_param_get_int("avs:enable_venc_1", 1);
 	enable_rtsp = rk_param_get_int("avs:enable_rtsp", 1);
 	enable_rtmp = rk_param_get_int("avs:enable_rtmp", 1);
-	enable_avs  = rk_param_get_int("avs:enable_avs", 1);
+	enable_avs = rk_param_get_int("avs:enable_avs", 1);
 	LOG_INFO("enable_jpeg is %d, enable_venc_0 is %d, enable_venc_1 is %d, enable_rtsp is %d, "
 	         "enable_rtmp is %d, enable_avs is %d\n",
 	         enable_jpeg, enable_venc_0, enable_venc_1, enable_rtsp, enable_rtmp, enable_avs);

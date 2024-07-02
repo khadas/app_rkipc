@@ -314,7 +314,9 @@ VOID IPC_APP_Net_Status_cb(IN CONST BYTE_T stat) {
 		s_mqtt_status = 1;
 		break;
 	}
-	default: { break; }
+	default: {
+		break;
+	}
 	}
 }
 

@@ -1,8 +1,8 @@
 #include "isp.h"
 #include "common.h"
-#include "video.h"
 #include "rk_gpio.h"
 #include "rk_pwm.h"
+#include "video.h"
 
 #include <rk_aiq_user_api2_acsm.h>
 #include <rk_aiq_user_api2_camgroup.h>
@@ -256,8 +256,8 @@ int rk_isp_set_frame_rate(int cam_id, int value) {
 	int ret;
 	char entry[128] = {'\0'};
 	frameRateInfo_t info;
-    info.mode = OP_MANUAL;
-    info.fps  = value;
+	info.mode = OP_MANUAL;
+	info.fps = value;
 	LOG_INFO("start %d\n", value);
 	ret = rk_aiq_uapi2_setFrameRate(rkipc_aiq_get_ctx(cam_id), info);
 	LOG_INFO("end, %d\n", value);
@@ -298,8 +298,8 @@ int rk_isp_set_contrast(int cam_id, int value) {
 	int ret;
 	char entry[128] = {'\0'};
 
-    unsigned int level = 0;
-    level = value * 2.55; // value[0,255]
+	unsigned int level = 0;
+	level = value * 2.55; // value[0,255]
 	ret = rk_aiq_uapi2_setContrast(rkipc_aiq_get_ctx(cam_id), value);
 
 	snprintf(entry, 127, "isp.%d.adjustment:contrast", cam_id);
@@ -406,13 +406,13 @@ int rk_isp_get_exposure_mode(int cam_id, const char **value) {
 
 int rk_isp_set_exposure_mode(int cam_id, const char *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-    opMode_t mode;
+	opMode_t mode;
 	if (!strcmp(value, "auto")) {
 		mode = OP_AUTO;
 	} else {
-        mode = OP_MANUAL;
+		mode = OP_MANUAL;
 	}
-    int ret = rk_aiq_uapi2_setExpMode(rkipc_aiq_get_ctx(cam_id), mode);
+	int ret = rk_aiq_uapi2_setExpMode(rkipc_aiq_get_ctx(cam_id), mode);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.exposure:exposure_mode", cam_id);
 	rk_param_set_string(entry, value);
@@ -431,13 +431,13 @@ int rk_isp_get_gain_mode(int cam_id, const char **value) {
 
 int rk_isp_set_gain_mode(int cam_id, const char *value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-    opMode_t mode;
+	opMode_t mode;
 	if (!strcmp(value, "auto")) {
 		mode = OP_AUTO;
 	} else {
-        mode = OP_MANUAL;
+		mode = OP_MANUAL;
 	}
-    int ret = rk_aiq_uapi2_setExpGainMode(rkipc_aiq_get_ctx(cam_id), mode);
+	int ret = rk_aiq_uapi2_setExpGainMode(rkipc_aiq_get_ctx(cam_id), mode);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.exposure:gain_mode", cam_id);
 	rk_param_set_string(entry, value);
@@ -508,7 +508,7 @@ int rk_isp_set_night_to_day(int cam_id, const char *value) {
 
 	if (!strcmp(value, "night")) {
 		rk_aiq_uapi2_setColorMode(rkipc_aiq_get_ctx(cam_id), 1);
-		usleep(200*1000); // avoid flashing red
+		usleep(200 * 1000); // avoid flashing red
 		rk_isp_enable_ircut(false);
 	} else {
 		rk_isp_enable_ircut(true);
@@ -867,13 +867,13 @@ int rk_isp_set_white_blance_red(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
 
-    opMode_t mode;
+	opMode_t mode;
 	rk_aiq_wb_gain_t gain;
 
-    rk_aiq_uapi2_getWBMode(rkipc_aiq_get_ctx(cam_id), &mode);
-    if (mode != OP_MANUAL) {
-        return 0;
-    }
+	rk_aiq_uapi2_getWBMode(rkipc_aiq_get_ctx(cam_id), &mode);
+	if (mode != OP_MANUAL) {
+		return 0;
+	}
 	rk_aiq_uapi2_getWBGain(rkipc_aiq_get_ctx(cam_id), &gain);
 	gain.rgain = value / 50.0f * gs_wb_gain.rgain;
 	ret = rk_aiq_uapi2_setMWBGain(rkipc_aiq_get_ctx(cam_id), &gain);
@@ -898,9 +898,9 @@ int rk_isp_set_white_blance_green(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
 	rk_aiq_wb_gain_t gain;
-    opMode_t mode;
+	opMode_t mode;
 
-    rk_aiq_uapi2_getWBMode(rkipc_aiq_get_ctx(cam_id), &mode);
+	rk_aiq_uapi2_getWBMode(rkipc_aiq_get_ctx(cam_id), &mode);
 	if (mode == OP_AUTO) {
 		LOG_WARN("white blance is auto, not support set gain\n");
 		return 0;
@@ -930,9 +930,9 @@ int rk_isp_set_white_blance_blue(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
 	rk_aiq_wb_gain_t gain;
-    opMode_t mode;
+	opMode_t mode;
 
-    rk_aiq_uapi2_getWBMode(rkipc_aiq_get_ctx(cam_id), &mode);
+	rk_aiq_uapi2_getWBMode(rkipc_aiq_get_ctx(cam_id), &mode);
 	if (mode == OP_AUTO) {
 		LOG_WARN("white blance is auto, not support set gain\n");
 		return 0;
@@ -1015,26 +1015,26 @@ int rk_isp_set_gray_scale_mode(int cam_id, const char *value) {
 	int ret;
 	char entry[128] = {'\0'};
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-    int Cspace = -1;
-    rk_aiq_uapi2_getColorSpace(rkipc_aiq_get_ctx(cam_id), &Cspace);
-    if (!strcmp(value, "[16-235]")) {
-        if (Cspace == 0 || Cspace == 1) {
-            Cspace = 1;
-        } else if (Cspace == 2 || Cspace == 3) {
-            Cspace = 3;
-        } else {
-            Cspace = 254;
-        }
-    } else {
-        if (Cspace == 0 || Cspace == 1) {
-            Cspace = 0;
-        } else if (Cspace == 2 || Cspace == 3) {
-            Cspace = 2;
-        } else {
-            Cspace = 253;
-        }
-    }
-    rk_aiq_uapi2_setColorSpace(rkipc_aiq_get_ctx(cam_id), Cspace);
+	int Cspace = -1;
+	rk_aiq_uapi2_getColorSpace(rkipc_aiq_get_ctx(cam_id), &Cspace);
+	if (!strcmp(value, "[16-235]")) {
+		if (Cspace == 0 || Cspace == 1) {
+			Cspace = 1;
+		} else if (Cspace == 2 || Cspace == 3) {
+			Cspace = 3;
+		} else {
+			Cspace = 254;
+		}
+	} else {
+		if (Cspace == 0 || Cspace == 1) {
+			Cspace = 0;
+		} else if (Cspace == 2 || Cspace == 3) {
+			Cspace = 2;
+		} else {
+			Cspace = 253;
+		}
+	}
+	rk_aiq_uapi2_setColorSpace(rkipc_aiq_get_ctx(cam_id), Cspace);
 	snprintf(entry, 127, "isp.%d.enhancement:gray_scale_mode", cam_id);
 	rk_param_set_string(entry, value);
 
@@ -1195,8 +1195,7 @@ int rk_isp_set_ldch_level(int cam_id, int value) {
 	int ret = 0;
 	int sw_ldchT_correct_strg;
 	value = value < 0 ? 0 : value;
-	sw_ldchT_correct_strg =
-	    (int)(value * 2.53 + 2); // [0, 100] -> [2 , 255]
+	sw_ldchT_correct_strg = (int)(value * 2.53 + 2); // [0, 100] -> [2 , 255]
 	rk_aiq_uapi2_setLdchCorrectLevel(rkipc_aiq_get_ctx(cam_id), sw_ldchT_correct_strg);
 
 	char entry[128] = {'\0'};
@@ -1489,8 +1488,7 @@ int rk_isp_set_from_ini(int cam_id) {
 	rk_isp_set_distortion_correction(cam_id, value);
 	snprintf(entry, 127, "isp.%d.enhancement:spatial_denoise_level", cam_id);
 	rk_isp_set_spatial_denoise_level(cam_id, rk_param_get_int(entry, 50));
-	snprintf(entry, 127, "isp.%d.enhancement:temporal_denoise_level",
-	         cam_id);
+	snprintf(entry, 127, "isp.%d.enhancement:temporal_denoise_level", cam_id);
 	rk_isp_set_temporal_denoise_level(cam_id, rk_param_get_int(entry, 50));
 	snprintf(entry, 127, "isp.%d.enhancement:dehaze_level", cam_id);
 	rk_isp_set_dehaze_level(cam_id, rk_param_get_int(entry, 50));
@@ -1498,8 +1496,7 @@ int rk_isp_set_from_ini(int cam_id) {
 	rk_isp_set_ldch_level(cam_id, rk_param_get_int(entry, 0));
 	// video_adjustment
 	LOG_DEBUG("video_adjustment\n");
-	snprintf(entry, 127, "isp.%d.video_adjustment:power_line_frequency_mode",
-	         cam_id);
+	snprintf(entry, 127, "isp.%d.video_adjustment:power_line_frequency_mode", cam_id);
 	strcpy(value, rk_param_get_string(entry, "PAL(50HZ)"));
 	rk_isp_set_power_line_frequency_mode(cam_id, value);
 	snprintf(entry, 127, "isp.%d.video_adjustment:image_flip", cam_id);
@@ -1510,7 +1507,6 @@ int rk_isp_set_from_ini(int cam_id) {
 	// rk_isp_set_af_mode(cam_id, const char *value);
 
 	LOG_DEBUG("end\n");
-
 
 	return ret;
 }

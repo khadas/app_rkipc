@@ -135,7 +135,8 @@ void rkba_callback(const RockIvaBaResult *result, const RockIvaExecuteStatus sta
 		//           result->triggerObjects[i].objInfo.rect.bottomRight.y,
 		//           result->triggerObjects[i].objInfo.objId,
 		//           result->triggerObjects[i].objInfo.frameId,
-		//           result->triggerObjects[i].objInfo.score, result->triggerObjects[i].objInfo.type);
+		//           result->triggerObjects[i].objInfo.score,
+		//           result->triggerObjects[i].objInfo.type);
 
 		// LOG_INFO("triggerRules is %d, ruleID is %d, triggerType is %d\n",
 		//          result->triggerObjects[i].triggerRules,
@@ -182,8 +183,10 @@ void rockiva_frame_release_callback(const RockIvaReleaseFrames *releaseFrames, v
 int rkipc_rockiva_init() {
 	LOG_INFO("begin\n");
 	RockIvaRetCode ret;
-	const char *model_type = rk_param_get_string("event.regional_invasion:rockiva_model_type", "small");
-	const char *model_path = rk_param_get_string("event.regional_invasion:rockiva_model_path", "/oem/usr/lib/");
+	const char *model_type =
+	    rk_param_get_string("event.regional_invasion:rockiva_model_type", "small");
+	const char *model_path =
+	    rk_param_get_string("event.regional_invasion:rockiva_model_path", "/oem/usr/lib/");
 	int rotation = rk_param_get_int("video.source:rotation", 0);
 	// char *license_path = NULL;
 	// char *license_key;
