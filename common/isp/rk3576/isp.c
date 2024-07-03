@@ -866,16 +866,27 @@ int rk_isp_get_white_blance_red(int cam_id, int *value) {
 int rk_isp_set_white_blance_red(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
-
 	opMode_t mode;
 	rk_aiq_wb_gain_t gain;
+	char entry_green[128] = {'\0'};
+	char entry_blue[128] = {'\0'};
+	int green_value, blue_vaule;
+	snprintf(entry_green, 127, "isp.%d.white_blance:white_blance_green", cam_id);
+	snprintf(entry_blue, 127, "isp.%d.white_blance:white_blance_blue", cam_id);
+	green_value = rk_param_get_int(entry_green, 50);
+	blue_vaule = rk_param_get_int(entry_blue, 50);
 
 	rk_aiq_uapi2_getWBMode(rkipc_aiq_get_ctx(cam_id), &mode);
 	if (mode != OP_MANUAL) {
+		LOG_WARN("white blance is auto, not support set gain\n");
 		return 0;
 	}
 	rk_aiq_uapi2_getWBGain(rkipc_aiq_get_ctx(cam_id), &gain);
 	gain.rgain = value / 50.0f * gs_wb_gain.rgain;
+	gain.grgain = green_value / 50.0f * gs_wb_gain.grgain;
+	gain.gbgain = green_value / 50.0f * gs_wb_gain.gbgain;
+	gain.bgain = blue_vaule / 50.0f * gs_wb_gain.bgain;
+	LOG_INFO("r g b is %d,%d,%d\n", value, green_value, blue_vaule);
 	ret = rk_aiq_uapi2_setMWBGain(rkipc_aiq_get_ctx(cam_id), &gain);
 
 	char entry[128] = {'\0'};
@@ -899,6 +910,13 @@ int rk_isp_set_white_blance_green(int cam_id, int value) {
 	int ret;
 	rk_aiq_wb_gain_t gain;
 	opMode_t mode;
+	char entry_red[128] = {'\0'};
+	char entry_blue[128] = {'\0'};
+	int red_value, blue_vaule;
+	snprintf(entry_red, 127, "isp.%d.white_blance:white_blance_red", cam_id);
+	snprintf(entry_blue, 127, "isp.%d.white_blance:white_blance_blue", cam_id);
+	red_value = rk_param_get_int(entry_red, 50);
+	blue_vaule = rk_param_get_int(entry_blue, 50);
 
 	rk_aiq_uapi2_getWBMode(rkipc_aiq_get_ctx(cam_id), &mode);
 	if (mode == OP_AUTO) {
@@ -906,8 +924,11 @@ int rk_isp_set_white_blance_green(int cam_id, int value) {
 		return 0;
 	}
 	rk_aiq_uapi2_getWBGain(rkipc_aiq_get_ctx(cam_id), &gain);
+	gain.rgain = red_value / 50.0f * gs_wb_gain.rgain;
 	gain.grgain = value / 50.0f * gs_wb_gain.grgain;
 	gain.gbgain = value / 50.0f * gs_wb_gain.gbgain;
+	gain.bgain = blue_vaule / 50.0f * gs_wb_gain.bgain;
+	LOG_INFO("r g b is %d,%d,%d\n", red_value, value, blue_vaule);
 	ret = rk_aiq_uapi2_setMWBGain(rkipc_aiq_get_ctx(cam_id), &gain);
 
 	char entry[128] = {'\0'};
@@ -931,6 +952,13 @@ int rk_isp_set_white_blance_blue(int cam_id, int value) {
 	int ret;
 	rk_aiq_wb_gain_t gain;
 	opMode_t mode;
+	char entry_red[128] = {'\0'};
+	char entry_green[128] = {'\0'};
+	int red_value, green_vaule;
+	snprintf(entry_red, 127, "isp.%d.white_blance:white_blance_red", cam_id);
+	snprintf(entry_green, 127, "isp.%d.white_blance:white_blance_green", cam_id);
+	red_value = rk_param_get_int(entry_red, 50);
+	green_vaule = rk_param_get_int(entry_green, 50);
 
 	rk_aiq_uapi2_getWBMode(rkipc_aiq_get_ctx(cam_id), &mode);
 	if (mode == OP_AUTO) {
@@ -938,7 +966,11 @@ int rk_isp_set_white_blance_blue(int cam_id, int value) {
 		return 0;
 	}
 	rk_aiq_uapi2_getWBGain(rkipc_aiq_get_ctx(cam_id), &gain);
+	gain.rgain = red_value / 50.0f * gs_wb_gain.rgain;
+	gain.grgain = green_vaule / 50.0f * gs_wb_gain.grgain;
+	gain.gbgain = green_vaule / 50.0f * gs_wb_gain.gbgain;
 	gain.bgain = value / 50.0f * gs_wb_gain.bgain;
+	LOG_INFO("r g b is %d,%d,%d\n", red_value, green_vaule, value);
 	ret = rk_aiq_uapi2_setMWBGain(rkipc_aiq_get_ctx(cam_id), &gain);
 
 	char entry[128] = {'\0'};
