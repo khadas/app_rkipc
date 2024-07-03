@@ -549,11 +549,8 @@ static void *rkipc_get_vi_2_send(void *arg) {
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stViFrame.stVFrame.pMbBlk);
 			uint8_t *phy_addr = (uint8_t *)RK_MPI_MB_Handle2PhysAddr(stViFrame.stVFrame.pMbBlk);
-			int fd = RK_MPI_MB_Handle2Fd(stViFrame.stVFrame.pMbBlk);
-			// rkipc_rockiva_write_nv12_frame_by_phy_addr(
-			//     stViFrame.stVFrame.u32Width, stViFrame.stVFrame.u32Height, loopCount, phy_addr);
-			rkipc_rockiva_write_nv12_frame_by_fd(stViFrame.stVFrame.u32Width,
-			                                     stViFrame.stVFrame.u32Height, loopCount, fd);
+			rkipc_rockiva_write_nv12_frame_by_phy_addr(
+			    stViFrame.stVFrame.u32Width, stViFrame.stVFrame.u32Height, loopCount, phy_addr);
 			ret = RK_MPI_VI_ReleaseChnFrame(pipe_id_, VIDEO_PIPE_2, &stViFrame);
 			if (ret != RK_SUCCESS)
 				LOG_ERROR("RK_MPI_VI_ReleaseChnFrame fail %x", ret);
