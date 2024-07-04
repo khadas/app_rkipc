@@ -78,9 +78,13 @@ post_chk()
 	default_rkipc_ini=/tmp/rkipc-factory-config.ini
 
 	if [ ! -f "/oem/usr/share/rkipc.ini" ]; then
-		lsmod | grep sc200ai
+		lsmod | grep imx415
 		if [ $? -eq 0 ] ;then
-			ln -s -f /oem/usr/share/rkipc-200w.ini $default_rkipc_ini
+			ln -s -f /oem/usr/share/rkipc-800w.ini $default_rkipc_ini
+		fi
+		lsmod | grep sc850sl
+		if [ $? -eq 0 ] ;then
+			ln -s -f /oem/usr/share/rkipc-800w.ini $default_rkipc_ini
 		fi
 		lsmod | grep sc530ai
 		if [ $? -eq 0 ] ;then
@@ -94,13 +98,9 @@ post_chk()
 		if [ $? -eq 0 ] ;then
 			ln -s -f /oem/usr/share/rkipc-300w.ini $default_rkipc_ini
 		fi
-		lsmod | grep imx415
+		lsmod | grep sc200ai
 		if [ $? -eq 0 ] ;then
-			ln -s -f /oem/usr/share/rkipc-800w.ini $default_rkipc_ini
-		fi
-		lsmod | grep sc850sl
-		if [ $? -eq 0 ] ;then
-			ln -s -f /oem/usr/share/rkipc-800w.ini $default_rkipc_ini
+			ln -s -f /oem/usr/share/rkipc-200w.ini $default_rkipc_ini
 		fi
 	fi
 	tmp_md5=/tmp/.rkipc-ini.md5sum
