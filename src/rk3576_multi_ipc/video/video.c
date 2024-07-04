@@ -1805,9 +1805,11 @@ int rkipc_vo_init() {
 	if (g_vo_dev_id == RK3576_VO_DEV_HDMI) {
 		VoPubAttr.enIntfType = VO_INTF_HDMI;
 		VoPubAttr.enIntfSync = VO_OUTPUT_DEFAULT;
+		VoLayer = RK3576_VOP_LAYER_CLUSTER0;
 	} else {
 		VoPubAttr.enIntfType = VO_INTF_MIPI;
 		VoPubAttr.enIntfSync = VO_OUTPUT_DEFAULT;
+		VoLayer =RK3576_VOP_LAYER_ESMART1;
 	}
 	ret = RK_MPI_VO_SetPubAttr(g_vo_dev_id, &VoPubAttr);
 	if (ret != RK_SUCCESS) {

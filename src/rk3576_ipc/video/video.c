@@ -1273,9 +1273,11 @@ int rkipc_pipe_vi_vo_init() {
 	if (g_vo_dev_id == 0) {
 		VoPubAttr.enIntfType = VO_INTF_HDMI;
 		VoPubAttr.enIntfSync = VO_OUTPUT_1080P60;
+		VoLayer = RK3576_VOP_LAYER_CLUSTER0;
 	} else {
 		VoPubAttr.enIntfType = VO_INTF_MIPI;
 		VoPubAttr.enIntfSync = VO_OUTPUT_DEFAULT;
+		VoLayer =RK3576_VOP_LAYER_ESMART1;
 	}
 	ret = RK_MPI_VO_SetPubAttr(g_vo_dev_id, &VoPubAttr);
 	if (ret != RK_SUCCESS) {
@@ -1353,6 +1355,13 @@ int rkipc_pipe_vi_vo_init() {
 		return ret;
 	}
 	LOG_INFO("RK_MPI_VO_SetLayerAttr success\n");
+
+	ret = RK_MPI_VO_SetLayerSpliceMode(VoLayer, VO_SPLICE_MODE_RGA);
+	if (ret != RK_SUCCESS) {
+		LOG_ERROR("RK_MPI_VO_SetLayerSpliceMode VoLayer = %d error\n", VoLayer);
+		return ret;
+	}
+	LOG_INFO("RK_MPI_VO_SetLayerSpliceMode success\n");
 
 	ret = RK_MPI_VO_EnableLayer(VoLayer);
 	if (ret != RK_SUCCESS) {
@@ -1548,11 +1557,6 @@ static void *rkipc_get_vi_super_resolution_vo(void *arg) {
 				// if (object->objInfo.type != ROCKIVA_OBJECT_TYPE_PERSON)
 				// 	continue;
 
-				// 1.只用人形，不用人脸
-				// 2.防抖，x,y坐标变化不大就不动
-				// 3.框过小的时候，主动放大一点？
-				// 4.没识别到人，就默认全图？
-
 				object = &ba_result.triggerObjects[i];
 				LOG_INFO("topLeft:[%d,%d], bottomRight:[%d,%d],"
 				         "objId is %d, frameId is %d, score is %d, type is %d\n",
@@ -1683,9 +1687,11 @@ int rkipc_pipe_super_resolution_init() {
 	if (g_vo_dev_id == 0) {
 		VoPubAttr.enIntfType = VO_INTF_HDMI;
 		VoPubAttr.enIntfSync = VO_OUTPUT_3840x2160_30;
+		VoLayer = RK3576_VOP_LAYER_CLUSTER0;
 	} else {
 		VoPubAttr.enIntfType = VO_INTF_MIPI;
 		VoPubAttr.enIntfSync = VO_OUTPUT_DEFAULT;
+		VoLayer =RK3576_VOP_LAYER_ESMART1;
 	}
 	ret = RK_MPI_VO_SetPubAttr(g_vo_dev_id, &VoPubAttr);
 	if (ret != RK_SUCCESS) {
