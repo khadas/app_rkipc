@@ -256,7 +256,7 @@ static int rkipc_vi_chn_init() {
 	// VI CHN -> VPSS AIISP CHN
 	TRACE_BEGIN();
 	memset(&vi_chn_attr, 0, sizeof(vi_chn_attr));
-	vi_chn_attr.stIspOpt.u32BufCount = rk_param_get_int("video.0:vi_buffer_count", 2);
+	vi_chn_attr.stIspOpt.u32BufCount = rk_param_get_int("video.0:input_buffer_count", 2);
 	vi_chn_attr.stIspOpt.enMemoryType = VI_V4L2_MEMORY_TYPE_DMABUF;
 	vi_chn_attr.stSize.u32Width = video_width;
 	vi_chn_attr.stSize.u32Height = video_height;
