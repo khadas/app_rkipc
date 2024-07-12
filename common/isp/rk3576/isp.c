@@ -300,7 +300,7 @@ int rk_isp_set_contrast(int cam_id, int value) {
 
 	unsigned int level = 0;
 	level = value * 2.55; // value[0,255]
-	ret = rk_aiq_uapi2_setContrast(rkipc_aiq_get_ctx(cam_id), value);
+	ret = rk_aiq_uapi2_setContrast(rkipc_aiq_get_ctx(cam_id), level);
 
 	snprintf(entry, 127, "isp.%d.adjustment:contrast", cam_id);
 	rk_param_set_int(entry, value);
