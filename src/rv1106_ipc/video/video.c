@@ -717,7 +717,7 @@ int rkipc_pipe_0_init() {
 	int video_height = rk_param_get_int("video.0:height", -1);
 	int buffer_line = rk_param_get_int("video.source:buffer_line", video_height / 4);
 	int rotation = rk_param_get_int("video.source:rotation", 0);
-	int buf_cnt = 2;
+	int buf_cnt = rk_param_get_int("video.0:input_buffer_count", 2);
 	int frame_min_i_qp = rk_param_get_int("video.0:frame_min_i_qp", 26);
 	int frame_min_qp = rk_param_get_int("video.0:frame_min_qp", 28);
 	int frame_max_i_qp = rk_param_get_int("video.0:frame_max_i_qp", 51);
