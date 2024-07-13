@@ -2801,11 +2801,11 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 		       stCanvasInfo.u32VirWidth * stCanvasInfo.u32VirHeight * 4);
 		param.width = stCanvasInfo.u32VirWidth;
 		param.height = stCanvasInfo.u32VirHeight;
-		param.format = RK_FORMAT_BGRA_8888;
+		param.format = RK_FORMAT_ABGR_8888;
 		handle = importbuffer_virtualaddr(stCanvasInfo.u64VirAddr, &param);
 		src = wrapbuffer_handle_t(handle, stCanvasInfo.u32VirWidth, stCanvasInfo.u32VirHeight,
 		                          stCanvasInfo.u32VirWidth, stCanvasInfo.u32VirHeight,
-		                          RK_FORMAT_BGRA_8888);
+		                          RK_FORMAT_ABGR_8888);
 		// draw
 		for (int i = 0; i < ba_result.objNum; i++) {
 			int x, y, w, h;
@@ -2838,13 +2838,13 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 			}
 			// LOG_DEBUG("i is %d, x,y,w,h is %d,%d,%d,%d\n", i, x, y, w, h);
 			if (object->objInfo.type == ROCKIVA_OBJECT_TYPE_PERSON) {
-				rga_nv12_border(src, x, y, w, h, line_pixel, 0x000000ff);
+				rga_nv12_border(src, x, y, w, h, line_pixel, 0xff0000ff);
 			} else if (object->objInfo.type == ROCKIVA_OBJECT_TYPE_FACE) {
-				rga_nv12_border(src, x, y, w, h, line_pixel, 0x0000ff00);
+				rga_nv12_border(src, x, y, w, h, line_pixel, 0xff00ff00);
 			} else if (object->objInfo.type == ROCKIVA_OBJECT_TYPE_VEHICLE) {
-				rga_nv12_border(src, x, y, w, h, line_pixel, 0x00ff0000);
+				rga_nv12_border(src, x, y, w, h, line_pixel, 0xffff0000);
 			} else if (object->objInfo.type == ROCKIVA_OBJECT_TYPE_NON_VEHICLE) {
-				rga_nv12_border(src, x, y, w, h, line_pixel, 0x00ff0000);
+				rga_nv12_border(src, x, y, w, h, line_pixel, 0xffff0000);
 			}
 			// LOG_INFO("draw rect time-consuming is %lld\n",(rkipc_get_curren_time_ms() -
 			// 	last_ba_result_time));
@@ -2853,6 +2853,10 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 			// 			object->firstTrigger.ruleID,
 			// 			object->firstTrigger.triggerType);
 		}
+		// FILE *fp = fopen("/data/osd.argb", "wb");
+		// fwrite((void *)stCanvasInfo.u64VirAddr, 1, stCanvasInfo.u32VirWidth * stCanvasInfo.u32VirHeight * 4, fp);
+		// fflush(fp);
+		// fclose(fp);
 		ret = RK_MPI_RGN_UpdateCanvas(RgnHandle);
 		if (ret != RK_SUCCESS) {
 			RK_LOGE("RK_MPI_RGN_UpdateCanvas failed with %#x!", ret);
@@ -2877,7 +2881,7 @@ int rkipc_osd_draw_nn_init() {
 	memset(&stRgnAttr, 0, sizeof(stRgnAttr));
 	stRgnAttr.enType = OVERLAY_EX_RGN;
 	stRgnAttr.unAttr.stOverlay.enVProcDev = VIDEO_PROC_DEV_RGA;
-	stRgnAttr.unAttr.stOverlay.enPixelFmt = RK_FMT_ARGB8888;
+	stRgnAttr.unAttr.stOverlay.enPixelFmt = RK_FMT_ABGR8888;
 	stRgnAttr.unAttr.stOverlay.u32CanvasNum = 1;
 	stRgnAttr.unAttr.stOverlay.stSize.u32Width = rk_param_get_int("video.0:width", -1);
 	stRgnAttr.unAttr.stOverlay.stSize.u32Height = rk_param_get_int("video.0:height", -1);
