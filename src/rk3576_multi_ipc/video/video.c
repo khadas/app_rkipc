@@ -3221,15 +3221,18 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 			RK_LOGE("RK_MPI_RGN_GetCanvasInfo failed with %#x!", ret);
 			continue;
 		}
-		memset((void *)stCanvasInfo.u64VirAddr, 0,
-		       stCanvasInfo.u32VirWidth * stCanvasInfo.u32VirHeight * 4);
 		param.width = stCanvasInfo.u32VirWidth;
 		param.height = stCanvasInfo.u32VirHeight;
 		param.format = RK_FORMAT_ABGR_8888;
-		handle = importbuffer_virtualaddr(stCanvasInfo.u64VirAddr, &param);
+		// handle = importbuffer_virtualaddr(stCanvasInfo.u64VirAddr, &param);
+		handle = importbuffer_fd(RK_MPI_MB_Handle2Fd(stCanvasInfo.canvasBlk), &param);
 		src = wrapbuffer_handle_t(handle, stCanvasInfo.u32VirWidth, stCanvasInfo.u32VirHeight,
 		                          stCanvasInfo.u32VirWidth, stCanvasInfo.u32VirHeight,
 		                          RK_FORMAT_ABGR_8888);
+		// memset((void *)stCanvasInfo.u64VirAddr, 0,
+		//        stCanvasInfo.u32VirWidth * stCanvasInfo.u32VirHeight * 4);
+		im_rect rect_all = {0, 0, video_width, video_height};
+		imfill(src, rect_all, 0x00000000); // clean buffer
 		// draw
 		for (int i = 0; i < ba_result.objNum; i++) {
 			int x, y, w, h;
