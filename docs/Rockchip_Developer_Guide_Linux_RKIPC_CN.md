@@ -2,9 +2,9 @@
 
 文件标识：RK-KF-YF-937
 
-发布版本：V1.6.7
+发布版本：V1.6.8
 
-日期：2024-05-21
+日期：2024-07-18
 
 文件密级：□绝密   □秘密   □内部资料   ■公开
 
@@ -20,7 +20,7 @@
 
 本文档可能提及的其他所有注册商标或商标，由其各自拥有者所有。
 
-**版权所有 © 2023瑞芯微电子股份有限公司**
+**版权所有 © 2024瑞芯微电子股份有限公司**
 
 超越合理使用范畴，非经本公司书面许可，任何单位和个人不得擅自摘抄、复制本文档内容的部分或全部，并不得以任何形式传播。
 
@@ -48,12 +48,12 @@ Rockchip Electronics Co., Ltd.
 
 **产品版本**
 
-| **芯片名称**  | **内核版本** |
-| ------------- | ------------ |
-| RV1126/RV1109 | Linux 4.19   |
-| RK3588        | Linux 5.10   |
-| RV1103/RV1106 | Linux 5.10   |
-| RK3576        | Linux 6.10   |
+| **芯片名称**          | **内核版本**         |
+| --------------------- | -------------------- |
+| RV1126/RV1109         | Linux 4.19           |
+| RK3588                | Linux 5.10/Linux 6.1 |
+| RV1103/RV1106/RV1103B | Linux 5.10           |
+| RK3576                | Linux 6.1            |
 
 **读者对象**
 
@@ -91,6 +91,7 @@ Rockchip Electronics Co., Ltd.
 | V1.6.5     | Yu Zheng   | 2023-09-26   | 新增RV1126 IPC AIISP的流程框图                               |
 | V1.6.6     | Fenrir Lin | 2023-11-08   | 新增RV1106 IPC AIISP的流程框图                               |
 | V1.6.7     | Fenrir Lin | 2024-05-21   | 新增RK3576 IPC和RK3576 Multi-IPC的流程框图                   |
+| V1.6.8     | Fenrir Lin | 2024-07-18   | 补充RV1103B相关说明                                          |
 
 ---
 
@@ -108,11 +109,12 @@ Rockchip Electronics Co., Ltd.
 
 | 源码目录                  | 依赖外部库       | 功能                                                         |
 | ------------------------- | ---------------- | ------------------------------------------------------------ |
-| rv1103_ipc                | rockit、rkaiq    | 针对RV1103平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改，默认开启卷绕。 |
-| rv1106_ipc                | rockit、rkaiq    | 针对RV1106平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改，关闭卷绕。 |
+| rv1103_ipc                | rockit、rkaiq    | 针对RV1103/RV1103B平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改，默认开启卷绕。 |
+| rv1106_ipc                | rockit、rkaiq    | 针对RV1106/RV1103B平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改，关闭卷绕。 |
 | rv1106_battery_ipc_client | rockit、rkaiq    | 针对RV1103/RV1106平台的电池类产品，支持网页和rtsp/rtmp预览，参数动态修改，做为快速启动双进程的client。 |
 | rv1106_battery_ipc_tuya   | rockit、rkaiq    | 针对RV1103/RV1106平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能。 |
-| rv1106_dual_ipc           | rockit、rkaiq    | 针对RV1103/RV1106平台的双目拼接类产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rv1106_dual_ipc           | rockit、rkaiq    | 针对RV1103/RV1106/RV1103B平台的双目拼接类产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rv1106_aiisp              | rockit、rkaiq    | 针对RV1103/RV1106/RV1103B平台的IPC产品，使用aiisp，支持网页和rtsp/rtmp预览，参数动态修改。 |
 | rk3588_ipc                | rockit、rkaiq    | 针对RK3588平台的单目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
 | rk3588_muliti_ipc         | rockit、rkaiq    | 针对RK3588平台的多目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
 | rv1126_ipc_rkmedia        | rockit、rkaiq    | 针对RV1126/RV1109平台的IPC产品，使用rkmedia，支持网页和rtsp/rtmp预览，参数动态修改。 |
@@ -360,22 +362,22 @@ graph TB
 ```shell
 ├── CMakeLists.txt
 ├── common # 通用模块
+│   ├── audio # 音频处理模块
 │   ├── common.h # 一些通用函数功能
 │   ├── event # 事件处理模块
 │   ├── isp # 图像处理模块
-│   │   ├── rk3588
-│   │   ├── rv1106
-│   │   └── rv1126
 │   ├── log.h # 日志管理
 │   ├── network # 网络模块
 │   ├── osd # OSD模块
 │   │   ├── image.bmp # logo图片
 │   │   └── simsun_en.ttf # 字体库
 │   ├── param # 参数管理模块
-│   ├── rkbar # 二维码识别模块
+│   ├── region_clip # 区域裁剪模块
 │   ├── rockiva # 周界算法模块，人脸人形识别
+│   ├── roi # 感兴趣区域模块
 │   ├── rtmp # rtmp推流模块
 │   ├── rtsp # rtsp推流模块
+│   ├── socket_server # socket服务端
 │   ├── storage # 存储模块
 │   └── system # 系统管理模块
 │   └── tuya_ipc # 涂鸦IPC模块
@@ -383,20 +385,32 @@ graph TB
 ├── lib # 存放32/64位版本，不同工具链的预编译库
 │   ├── aarch64-rockchip1031-linux-gnu
 │   └── arm-rockchip830-linux-gnueabihf
+│   └── arm-rockchip830-linux-uclibcgnueabihf
 ├── LICENSE # 版权声明
 └── src
-    ├── low_memory_ipc
+    ├── rk3576_ipc
+    ├── rk3576_multi_ipc
     ├── rk3588_ipc
-    │   ├── audio # 音频业务逻辑
     │   ├── CMakeLists.txt
     │   ├── main.c
     │   ├── rkipc.ini # 参数文件
-    │   ├── server # socket服务端
+    │   ├── RkLunch.sh # 初始化脚本
+    │   ├── RkLunch-stop.sh # 反初始化脚本
     │   └── video # 视频业务逻辑
     │       ├── video.c
     │       └── video.h
-    ├── rk3588_muliti_ipc
+    ├── rk3588_multi_ipc
+    ├── rv1103_ipc
+    ├── rv1106_aiisp_ipc
+    ├── rv1106_battery_ipc_client
+    ├── rv1106_battery_ipc_tuya
+    ├── rv1106_dual_ipc
+    ├── rv1106_ipc
+    ├── rv1106_v4l2_drm
+    ├── rv1106_wakeup_ipc
+    ├── rv1126_aiisp_ipc
     ├── rv1126_battery_ipc
+    ├── rv1126_dual_ipc
     ├── rv1126_ipc_rkmedia
     ├── rv1126_ipc_rockit
     └── rv1126_snapshot

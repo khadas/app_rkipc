@@ -2,9 +2,9 @@
 
 ID: RK-KF-YF-937
 
-Release Version: V1.6.7
+Release Version: V1.6.8
 
-Release Date: 2024-05-21
+Release Date: 2024-07-18
 
 Security Level: □Top-Secret   □Secret   □Internal   ■Public
 
@@ -16,7 +16,7 @@ THIS DOCUMENT IS PROVIDED “AS IS”. ROCKCHIP ELECTRONICS CO., LTD.(“ROCKCHI
 
 "Rockchip", "瑞芯微", "瑞芯" shall be Rockchip’s registered trademarks and owned by Rockchip. All the other trademarks or registered trademarks mentioned in this document shall be owned by their respective owners.
 
-**All rights reserved. ©2023 Rockchip Electronics Co., Ltd.**
+**All rights reserved. ©2024 Rockchip Electronics Co., Ltd.**
 
 Beyond the scope of fair use, neither any entity nor individual shall extract, copy, or distribute this document in any form in whole or in part without the written approval of Rockchip.
 
@@ -42,12 +42,12 @@ This document provides instructions for RKIPC application development.
 
 **Product Version**
 
-| **Chipset**   | **Kernel Version** |
-| ------------- | ------------------ |
-| RV1126/RV1109 | Linux 4.19         |
-| RK3588        | Linux 5.10         |
-| RV1103/RV1106 | Linux 5.10         |
-| RK3576        | Linux 6.10         |
+| **Chipset**           | **Kernel Version**   |
+| --------------------- | -------------------- |
+| RV1126/RV1109         | Linux 4.19           |
+| RK3588                | Linux 5.10/Linux 6.1 |
+| RV1103/RV1106/RV1103B | Linux 5.10           |
+| RK3576                | Linux 6.1            |
 
 **Intended Audience**
 
@@ -85,6 +85,7 @@ Software development engineers
 | V1.6.5      | Yu Zheng   | 2023-09-26 | Added RV1126 AIISP block diagram.                            |
 | V1.6.6      | Fenrir Lin | 2023-11-08 | Added RV1106 AIISP block diagram.                            |
 | V1.6.7      | Fenrir Lin | 2024-05-21 | Added RK3576 IPC and RK3576 Multi-IPC block diagram.         |
+| V1.6.8      | Fenrir Lin | 2024-07-18 | Supplement the relevant explanations for RV1103B.            |
 
 ---
 
@@ -102,11 +103,12 @@ Software development engineers
 
 | Source Directory          | External Dependencies | Functionality                                                |
 | ------------------------- | --------------------- | ------------------------------------------------------------ |
-| rv1103_ipc                | rockit, rkaiq         | IPC product for RV1103 platform, supports web and rtsp/rtmp preview, dynamic parameter modification, and wrapping is enabled by default. |
-| rv1106_ipc                | rockit, rkaiq         | IPC product for RV1106 platform, supports web and rtsp/rtmp preview, dynamic parameter modification, with wrapping disabled. |
+| rv1103_ipc                | rockit, rkaiq         | IPC product for RV1103/RV1103B platform, supports web and rtsp/rtmp preview, dynamic parameter modification, and wrapping is enabled by default. |
+| rv1106_ipc                | rockit, rkaiq         | IPC product for RV1106/RV1103B platform, supports web and rtsp/rtmp preview, dynamic parameter modification, with wrapping disabled. |
 | rv1106_battery_ipc_client | rockit, rkaiq         | Battery-powered product for RV1103/RV1106 platforms, supports web and rtsp/rtmp preview, dynamic parameter modification, serves as a client for quick dual-process booting. |
 | rv1106_battery_ipc_tuya   | rockit, rkaiq         | Battery-powered product for RV1103/RV1106 platforms, supports preview via Tuya mobile app, with sleep&wake functionality. |
-| rv1106_dual_ipc           | rockit, rkaiq         | Binocular camera stitching product for RV1103/RV1106 platforms, supports web and rtsp/rtmp preview, dynamic parameter modification. |
+| rv1106_dual_ipc           | rockit, rkaiq         | Binocular camera stitching product for RV1103/RV1106/RV1103B platforms, supports web and rtsp/rtmp preview, dynamic parameter modification. |
+| rv1106_aiisp              | rockit、rkaiq         | IPC product for RV1103/RV1106/RV1103B platforms,based on aiisp, supports web and rtsp/rtmp preview, dynamic parameter modification. |
 | rk3588_ipc                | rockit, rkaiq         | Single camera IPC product for the RK3588 platform, supports web and rtsp/rtmp preview, dynamic parameter modification. |
 | rk3588_muliti_ipc         | rockit, rkaiq         | Multi cameras IPC product for RK3588 platform, supports web and rtsp/rtmp preview, dynamic parameter modification. |
 | rv1126_ipc_rkmedia        | rockit, rkaiq         | IPC product for RV1126/RV1109 platforms, based on rkmedia, supports web and rtsp/rtmp preview, dynamic parameter modification. |
@@ -354,22 +356,22 @@ graph TB
 ```shell
 ├── CMakeLists.txt
 ├── common # Common Modules
+│   ├── audio # Audio business logic
 │   ├── common.h # General utility functions
 │   ├── event # Event handling modules
 │   ├── isp # Image processing modules
-│   │   ├── rk3588
-│   │   ├── rv1106
-│   │   └── rv1126
 │   ├── log.h # Logging management
 │   ├── network # Network modules
 │   ├── osd # OSD modules
 │   │   ├── image.bmp # Logo image
 │   │   └── simsun_en.ttf # Font library
 │   ├── param # Parameter management modules
-│   ├── rkbar # QR code recognition module
+│   ├── region_clip # Region clip module
 │   ├── rockiva # Boundary algorithm module, face and body recognition
+│   ├── roi # Region of interest module
 │   ├── rtmp # RTMP streaming module
 │   ├── rtsp # RTSP streaming module
+│   ├── socket_server # Socket server
 │   ├── storage # Storage modules
 │   └── system # System management modules
 │   └── tuya_ipc # Tuya IPC module
@@ -377,20 +379,32 @@ graph TB
 ├── lib # Prebuilt libraries of different toolchains，for 32/64-bit versions
 │   ├── aarch64-rockchip1031-linux-gnu
 │   └── arm-rockchip830-linux-gnueabihf
+│   └── arm-rockchip830-linux-uclibcgnueabihf
 ├── LICENSE # License statement
 └── src
-    ├── low_memory_ipc
+    ├── rk3576_ipc
+    ├── rk3576_multi_ipc
     ├── rk3588_ipc
-    │   ├── audio # Audio business logic
     │   ├── CMakeLists.txt
     │   ├── main.c
     │   ├── rkipc.ini # Parameter file
-    │   ├── server # Socket server
+    │   ├── RkLunch.sh # Initialization script
+    │   ├── RkLunch-stop.sh # Anti initialization script
     │   └── video # Video business logic
     │       ├── video.c
     │       └── video.h
-    ├── rk3588_muliti_ipc
+    ├── rk3588_multi_ipc
+    ├── rv1103_ipc
+    ├── rv1106_aiisp_ipc
+    ├── rv1106_battery_ipc_client
+    ├── rv1106_battery_ipc_tuya
+    ├── rv1106_dual_ipc
+    ├── rv1106_ipc
+    ├── rv1106_v4l2_drm
+    ├── rv1106_wakeup_ipc
+    ├── rv1126_aiisp_ipc
     ├── rv1126_battery_ipc
+    ├── rv1126_dual_ipc
     ├── rv1126_ipc_rkmedia
     ├── rv1126_ipc_rockit
     └── rv1126_snapshot
