@@ -842,6 +842,10 @@ int rk_isp_set_white_blance_style(int cam_id, const char *value) {
 	opMode_t mode;
 
 	if (!strcmp(value, "manualWhiteBalance")) {
+        ret = rk_aiq_uapi2_getWBMode(rkipc_aiq_get_ctx(cam_id), &mode);
+        if (mode == OP_AUTO) {
+            ret = rk_aiq_uapi2_getWBGain(rkipc_aiq_get_ctx(cam_id), &gs_wb_gain);
+        }
 		mode = OP_MANUAL;
 	} else {
 		mode = OP_AUTO;
