@@ -792,7 +792,12 @@ int rk_isp_set_hdr_level(int cam_id, int value) {
 	int ret;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	// rk_aiq_uapi2_setDrcGain(rkipc_aiq_get_ctx(cam_id), (float)value, 0.1, 16); // Gain: [1, 8]
-	int level = 50 + (value - 1) * 16.6f; // [1 -4] -> [50 - 100]; level: [0 - 100]
+	int level = 50; // [1 -4] -> [50 - 100]; level: [0 - 100]
+	if (value == 2) {
+		level = 1;
+	} else if (value == 4) {
+		level = 100;
+	}
 	rk_aiq_uapi2_setHDRStrth(rkipc_aiq_get_ctx(cam_id), true, level);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.blc:hdr_level", rkipc_get_scenario_id(cam_id));
@@ -891,10 +896,11 @@ int rk_isp_set_white_blance_style(int cam_id, const char *value) {
 	opMode_t mode;
 
 	if (!strcmp(value, "manualWhiteBalance")) {
-        ret = rk_aiq_uapi2_getWBMode(rkipc_aiq_get_ctx(cam_id), &mode);
-        if (mode == OP_AUTO) {
-            ret = rk_aiq_uapi2_getWBGain(rkipc_aiq_get_ctx(cam_id), &gs_wb_gain);
-        }
+		ret = rk_aiq_uapi2_getWBMode(rkipc_aiq_get_ctx(cam_id), &mode);
+		if (mode == OP_AUTO) {
+			ret = rk_aiq_uapi2_getWBGain(rkipc_aiq_get_ctx(cam_id), &gs_wb_gain);
+			ret = rk_aiq_uapi2_setMWBGain(rkipc_aiq_get_ctx(cam_id), &gs_wb_gain);
+		}
 		mode = OP_MANUAL;
 	} else {
 		mode = OP_AUTO;
