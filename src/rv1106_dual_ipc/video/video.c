@@ -523,19 +523,19 @@ int rkipc_bind_init() {
 	if (enable_avs) {
 		// bind avs and venc
 		if (enable_venc_0) {
-			ret = RK_MPI_SYS_Bind(&vi_chn[0], &venc_chn[0]);
+			ret = RK_MPI_SYS_Bind(&avs_out_chn[0], &venc_chn[0]);
 			if (ret != RK_SUCCESS) {
-				LOG_ERROR("bind error %#x: vi_chn[0] [%d, %d] -> venc_chn[0] [%d, %d]", ret,
-				          vi_chn[0].s32DevId, vi_chn[0].s32ChnId, venc_chn[0].s32DevId,
+				LOG_ERROR("bind error %#x: avs_out_chn[0] [%d, %d] -> venc_chn[0] [%d, %d]", ret,
+				          avs_out_chn[0].s32DevId, avs_out_chn[0].s32ChnId, venc_chn[0].s32DevId,
 				          venc_chn[0].s32ChnId);
 				return ret;
 			}
 		}
 		if (enable_venc_1) {
-			ret = RK_MPI_SYS_Bind(&vi_chn[1], &venc_chn[1]);
+			ret = RK_MPI_SYS_Bind(&avs_out_chn[1], &venc_chn[1]);
 			if (ret != RK_SUCCESS) {
-				LOG_ERROR("bind error %#x: vi_chn[1] [%d, %d] -> venc_chn[1] [%d, %d]", ret,
-				          vi_chn[1].s32DevId, vi_chn[1].s32ChnId, venc_chn[1].s32DevId,
+				LOG_ERROR("bind error %#x: avs_out_chn[1] [%d, %d] -> venc_chn[1] [%d, %d]", ret,
+				          avs_out_chn[1].s32DevId, avs_out_chn[1].s32ChnId, venc_chn[1].s32DevId,
 				          venc_chn[1].s32ChnId);
 				return ret;
 			}
