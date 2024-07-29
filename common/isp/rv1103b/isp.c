@@ -285,12 +285,11 @@ int rk_isp_set_frame_rate(int cam_id, int value) {
 int rk_isp_set_frame_rate_without_ini(int cam_id, int value) {
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int ret;
-	ae_api_expSwAttr_t expSwAttr;
+	frameRateInfo_t info;
+	info.mode = OP_MANUAL;
+	info.fps = value;
 	LOG_INFO("start %d\n", value);
-	ret = rk_aiq_user_api2_ae_getExpSwAttr(rkipc_aiq_get_ctx(cam_id), &expSwAttr);
-	expSwAttr.commCtrl.frmRate.sw_aeT_frmRate_mode = ae_frmRate_fix_mode;
-	expSwAttr.commCtrl.frmRate.sw_aeT_frmRate_val = value;
-	ret = rk_aiq_user_api2_ae_setExpSwAttr(rkipc_aiq_get_ctx(cam_id), expSwAttr);
+	ret = rk_aiq_uapi2_setFrameRate(rkipc_aiq_get_ctx(cam_id), info);
 	LOG_INFO("end, %d\n", value);
 
 	return 0;

@@ -91,26 +91,14 @@ static RK_S32 vpss_aiisp_callback(rk_ainr_param *pAinrParam, RK_VOID *pPrivateDa
 		return ret;
 	}
 	if (pAinrParam->enable != last_enable) {
-		Uapi_ExpSwAttrV2_t stExpSwAttr;
 		int src_den, src_num, dst_den, dst_num, fps, stream_id;
 		char entry[128] = {'\0'};
 		// Adjust ISP framerate first.
-		ret = rk_aiq_user_api2_ae_getExpSwAttr(ctx, &stExpSwAttr);
-		if (ret != RK_SUCCESS) {
-			LOG_ERROR("rk_aiq_user_api2_ae_getExpSwAttr failed %#X\n", ret);
-			return ret;
-		}
 		if (pAinrParam->enable)
 			fps = rk_param_get_int("video.source:aiisp_fps", 10);
 		else
 			fps = rk_param_get_int("isp.0.adjustment:fps", 25);
-		stExpSwAttr.stAuto.stFrmRate.isFpsFix = true;
-		stExpSwAttr.stAuto.stFrmRate.FpsValue = fps;
-		ret = rk_aiq_user_api2_ae_setExpSwAttr(ctx, stExpSwAttr);
-		if (ret != RK_SUCCESS) {
-			LOG_ERROR("rk_aiq_user_api2_ae_setExpSwAttr failed %#X\n", ret);
-			return ret;
-		}
+		rk_isp_set_frame_rate_without_ini(camera_id, fps);
 
 		// Then adjust framerate of all venc channels.
 		VENC_CHN_ATTR_S venc_chn_attr;
