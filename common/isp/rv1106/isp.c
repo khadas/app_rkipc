@@ -568,8 +568,8 @@ int rk_isp_set_exposure_gain(int cam_id, int value) {
 	Uapi_ExpSwAttrV2_t stExpSwAttr;
 	float gain_set = (value * 1.0f);
 	rk_aiq_user_api2_ae_getExpSwAttr(rkipc_aiq_get_ctx(cam_id), &stExpSwAttr);
-	if ((stExpSwAttr.stManual.LinearAE.ManualGainEn = false) ||
-	    (stExpSwAttr.stManual.HdrAE.ManualGainEn = false)) {
+	if ((stExpSwAttr.stManual.LinearAE.ManualGainEn == false) ||
+	    (stExpSwAttr.stManual.HdrAE.ManualGainEn == false)) {
 		LOG_WARN("exposure mode is auto, not support set gain\n");
 		return 0;
 	}
