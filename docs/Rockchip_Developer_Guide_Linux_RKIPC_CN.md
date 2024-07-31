@@ -332,8 +332,8 @@ graph TB
 ```mermaid
 graph LR
 	AI-->AENC-->RTSP_RTMP_0
-	VI_0-->VPSS-->VPSS_0_0-->VENC_0_draw_nn_result-->MUXER-->MP4
-	VENC_0_draw_nn_result-->RTSP_RTMP_0
+	VI_0-->VPSS-->VPSS_0_0_draw_nn_result-->VENC_0-->MUXER-->MP4
+	VENC_0-->RTSP_RTMP_0
 	VPSS-->VPSS_0_1-->VENC_1-->RTSP_RTMP_1
 	VPSS_0_1-->NPU
 	VPSS-->VPSS_0_2-->VENC_2-->RTSP_RTMP_2

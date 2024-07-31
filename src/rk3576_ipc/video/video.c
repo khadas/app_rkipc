@@ -25,7 +25,7 @@
 #define JPEG_VENC_CHN 3
 #define VPSS_ROTATE 6
 #define VPSS_GRP_ID VPSS_MAX_CHN_NUM
-#define DRAW_NN_VENC_CHN_ID 0
+#define DRAW_NN_VPSS_CHN_ID 0
 #define DRAW_NN_OSD_ID 7
 
 #define RK3576_VO_DEV_HDMI 0
@@ -2913,9 +2913,9 @@ int rkipc_osd_draw_nn_init() {
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32BgAlpha = 0;
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32FgAlpha = 255;
 	stRgnChnAttr.unChnAttr.stOverlayChn.u32Layer = DRAW_NN_OSD_ID;
-	stMppChn.enModId = RK_ID_VENC;
+	stMppChn.enModId = RK_ID_VPSS;
 	stMppChn.s32DevId = 0;
-	stMppChn.s32ChnId = DRAW_NN_VENC_CHN_ID;
+	stMppChn.s32ChnId = DRAW_NN_VPSS_CHN_ID;
 	ret = RK_MPI_RGN_AttachToChn(RgnHandle, &stMppChn, &stRgnChnAttr);
 	if (RK_SUCCESS != ret) {
 		LOG_ERROR("RK_MPI_RGN_AttachToChn (%d) to venc0 failed with %#x\n", RgnHandle, ret);
@@ -2940,7 +2940,7 @@ int rkipc_osd_draw_nn_deinit() {
 	RGN_HANDLE RgnHandle = DRAW_NN_OSD_ID;
 	stMppChn.enModId = RK_ID_VENC;
 	stMppChn.s32DevId = 0;
-	stMppChn.s32ChnId = DRAW_NN_VENC_CHN_ID;
+	stMppChn.s32ChnId = DRAW_NN_VPSS_CHN_ID;
 	ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
 	if (RK_SUCCESS != ret)
 		LOG_ERROR("RK_MPI_RGN_DetachFrmChn (%d) to venc0 failed with %#x\n", RgnHandle, ret);
