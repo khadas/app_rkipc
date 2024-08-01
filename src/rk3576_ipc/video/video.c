@@ -2938,7 +2938,7 @@ int rkipc_osd_draw_nn_deinit() {
 	// Detach osd from chn
 	MPP_CHN_S stMppChn;
 	RGN_HANDLE RgnHandle = DRAW_NN_OSD_ID;
-	stMppChn.enModId = RK_ID_VENC;
+	stMppChn.enModId = RK_ID_VPSS;
 	stMppChn.s32DevId = 0;
 	stMppChn.s32ChnId = DRAW_NN_VPSS_CHN_ID;
 	ret = RK_MPI_RGN_DetachFromChn(RgnHandle, &stMppChn);
