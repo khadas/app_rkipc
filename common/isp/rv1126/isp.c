@@ -258,7 +258,7 @@ int rk_isp_set_scenario(int cam_id, const char *value) {
 	LOG_INFO("main_scene is %s, sub_scene is %s\n", main_scene, sub_scene);
 	// rk_aiq_uapi2_sysctl_switch_scene(rkipc_aiq_get_ctx(cam_id), main_scene, sub_scene);
 
-	if (rk_param_get_int("isp:init_form_ini", 1))
+	if (rk_param_get_int("isp:init_from_ini", 1))
 		rk_isp_set_from_ini(0);
 	rk_param_set_string("isp:scenario", value);
 
@@ -1695,7 +1695,7 @@ int rk_isp_init(int cam_id, char *iqfile_path) {
 
 	ret |= sample_common_isp_run(cam_id);
 
-	if (rk_param_get_int("isp:init_form_ini", 1))
+	if (rk_param_get_int("isp:init_from_ini", 1))
 		rk_isp_set_from_ini(cam_id);
 
 	return ret;

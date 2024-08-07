@@ -327,7 +327,7 @@ int rk_isp_set_scenario(int cam_id, const char *value) {
 	LOG_INFO("main_scene is %s, sub_scene is %s\n", main_scene, sub_scene);
 	rk_aiq_uapi2_sysctl_switch_scene(rkipc_aiq_get_ctx(cam_id), main_scene, sub_scene);
 
-	if (rk_param_get_int("isp:init_form_ini", 1))
+	if (rk_param_get_int("isp:init_from_ini", 1))
 		rk_isp_set_from_ini(0);
 	rk_param_set_string("isp:scenario", value);
 
@@ -756,7 +756,7 @@ int rk_isp_set_hdr(int cam_id, const char *value) {
 		rk_param_set_string(entry, value);
 		// usleep(100 * 1000);
 		rk_isp_init(0, g_iq_file_dir_);
-		if (rk_param_get_int("isp:init_form_ini", 1))
+		if (rk_param_get_int("isp:init_from_ini", 1))
 			ret |= rk_isp_set_from_ini(0);
 		if (enable_venc_0)
 			RK_MPI_VI_ResumeChn(0, 0);

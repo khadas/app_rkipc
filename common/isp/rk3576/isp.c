@@ -1573,7 +1573,7 @@ int rk_isp_init(int cam_id, char *iqfile_path) {
 	}
 
 	ret |= sample_common_isp_run(cam_id);
-	if (rk_param_get_int("isp:init_form_ini", 1))
+	if (rk_param_get_int("isp:init_from_ini", 1))
 		ret |= rk_isp_set_from_ini(cam_id);
 
 	return ret;
@@ -1613,7 +1613,7 @@ int rk_isp_group_init(int cam_group_id, char *iqfile_path) {
 		ret =
 		    isp_camera_group_init(cam_group_id, RK_AIQ_WORKING_MODE_NORMAL, false, g_iq_file_dir_);
 	}
-	if (rk_param_get_int("isp:init_form_ini", 1))
+	if (rk_param_get_int("isp:init_from_ini", 1))
 		ret |= rk_isp_set_from_ini(cam_group_id);
 
 	return ret;

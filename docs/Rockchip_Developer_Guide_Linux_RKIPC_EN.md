@@ -1188,12 +1188,12 @@ snapshot_interval_ms = 1000 ; Cycle snapshot interval in milliseconds
 
 In `isp.0`, 0 represents the scenario number, scenario_id = cam_id * MAX_SCENARIO_NUM + current_scenario_id. For example, when MAX_SCENARIO_NUM is 2, the scene 2 for camera 0 has the scenario_id of `0*2+2=2`, and the scene 1 for camera 2 has the scenario_id of `2*2+1=5`.
 
-`init_form_ini` is mainly used for IQ Tuning. When the value is 0, the parameters from the ini file won't override IQ parameters during initialization. The actual effect is based on IQ file parameters.
+`init_from_ini` is mainly used for IQ Tuning. When the value is 0, the parameters from the ini file won't override IQ parameters during initialization. The actual effect is based on IQ file parameters.
 
 ```ini
 [isp]
 scenario = normal ; normal or custom1
-init_form_ini = 1 ; Whether to use ini parameters to override IQ parameters during initialization
+init_from_ini = 1 ; Whether to use ini parameters to override IQ parameters during initialization
 normal_scene = day ; Corresponds to the sub_scene field of the first scene in the IQ file
 custom1_scene = night ; Corresponds to the sub_scene field of the second scene in the IQ file
 ircut_open_gpio = 71 ; gpio2 RK_PA7 (N=X*32+Y*8+Z; X:gpioX, Y:0/1/2/...(RK_PA/B/C/...) Z:RK_PYZ)

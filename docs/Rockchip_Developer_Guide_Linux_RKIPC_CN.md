@@ -1195,12 +1195,12 @@ snapshot_interval_ms = 1000 ; 定时抓拍间隔，单位为毫秒
 
 isp.0中的0代表场景编号，场景编号scenario_id = cam_id * MAX_SCENARIO_NUM + current_scenario_id。例如：当MAX_SCENARIO_NUM为2时，摄像头0的场景2，编号为`0*2+2=2`，摄像头2的场景1，编号为`2*2+1=5`
 
-init_form_ini主要用于IQ调试，值为0时，不会读取ini的参数进行初始化，实际生效的是IQ文件的参数。
+init_from_ini主要用于IQ调试，值为0时，不会读取ini的参数进行初始化，实际生效的是IQ文件的参数。
 
 ```ini
 [isp]
 scenario = normal ; normal or custom1
-init_form_ini = 1 ; 是否使用ini参数覆盖IQ参数进行初始化
+init_from_ini = 1 ; 是否使用ini参数覆盖IQ参数进行初始化
 normal_scene = day ; 对应IQ文件中第一个场景的sub_scene字段
 custom1_scene = night ; 对应IQ文件中第二个场景的sub_scene字段
 ircut_open_gpio = 71 ; gpio2 RK_PA7 (N=X*32+Y*8+Z; X:gpioX, Y:0/1/2/...(RK_PA/B/C/...) Z:RK_PYZ)
