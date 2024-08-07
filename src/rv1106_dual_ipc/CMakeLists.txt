@@ -76,9 +76,9 @@ rkaudio_vqe wpa_client m rkmuxer freetype rockiva iconv rknnmrt rga stdc++ rksys
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 
 if(RK_APP_CHIP STREQUAL "rv1103b")
-	install(FILES rkipc-rv1103b.ini DESTINATION share RENAME "rkipc.ini")
+	install(FILES rkipc-dual-200w-rv1103b.ini DESTINATION share RENAME "rkipc-dual-200w.ini")
 else()
-	install(FILES rkipc.ini DESTINATION share)
+	install(FILES rkipc-dual-200w.ini DESTINATION share)
 endif()
 install(FILES ../../common/speaker_test.wav DESTINATION share)
 install(PROGRAMS RkLunch.sh DESTINATION bin)
