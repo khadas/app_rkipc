@@ -4,7 +4,6 @@
 
 #include "video.h"
 #include "rk_algo_avs_tool_api.h"
-#include "rockiva.h"
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -1809,7 +1808,7 @@ int rkipc_vo_init() {
 	} else {
 		VoPubAttr.enIntfType = VO_INTF_MIPI;
 		VoPubAttr.enIntfSync = VO_OUTPUT_DEFAULT;
-		VoLayer =RK3576_VOP_LAYER_ESMART1;
+		VoLayer = RK3576_VOP_LAYER_ESMART1;
 	}
 	ret = RK_MPI_VO_SetPubAttr(g_vo_dev_id, &VoPubAttr);
 	if (ret != RK_SUCCESS) {
@@ -3191,7 +3190,7 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 	int video_width = 0;
 	int video_height = 0;
 	int rotation = 0;
-	long long last_ba_result_time;
+	long long last_ba_result_time = 0;
 	RockIvaBaResult ba_result;
 	RockIvaBaObjectInfo *object;
 	RGN_HANDLE RgnHandle = DRAW_NN_OSD_ID;

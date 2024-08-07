@@ -1042,12 +1042,14 @@ int rkipc_pipe_0_init() {
 	if (!strcmp(tmp_output_data_type, "H.264")) {
 		VENC_H264_VUI_S pstH264Vui;
 		RK_MPI_VENC_GetH264Vui(VIDEO_PIPE_0, &pstH264Vui);
-		pstH264Vui.stVuiVideoSignal.video_full_range_flag = rk_param_get_int("video.0:video_full_range_flag", 1);
+		pstH264Vui.stVuiVideoSignal.video_full_range_flag =
+		    rk_param_get_int("video.0:video_full_range_flag", 1);
 		RK_MPI_VENC_SetH264Vui(VIDEO_PIPE_0, &pstH264Vui);
 	} else if (!strcmp(tmp_output_data_type, "H.265")) {
 		VENC_H265_VUI_S pstH265Vui;
 		RK_MPI_VENC_GetH265Vui(VIDEO_PIPE_0, &pstH265Vui);
-		pstH265Vui.stVuiVideoSignal.video_full_range_flag = rk_param_get_int("video.0:video_full_range_flag", 1);
+		pstH265Vui.stVuiVideoSignal.video_full_range_flag =
+		    rk_param_get_int("video.0:video_full_range_flag", 1);
 		RK_MPI_VENC_SetH265Vui(VIDEO_PIPE_0, &pstH265Vui);
 	}
 
@@ -1431,12 +1433,14 @@ int rkipc_pipe_1_init() {
 	if (!strcmp(tmp_output_data_type, "H.264")) {
 		VENC_H264_VUI_S pstH264Vui;
 		RK_MPI_VENC_GetH264Vui(VIDEO_PIPE_1, &pstH264Vui);
-		pstH264Vui.stVuiVideoSignal.video_full_range_flag = rk_param_get_int("video.1:video_full_range_flag", 1);
+		pstH264Vui.stVuiVideoSignal.video_full_range_flag =
+		    rk_param_get_int("video.1:video_full_range_flag", 1);
 		RK_MPI_VENC_SetH264Vui(VIDEO_PIPE_1, &pstH264Vui);
 	} else if (!strcmp(tmp_output_data_type, "H.265")) {
 		VENC_H265_VUI_S pstH265Vui;
 		RK_MPI_VENC_GetH265Vui(VIDEO_PIPE_1, &pstH265Vui);
-		pstH265Vui.stVuiVideoSignal.video_full_range_flag = rk_param_get_int("video.1:video_full_range_flag", 1);
+		pstH265Vui.stVuiVideoSignal.video_full_range_flag =
+		    rk_param_get_int("video.1:video_full_range_flag", 1);
 		RK_MPI_VENC_SetH265Vui(VIDEO_PIPE_1, &pstH265Vui);
 	}
 

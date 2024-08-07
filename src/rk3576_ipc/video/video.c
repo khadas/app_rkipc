@@ -9,7 +9,6 @@
 //             		  → venc_3(nv12 jpeg) → jpeg
 
 #include "video.h"
-#include "rockiva.h"
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -1277,7 +1276,7 @@ int rkipc_pipe_vi_vo_init() {
 	} else {
 		VoPubAttr.enIntfType = VO_INTF_MIPI;
 		VoPubAttr.enIntfSync = VO_OUTPUT_DEFAULT;
-		VoLayer =RK3576_VOP_LAYER_ESMART1;
+		VoLayer = RK3576_VOP_LAYER_ESMART1;
 	}
 	ret = RK_MPI_VO_SetPubAttr(g_vo_dev_id, &VoPubAttr);
 	if (ret != RK_SUCCESS) {
@@ -1535,7 +1534,7 @@ static void *rkipc_get_vi_super_resolution_vo(void *arg) {
 		LOG_ERROR("RK_TDE_Open failure:%X", ret);
 	}
 
-	long long last_ba_result_time;
+	long long last_ba_result_time = 0;
 	RockIvaBaResult ba_result;
 	RockIvaBaObjectInfo *object;
 	int video_width = rk_param_get_int("video.0:width", -1);
@@ -1691,7 +1690,7 @@ int rkipc_pipe_super_resolution_init() {
 	} else {
 		VoPubAttr.enIntfType = VO_INTF_MIPI;
 		VoPubAttr.enIntfSync = VO_OUTPUT_DEFAULT;
-		VoLayer =RK3576_VOP_LAYER_ESMART1;
+		VoLayer = RK3576_VOP_LAYER_ESMART1;
 	}
 	ret = RK_MPI_VO_SetPubAttr(g_vo_dev_id, &VoPubAttr);
 	if (ret != RK_SUCCESS) {
@@ -1818,7 +1817,7 @@ static void *rkipc_get_vpss_2_send_npu(void *arg) {
 		ret = RK_MPI_VPSS_GetChnFrame(0, 2, &stViFrame, 1000);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stViFrame.stVFrame.pMbBlk);
-			int fd = (uint8_t *)RK_MPI_MB_Handle2Fd(stViFrame.stVFrame.pMbBlk);
+			int fd = RK_MPI_MB_Handle2Fd(stViFrame.stVFrame.pMbBlk);
 			rkipc_rockiva_write_nv12_frame_by_fd(stViFrame.stVFrame.u32Width,
 			                                     stViFrame.stVFrame.u32Height, loopCount, fd);
 			ret = RK_MPI_VPSS_ReleaseChnFrame(0, 2, &stViFrame);
@@ -2767,7 +2766,7 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 	int video_width = 0;
 	int video_height = 0;
 	int rotation = 0;
-	long long last_ba_result_time;
+	long long last_ba_result_time = 0;
 	RockIvaBaResult ba_result;
 	RockIvaBaObjectInfo *object;
 	RGN_HANDLE RgnHandle = DRAW_NN_OSD_ID;
@@ -2857,9 +2856,8 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 			// 			object->firstTrigger.triggerType);
 		}
 		// FILE *fp = fopen("/data/osd.argb", "wb");
-		// fwrite((void *)stCanvasInfo.u64VirAddr, 1, stCanvasInfo.u32VirWidth * stCanvasInfo.u32VirHeight * 4, fp);
-		// fflush(fp);
-		// fclose(fp);
+		// fwrite((void *)stCanvasInfo.u64VirAddr, 1, stCanvasInfo.u32VirWidth *
+		// stCanvasInfo.u32VirHeight * 4, fp); fflush(fp); fclose(fp);
 		ret = RK_MPI_RGN_UpdateCanvas(RgnHandle);
 		if (ret != RK_SUCCESS) {
 			RK_LOGE("RK_MPI_RGN_UpdateCanvas failed with %#x!", ret);

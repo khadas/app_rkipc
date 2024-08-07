@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 #include "common.h"
 #include "log.h"
+#include "rtsp.h"
 #include "storage.h"
 #include <rk_debug.h>
 #include <rk_mpi_aenc.h>

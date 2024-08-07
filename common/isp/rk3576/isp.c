@@ -6,6 +6,7 @@
 
 #include <rk_aiq_user_api2_acsm.h>
 #include <rk_aiq_user_api2_camgroup.h>
+#include <rk_aiq_user_api2_imgproc.h>
 #include <rk_aiq_user_api2_sysctl.h>
 
 #ifdef LOG_TAG
@@ -222,8 +223,7 @@ int rk_isp_enable_ircut(bool on) {
 
 int rk_isp_set_light_strength(uint32_t pwm, uint32_t period, uint32_t duty,
                               enum pwm_polarity polarity) {
-	int ret;
-
+	int ret = 0;
 	ret = rk_pwm_init(pwm, period, duty, polarity);
 	if (ret) {
 		LOG_ERROR("pwm%d init failed %d\n", pwm, ret);
@@ -232,14 +232,16 @@ int rk_isp_set_light_strength(uint32_t pwm, uint32_t period, uint32_t duty,
 	}
 	light_state = 1;
 	ret = rk_pwm_set_enable(pwm, true);
+	return ret;
 }
 
 int rk_isp_close_light(uint32_t pwm) {
-	int ret;
+	int ret = 0;
 	light_state = 0;
 	ret = rk_pwm_deinit(pwm);
 	if (ret)
 		LOG_ERROR("pwm%d deinit failed %d\n", pwm, ret);
+	return ret;
 }
 
 int rk_isp_get_frame_rate(int cam_id, int *value) {
@@ -1285,7 +1287,7 @@ int rk_isp_set_image_flip(int cam_id, const char *value) {
 		LOG_INFO("group mode, not support set mirror/flip\n");
 		return 0;
 	}
-	int ret;
+	int ret = 0;
 	int mirror, flip;
 	char entry[128] = {'\0'};
 	if (!strcmp(value, "close")) {

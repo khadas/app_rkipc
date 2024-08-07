@@ -35,7 +35,7 @@ int rk_roi_set_all() {
 			stream_id = 2;
 		}
 		snprintf(entry, 127, "video.%d:smart", stream_id);
-		char *smart = rk_param_get_string(entry, "close");
+		const char *smart = rk_param_get_string(entry, "close");
 		if (!strcmp(smart, "open")) {
 			LOG_INFO("video.%d:smart is open, skip roi set\n", stream_id);
 			continue;
