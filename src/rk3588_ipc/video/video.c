@@ -1414,6 +1414,11 @@ int rkipc_pipe_vi_vo_deinit() {
 		LOG_ERROR("RK_MPI_VO_Disable failed\n");
 		return -1;
 	}
+	ret = RK_MPI_VO_CloseFd();
+	if (ret) {
+		LOG_ERROR("RK_MPI_VO_CloseFd failed\n");
+		return -1;
+	}
 
 	return 0;
 }

@@ -1394,6 +1394,11 @@ static int rkipc_vo_deinit() {
 		LOG_ERROR("RK_MPI_VO_UnBindLayer failed, ret=%#x\n", ret);
 		return ret;
 	}
+	ret = RK_MPI_VO_CloseFd();
+	if (ret) {
+		LOG_ERROR("RK_MPI_VO_CloseFd failed\n");
+		return -1;
+	}
 	return ret;
 }
 

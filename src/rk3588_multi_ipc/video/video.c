@@ -2005,6 +2005,11 @@ int rkipc_vo_deinit() {
 		LOG_ERROR("RK_MPI_VO_Disable failed\n");
 		return -1;
 	}
+	ret = RK_MPI_VO_CloseFd();
+	if (ret) {
+		LOG_ERROR("RK_MPI_VO_CloseFd failed\n");
+		return -1;
+	}
 	LOG_INFO("end\n");
 
 	return ret;

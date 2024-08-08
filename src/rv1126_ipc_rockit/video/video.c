@@ -1745,6 +1745,11 @@ int rkipc_pipe_2_deinit() {
 			LOG_ERROR("RK_MPI_VO_UnBindLayer failed, ret=%#x\n", ret);
 			return -1;
 		}
+		ret = RK_MPI_VO_CloseFd();
+		if (ret) {
+			LOG_ERROR("RK_MPI_VO_CloseFd failed\n");
+			return -1;
+		}
 		// disable VPSS
 		ret |= RK_MPI_VPSS_StopGrp(VIDEO_PIPE_2);
 		ret |= RK_MPI_VPSS_DisableChn(VIDEO_PIPE_2, 0);

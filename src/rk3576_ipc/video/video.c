@@ -1435,6 +1435,11 @@ int rkipc_pipe_vi_vo_deinit() {
 		LOG_ERROR("RK_MPI_VO_UnBindLayer failed\n");
 		return -1;
 	}
+	ret = RK_MPI_VO_CloseFd();
+	if (ret) {
+		LOG_ERROR("RK_MPI_VO_CloseFd failed\n");
+		return -1;
+	}
 
 	ret = RK_MPI_VI_DisableChn(pipe_id_, g_vi_for_vo_chn_id);
 	if (ret) {
