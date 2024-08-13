@@ -1391,6 +1391,7 @@ int rkipc_pipe_vpss_vo_init() {
 
 int rkipc_pipe_vi_vo_deinit() {
 	int ret;
+	RK_S32 u32VoChn = 0;
 	ret = RK_MPI_SYS_UnBind(&vpss_rotate_chn, &vo_chn);
 	if (ret != RK_SUCCESS) {
 		LOG_ERROR("vpss and vo unbind error! ret=%#x\n", ret);
@@ -1402,21 +1403,29 @@ int rkipc_pipe_vi_vo_deinit() {
 		return -1;
 	}
 
-	// disable vo layer
-	ret = RK_MPI_VO_DisableLayer(VoLayer);
+	ret = RK_MPI_VO_DisableChn(VoLayer, u32VoChn);
 	if (ret) {
-		LOG_ERROR("RK_MPI_VO_DisableLayer failed\n");
+		LOG_ERROR("RK_MPI_VO_DisableChn failed, ret is %#x\n", ret);
 		return -1;
 	}
-	// disable vo dev
+	ret = RK_MPI_VO_DisableLayer(VoLayer);
+	if (ret) {
+		LOG_ERROR("RK_MPI_VO_DisableLayer failed, ret is %#x\n", ret);
+		return -1;
+	}
 	ret = RK_MPI_VO_Disable(g_vo_dev_id);
 	if (ret) {
-		LOG_ERROR("RK_MPI_VO_Disable failed\n");
+		LOG_ERROR("RK_MPI_VO_Disable failed, ret is %#x\n", ret);
+		return -1;
+	}
+	ret = RK_MPI_VO_UnBindLayer(VoLayer, g_vo_dev_id);
+	if (ret) {
+		LOG_ERROR("RK_MPI_VO_UnBindLayer failed, ret is %#x\n", ret);
 		return -1;
 	}
 	ret = RK_MPI_VO_CloseFd();
 	if (ret) {
-		LOG_ERROR("RK_MPI_VO_CloseFd failed\n");
+		LOG_ERROR("RK_MPI_VO_CloseFd failed, ret is %#x\n", ret);
 		return -1;
 	}
 
