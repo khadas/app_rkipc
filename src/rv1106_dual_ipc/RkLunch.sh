@@ -76,7 +76,7 @@ post_chk()
 	# if /data/rkipc not exist, cp /usr/share
 	rkipc_ini=/userdata/rkipc.ini
 	default_rkipc_ini=/tmp/rkipc-factory-config.ini
-	ln -s -f /oem/usr/share/rkipc_dual_200w.ini $default_rkipc_ini
+	ln -s -f /oem/usr/share/rkipc-dual-200w.ini $default_rkipc_ini
 
 	tmp_md5=/tmp/.rkipc-ini.md5sum
 	data_md5=/userdata/.rkipc-default.md5sum
@@ -110,7 +110,7 @@ post_chk()
 	echo 1416000 > scaling_setspeed
 	cat scaling_cur_freq
 
-	io -4 0xff110008 0x404
+	# io -4 0xff110008 0x404
 
 	if [ -d "/oem/usr/share/iqfiles" ];then
 		rkipc -a /oem/usr/share/iqfiles &
