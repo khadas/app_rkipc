@@ -3293,6 +3293,7 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 			// 			object->firstTrigger.ruleID,
 			// 			object->firstTrigger.triggerType);
 		}
+		releasebuffer_handle(handle);
 		ret = RK_MPI_RGN_UpdateCanvas(RgnHandle);
 		if (ret != RK_SUCCESS) {
 			RK_LOGE("RK_MPI_RGN_UpdateCanvas failed with %#x!", ret);

@@ -2864,6 +2864,7 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 			// 			object->firstTrigger.ruleID,
 			// 			object->firstTrigger.triggerType);
 		}
+		releasebuffer_handle(handle);
 		// FILE *fp = fopen("/data/osd.argb", "wb");
 		// fwrite((void *)stCanvasInfo.u64VirAddr, 1, stCanvasInfo.u32VirWidth *
 		// stCanvasInfo.u32VirHeight * 4, fp); fflush(fp); fclose(fp);
