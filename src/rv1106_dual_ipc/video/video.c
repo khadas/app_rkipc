@@ -2362,12 +2362,23 @@ int rk_video_restart() {
 	int ret;
 	ret = rk_storage_deinit();
 	ret |= rk_video_deinit();
-	if (rk_param_get_int("avs:enable_aiq", 1))
-		ret |= rk_isp_deinit(0);
-	if (rk_param_get_int("avs:enable_aiq", 1)) {
-		ret |= rk_isp_init(0, rkipc_iq_file_path_);
+	if (rk_param_get_int("isp:group_mode", 1)) {
+		rk_isp_group_deinit(0);
+	} else {
+		rk_isp_deinit(1);
+		rk_isp_deinit(0);
+	}
+	if (rk_param_get_int("isp:group_mode", 1)) {
+		rk_isp_group_init(0, rkipc_iq_file_path_);
 		if (rk_param_get_int("isp:init_from_ini", 1))
-			ret |= rk_isp_set_from_ini(0);
+			rk_isp_set_from_ini(0);
+	} else {
+		rk_isp_init(0, rkipc_iq_file_path_);
+		rk_isp_init(1, rkipc_iq_file_path_);
+		if (rk_param_get_int("isp:init_from_ini", 1)) {
+			rk_isp_set_from_ini(0);
+			rk_isp_set_from_ini(1);
+		}
 	}
 	ret |= rk_video_init();
 	ret |= rk_storage_init();
