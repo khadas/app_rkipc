@@ -101,6 +101,7 @@ static void *wait_key_event(void *arg) {
 	while (g_main_run_) {
 		// The rfds collection must be emptied every time,
 		// otherwise the descriptor changes cannot be detected
+		memset(&timeout, 0, sizeof(timeout));
 		timeout.tv_sec = 1;
 		FD_ZERO(&rfds);
 		FD_SET(key_fd, &rfds);
@@ -108,8 +109,16 @@ static void *wait_key_event(void *arg) {
 		// wait for the key event to occur
 		if (FD_ISSET(key_fd, &rfds)) {
 			read(key_fd, &key_event, sizeof(key_event));
-			LOG_INFO("[timeval:sec:%d,usec:%d,type:%d,code:%d,value:%d]\n", key_event.time.tv_sec,
-			         key_event.time.tv_usec, key_event.type, key_event.code, key_event.value);
+// #ifdef __USE_TIME_BITS64
+// 			gettimeofday(&tval, NULL);
+// 			key_event.input_event_sec = tval.tv_sec;
+// 			key_event.input_event_usec = tval.tv_usec;
+// #endif
+			LOG_INFO("[timeval:"
+					 "sec:%d,usec:%d,"
+					 "type:%d,code:%d,value:%d]\n",
+					 key_event.input_event_sec, key_event.input_event_usec,
+					 key_event.type, key_event.code, key_event.value);
 			if ((key_event.code == KEY_VOLUMEDOWN) && key_event.value) {
 				LOG_INFO("get KEY_VOLUMEDOWN\n");
 				rkipc_ao_init();
