@@ -2324,6 +2324,8 @@ int rk_video_init() {
 	// otherwise, when the font size is switched, holes may be caused
 	if (enable_osd)
 		ret |= rkipc_osd_init();
+	rk_roi_set_callback_register(rk_roi_set);
+	ret |= rk_roi_set_all();
 	LOG_DEBUG("over\n");
 
 	return ret;
@@ -2334,6 +2336,7 @@ int rk_video_deinit() {
 	g_video_run_ = 0;
 	g_osd_run_ = 0;
 	int ret = 0;
+	rk_roi_set_callback_register(NULL);
 	if (enable_osd)
 		ret |= rkipc_osd_deinit();
 	rkipc_bind_deinit();
