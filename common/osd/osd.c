@@ -187,11 +187,13 @@ int generate_date_time(const char *fmt, wchar_t *result) {
 	wchar_cnt = sizeof(ymd_string) / sizeof(wchar_t);
 	if (strstr(fmt, OSD_FMT_CHR)) {
 		if (strstr(fmt, OSD_FMT_YMD0))
-			sprintf(ymd_string, "%s-%s-%s", year, month, day);
+			sprintf(ymd_string, "%s年%s月%s日", year, month, day);
 		else if (strstr(fmt, OSD_FMT_YMD1))
-			sprintf(ymd_string, "%s-%s-%s", month, day, year);
+			sprintf(ymd_string, "%s月%s日%s年", month, day, year);
 		else if (strstr(fmt, OSD_FMT_YMD2))
-			sprintf(ymd_string, "%s-%s-%s", day, month, year);
+			sprintf(ymd_string, "%s日%s月%s年", day, month, year);
+		// Because of the problem with the ipcweb-ng, the string contains CHR,
+		// although there is no Chinese in it, it is also included in this judgment
 		else if (strstr(fmt, OSD_FMT_YMD3))
 			sprintf(ymd_string, "%s/%s/%s", year, month, day);
 		else if (strstr(fmt, OSD_FMT_YMD4))
@@ -200,11 +202,11 @@ int generate_date_time(const char *fmt, wchar_t *result) {
 			sprintf(ymd_string, "%s/%s/%s", day, month, year);
 	} else {
 		if (strstr(fmt, OSD_FMT_YMD0))
-			sprintf(ymd_string, "%s年%s月%s日", year, month, day);
+			sprintf(ymd_string, "%s-%s-%s", year, month, day);
 		else if (strstr(fmt, OSD_FMT_YMD1))
-			sprintf(ymd_string, "%s月%s日%s年", month, day, year);
+			sprintf(ymd_string, "%s-%s-%s", month, day, year);
 		else if (strstr(fmt, OSD_FMT_YMD2))
-			sprintf(ymd_string, "%s日%s月%s年", day, month, year);
+			sprintf(ymd_string, "%s-%s-%s", day, month, year);
 	}
 
 	snprintf(time_string, MAX_WCH_BYTE, "%s%s %s", ymd_string, week_string, hms);
