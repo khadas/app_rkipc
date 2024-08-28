@@ -2,9 +2,9 @@
 
 文件标识：RK-KF-YF-937
 
-发布版本：V1.6.8
+发布版本：V1.6.9
 
-日期：2024-07-18
+日期：2024-08-29
 
 文件密级：□绝密   □秘密   □内部资料   ■公开
 
@@ -92,6 +92,7 @@ Rockchip Electronics Co., Ltd.
 | V1.6.6     | Fenrir Lin | 2023-11-08   | 新增RV1106 IPC AIISP的流程框图                               |
 | V1.6.7     | Fenrir Lin | 2024-05-21   | 新增RK3576 IPC和RK3576 Multi-IPC的流程框图                   |
 | V1.6.8     | Fenrir Lin | 2024-07-18   | 补充RV1103B相关说明                                          |
+| V1.6.9     | Fenrir Lin | 2024-08-29   | 修改RV1106 Dual-IPC的流程框图。                              |
 
 ---
 
@@ -186,8 +187,11 @@ graph LR
 ```mermaid
 graph LR
 	VI_0-->AVS
-	VI_1-->AVS-->VENC_0-->RTSP_0
-	AVS-->VENC_1-->RTSP_1
+	VI_1-->AVS-->AVS_CHN_0-->VENC_0-->RTSP_0
+	VENC_0--combo-->VENC_JPEG
+	AVS-->AVS_CHN_1-->VENC_1-->RTSP_1
+	AVS_CHN_1-->IVS
+	AVS_CHN_1-->IVA
 ```
 
 ### RV1106 AIISP

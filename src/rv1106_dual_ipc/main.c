@@ -109,16 +109,9 @@ static void *wait_key_event(void *arg) {
 		// wait for the key event to occur
 		if (FD_ISSET(key_fd, &rfds)) {
 			read(key_fd, &key_event, sizeof(key_event));
-// #ifdef __USE_TIME_BITS64
-// 			gettimeofday(&tval, NULL);
-// 			key_event.input_event_sec = tval.tv_sec;
-// 			key_event.input_event_usec = tval.tv_usec;
-// #endif
-			LOG_INFO("[timeval:"
-					 "sec:%d,usec:%d,"
-					 "type:%d,code:%d,value:%d]\n",
-					 key_event.input_event_sec, key_event.input_event_usec,
-					 key_event.type, key_event.code, key_event.value);
+			LOG_INFO("[timeval:sec:%d,usec:%d,type:%d,code:%d,value:%d]\n",
+			         key_event.input_event_sec, key_event.input_event_usec, key_event.type,
+			         key_event.code, key_event.value);
 			if ((key_event.code == KEY_VOLUMEDOWN) && key_event.value) {
 				LOG_INFO("get KEY_VOLUMEDOWN\n");
 				rkipc_ao_init();
@@ -167,7 +160,7 @@ int main(int argc, char **argv) {
 	rk_param_init(rkipc_ini_path_);
 	rk_network_init(NULL);
 	rk_system_init();
-	if (rk_param_get_int("video.source:enable_npu", 0))
+	if (rk_param_get_int("avs:enable_npu", 0))
 		rkipc_rockiva_init();
 	if (rk_param_get_int("isp:group_mode", 1)) {
 		rk_isp_group_init(0, rkipc_iq_file_path_);
@@ -209,7 +202,7 @@ int main(int argc, char **argv) {
 	if (rk_param_get_int("audio.0:enable", 0))
 		rkipc_audio_deinit();
 	RK_MPI_SYS_Exit();
-	if (rk_param_get_int("video.source:enable_npu", 0))
+	if (rk_param_get_int("avs:enable_npu", 0))
 		rkipc_rockiva_deinit();
 	rk_network_deinit();
 	rk_param_deinit();
