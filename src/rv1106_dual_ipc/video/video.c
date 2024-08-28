@@ -33,7 +33,6 @@
 #define RTMP_URL_2 "rtmp://127.0.0.1:1935/live/thirdstream"
 
 static int g_sensor_num = 2;
-static int send_jpeg_cnt = 0;
 static int get_jpeg_cnt = 0;
 static int enable_ivs, enable_jpeg, enable_venc_0, enable_venc_1, enable_rtsp, enable_rtmp,
     enable_avs;
@@ -1095,6 +1094,164 @@ int rkipc_venc_1_deinit() {
 	return 0;
 }
 
+static void *rkipc_get_jpeg(void *arg) {
+	LOG_DEBUG("#Start %s thread, arg:%p\n", __func__, arg);
+	prctl(PR_SET_NAME, "RkipcGetJpeg", 0, 0, 0);
+	VENC_STREAM_S stFrame;
+	VI_CHN_STATUS_S stChnStatus;
+	int loopCount = 0;
+	int ret = 0;
+	char file_name[128] = {0};
+	char record_path[256];
+
+	memset(&record_path, 0, sizeof(record_path));
+	strcat(record_path, rk_param_get_string("storage:mount_path", "/userdata"));
+	strcat(record_path, "/");
+	strcat(record_path, rk_param_get_string("storage.0:folder_name", "video0"));
+
+	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
+	// drop first frame
+
+	ret = RK_MPI_VENC_GetStream(JPEG_VENC_CHN, &stFrame, 1000);
+	if (ret == RK_SUCCESS)
+		RK_MPI_VENC_ReleaseStream(JPEG_VENC_CHN, &stFrame);
+	else
+		LOG_ERROR("RK_MPI_VENC_GetStream timeout %x\n", ret);
+	while (g_video_run_) {
+		if (!get_jpeg_cnt) {
+			usleep(300 * 1000);
+			continue;
+		}
+		// 5.get the frame
+		ret = RK_MPI_VENC_GetStream(JPEG_VENC_CHN, &stFrame, 1000);
+		if (ret == RK_SUCCESS) {
+			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
+			LOG_DEBUG("Count:%d, Len:%d, PTS is %" PRId64 ", enH264EType is %d\n", loopCount,
+			          stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
+			          stFrame.pstPack->DataType.enH264EType);
+			// save jpeg file
+			time_t t = time(NULL);
+			struct tm tm = *localtime(&t);
+			snprintf(file_name, 128, "%s/%d%02d%02d%02d%02d%02d.jpeg", record_path,
+			         tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min,
+			         tm.tm_sec);
+			LOG_INFO("file_name is %s, u32Len is %d\n", file_name, stFrame.pstPack->u32Len);
+			FILE *fp = fopen(file_name, "wb");
+			if (fp == NULL) {
+				LOG_ERROR("fp is NULL\n");
+			} else {
+				fwrite(data, 1, stFrame.pstPack->u32Len, fp);
+			}
+			// 7.release the frame
+			ret = RK_MPI_VENC_ReleaseStream(JPEG_VENC_CHN, &stFrame);
+			if (ret != RK_SUCCESS) {
+				LOG_ERROR("RK_MPI_VENC_ReleaseStream fail %x\n", ret);
+			}
+			if (fp) {
+				fflush(fp);
+				fclose(fp);
+			}
+			loopCount++;
+		} else {
+			LOG_ERROR("RK_MPI_VENC_GetStream timeout %x\n", ret);
+		}
+		get_jpeg_cnt--;
+		RK_MPI_VENC_StopRecvFrame(JPEG_VENC_CHN);
+		// usleep(33 * 1000);
+	}
+	if (stFrame.pstPack)
+		free(stFrame.pstPack);
+
+	return 0;
+}
+
+static void *rkipc_cycle_snapshot(void *arg) {
+	LOG_INFO("start %s thread, arg:%p\n", __func__, arg);
+	prctl(PR_SET_NAME, "RkipcCycleSnapshot", 0, 0, 0);
+
+	while (g_video_run_ && cycle_snapshot_flag) {
+		usleep(rk_param_get_int("video.jpeg:snapshot_interval_ms", 1000) * 1000);
+		rk_take_photo();
+	}
+	LOG_INFO("exit %s thread, arg:%p\n", __func__, arg);
+
+	return 0;
+}
+
+int rkipc_pipe_jpeg_init() {
+	// jpeg resolution same to video.0
+	int ret;
+	int video_width = rk_param_get_int("video.jpeg:width", 3840);
+	int video_height = rk_param_get_int("video.jpeg:height", 1080);
+	int video_max_height = rk_param_get_int("video.0:max_height", -1);
+	int rotation = rk_param_get_int("avs:rotation", 0);
+	// VENC[3] init
+	VENC_CHN_ATTR_S jpeg_chn_attr;
+	memset(&jpeg_chn_attr, 0, sizeof(jpeg_chn_attr));
+	jpeg_chn_attr.stVencAttr.enType = RK_VIDEO_ID_JPEG;
+	jpeg_chn_attr.stVencAttr.enPixelFormat = RK_FMT_YUV420SP;
+	jpeg_chn_attr.stVencAttr.u32MaxPicWidth = rk_param_get_int("video.0:max_width", 2560);
+	jpeg_chn_attr.stVencAttr.u32MaxPicHeight = rk_param_get_int("video.0:max_height", 1440);
+	jpeg_chn_attr.stVencAttr.u32PicWidth = video_width;
+	jpeg_chn_attr.stVencAttr.u32PicHeight = video_height;
+	jpeg_chn_attr.stVencAttr.u32VirWidth = video_width;
+	jpeg_chn_attr.stVencAttr.u32VirHeight = video_height;
+	jpeg_chn_attr.stVencAttr.u32StreamBufCnt = 2;
+	jpeg_chn_attr.stVencAttr.u32BufSize = rk_param_get_int("video.jpeg:jpeg_buffer_size", 204800);
+	// jpeg_chn_attr.stVencAttr.u32Depth = 1;
+	ret = RK_MPI_VENC_CreateChn(JPEG_VENC_CHN, &jpeg_chn_attr);
+	if (ret) {
+		LOG_ERROR("ERROR: create VENC error! ret=%d\n", ret);
+		return -1;
+	}
+	VENC_JPEG_PARAM_S stJpegParam;
+	memset(&stJpegParam, 0, sizeof(stJpegParam));
+	stJpegParam.u32Qfactor = rk_param_get_int("video.jpeg:jpeg_qfactor", 70);
+	RK_MPI_VENC_SetJpegParam(JPEG_VENC_CHN, &stJpegParam);
+	if (rotation == 0) {
+		RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN, ROTATION_0);
+	} else if (rotation == 90) {
+		RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN, ROTATION_90);
+	} else if (rotation == 180) {
+		RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN, ROTATION_180);
+	} else if (rotation == 270) {
+		RK_MPI_VENC_SetChnRotation(JPEG_VENC_CHN, ROTATION_270);
+	}
+
+	VENC_COMBO_ATTR_S stComboAttr;
+	memset(&stComboAttr, 0, sizeof(VENC_COMBO_ATTR_S));
+	stComboAttr.bEnable = RK_TRUE;
+	stComboAttr.s32ChnId = VIDEO_PIPE_0;
+	RK_MPI_VENC_SetComboAttr(JPEG_VENC_CHN, &stComboAttr);
+
+	VENC_RECV_PIC_PARAM_S stRecvParam;
+	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
+	stRecvParam.s32RecvPicNum = 1;
+	RK_MPI_VENC_StartRecvFrame(JPEG_VENC_CHN,
+	                           &stRecvParam); // must, for no streams callback running failed
+
+	pthread_create(&jpeg_venc_thread_id, NULL, rkipc_get_jpeg, NULL);
+	if (rk_param_get_int("video.jpeg:enable_cycle_snapshot", 0)) {
+		cycle_snapshot_flag = 1;
+		pthread_create(&cycle_snapshot_thread_id, NULL, rkipc_cycle_snapshot, NULL);
+	}
+
+	return ret;
+}
+
+int rkipc_pipe_jpeg_deinit() {
+	int ret = 0;
+	ret = RK_MPI_VENC_StopRecvFrame(JPEG_VENC_CHN);
+	ret |= RK_MPI_VENC_DestroyChn(JPEG_VENC_CHN);
+	if (ret)
+		LOG_ERROR("ERROR: Destroy VENC error! ret=%#x\n", ret);
+	else
+		LOG_INFO("RK_MPI_VENC_DestroyChn success\n");
+
+	return ret;
+}
+
+
 static RK_U8 rgn_color_lut_0_left_value[4] = {0x03, 0xf, 0x3f, 0xff};
 static RK_U8 rgn_color_lut_0_right_value[4] = {0xc0, 0xf0, 0xfc, 0xff};
 static RK_U8 rgn_color_lut_1_left_value[4] = {0x02, 0xa, 0x2a, 0xaa};
@@ -2058,9 +2215,29 @@ int rkipc_osd_deinit() {
 }
 
 // jpeg
-int rk_video_get_enable_cycle_snapshot(int *value) { return 0; }
+int rk_video_get_enable_cycle_snapshot(int *value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.jpeg:enable_cycle_snapshot");
+	*value = rk_param_get_int(entry, -1);
 
-int rk_video_set_enable_cycle_snapshot(int value) { return 0; }
+	return 0;
+}
+
+int rk_video_set_enable_cycle_snapshot(int value) {
+	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.jpeg:enable_cycle_snapshot");
+	rk_param_set_int(entry, value);
+	if (value && !cycle_snapshot_flag) {
+		cycle_snapshot_flag = 1;
+		pthread_create(&cycle_snapshot_thread_id, NULL, rkipc_cycle_snapshot, NULL);
+	} else if (!value && cycle_snapshot_flag) {
+		get_jpeg_cnt = 0;
+		cycle_snapshot_flag = 0;
+		pthread_join(cycle_snapshot_thread_id, NULL);
+	}
+
+	return 0;
+}
 
 int rk_video_get_image_quality(int *value) {
 	char entry[128] = {'\0'};
@@ -2134,7 +2311,7 @@ int rk_video_set_jpeg_resolution(const char *value) {
 
 int rk_take_photo() {
 	LOG_DEBUG("start\n");
-	if (send_jpeg_cnt || get_jpeg_cnt) {
+	if (get_jpeg_cnt) {
 		LOG_WARN("the last photo was not completed\n");
 		return -1;
 	}
@@ -2146,7 +2323,6 @@ int rk_take_photo() {
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
 	stRecvParam.s32RecvPicNum = 1;
 	RK_MPI_VENC_StartRecvFrame(JPEG_VENC_CHN, &stRecvParam);
-	send_jpeg_cnt++;
 	get_jpeg_cnt++;
 
 	return 0;
@@ -2319,6 +2495,8 @@ int rk_video_init() {
 		ret |= rkipc_venc_0_init();
 	if (enable_venc_1)
 		ret |= rkipc_venc_1_init();
+	if (enable_jpeg)
+		ret |= rkipc_pipe_jpeg_init();
 	rkipc_bind_init();
 	// The osd dma buffer must be placed in the last application,
 	// otherwise, when the font size is switched, holes may be caused
@@ -2340,6 +2518,14 @@ int rk_video_deinit() {
 	if (enable_osd)
 		ret |= rkipc_osd_deinit();
 	rkipc_bind_deinit();
+	if (enable_jpeg) {
+		if (rk_param_get_int("video.jpeg:enable_cycle_snapshot", 0)) {
+			cycle_snapshot_flag = 0;
+			pthread_join(cycle_snapshot_thread_id, NULL);
+		}
+		pthread_join(jpeg_venc_thread_id, NULL);
+		ret |= rkipc_pipe_jpeg_deinit();
+	}
 	if (enable_venc_0) {
 		pthread_join(venc_thread_0, NULL);
 		ret |= rkipc_venc_0_deinit();
