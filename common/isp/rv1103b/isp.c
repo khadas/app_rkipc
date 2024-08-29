@@ -275,6 +275,13 @@ int rk_isp_set_frame_rate(int cam_id, int value) {
 	info.fps = value;
 	LOG_INFO("start %d\n", value);
 	ret = rk_aiq_uapi2_setFrameRate(rkipc_aiq_get_ctx(cam_id), info);
+	// when isp fps change, need to reset video fps
+	if (rk_param_get_int("video.source:enable_venc_0", 0))
+		rk_video_reset_frame_rate(0);
+	if (rk_param_get_int("video.source:enable_venc_1", 0))
+		rk_video_reset_frame_rate(1);
+	if (rk_param_get_int("video.source:enable_venc_2", 0))
+		rk_video_reset_frame_rate(2);
 	LOG_INFO("end, %d\n", value);
 
 	snprintf(entry, 127, "isp.%d.adjustment:fps", rkipc_get_scenario_id(cam_id));
@@ -1662,7 +1669,7 @@ int rk_isp_set_from_ini(int cam_id) {
 	char entry[128] = {'\0'};
 	LOG_DEBUG("start\n");
 	snprintf(entry, 127, "isp.%d.adjustment:fps", rkipc_get_scenario_id(cam_id));
-	rk_isp_set_frame_rate(cam_id, rk_param_get_int(entry, 30));
+	rk_isp_set_frame_rate_without_ini(cam_id, rk_param_get_int(entry, 30));
 	// image adjustment
 	LOG_DEBUG("image adjustment\n");
 	snprintf(entry, 127, "isp.%d.adjustment:contrast", rkipc_get_scenario_id(cam_id));
