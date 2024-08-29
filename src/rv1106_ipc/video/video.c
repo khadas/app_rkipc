@@ -1039,20 +1039,6 @@ int rkipc_pipe_0_init() {
 	lambds_s.u32Lambda = rk_param_get_int("video.0:lambds", 4);
 	RK_MPI_VENC_SetLambda(VIDEO_PIPE_0, &lambds_s);
 
-	if (!strcmp(tmp_output_data_type, "H.264")) {
-		VENC_H264_VUI_S pstH264Vui;
-		RK_MPI_VENC_GetH264Vui(VIDEO_PIPE_0, &pstH264Vui);
-		pstH264Vui.stVuiVideoSignal.video_full_range_flag =
-		    rk_param_get_int("video.0:video_full_range_flag", 1);
-		RK_MPI_VENC_SetH264Vui(VIDEO_PIPE_0, &pstH264Vui);
-	} else if (!strcmp(tmp_output_data_type, "H.265")) {
-		VENC_H265_VUI_S pstH265Vui;
-		RK_MPI_VENC_GetH265Vui(VIDEO_PIPE_0, &pstH265Vui);
-		pstH265Vui.stVuiVideoSignal.video_full_range_flag =
-		    rk_param_get_int("video.0:video_full_range_flag", 1);
-		RK_MPI_VENC_SetH265Vui(VIDEO_PIPE_0, &pstH265Vui);
-	}
-
 	VENC_CHN_REF_BUF_SHARE_S stVencChnRefBufShare;
 	memset(&stVencChnRefBufShare, 0, sizeof(VENC_CHN_REF_BUF_SHARE_S));
 	stVencChnRefBufShare.bEnable = rk_param_get_int("video.0:enable_refer_buffer_share", 0);
@@ -1065,6 +1051,25 @@ int rkipc_pipe_0_init() {
 		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0, ROTATION_180);
 	} else if (rotation == 270) {
 		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0, ROTATION_270);
+	}
+
+	const char *gray_scale_mode = NULL;
+	int video_full_range_flag = 0;
+	rk_isp_get_gray_scale_mode(0, &gray_scale_mode);
+	if (!strcmp(gray_scale_mode, "[16-235]"))
+		video_full_range_flag = 0;
+	else
+		video_full_range_flag = 1;
+	if (!strcmp(tmp_output_data_type, "H.264")) {
+		VENC_H264_VUI_S pstH264Vui;
+		RK_MPI_VENC_GetH264Vui(VIDEO_PIPE_0, &pstH264Vui);
+		pstH264Vui.stVuiVideoSignal.video_full_range_flag = video_full_range_flag;
+		RK_MPI_VENC_SetH264Vui(VIDEO_PIPE_0, &pstH264Vui);
+	} else if (!strcmp(tmp_output_data_type, "H.265")) {
+		VENC_H265_VUI_S pstH265Vui;
+		RK_MPI_VENC_GetH265Vui(VIDEO_PIPE_0, &pstH265Vui);
+		pstH265Vui.stVuiVideoSignal.video_full_range_flag = video_full_range_flag;
+		RK_MPI_VENC_SetH265Vui(VIDEO_PIPE_0, &pstH265Vui);
 	}
 
 	VENC_RECV_PIC_PARAM_S stRecvParam;
@@ -1430,20 +1435,6 @@ int rkipc_pipe_1_init() {
 	lambds_s.u32Lambda = rk_param_get_int("video.1:lambds", 4);
 	RK_MPI_VENC_SetLambda(VIDEO_PIPE_1, &lambds_s);
 
-	if (!strcmp(tmp_output_data_type, "H.264")) {
-		VENC_H264_VUI_S pstH264Vui;
-		RK_MPI_VENC_GetH264Vui(VIDEO_PIPE_1, &pstH264Vui);
-		pstH264Vui.stVuiVideoSignal.video_full_range_flag =
-		    rk_param_get_int("video.1:video_full_range_flag", 1);
-		RK_MPI_VENC_SetH264Vui(VIDEO_PIPE_1, &pstH264Vui);
-	} else if (!strcmp(tmp_output_data_type, "H.265")) {
-		VENC_H265_VUI_S pstH265Vui;
-		RK_MPI_VENC_GetH265Vui(VIDEO_PIPE_1, &pstH265Vui);
-		pstH265Vui.stVuiVideoSignal.video_full_range_flag =
-		    rk_param_get_int("video.1:video_full_range_flag", 1);
-		RK_MPI_VENC_SetH265Vui(VIDEO_PIPE_1, &pstH265Vui);
-	}
-
 	VENC_CHN_REF_BUF_SHARE_S stVencChnRefBufShare;
 	memset(&stVencChnRefBufShare, 0, sizeof(VENC_CHN_REF_BUF_SHARE_S));
 	stVencChnRefBufShare.bEnable = rk_param_get_int("video.1:enable_refer_buffer_share", 0);
@@ -1456,6 +1447,25 @@ int rkipc_pipe_1_init() {
 		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1, ROTATION_180);
 	} else if (rotation == 270) {
 		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1, ROTATION_270);
+	}
+
+	const char *gray_scale_mode = NULL;
+	int video_full_range_flag = 0;
+	rk_isp_get_gray_scale_mode(0, &gray_scale_mode);
+	if (!strcmp(gray_scale_mode, "[16-235]"))
+		video_full_range_flag = 0;
+	else
+		video_full_range_flag = 1;
+	if (!strcmp(tmp_output_data_type, "H.264")) {
+		VENC_H264_VUI_S pstH264Vui;
+		RK_MPI_VENC_GetH264Vui(VIDEO_PIPE_1, &pstH264Vui);
+		pstH264Vui.stVuiVideoSignal.video_full_range_flag = video_full_range_flag;
+		RK_MPI_VENC_SetH264Vui(VIDEO_PIPE_1, &pstH264Vui);
+	} else if (!strcmp(tmp_output_data_type, "H.265")) {
+		VENC_H265_VUI_S pstH265Vui;
+		RK_MPI_VENC_GetH265Vui(VIDEO_PIPE_1, &pstH265Vui);
+		pstH265Vui.stVuiVideoSignal.video_full_range_flag = video_full_range_flag;
+		RK_MPI_VENC_SetH265Vui(VIDEO_PIPE_1, &pstH265Vui);
 	}
 
 	VENC_RECV_PIC_PARAM_S stRecvParam;

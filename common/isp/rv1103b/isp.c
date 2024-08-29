@@ -1159,12 +1159,14 @@ int rk_isp_get_gray_scale_mode(int cam_id, const char **value) {
 }
 
 int rk_isp_set_gray_scale_mode(int cam_id, const char *value) {
-	int ret;
+	int ret, video_full_range_flag;
 	char entry[128] = {'\0'};
+	const char *tmp_output_data_type = NULL;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
 	int Cspace = -1;
 	rk_aiq_uapi2_getColorSpace(rkipc_aiq_get_ctx(cam_id), &Cspace);
 	if (!strcmp(value, "[16-235]")) {
+		video_full_range_flag = 0;
 		if (Cspace == 0 || Cspace == 1) {
 			Cspace = 1;
 		} else if (Cspace == 2 || Cspace == 3) {
@@ -1173,6 +1175,7 @@ int rk_isp_set_gray_scale_mode(int cam_id, const char *value) {
 			Cspace = 254;
 		}
 	} else {
+		video_full_range_flag = 1;
 		if (Cspace == 0 || Cspace == 1) {
 			Cspace = 0;
 		} else if (Cspace == 2 || Cspace == 3) {
@@ -1182,6 +1185,33 @@ int rk_isp_set_gray_scale_mode(int cam_id, const char *value) {
 		}
 	}
 	rk_aiq_uapi2_setColorSpace(rkipc_aiq_get_ctx(cam_id), Cspace);
+
+	tmp_output_data_type = rk_param_get_string("video.0:output_data_type", NULL);
+	if (!strcmp(tmp_output_data_type, "H.264")) {
+		VENC_H264_VUI_S pstH264Vui;
+		RK_MPI_VENC_GetH264Vui(0, &pstH264Vui);
+		pstH264Vui.stVuiVideoSignal.video_full_range_flag = video_full_range_flag;
+		RK_MPI_VENC_SetH264Vui(0, &pstH264Vui);
+	} else if (!strcmp(tmp_output_data_type, "H.265")) {
+		VENC_H265_VUI_S pstH265Vui;
+		RK_MPI_VENC_GetH265Vui(0, &pstH265Vui);
+		pstH265Vui.stVuiVideoSignal.video_full_range_flag = video_full_range_flag;
+		RK_MPI_VENC_SetH265Vui(0, &pstH265Vui);
+	}
+	tmp_output_data_type = rk_param_get_string("video.1:output_data_type", NULL);
+	if (!strcmp(tmp_output_data_type, "H.264")) {
+		VENC_H264_VUI_S pstH264Vui;
+		RK_MPI_VENC_GetH264Vui(1, &pstH264Vui);
+		pstH264Vui.stVuiVideoSignal.video_full_range_flag = video_full_range_flag;
+		RK_MPI_VENC_SetH264Vui(1, &pstH264Vui);
+	} else if (!strcmp(tmp_output_data_type, "H.265")) {
+		VENC_H265_VUI_S pstH265Vui;
+		RK_MPI_VENC_GetH265Vui(1, &pstH265Vui);
+		pstH265Vui.stVuiVideoSignal.video_full_range_flag = video_full_range_flag;
+		RK_MPI_VENC_SetH265Vui(1, &pstH265Vui);
+	}
+	LOG_INFO("video_full_range_flag is %d\n", video_full_range_flag);
+
 	snprintf(entry, 127, "isp.%d.enhancement:gray_scale_mode", rkipc_get_scenario_id(cam_id));
 	rk_param_set_string(entry, value);
 
