@@ -741,6 +741,7 @@ int rkipc_venc_0_init() {
 		LOG_ERROR("ERROR: create VENC error! ret=%#x\n", ret);
 		return -1;
 	}
+	rk_video_reset_frame_rate(VIDEO_PIPE_0);
 
 	tmp_smart = rk_param_get_string("video.0:smart", "close");
 	if (!strcmp(tmp_smart, "open"))
@@ -989,6 +990,7 @@ int rkipc_venc_1_init() {
 		LOG_ERROR("ERROR: create VENC error! ret=%#x\n", ret);
 		return -1;
 	}
+	rk_video_reset_frame_rate(VIDEO_PIPE_1);
 
 	tmp_smart = rk_param_get_string("video.1:smart", "close");
 	if (!strcmp(tmp_smart, "open"))
@@ -2080,7 +2082,10 @@ int rk_video_get_frame_rate(int stream_id, char **value) {
 
 int rk_video_set_frame_rate(int stream_id, const char *value) {
 	char entry[128] = {'\0'};
-	int den, num;
+	int den, num, sensor_fps;
+	VI_CHN_ATTR_S vi_chn_attr;
+	VENC_CHN_ATTR_S venc_chn_attr;
+
 	if (strchr(value, '/') == NULL) {
 		den = 1;
 		sscanf(value, "%d", &num);
@@ -2088,29 +2093,44 @@ int rk_video_set_frame_rate(int stream_id, const char *value) {
 		sscanf(value, "%d/%d", &num, &den);
 	}
 	LOG_INFO("num is %d, den is %d\n", num, den);
+	sensor_fps = rk_param_get_int("isp.0.adjustment:fps", 30);
 
-	VENC_CHN_ATTR_S venc_chn_attr;
-	memset(&venc_chn_attr, 0, sizeof(venc_chn_attr));
+	RK_MPI_VI_GetChnAttr(pipe_id_, stream_id, &vi_chn_attr);
+	LOG_INFO("old VI framerate is [%d:%d]\n", vi_chn_attr.stFrameRate.s32SrcFrameRate,
+	         vi_chn_attr.stFrameRate.s32DstFrameRate);
 	RK_MPI_VENC_GetChnAttr(stream_id, &venc_chn_attr);
 	snprintf(entry, 127, "video.%d:output_data_type", stream_id);
 	tmp_output_data_type = rk_param_get_string(entry, "H.264");
 	snprintf(entry, 127, "video.%d:rc_mode", stream_id);
 	tmp_rc_mode = rk_param_get_string(entry, "CBR");
+
+	// dual ipc, only use VENC frame rate control,
+	vi_chn_attr.stFrameRate.s32SrcFrameRate = sensor_fps;
+	vi_chn_attr.stFrameRate.s32DstFrameRate = sensor_fps;
+
 	if (!strcmp(tmp_output_data_type, "H.264")) {
 		venc_chn_attr.stVencAttr.enType = RK_VIDEO_ID_AVC;
 		if (!strcmp(tmp_rc_mode, "CBR")) {
+			venc_chn_attr.stRcAttr.stH264Cbr.u32SrcFrameRateDen = 1;
+			venc_chn_attr.stRcAttr.stH264Cbr.u32SrcFrameRateNum = sensor_fps;
 			venc_chn_attr.stRcAttr.stH264Cbr.fr32DstFrameRateDen = den;
 			venc_chn_attr.stRcAttr.stH264Cbr.fr32DstFrameRateNum = num;
 		} else {
+			venc_chn_attr.stRcAttr.stH264Vbr.u32SrcFrameRateDen = 1;
+			venc_chn_attr.stRcAttr.stH264Vbr.u32SrcFrameRateNum = sensor_fps;
 			venc_chn_attr.stRcAttr.stH264Vbr.fr32DstFrameRateDen = den;
 			venc_chn_attr.stRcAttr.stH264Vbr.fr32DstFrameRateNum = num;
 		}
 	} else if (!strcmp(tmp_output_data_type, "H.265")) {
 		venc_chn_attr.stVencAttr.enType = RK_VIDEO_ID_HEVC;
 		if (!strcmp(tmp_rc_mode, "CBR")) {
+			venc_chn_attr.stRcAttr.stH265Cbr.u32SrcFrameRateDen = 1;
+			venc_chn_attr.stRcAttr.stH265Cbr.u32SrcFrameRateNum = sensor_fps;
 			venc_chn_attr.stRcAttr.stH265Cbr.fr32DstFrameRateDen = den;
 			venc_chn_attr.stRcAttr.stH265Cbr.fr32DstFrameRateNum = num;
 		} else {
+			venc_chn_attr.stRcAttr.stH265Vbr.u32SrcFrameRateDen = 1;
+			venc_chn_attr.stRcAttr.stH265Vbr.u32SrcFrameRateNum = sensor_fps;
 			venc_chn_attr.stRcAttr.stH265Vbr.fr32DstFrameRateDen = den;
 			venc_chn_attr.stRcAttr.stH265Vbr.fr32DstFrameRateNum = num;
 		}
@@ -2118,12 +2138,25 @@ int rk_video_set_frame_rate(int stream_id, const char *value) {
 		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
 		return -1;
 	}
+	LOG_INFO("new VI framerate is [%d:%d]\n", vi_chn_attr.stFrameRate.s32SrcFrameRate,
+	         vi_chn_attr.stFrameRate.s32DstFrameRate);
+	RK_MPI_VI_SetChnAttr(pipe_id_, stream_id, &vi_chn_attr);
 	RK_MPI_VENC_SetChnAttr(stream_id, &venc_chn_attr);
 
 	snprintf(entry, 127, "video.%d:dst_frame_rate_den", stream_id);
 	rk_param_set_int(entry, den);
 	snprintf(entry, 127, "video.%d:dst_frame_rate_num", stream_id);
 	rk_param_set_int(entry, num);
+
+	return 0;
+}
+
+int rk_video_reset_frame_rate(int stream_id) {
+	int ret = 0;
+	char *value = malloc(20);
+	ret |= rk_video_get_frame_rate(stream_id, &value);
+	ret |= rk_video_set_frame_rate(stream_id, value);
+	free(value);
 
 	return 0;
 }
