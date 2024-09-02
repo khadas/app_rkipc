@@ -2203,6 +2203,16 @@ int rk_video_set_frame_rate(int stream_id, const char *value) {
 	return 0;
 }
 
+int rk_video_reset_frame_rate(int stream_id) {
+	int ret = 0;
+	char *value = malloc(20);
+	ret |= rk_video_get_frame_rate(stream_id, &value);
+	ret |= rk_video_set_frame_rate(stream_id, value);
+	free(value);
+
+	return 0;
+}
+
 int rk_video_get_frame_rate_in(int stream_id, char **value) {
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "video.%d:src_frame_rate_den", stream_id);

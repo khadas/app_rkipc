@@ -1104,7 +1104,7 @@ int rk_isp_set_dehaze(int cam_id, const char *value) {
 
 	ret = rk_aiq_user_api2_adehaze_v12_getSwAttrib(rkipc_aiq_get_ctx(cam_id), &attr);
 	if (ret)
-		LOG_ERROR("dehaze get SwAttrib failed %d", ret);
+		LOG_ERROR("dehaze get SwAttrib failed %d\n", ret);
 	attr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
 	attr.sync.done = false;
 	if (!strcmp(value, "close")) {
