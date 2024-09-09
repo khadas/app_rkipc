@@ -616,9 +616,9 @@ int rk_isp_set_light_brightness(int cam_id, int value) {
 	int ret;
 	uint32_t pwm, period, duty = 0;
 	RK_ISP_CHECK_CAMERA_ID(cam_id);
-	pwm = 3;
-	period = 10000;
-	duty = 5000;
+	pwm = 0;
+	period = 100;
+	duty = value;
 	ret = rk_isp_set_light_strength(pwm, period, duty, PWM_POLARITY_NORMAL);
 	char entry[128] = {'\0'};
 	snprintf(entry, 127, "isp.%d.night_to_day:light_brightness", rkipc_get_scenario_id(cam_id));
