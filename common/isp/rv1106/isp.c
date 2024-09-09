@@ -751,7 +751,7 @@ int rk_isp_set_hdr(int cam_id, const char *value) {
 	int enable_venc_1 = rk_param_get_int("video.source:enable_venc_1", 1);
 	int enable_pp = rk_param_get_int("video.source:enable_pp", 1);
 	if (strcmp(value, old_value)) {
-		if (rk_param_get_int("isp:group_mode", 1)) {
+		if (rk_param_get_int("isp:group_mode", 0)) {
 			RK_MPI_VI_PauseChn(0, 0);
 			RK_MPI_VI_PauseChn(0, 1);
 			rk_isp_group_deinit(0);
