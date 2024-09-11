@@ -30,6 +30,7 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/common/storage SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/rockiva SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/event SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/region_clip SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/venc SRCS)
 
 include_directories(video
 					server
@@ -48,6 +49,7 @@ include_directories(video
 					${PROJECT_SOURCE_DIR}/common/rockiva
 					${PROJECT_SOURCE_DIR}/common/event
 					${PROJECT_SOURCE_DIR}/common/region_clip
+					${PROJECT_SOURCE_DIR}/common/venc
 					)
 
 message(STATUS "RK_APP_CHIP is ${RK_APP_CHIP}")

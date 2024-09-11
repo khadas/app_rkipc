@@ -12,6 +12,7 @@
 #include "rtmp.h"
 #include "rtsp.h"
 #include "storage.h"
+#include "venc.h"
 #include <pthread.h>
 #include <rk_aiq_user_api2_imgproc.h>
 #include <rk_aiq_user_api2_sysctl.h>
@@ -765,6 +766,7 @@ static int rkipc_venc_0_init() {
 		RK_MPI_VENC_SetH265Vui(VIDEO_PIPE_0, &pstH265Vui);
 	}
 
+	rkipc_set_advanced_venc_params(VIDEO_PIPE_0);
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
 	stRecvParam.s32RecvPicNum = -1;
@@ -985,6 +987,7 @@ static int rkipc_venc_1_init() {
 		RK_MPI_VENC_SetH265Vui(VIDEO_PIPE_1, &pstH265Vui);
 	}
 
+	rkipc_set_advanced_venc_params(VIDEO_PIPE_1);
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
 	stRecvParam.s32RecvPicNum = -1;
@@ -1187,6 +1190,7 @@ static int rkipc_venc_2_init() {
 		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_2, ROTATION_270);
 	}
 
+	rkipc_set_advanced_venc_params(VIDEO_PIPE_2);
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
 	stRecvParam.s32RecvPicNum = -1;

@@ -5,6 +5,7 @@
 #include "video.h"
 #include "audio.h"
 #include "rockiva.h"
+#include "venc.h"
 
 #define HAS_VO 0
 #if HAS_VO
@@ -594,11 +595,6 @@ int rkipc_pipe_0_init() {
 		buffer_line = video_max_height;
 	int rotation = rk_param_get_int("video.source:rotation", 0);
 	int buf_cnt = 2;
-	int frame_min_i_qp = rk_param_get_int("video.0:frame_min_i_qp", 26);
-	int frame_min_qp = rk_param_get_int("video.0:frame_min_qp", 28);
-	int frame_max_i_qp = rk_param_get_int("video.0:frame_max_i_qp", 51);
-	int frame_max_qp = rk_param_get_int("video.0:frame_max_qp", 51);
-	int scalinglist = rk_param_get_int("video.0:scalinglist", 0);
 
 	// VI
 	VI_CHN_ATTR_S vi_chn_attr;
@@ -736,94 +732,6 @@ int rkipc_pipe_0_init() {
 			LOG_ERROR("RK_MPI_VENC_EnableMotionStaticSwitch error! ret=%#x\n", ret);
 	}
 
-	VENC_RC_PARAM2_S rc_param2;
-	ret = RK_MPI_VENC_GetRcParam2(VIDEO_PIPE_0, &rc_param2);
-	if (ret)
-		LOG_ERROR("RK_MPI_VENC_GetRcParam2 error! ret=%#x\n", ret);
-	const char *strings = rk_param_get_string("video.0:thrd_i", NULL);
-	if (strings) {
-		char *str = strdup(strings);
-		if (str) {
-			char *tmp = str;
-			char *token = strsep(&tmp, ",");
-			int i = 0;
-			while (token != NULL) {
-				rc_param2.u32ThrdI[i++] = atoi(token);
-				token = strsep(&tmp, ",");
-			}
-			free(str);
-		}
-	}
-	strings = rk_param_get_string("video.0:thrd_p", NULL);
-	if (strings) {
-		char *str = strdup(strings);
-		if (str) {
-			char *tmp = str;
-			char *token = strsep(&tmp, ",");
-			int i = 0;
-			while (token != NULL) {
-				rc_param2.u32ThrdP[i++] = atoi(token);
-				token = strsep(&tmp, ",");
-			}
-			free(str);
-		}
-	}
-	strings = rk_param_get_string("video.0:aq_step_i", NULL);
-	if (strings) {
-		char *str = strdup(strings);
-		if (str) {
-			char *tmp = str;
-			char *token = strsep(&tmp, ",");
-			int i = 0;
-			while (token != NULL) {
-				rc_param2.s32AqStepI[i++] = atoi(token);
-				token = strsep(&tmp, ",");
-			}
-			free(str);
-		}
-	}
-	strings = rk_param_get_string("video.0:aq_step_p", NULL);
-	if (strings) {
-		char *str = strdup(strings);
-		if (str) {
-			char *tmp = str;
-			char *token = strsep(&tmp, ",");
-			int i = 0;
-			while (token != NULL) {
-				rc_param2.s32AqStepP[i++] = atoi(token);
-				token = strsep(&tmp, ",");
-			}
-			free(str);
-		}
-	}
-	ret = RK_MPI_VENC_SetRcParam2(VIDEO_PIPE_0, &rc_param2);
-	if (ret)
-		LOG_ERROR("RK_MPI_VENC_SetRcParam2 error! ret=%#x\n", ret);
-
-	if (!strcmp(tmp_output_data_type, "H.264")) {
-		VENC_H264_QBIAS_S qbias;
-		qbias.bEnable = rk_param_get_int("video.0:qbias_enable", 0);
-		qbias.u32QbiasI = rk_param_get_int("video.0:qbias_i", 0);
-		qbias.u32QbiasP = rk_param_get_int("video.0:qbias_p", 0);
-		ret = RK_MPI_VENC_SetH264Qbias(VIDEO_PIPE_0, &qbias);
-		if (ret)
-			LOG_ERROR("RK_MPI_VENC_SetH264Qbias error! ret=%#x\n", ret);
-	} else {
-		VENC_H265_QBIAS_S qbias;
-		qbias.bEnable = rk_param_get_int("video.0:qbias_enable", 0);
-		qbias.u32QbiasI = rk_param_get_int("video.0:qbias_i", 0);
-		qbias.u32QbiasP = rk_param_get_int("video.0:qbias_p", 0);
-		ret = RK_MPI_VENC_SetH265Qbias(VIDEO_PIPE_0, &qbias);
-		if (ret)
-			LOG_ERROR("RK_MPI_VENC_SetH265Qbias error! ret=%#x\n", ret);
-	}
-
-	VENC_FILTER_S pstFilter;
-	RK_MPI_VENC_GetFilter(VIDEO_PIPE_0, &pstFilter);
-	pstFilter.u32StrengthI = rk_param_get_int("video.0:flt_str_i", 0);
-	pstFilter.u32StrengthP = rk_param_get_int("video.0:flt_str_p", 0);
-	RK_MPI_VENC_SetFilter(VIDEO_PIPE_0, &pstFilter);
-
 	// VENC_RC_PARAM_S h265_RcParam;
 	// RK_MPI_VENC_GetRcParam(VIDEO_PIPE_0, &h265_RcParam);
 	// h265_RcParam.s32FirstFrameStartQp = 26;
@@ -854,10 +762,6 @@ int rkipc_pipe_0_init() {
 		} else {
 			venc_rc_param.stParamH264.u32MinQp = 40;
 		}
-		venc_rc_param.stParamH264.u32FrmMinIQp = frame_min_i_qp;
-		venc_rc_param.stParamH264.u32FrmMinQp = frame_min_qp;
-		venc_rc_param.stParamH264.u32FrmMaxIQp = frame_max_i_qp;
-		venc_rc_param.stParamH264.u32FrmMaxQp = frame_max_qp;
 	} else if (!strcmp(tmp_output_data_type, "H.265")) {
 		if (!strcmp(tmp_rc_quality, "highest")) {
 			venc_rc_param.stParamH265.u32MinQp = 10;
@@ -874,10 +778,6 @@ int rkipc_pipe_0_init() {
 		} else {
 			venc_rc_param.stParamH265.u32MinQp = 40;
 		}
-		venc_rc_param.stParamH265.u32FrmMinIQp = frame_min_i_qp;
-		venc_rc_param.stParamH265.u32FrmMinQp = frame_min_qp;
-		venc_rc_param.stParamH265.u32FrmMaxIQp = frame_max_i_qp;
-		venc_rc_param.stParamH265.u32FrmMaxQp = frame_max_qp;
 	} else {
 		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
 		return -1;
@@ -895,17 +795,6 @@ int rkipc_pipe_0_init() {
 		RK_MPI_VENC_SetChnBufWrapAttr(VIDEO_PIPE_0, &stVencChnBufWrap);
 	}
 
-	if (!strcmp(tmp_output_data_type, "H.264")) {
-		VENC_H264_TRANS_S pstH264Trans;
-		RK_MPI_VENC_GetH264Trans(VIDEO_PIPE_0, &pstH264Trans);
-		pstH264Trans.bScalingListValid = scalinglist;
-		RK_MPI_VENC_SetH264Trans(VIDEO_PIPE_0, &pstH264Trans);
-	} else if (!strcmp(tmp_output_data_type, "H.265")) {
-		VENC_H265_TRANS_S pstH265Trans;
-		RK_MPI_VENC_GetH265Trans(VIDEO_PIPE_0, &pstH265Trans);
-		pstH265Trans.bScalingListEnabled = scalinglist;
-		RK_MPI_VENC_SetH265Trans(VIDEO_PIPE_0, &pstH265Trans);
-	}
 	VENC_CHN_REF_BUF_SHARE_S stVencChnRefBufShare;
 	memset(&stVencChnRefBufShare, 0, sizeof(VENC_CHN_REF_BUF_SHARE_S));
 	stVencChnRefBufShare.bEnable = rk_param_get_int("video.0:enable_refer_buffer_share", 0);
@@ -938,6 +827,8 @@ int rkipc_pipe_0_init() {
 		pstH265Vui.stVuiVideoSignal.video_full_range_flag = video_full_range_flag;
 		RK_MPI_VENC_SetH265Vui(VIDEO_PIPE_0, &pstH265Vui);
 	}
+
+	rkipc_set_advanced_venc_params(VIDEO_PIPE_0);
 
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
@@ -995,11 +886,6 @@ int rkipc_pipe_1_init() {
 	int video_height = rk_param_get_int("video.1:height", 1080);
 	int buf_cnt = rk_param_get_int("video.1:input_buffer_count", 2);
 	int rotation = rk_param_get_int("video.source:rotation", 0);
-	int frame_min_i_qp = rk_param_get_int("video.1:frame_min_i_qp", 26);
-	int frame_min_qp = rk_param_get_int("video.1:frame_min_qp", 28);
-	int frame_max_i_qp = rk_param_get_int("video.1:frame_max_i_qp", 51);
-	int frame_max_qp = rk_param_get_int("video.1:frame_max_qp", 51);
-	int scalinglist = rk_param_get_int("video.1:scalinglist", 0);
 
 	// VI
 	VI_CHN_ATTR_S vi_chn_attr;
@@ -1108,105 +994,6 @@ int rkipc_pipe_1_init() {
 	if (!strcmp(tmp_smart, "open"))
 		RK_MPI_VENC_EnableSvc(VIDEO_PIPE_1, 1);
 
-	if (rk_param_get_int("video.1:enable_motion_deblur", 0)) {
-		ret = RK_MPI_VENC_EnableMotionDeblur(VIDEO_PIPE_1, true);
-		if (ret)
-			LOG_ERROR("RK_MPI_VENC_EnableMotionDeblur error! ret=%#x\n", ret);
-	}
-	if (rk_param_get_int("video.1:enable_motion_static_switch", 0)) {
-		ret = RK_MPI_VENC_EnableMotionStaticSwitch(VIDEO_PIPE_1, true);
-		if (ret)
-			LOG_ERROR("RK_MPI_VENC_EnableMotionStaticSwitch error! ret=%#x\n", ret);
-	}
-
-	VENC_RC_PARAM2_S rc_param2;
-	ret = RK_MPI_VENC_GetRcParam2(VIDEO_PIPE_1, &rc_param2);
-	if (ret)
-		LOG_ERROR("RK_MPI_VENC_GetRcParam2 error! ret=%#x\n", ret);
-	const char *strings = rk_param_get_string("video.1:thrd_i", NULL);
-	if (strings) {
-		char *str = strdup(strings);
-		if (str) {
-			char *tmp = str;
-			char *token = strsep(&tmp, ",");
-			int i = 0;
-			while (token != NULL) {
-				rc_param2.u32ThrdI[i++] = atoi(token);
-				token = strsep(&tmp, ",");
-			}
-			free(str);
-		}
-	}
-	strings = rk_param_get_string("video.1:thrd_p", NULL);
-	if (strings) {
-		char *str = strdup(strings);
-		if (str) {
-			char *tmp = str;
-			char *token = strsep(&tmp, ",");
-			int i = 0;
-			while (token != NULL) {
-				rc_param2.u32ThrdP[i++] = atoi(token);
-				token = strsep(&tmp, ",");
-			}
-			free(str);
-		}
-	}
-	strings = rk_param_get_string("video.1:aq_step_i", NULL);
-	if (strings) {
-		char *str = strdup(strings);
-		if (str) {
-			char *tmp = str;
-			char *token = strsep(&tmp, ",");
-			int i = 0;
-			while (token != NULL) {
-				rc_param2.s32AqStepI[i++] = atoi(token);
-				token = strsep(&tmp, ",");
-			}
-			free(str);
-		}
-	}
-	strings = rk_param_get_string("video.1:aq_step_p", NULL);
-	if (strings) {
-		char *str = strdup(strings);
-		if (str) {
-			char *tmp = str;
-			char *token = strsep(&tmp, ",");
-			int i = 0;
-			while (token != NULL) {
-				rc_param2.s32AqStepP[i++] = atoi(token);
-				token = strsep(&tmp, ",");
-			}
-			free(str);
-		}
-	}
-	ret = RK_MPI_VENC_SetRcParam2(VIDEO_PIPE_1, &rc_param2);
-	if (ret)
-		LOG_ERROR("RK_MPI_VENC_SetRcParam2 error! ret=%#x\n", ret);
-
-	if (!strcmp(tmp_output_data_type, "H.264")) {
-		VENC_H264_QBIAS_S qbias;
-		qbias.bEnable = rk_param_get_int("video.1:qbias_enable", 0);
-		qbias.u32QbiasI = rk_param_get_int("video.1:qbias_i", 0);
-		qbias.u32QbiasP = rk_param_get_int("video.1:qbias_p", 0);
-		ret = RK_MPI_VENC_SetH264Qbias(VIDEO_PIPE_1, &qbias);
-		if (ret)
-			LOG_ERROR("RK_MPI_VENC_SetH264Qbias error! ret=%#x\n", ret);
-	} else {
-		VENC_H265_QBIAS_S qbias;
-		qbias.bEnable = rk_param_get_int("video.1:qbias_enable", 0);
-		qbias.u32QbiasI = rk_param_get_int("video.1:qbias_i", 0);
-		qbias.u32QbiasP = rk_param_get_int("video.1:qbias_p", 0);
-		ret = RK_MPI_VENC_SetH265Qbias(VIDEO_PIPE_1, &qbias);
-		if (ret)
-			LOG_ERROR("RK_MPI_VENC_SetH265Qbias error! ret=%#x\n", ret);
-	}
-
-	VENC_FILTER_S pstFilter;
-	RK_MPI_VENC_GetFilter(VIDEO_PIPE_1, &pstFilter);
-	pstFilter.u32StrengthI = rk_param_get_int("video.1:flt_str_i", 0);
-	pstFilter.u32StrengthP = rk_param_get_int("video.1:flt_str_p", 0);
-	RK_MPI_VENC_SetFilter(VIDEO_PIPE_1, &pstFilter);
-
 	tmp_rc_quality = rk_param_get_string("video.1:rc_quality", NULL);
 	VENC_RC_PARAM_S venc_rc_param;
 	RK_MPI_VENC_GetRcParam(VIDEO_PIPE_1, &venc_rc_param);
@@ -1226,10 +1013,6 @@ int rkipc_pipe_1_init() {
 		} else {
 			venc_rc_param.stParamH264.u32MinQp = 40;
 		}
-		venc_rc_param.stParamH264.u32FrmMinIQp = frame_min_i_qp;
-		venc_rc_param.stParamH264.u32FrmMinQp = frame_min_qp;
-		venc_rc_param.stParamH264.u32FrmMaxIQp = frame_max_i_qp;
-		venc_rc_param.stParamH264.u32FrmMaxQp = frame_max_qp;
 	} else if (!strcmp(tmp_output_data_type, "H.265")) {
 		if (!strcmp(tmp_rc_quality, "highest")) {
 			venc_rc_param.stParamH265.u32MinQp = 10;
@@ -1246,27 +1029,12 @@ int rkipc_pipe_1_init() {
 		} else {
 			venc_rc_param.stParamH265.u32MinQp = 40;
 		}
-		venc_rc_param.stParamH265.u32FrmMinIQp = frame_min_i_qp;
-		venc_rc_param.stParamH265.u32FrmMinQp = frame_min_qp;
-		venc_rc_param.stParamH265.u32FrmMaxIQp = frame_max_i_qp;
-		venc_rc_param.stParamH265.u32FrmMaxQp = frame_max_qp;
 	} else {
 		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
 		return -1;
 	}
 	RK_MPI_VENC_SetRcParam(VIDEO_PIPE_1, &venc_rc_param);
 
-	if (!strcmp(tmp_output_data_type, "H.264")) {
-		VENC_H264_TRANS_S pstH264Trans;
-		RK_MPI_VENC_GetH264Trans(VIDEO_PIPE_1, &pstH264Trans);
-		pstH264Trans.bScalingListValid = scalinglist;
-		RK_MPI_VENC_SetH264Trans(VIDEO_PIPE_1, &pstH264Trans);
-	} else if (!strcmp(tmp_output_data_type, "H.265")) {
-		VENC_H265_TRANS_S pstH265Trans;
-		RK_MPI_VENC_GetH265Trans(VIDEO_PIPE_1, &pstH265Trans);
-		pstH265Trans.bScalingListEnabled = scalinglist;
-		RK_MPI_VENC_SetH265Trans(VIDEO_PIPE_1, &pstH265Trans);
-	}
 	VENC_CHN_REF_BUF_SHARE_S stVencChnRefBufShare;
 	memset(&stVencChnRefBufShare, 0, sizeof(VENC_CHN_REF_BUF_SHARE_S));
 	stVencChnRefBufShare.bEnable = rk_param_get_int("video.1:enable_refer_buffer_share", 0);
@@ -1299,6 +1067,8 @@ int rkipc_pipe_1_init() {
 		pstH265Vui.stVuiVideoSignal.video_full_range_flag = video_full_range_flag;
 		RK_MPI_VENC_SetH265Vui(VIDEO_PIPE_1, &pstH265Vui);
 	}
+
+	rkipc_set_advanced_venc_params(VIDEO_PIPE_1);
 
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
