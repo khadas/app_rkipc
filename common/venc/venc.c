@@ -208,7 +208,7 @@ int rkipc_set_advanced_venc_params(int venc_chn_id) {
 	lambds_s.u32Lambda = rk_param_get_int(entry, 4);
 	RK_MPI_VENC_SetLambda(venc_chn_id, &lambds_s);
 
-#ifdef 0 // RKIPC_RV1103B
+#if 0 // #ifdef RKIPC_RV1103B
 	VENC_ANTI_FLICK_S anti_flick_s;
 	RK_MPI_VENC_GetAntiFlick(venc_chn_id, &anti_flick_s);
 	snprintf(entry, 127, "video.%d:atf_str", venc_chn_id);
