@@ -155,10 +155,8 @@ void draw_argb8888_buffer(unsigned int *buffer, int buf_w, int buf_h) {
 }
 
 void draw_argb8888_wchar(unsigned char *buffer, int buf_w, int buf_h, const wchar_t wch) {
-	pthread_mutex_lock(&g_font_mutex);
 	if (!face_) {
 		LOG_INFO("please check font_path %s\n", *font_path_);
-		pthread_mutex_unlock(&g_font_mutex);
 		return;
 	}
 	FT_Error error;
@@ -167,7 +165,6 @@ void draw_argb8888_wchar(unsigned char *buffer, int buf_w, int buf_h, const wcha
 	FT_Render_Glyph(slot_, FT_RENDER_MODE_NORMAL); // 8bit per pixel
 	if (error) {
 		LOG_DEBUG("FT_Load_Char error\n");
-		pthread_mutex_unlock(&g_font_mutex);
 		return;
 	}
 	// DrawYuvMapBuffer(buffer, buf_w, buf_h);
@@ -177,12 +174,13 @@ void draw_argb8888_wchar(unsigned char *buffer, int buf_w, int buf_h, const wcha
 	// LOG_DEBUG("slot_->bitmap.pixel_mode is %d\n", slot_->bitmap.pixel_mode);
 	// LOG_DEBUG("slot_->bitmap.buffer addr is %p\n", slot_->bitmap.buffer);
 	draw_argb8888_buffer((unsigned int *)buffer, buf_w, buf_h);
-	pthread_mutex_unlock(&g_font_mutex);
 }
 
 void draw_argb8888_text(unsigned char *buffer, int buf_w, int buf_h, const wchar_t *wstr) {
+	pthread_mutex_lock(&g_font_mutex);
 	if (wstr == NULL) {
 		LOG_ERROR("wstr is NULL\n");
+		pthread_mutex_unlock(&g_font_mutex);
 		return;
 	}
 	int len = wcslen(wstr);
@@ -196,6 +194,7 @@ void draw_argb8888_text(unsigned char *buffer, int buf_w, int buf_h, const wchar
 		pen_.y += slot_->advance.y;
 	}
 	// save_argb8888_to_bmp(buffer, buf_w, buf_h);
+	pthread_mutex_unlock(&g_font_mutex);
 }
 
 int wstr_get_actual_advance_x(const wchar_t *wstr) {
@@ -204,9 +203,9 @@ int wstr_get_actual_advance_x(const wchar_t *wstr) {
 		return -1;
 	}
 	int len = wcslen(wstr);
+	pthread_mutex_lock(&g_font_mutex);
 	pen_.x = 0;
 	pen_.y = 0;
-	pthread_mutex_lock(&g_font_mutex);
 	if (!face_) {
 		LOG_INFO("please check font_path %s\n", *font_path_);
 		pthread_mutex_unlock(&g_font_mutex);
@@ -218,7 +217,7 @@ int wstr_get_actual_advance_x(const wchar_t *wstr) {
 		error = FT_Load_Char(face_, wstr[i], FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP);
 		pen_.x += slot_->advance.x;
 		pen_.y += slot_->advance.y;
-		// LOG_INFO("slot_->advance.x is %d\n", slot_->advance.x);
+		// LOG_INFO("i is %d, slot_->advance.x is %d, pen_.x is %d\n", i, slot_->advance.x, pen_.x);
 	}
 	pthread_mutex_unlock(&g_font_mutex);
 	return pen_.x / 64; // 26.6 Cartesian pixels, 64 = 2^6
