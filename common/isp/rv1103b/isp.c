@@ -1501,7 +1501,10 @@ int rk_isp_set_power_line_frequency_mode(int cam_id, const char *value) {
 	int ret;
 	char entry[128] = {'\0'};
 	expPwrLineFreq_t freq;
+	antiFlickerMode_t mode;
 
+	mode = ANTIFLICKER_NORMAL_MODE;
+	ret  = rk_aiq_uapi2_setAntiFlickerMode(rkipc_aiq_get_ctx(cam_id), mode);
 	if (!strcmp(value, "NTSC(60HZ)")) {
 		freq = EXP_PWR_LINE_FREQ_60HZ;
 	} else {
