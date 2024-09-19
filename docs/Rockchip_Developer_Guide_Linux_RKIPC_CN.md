@@ -1148,7 +1148,6 @@ src_frame_rate_den = 1 ; 输入帧率分母
 src_frame_rate_num = 25 ; 输入帧率分子
 dst_frame_rate_den = 1 ; 输出帧率分母
 dst_frame_rate_num = 25 ; 输出帧率分子
-target_rate = 0 ; 目标码率，目前未使用
 mid_rate = 2048 ; 中间码率，详细请参考rockit文档说明
 max_rate = 3072 ; 最大码率，详细请参考rockit文档说明
 min_rate = 0 ; 最小码率，详细请参考rockit文档说明

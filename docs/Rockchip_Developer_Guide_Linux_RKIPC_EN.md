@@ -1142,7 +1142,6 @@ src_frame_rate_den = 1 ; Input frame rate denominator
 src_frame_rate_num = 25 ; Input frame rate numerator
 dst_frame_rate_den = 1 ; Output frame rate denominator
 dst_frame_rate_num = 25 ; Output frame rate numerator
-target_rate = 0 ; Target bitrate, currently not used
 mid_rate = 2048 ; Middle bitrate, please see rockit documentation for details
 max_rate = 3072 ; Max bitrate, please see rockit documentation for details
 min_rate = 0 ; Min bitrate, please see rockit documentation for details
