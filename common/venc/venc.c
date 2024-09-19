@@ -26,32 +26,37 @@ int rkipc_set_advanced_venc_params(int venc_chn_id) {
 	RK_MPI_VENC_GetRcParam(venc_chn_id, &venc_rc_param);
 	if (!strcmp(tmp_output_data_type, "H.264")) {
 		snprintf(entry, 127, "video.%d:frame_min_i_qp", venc_chn_id);
-		venc_rc_param.stParamH264.u32FrmMinIQp = rk_param_get_int(entry, 26);
+		venc_rc_param.stParamH264.u32FrmMinIQp = rk_param_get_int(entry, 25);
 		snprintf(entry, 127, "video.%d:frame_min_qp", venc_chn_id);
-		venc_rc_param.stParamH264.u32FrmMinQp = rk_param_get_int(entry, 28);
+		venc_rc_param.stParamH264.u32FrmMinQp = rk_param_get_int(entry, 26);
 		snprintf(entry, 127, "video.%d:frame_max_i_qp", venc_chn_id);
-		venc_rc_param.stParamH264.u32FrmMaxIQp = rk_param_get_int(entry, 51);
+		venc_rc_param.stParamH264.u32FrmMaxIQp = rk_param_get_int(entry, 45);
 		snprintf(entry, 127, "video.%d:frame_max_qp", venc_chn_id);
-		venc_rc_param.stParamH264.u32FrmMaxQp = rk_param_get_int(entry, 51);
+		venc_rc_param.stParamH264.u32FrmMaxQp = rk_param_get_int(entry, 48);
 	} else if (!strcmp(tmp_output_data_type, "H.265")) {
 		snprintf(entry, 127, "video.%d:frame_min_i_qp", venc_chn_id);
-		venc_rc_param.stParamH265.u32FrmMinIQp = rk_param_get_int(entry, 26);
+		venc_rc_param.stParamH265.u32FrmMinIQp = rk_param_get_int(entry, 25);
 		snprintf(entry, 127, "video.%d:frame_min_qp", venc_chn_id);
-		venc_rc_param.stParamH265.u32FrmMinQp = rk_param_get_int(entry, 28);
+		venc_rc_param.stParamH265.u32FrmMinQp = rk_param_get_int(entry, 26);
 		snprintf(entry, 127, "video.%d:frame_max_i_qp", venc_chn_id);
-		venc_rc_param.stParamH265.u32FrmMaxIQp = rk_param_get_int(entry, 51);
+		venc_rc_param.stParamH265.u32FrmMaxIQp = rk_param_get_int(entry, 45);
 		snprintf(entry, 127, "video.%d:frame_max_qp", venc_chn_id);
-		venc_rc_param.stParamH265.u32FrmMaxQp = rk_param_get_int(entry, 51);
+		venc_rc_param.stParamH265.u32FrmMaxQp = rk_param_get_int(entry, 48);
 	} else {
 		LOG_ERROR("tmp_output_data_type is %s, not support\n", tmp_output_data_type);
 		return -1;
 	}
 	RK_MPI_VENC_SetRcParam(venc_chn_id, &venc_rc_param);
 
-	snprintf(entry, 127, "video.%d:enable_debreath_effect", venc_chn_id);
-	ret = RK_MPI_VENC_EnableMotionDeblur(venc_chn_id, rk_param_get_int(entry, 0));
+	snprintf(entry, 127, "video.%d:enable_motion_deblur", venc_chn_id);
+	ret = RK_MPI_VENC_EnableMotionDeblur(venc_chn_id, rk_param_get_int(entry, 1));
 	if (ret)
 		LOG_ERROR("RK_MPI_VENC_EnableMotionDeblur error! ret=%#x\n", ret);
+
+	snprintf(entry, 127, "video.%d:motion_deblur_strength", venc_chn_id);
+	ret = RK_MPI_VENC_SetMotionDeblurStrength(venc_chn_id, rk_param_get_int(entry, 0));
+	if (ret)
+		LOG_ERROR("RK_MPI_VENC_SetMotionDeblurStrength error! ret=%#x\n", ret);
 
 	snprintf(entry, 127, "video.%d:enable_motion_static_switch", venc_chn_id);
 	ret = RK_MPI_VENC_EnableMotionStaticSwitch(venc_chn_id, rk_param_get_int(entry, 0));
@@ -72,13 +77,13 @@ int rkipc_set_advanced_venc_params(int venc_chn_id) {
 		VENC_H264_TRANS_S pstH264Trans;
 		RK_MPI_VENC_GetH264Trans(venc_chn_id, &pstH264Trans);
 		snprintf(entry, 127, "video.%d:scalinglist", venc_chn_id);
-		pstH264Trans.bScalingListValid = rk_param_get_int(entry, 0);
+		pstH264Trans.bScalingListValid = rk_param_get_int(entry, 1);
 		RK_MPI_VENC_SetH264Trans(venc_chn_id, &pstH264Trans);
 	} else if (!strcmp(tmp_output_data_type, "H.265")) {
 		VENC_H265_TRANS_S pstH265Trans;
 		RK_MPI_VENC_GetH265Trans(venc_chn_id, &pstH265Trans);
 		snprintf(entry, 127, "video.%d:scalinglist", venc_chn_id);
-		pstH265Trans.bScalingListEnabled = rk_param_get_int(entry, 0);
+		pstH265Trans.bScalingListEnabled = rk_param_get_int(entry, 1);
 		RK_MPI_VENC_SetH265Trans(venc_chn_id, &pstH265Trans);
 	}
 
@@ -117,7 +122,7 @@ int rkipc_set_advanced_venc_params(int venc_chn_id) {
 		}
 	}
 	snprintf(entry, 127, "video.%d:aq_step_i", venc_chn_id);
-	strings = rk_param_get_string(entry, "-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,7,8");
+	strings = rk_param_get_string(entry, "-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,7,8,9");
 	if (strings) {
 		char *str = strdup(strings);
 		if (str) {
@@ -132,7 +137,7 @@ int rkipc_set_advanced_venc_params(int venc_chn_id) {
 		}
 	}
 	snprintf(entry, 127, "video.%d:aq_step_p", venc_chn_id);
-	strings = rk_param_get_string(entry, "-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,7,8");
+	strings = rk_param_get_string(entry, "-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,7,8,9");
 	if (strings) {
 		char *str = strdup(strings);
 		if (str) {
@@ -177,9 +182,9 @@ int rkipc_set_advanced_venc_params(int venc_chn_id) {
 	VENC_FILTER_S filter_s;
 	RK_MPI_VENC_GetFilter(venc_chn_id, &filter_s);
 	snprintf(entry, 127, "video.%d:flt_str_i", venc_chn_id);
-	filter_s.u32StrengthI = rk_param_get_int(entry, 0);
+	filter_s.u32StrengthI = rk_param_get_int(entry, 2);
 	snprintf(entry, 127, "video.%d:flt_str_p", venc_chn_id);
-	filter_s.u32StrengthP = rk_param_get_int(entry, 0);
+	filter_s.u32StrengthP = rk_param_get_int(entry, 2);
 	RK_MPI_VENC_SetFilter(venc_chn_id, &filter_s);
 
 	if (!strcmp(tmp_output_data_type, "H.265")) {
@@ -193,43 +198,41 @@ int rkipc_set_advanced_venc_params(int venc_chn_id) {
 	VENC_ANTI_RING_S anti_ring_s;
 	RK_MPI_VENC_GetAntiRing(venc_chn_id, &anti_ring_s);
 	snprintf(entry, 127, "video.%d:anti_ring", venc_chn_id);
-	anti_ring_s.u32AntiRing = rk_param_get_int(entry, 2);
+	anti_ring_s.u32AntiRing = rk_param_get_int(entry, 3);
 	RK_MPI_VENC_SetAntiRing(venc_chn_id, &anti_ring_s);
 
 	VENC_ANTI_LINE_S anti_line_s;
 	RK_MPI_VENC_GetAntiLine(venc_chn_id, &anti_line_s);
 	snprintf(entry, 127, "video.%d:anti_line", venc_chn_id);
-	anti_line_s.u32AntiLine = rk_param_get_int(entry, 2);
+	anti_line_s.u32AntiLine = rk_param_get_int(entry, 3);
 	RK_MPI_VENC_SetAntiLine(venc_chn_id, &anti_line_s);
 
-	VENC_LAMBDA_S lambds_s;
-	RK_MPI_VENC_GetLambda(venc_chn_id, &lambds_s);
-	snprintf(entry, 127, "video.%d:lambds", venc_chn_id);
-	lambds_s.u32Lambda = rk_param_get_int(entry, 4);
-	RK_MPI_VENC_SetLambda(venc_chn_id, &lambds_s);
+#ifdef RKIPC_RV1103B
+	VENC_LAMBDA_S lambda_s;
+	RK_MPI_VENC_GetLambda(venc_chn_id, &lambda_s);
+	snprintf(entry, 127, "video.%d:lambda", venc_chn_id);
+	lambda_s.u32Lambda = rk_param_get_int(entry, 4);
+	snprintf(entry, 127, "video.%d:lambda_i", venc_chn_id);
+	lambda_s.u32LambdaI = rk_param_get_int(entry, 7);
+	RK_MPI_VENC_SetLambda(venc_chn_id, &lambda_s);
 
-#if 0 // #ifdef RKIPC_RV1103B
 	VENC_ANTI_FLICK_S anti_flick_s;
 	RK_MPI_VENC_GetAntiFlick(venc_chn_id, &anti_flick_s);
 	snprintf(entry, 127, "video.%d:atf_str", venc_chn_id);
 	anti_flick_s.u32AntiFlick = rk_param_get_int(entry, 2);
 	RK_MPI_VENC_SetAntiFlick(venc_chn_id, &anti_flick_s);
 
-	VENC_STATIC_BLOCK_S static_block_s;
-	RK_MPI_VENC_GetStaticBlock(venc_chn_id, &static_block_s);
+	VENC_STATIC_WEIGHT_S static_weight_s;
+	RK_MPI_VENC_GetStaticWeight(venc_chn_id, &static_weight_s);
 	snprintf(entry, 127, "video.%d:static_frm_num", venc_chn_id);
-	static_block_s.u32FrmNum = rk_param_get_int(entry, 5);
+	static_weight_s.u32FrmNum = rk_param_get_int(entry, 5);
 	snprintf(entry, 127, "video.%d:madp16_th", venc_chn_id);
-	static_block_s.u32Madp16Th = rk_param_get_int(entry, 15);
-	RK_MPI_VENC_SetStaticBlock(venc_chn_id, &static_block_s);
-
-	VENC_SKIP_WEIGHT_S skip_weight;
-	RK_MPI_VENC_GetSkipWeight(venc_chn_id, &skip_weight);
+	static_weight_s.u32Madp16Th = rk_param_get_int(entry, 15);
 	snprintf(entry, 127, "video.%d:skip16_wgt", venc_chn_id);
-	skip_weight.u32Skip16Weight = rk_param_get_int(entry, 6);
+	static_weight_s.u32Skip16Weight = rk_param_get_int(entry, 15);
 	snprintf(entry, 127, "video.%d:skip32_wgt", venc_chn_id);
-	skip_weight.u32Skip32Weight = rk_param_get_int(entry, 6);
-	RK_MPI_VENC_SetSkipWeight(venc_chn_id, &skip_weight);
+	static_weight_s.u32Skip32Weight = rk_param_get_int(entry, 15);
+	RK_MPI_VENC_SetStaticWeight(venc_chn_id, &static_weight_s);
 
 	if (!strcmp(tmp_output_data_type, "H.264")) {
 		VENC_H264_QBIAS2_S qbias2_s;
