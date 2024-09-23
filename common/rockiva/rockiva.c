@@ -232,8 +232,13 @@ int rkipc_rockiva_init() {
 		globalParams.imageInfo.transformMode = ROCKIVA_IMAGE_TRANSFORM_ROTATE_270;
 	}
 
-	ROCKIVA_Init(&rkba_handle, ROCKIVA_MODE_VIDEO, &globalParams, NULL);
-	LOG_INFO("ROCKIVA_Init over\n");
+	ret = ROCKIVA_Init(&rkba_handle, ROCKIVA_MODE_VIDEO, &globalParams, NULL);
+	if (ret != ROCKIVA_RET_SUCCESS) {
+		printf("ROCKIVA_Init error %d\n", ret);
+		return -1;
+	} else {
+		LOG_INFO("ROCKIVA_Init success\n");
+	}
 
 	// 构建一个区域入侵规则
 	int web_width = rk_param_get_int("osd.common:normalized_screen_width", 704);
@@ -296,8 +301,9 @@ int rkipc_rockiva_init() {
 	if (ret != ROCKIVA_RET_SUCCESS) {
 		printf("ROCKIVA_BA_Init error %d\n", ret);
 		return -1;
+	} else {
+		LOG_INFO("ROCKIVA_BA_Init success\n");
 	}
-	LOG_INFO("ROCKIVA_BA_Init success\n");
 
 	if (rockiva_signal)
 		rk_signal_destroy(rockiva_signal);
