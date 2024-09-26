@@ -142,12 +142,12 @@ int rkipc_audio_bcd_init() {
 	int result;
 	AI_BCD_CONFIG_S ai_bcd_config;
 
-	ai_bcd_config.mFrameLen = 120;
-	ai_bcd_config.mBlankFrameMax = 50;
-	ai_bcd_config.mCryEnergy = -1.25f;
-	ai_bcd_config.mJudgeEnergy = -0.75f;
-	ai_bcd_config.mCryThres1 = 0.70f;
-	ai_bcd_config.mCryThres2 = 0.55f;
+	ai_bcd_config.mFrameLen = 50;
+	ai_bcd_config.mConfirmProb = 0.83f;
+	const char *bcd_model_path =
+	    rk_param_get_string("audio.0:bcd_model_path", "/oem/usr/lib/rkaudio_model_sed_bcd.rknn");
+	memcpy(ai_bcd_config.aModelPath, bcd_model_path, strlen(bcd_model_path) + 1);
+
 	result = RK_MPI_AI_SetBcdAttr(ai_dev_id, ai_chn_id, &ai_bcd_config);
 	if (result != 0) {
 		LOG_ERROR("RK_MPI_AI_SetBcdAttr(%d,%d) failed with %#x\n", ai_dev_id, ai_chn_id, result);
