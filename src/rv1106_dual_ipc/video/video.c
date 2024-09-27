@@ -2879,6 +2879,8 @@ extern char *rkipc_iq_file_path_;
 int rk_video_restart() {
 	int ret;
 	ret = rk_storage_deinit();
+	if (rk_param_get_int("audio.0:enable", 0))
+		rkipc_audio_deinit();
 	ret |= rk_video_deinit();
 	if (rk_param_get_int("isp:group_mode", 1)) {
 		rk_isp_group_deinit(0);
@@ -2896,6 +2898,8 @@ int rk_video_restart() {
 		}
 	}
 	ret |= rk_video_init();
+	if (rk_param_get_int("audio.0:enable", 0))
+		rkipc_audio_init();
 	ret |= rk_storage_init();
 
 	return ret;
