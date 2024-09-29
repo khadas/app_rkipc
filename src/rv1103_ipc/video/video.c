@@ -1627,7 +1627,7 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 			} else if (object->objInfo.type == ROCKIVA_OBJECT_TYPE_FACE) {
 				draw_rect_2bpp((RK_U8 *)stCanvasInfo.u64VirAddr, stCanvasInfo.u32VirWidth,
 				               stCanvasInfo.u32VirHeight, x, y, w, h, line_pixel,
-				               RGN_COLOR_LUT_INDEX_0);
+				               RGN_COLOR_LUT_INDEX_1);
 			}
 			// LOG_INFO("draw rect time-consuming is %lld\n",(rkipc_get_curren_time_ms() -
 			// 	last_ba_result_time));
