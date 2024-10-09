@@ -105,14 +105,9 @@ int main(int argc, char **argv) {
 		rk_isp_group_init(0, rkipc_iq_file_path_);
 		// rk_isp_group_set_frame_rate(0, rk_param_get_int("isp.0.adjustment:fps", 30));
 	} else {
-		rk_isp_init(0, rkipc_iq_file_path_);
-		rk_isp_init(1, rkipc_iq_file_path_);
-		rk_isp_init(2, rkipc_iq_file_path_);
-		// rk_isp_init(3, rkipc_iq_file_path_);
-		// rk_isp_init(4, rkipc_iq_file_path_);
-		// rk_isp_init(5, rkipc_iq_file_path_);
-		// rk_isp_init(6, rkipc_iq_file_path_);
-		// rk_isp_init(7, rkipc_iq_file_path_);
+		for (int i = 0; i < rk_param_get_int("avs:sensor_num", 6); i++) {
+			rk_isp_init(i, rkipc_iq_file_path_);
+		}
 	}
 	RK_MPI_SYS_Init();
 	rk_video_init();
